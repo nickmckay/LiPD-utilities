@@ -26,21 +26,23 @@ csv_out <- function(current, num){
     longest_column <- get_longest_column(bind)
     print(longest_column)
     new <- bind[[1]]
-    count <- 1
     for(i in 2:length(bind)){
-      new[[count]] <- cbind(bind[[i]])
-      count <- count + 1
+      #new[[count]] <- cbind(bind[[i]])
+      new=cbind(new,bind[[i]])
     }
     
     print(new)
     
     #creating the csv file
+    #check if output folder
+    dir.create("output", showWarnings = FALSE,  mode = "0777")    
     directory <- paste('output/', current, '/', sep = "")
+    print(directory)
     path <- paste(directory, current, '.csv', sep = "")
     dir.create(directory, showWarnings = FALSE,  mode = "0777")
     file.create(path, showWarnings = FALSE)
     
-    write.csv(new, file = path, row.names = FALSE, col.names = FALSE)
+    write.table(new, file = path, row.names = FALSE, col.names = FALSE,sep=",")
     
     print(current)
   }
@@ -295,9 +297,9 @@ get_longest_column <- function(bind){
 
 run <- function(){
   direct <- getwd()
-  if(direct != "/Users/austin/Desktop/R"){
-    setwd("Desktop/R")
-  }
+  #if(direct != "/Users/austin/Desktop/R"){
+  #  setwd("Desktop/R")
+  #}
   file_names <- names(D)
   num <- 1
   for (i in 1:length(file_names)) {
@@ -305,4 +307,6 @@ run <- function(){
     csv_out(names(D)[i], i)
   }
 }
+setwd("~/Dropbox/LiPD/AHT/")
+load("~/GitHub/LiPD-utilities/R/LiPD_R_Data.Rdata")
 run()
