@@ -6,7 +6,7 @@ library(stringr)
 
 csv_out <- function(current, num){
   #print(num)
-
+  
   out_names <- D[[num]]$paleoData$s1
   
   if(length(names(out_names)) == 0){
@@ -15,38 +15,35 @@ csv_out <- function(current, num){
   else{
     bind <- list()
     
-    for (i in which(names(out_names)!="notes")) {
-      if(is.numeric(D[[num]]$paleoData$s1[[i]]$values)){
+    for (i in 1:length(out_names)) {
+      try(if(is.numeric(D[[num]]$paleoData$s1[[i]]$values)){
         tryCatch(x <- D[[num]]$paleoData$s1[[i]]$values, error=function(e) NULL)
         tryCatch(bind[[i]] <- x, error=function(e) NULL)
       }
+      )
     }
-    
-    #print(bind[[2]])
-    longest_column <- get_longest_column(bind)
-    print(longest_column)
-    new <- bind[[1]]
-    for(i in 2:length(bind)){
-      #new[[count]] <- cbind(bind[[i]])
-      new=cbind(new,bind[[i]])
-    }
-    
-    print(new)
-    
-    #creating the csv file
-    #check if output folder
-    dir.create("output", showWarnings = FALSE,  mode = "0777")    
-    directory <- paste('output/', current, '/', sep = "")
-    print(directory)
-    path <- paste(directory, current, '.csv', sep = "")
-    dir.create(directory, showWarnings = FALSE,  mode = "0777")
-    file.create(path, showWarnings = FALSE)
-    
-    write.table(new, file = path, row.names = FALSE, col.names = FALSE,sep=",")
-    
-    print(current)
+      
+new <- bind[[1]]
+for(i in 2:length(bind)){
+  #new[[count]] <- cbind(bind[[i]])
+  new=cbind(new,bind[[i]])
+}
+
+print(new)
+
+#creating the csv file
+#check if output folder
+dir.create("output", showWarnings = FALSE,  mode = "0777")    
+directory <- paste('output/', current, '/', sep = "")
+print(directory)
+path <- paste(directory, current, '.csv', sep = "")
+dir.create(directory, showWarnings = FALSE,  mode = "0777")
+file.create(path, showWarnings = FALSE)
+write.table(new, file = path, row.names = FALSE, col.names = FALSE,sep=",")
+
+print(current)
   }
-  
+
 }
 
 jsonld_out <- function(current, num){
@@ -134,7 +131,7 @@ make_columns <- function(count){
   }'
   
   json_data <- fromJSON(json)
-
+  
   
   file <- D[[num]]$paleoData$s1
   
@@ -147,7 +144,7 @@ make_columns <- function(count){
   if (index == 0){
     return('')
   }
-
+  
   else {
     count <- 1
     for(i in 1:index){
@@ -190,62 +187,7 @@ make_pub <- function(count, doi){
     "title": "",
     "volume": ""
   }'
-  
-    json_data <- fromJSON(json)
     
-    
-    file <- D[[num]]$paleoData$s1
-    
-    for (i in D[[num]]$paleoData$s1){
-      index <- index + 1
-    }
-    
-    return_value <- vector("list", index)
-    
-    if (index == 0){
-      return('')
-    }
-    
-    #else {
-      #count <- 1
-#       for(i in 1:index){
-#         json_data$number <- count
-#         tryCatch(json_data$dataType <- class(D[[num]]$paleoData$s1[[count]]$values[1]), error=function(e) NULL)
-#         tryCatch(json_data$shortName <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-#         json_data$longName <- ''
-#         tryCatch(json_data$units <- D[[num]]$paleoData$s1[[count]]$units, error=function(e) NULL)
-#         tryCatch(json_data$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-#         #tryCatch(json_data$climateInterpretation$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-#         json_data$climateInterpretation$interpDirection <- ''
-#         json_data$climateInterpretation$parameterDetail <- ''
-#         json_data$climateInterpretation$seasonality <- ''
-#         
-#         return_value[[i]] <- json_data
-#         count <- count + 1
-#       }
-#       return(return_value)
-#     }
-  }
-}
-
-# make_climateInterpretation will eventually return the correct 
-# climateInterpretation information
-make_climateInterpretation <- function(count, climInterp){
-  num <- count
-  ci <- climInterp
-  index <- 0
-  
-  if(ci == ""){
-    return("")
-  }
-  else{
-    json <- '{
-      "parameter": "",
-      "interpDirection": "",
-      "parameterDetail": "",
-      "seasonality": ""
-    }'
-  
     json_data <- fromJSON(json)
     
     
@@ -280,8 +222,63 @@ make_climateInterpretation <- function(count, climInterp){
     #       }
     #       return(return_value)
     #     }
-}
   }
+}
+
+# make_climateInterpretation will eventually return the correct 
+# climateInterpretation information
+make_climateInterpretation <- function(count, climInterp){
+  num <- count
+  ci <- climInterp
+  index <- 0
+  
+  if(ci == ""){
+    return("")
+  }
+  else{
+    json <- '{
+      "parameter": "",
+      "interpDirection": "",
+      "parameterDetail": "",
+      "seasonality": ""
+    }'
+    
+    json_data <- fromJSON(json)
+    
+    
+    file <- D[[num]]$paleoData$s1
+    
+    for (i in D[[num]]$paleoData$s1){
+      index <- index + 1
+    }
+    
+    return_value <- vector("list", index)
+    
+    if (index == 0){
+      return('')
+    }
+    
+    #else {
+    #count <- 1
+    #       for(i in 1:index){
+    #         json_data$number <- count
+    #         tryCatch(json_data$dataType <- class(D[[num]]$paleoData$s1[[count]]$values[1]), error=function(e) NULL)
+    #         tryCatch(json_data$shortName <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
+    #         json_data$longName <- ''
+    #         tryCatch(json_data$units <- D[[num]]$paleoData$s1[[count]]$units, error=function(e) NULL)
+    #         tryCatch(json_data$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
+    #         #tryCatch(json_data$climateInterpretation$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
+    #         json_data$climateInterpretation$interpDirection <- ''
+    #         json_data$climateInterpretation$parameterDetail <- ''
+    #         json_data$climateInterpretation$seasonality <- ''
+    #         
+    #         return_value[[i]] <- json_data
+    #         count <- count + 1
+    #       }
+    #       return(return_value)
+    #     }
+  }
+}
 
 # get_longest_column returns the length of the longest columns
 # of the csv columns. May be unneeded now
@@ -303,7 +300,7 @@ run <- function(){
   file_names <- names(D)
   num <- 1
   for (i in 1:length(file_names)) {
-    #jsonld_out(names(D)[i], i)
+    jsonld_out(names(D)[i], i)
     csv_out(names(D)[i], i)
   }
 }
