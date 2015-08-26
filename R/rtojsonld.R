@@ -85,13 +85,16 @@ jsonld_out <- function(current, num){
   json_data$geo$geometry$coordinates <- get_coordinates(count)
   json_data$geo$geometry$type <- D[[count]]$geo$type
   json_data$geo$properties$siteName <- D[[count]]$geo$siteName
-  paleoDataTableName = names(D[[count]]$paleoData)
-  json_data$paleoData$paleoDataTableName <- paleoDataTableName
-  json_data$paleoData$filename <- paste(file_name, ".csv", sep = "")
-  json_data$paleoData$columns <- make_columns(count)
   
-  #doi <- ""
-  #json_data$pub <- make_pub(count, doi)
+  for(i in length(D[[count]]$paleoData)){
+    
+    paleoDataTableName = names(D[[count]]$paleoData)[i]
+    json_data$paleoData$paleoDataTableName <- paleoDataTableName
+    json_data$paleoData$filename <- paste(file_name, ".csv", sep = "")
+    json_data$paleoData$columns <- make_columns(count, i)
+    
+  }
+  
   
   x <- toJSON(json_data, pretty = TRUE, byrow = TRUE)
   setwd('/Users/austin/Desktop/R')
@@ -118,9 +121,11 @@ get_coordinates <- function(count){
 }
 
 # make_columns will return the correct amount of paleoData columns
-make_columns <- function(count){
+make_columns <- function(count, i){
   num <- count
   index <- 0
+  name <- i
+  
   
   json <- '{
     "number": "",
@@ -133,7 +138,7 @@ make_columns <- function(count){
   json_data <- fromJSON(json)
   
   
-  file <- D[[num]]$paleoData$s1
+  file <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]]
   
   for (i in D[[num]]$paleoData$s1){
     index <- index + 1
@@ -229,10 +234,10 @@ run <- function(){
  # print(getwd())
   file_names <- names(D)
   num <- 1
-  for (i in 1:length(file_names)) {
-    jsonld_out(names(D)[i], i)
-    csv_out(names(D)[i], i)
-  }
+  #for (i in 1:length(file_names)) {
+    jsonld_out(names(D)[1], 1)
+    #csv_out(names(D)[i], i)
+  #}
 }
 #setwd("~/Desktop/R")
 load("~/GitHub/LiPD-utilities/R/LiPD_R_Data.Rdata")
