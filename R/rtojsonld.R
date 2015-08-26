@@ -25,23 +25,19 @@ csv_out <- function(current, num){
       
 new <- bind[[1]]
 for(i in 2:length(bind)){
-  #new[[count]] <- cbind(bind[[i]])
   new=cbind(new,bind[[i]])
 }
-
-print(new)
 
 #creating the csv file
 #check if output folder
 dir.create("output", showWarnings = FALSE,  mode = "0777")    
 directory <- paste('output/', current, '/', sep = "")
-print(directory)
+#print(directory)
 path <- paste(directory, current, '.csv', sep = "")
 dir.create(directory, showWarnings = FALSE,  mode = "0777")
 file.create(path, showWarnings = FALSE)
 write.table(new, file = path, row.names = FALSE, col.names = FALSE,sep=",")
 
-print(current)
   }
 
 }
@@ -60,25 +56,20 @@ jsonld_out <- function(current, num){
   "collectionName" : "",
   "comments" : "",
   "dataSetName" : "",
+  "pubYear" : "",
   "geo" : {
       "geometry" : {
-          "coordinates" : {
-              "latitude" : "",
-              "longitude" : "",
-              "elevation" : ""
-          },
-          "type" : ""
+          "type" : "",
+          "coordinates" : ""
       },
       "properties" : {
           "siteName" : ""
       }
   },
   "paleoData" : {
-      "columns" : [],
+      "paleoDataTableName" : "",
       "filename" : "",
-      "paleoDataTableName" : ""
-  },
-  "pub" : {
+      "columns" : []
   }
 }'
   
@@ -90,28 +81,40 @@ jsonld_out <- function(current, num){
   json_data$collectionName <- ""
   json_data$comments <- ""
   json_data$dataSetName <- D[[count]]$dataSetName
-  json_data$geo$geometry$coordinates$latitude <- D[[count]]$geo$latitude
-  print(D[[count]]$geo$latitude)
-  json_data$geo$geometry$coordinates$longitude <- D[[count]]$geo$longitude
-  json_data$geo$geometry$coordinates$elevation <- D[[count]]$geo$elevation
+  json_data$pubYear <- D[[count]]$pub$pubYear
+  json_data$geo$geometry$coordinates <- get_coordinates(count)
   json_data$geo$geometry$type <- D[[count]]$geo$type
   json_data$geo$properties$siteName <- D[[count]]$geo$siteName
+  paleoDataTableName = names(D[[count]]$paleoData)
+  json_data$paleoData$paleoDataTableName <- paleoDataTableName
+  json_data$paleoData$filename <- paste(file_name, ".csv", sep = "")
   json_data$paleoData$columns <- make_columns(count)
-  json_data$paleoData$filename <- paste(file_name, ".csv")
-  #json_data$paleoData$paleoDataTableName <-
   
-  doi <- ""
-  json_data$pub <- make_pub(count, doi)
+  #doi <- ""
+  #json_data$pub <- make_pub(count, doi)
   
-  #json_data$pub$pubYear <- D[[count]]$pubYear
   x <- toJSON(json_data, pretty = TRUE, byrow = TRUE)
-  directory <- paste('output/', file_name, '/', sep="")
-  path <- paste(directory, file_name, '.jsonld', sep="")
-  print(path)
+  setwd('/Users/austin/Desktop/R')
+  dir.create("output", showWarnings = FALSE,  mode = "0777")    
+  directory <- paste('output/', current, '/', sep = "")
+  #print(directory)
+  path <- paste(directory, current, '.jsonld', sep = "")
   dir.create(directory, showWarnings = FALSE,  mode = "0777")
   file.create(path, showWarnings = FALSE, mode = "0777")
   writeLines(x, path)
   print(file_name)
+}
+
+get_coordinates <- function(count){
+  
+  longitude = D[[count]]$geo$longitude
+  latitude = D[[count]]$geo$latitude
+  elevation = D[[count]]$geo$elevation
+  
+  coordinates = list(longitude, latitude, elevation)
+  
+  print(coordinates)
+  return(coordinates)
 }
 
 # make_columns will return the correct amount of paleoData columns
@@ -123,11 +126,8 @@ make_columns <- function(count){
     "number": "",
     "dataType": "",
     "shortName": "",
-    "longName": "",
     "units": "",
-    "parameter": "",
-    "climateInterpretation": {
-    } 
+    "parameter": ""
   }'
   
   json_data <- fromJSON(json)
@@ -151,12 +151,12 @@ make_columns <- function(count){
       json_data$number <- count
       tryCatch(json_data$dataType <- class(D[[num]]$paleoData$s1[[count]]$values[1]), error=function(e) NULL)
       tryCatch(json_data$shortName <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-      json_data$longName <- ''
       tryCatch(json_data$units <- D[[num]]$paleoData$s1[[count]]$units, error=function(e) NULL)
       tryCatch(json_data$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-      climInterp = ""
-      json_data$climateInterpretation <- make_climateInterpretation(count, climInterp)
-      #tryCatch(json_data$climateInterpretation$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
+      tryCatch(json_data$climateInterpretation$parameter <- D[[num]]$paleoData$s1[[count]]$climateInterpretation$parameter, error=function(e) NULL)
+      tryCatch(json_data$climateInterpretation$interpDirection <- D[[num]]$paleoData$s1[[count]]$climateInterpretation$interpDirection, error=function(e) NULL)
+      tryCatch(json_data$climateInterpretation$parameterDetail <- D[[num]]$paleoData$s1[[count]]$climateInterpretation$parameterDetail, error=function(e) NULL)
+      tryCatch(json_data$climateInterpretation$seasonality <- D[[num]]$paleoData$s1[[count]]$climateInterpretation$seasonality, error=function(e) NULL)
       
       return_value[[i]] <- json_data
       count <- count + 1
@@ -225,78 +225,8 @@ make_pub <- function(count, doi){
   }
 }
 
-# make_climateInterpretation will eventually return the correct 
-# climateInterpretation information
-make_climateInterpretation <- function(count, climInterp){
-  num <- count
-  ci <- climInterp
-  index <- 0
-  
-  if(ci == ""){
-    return("")
-  }
-  else{
-    json <- '{
-      "parameter": "",
-      "interpDirection": "",
-      "parameterDetail": "",
-      "seasonality": ""
-    }'
-    
-    json_data <- fromJSON(json)
-    
-    
-    file <- D[[num]]$paleoData$s1
-    
-    for (i in D[[num]]$paleoData$s1){
-      index <- index + 1
-    }
-    
-    return_value <- vector("list", index)
-    
-    if (index == 0){
-      return('')
-    }
-    
-    #else {
-    #count <- 1
-    #       for(i in 1:index){
-    #         json_data$number <- count
-    #         tryCatch(json_data$dataType <- class(D[[num]]$paleoData$s1[[count]]$values[1]), error=function(e) NULL)
-    #         tryCatch(json_data$shortName <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-    #         json_data$longName <- ''
-    #         tryCatch(json_data$units <- D[[num]]$paleoData$s1[[count]]$units, error=function(e) NULL)
-    #         tryCatch(json_data$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-    #         #tryCatch(json_data$climateInterpretation$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-    #         json_data$climateInterpretation$interpDirection <- ''
-    #         json_data$climateInterpretation$parameterDetail <- ''
-    #         json_data$climateInterpretation$seasonality <- ''
-    #         
-    #         return_value[[i]] <- json_data
-    #         count <- count + 1
-    #       }
-    #       return(return_value)
-    #     }
-  }
-}
-
-# get_longest_column returns the length of the longest columns
-# of the csv columns. May be unneeded now
-get_longest_column <- function(bind){
-  longest_length <- 0
-  for(i in 1:length(bind)){
-    if(longest_length < length(bind[[i]])){
-      longest_length <- length(bind[[i]])
-    }
-  }
-  return(longest_length)
-}
-
 run <- function(){
-  direct <- getwd()
-  #if(direct != "/Users/austin/Desktop/R"){
-  #  setwd("Desktop/R")
-  #}
+ # print(getwd())
   file_names <- names(D)
   num <- 1
   for (i in 1:length(file_names)) {
@@ -304,6 +234,6 @@ run <- function(){
     csv_out(names(D)[i], i)
   }
 }
-setwd("~/Dropbox/LiPD/AHT/")
+#setwd("~/Desktop/R")
 load("~/GitHub/LiPD-utilities/R/LiPD_R_Data.Rdata")
 run()
