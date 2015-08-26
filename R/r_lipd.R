@@ -47,8 +47,6 @@ csv_out_chronData <- function(current, num, n){
   
   out_names <- D[[num]]$chronData[[name]]
   
-  print("1")
-  
   if(length(names(out_names)) == 0){
     print("empty")
   }
@@ -56,28 +54,20 @@ csv_out_chronData <- function(current, num, n){
   else{
     bind <- list()
     
-    print("2")
-    
     for (i in 1:length(out_names)) {
       tryCatch(if(is.numeric(D[[num]]$chronData[[name]][[i]]$values)){
         tryCatch(x <- D[[num]]$chronData[[name]][[i]]$values, error=function(e) NULL)
         tryCatch(bind[[i]] <- x, error=function(e) NULL)
-        print("3")
       }, error=function(e) NULL)
     }
     
-    print("4")
     tryCatch(new <- bind[[1]], error=function(e) NULL)
     
-    print("5")
     if(length(bind) > 1){
       for(i in 2:length(bind)){
         new = cbind(new, bind[[i]])
       }
-      print("6")
     }
-    
-    print("7")
     
     #creating the csv file
     #check if output folder
