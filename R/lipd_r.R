@@ -17,9 +17,35 @@ csv_to_r <- function(){
 }
 
 run <- function(){
-  json_file = "test.jsonld"
-  json_data = fromJSON(file = json_file)
-  jsonld_to_r(json_data)
+  directory = "/test"
+  all_files = list()
+  csv_files = list()
+  json_files = list()
+  count = 1
+  
+  setwd("~/GitHub/LiPD-utilities/R/test")
+  
+  for(i in "~/GitHub/LiPD-utilities/R/test"){
+    all_files[count] = i
+    count = count + 1
+  }
+  count = 1
+  for(i in all_files){
+    if(substring(i, nchar(i)) == ".jsonld"){
+      json_files[count] = i
+      count = count + 1
+    }
+  }
+  count = 1
+  for(i in all_files){
+    if(substring(i, nchar(i)) == ".csv"){
+      csv_files[count] = i
+      count = count + 1
+    }
+  }
+  
+  print(json_files)
+  print(csv_files)
 }
-load("~/GitHub/LiPD-utilities/R/LiPD_R_Data.Rdata")
+
 run()

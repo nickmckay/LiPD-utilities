@@ -1,0 +1,128 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Marine sediment"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["ARC3.vare.2010"],
+  "pubYear": ["2010"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-91.106, 74.268, -347]
+    },
+    "properties": {
+      "siteName": ["ARC3"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["ARC3.vare.2010s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["IP25_flux"],
+        "units": ["g cm-2 yr-1"],
+        "parameter": ["IP25_flux"],
+        "climateInterpretation": {
+          "parameter": ["ICE"],
+          "interpDirection": [1],
+          "parameterDetail": ["sea"],
+          "seasonality": ["SPRING"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["ARC3.vare.2010c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "units": [""],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [2],
+        "dataType": ["NULL"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [3],
+        "dataType": ["NULL"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "units": ["2_s"]
+      },
+      {
+        "number": [5],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [6],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      },
+      {
+        "number": [7],
+        "dataType": ["character"],
+        "shortName": ["note"],
+        "parameter": ["note"]
+      }
+    ]
+  }
+}
