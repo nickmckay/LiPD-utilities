@@ -1,0 +1,77 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["upper_fly.fly.2009"],
+  "pubYear": ["2009"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-138.09, 61.07, 1326]
+    },
+    "properties": {
+      "siteName": ["upper_fly"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["chironomid"],
+    "filename": ["upper_fly.fly.2009chironomid.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["C"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["LST"],
+          "seasonality": ["summer"]
+        }
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["water depth"],
+        "units": ["cm"],
+        "parameter": ["water depth"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["upper_fly.fly.2009NA.csv"],
+    "columns": [""]
+  }
+}

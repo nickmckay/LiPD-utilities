@@ -1,0 +1,55 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["qipisirargo.frechétte.2002"],
+  "pubYear": ["2002"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-47.75, 61, 7]
+    },
+    "properties": {
+      "siteName": ["qipisirargo"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["kaplan2002"],
+    "filename": ["qipisirargo.frechétte.2002kaplan2002.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["BSi"],
+        "units": ["%"],
+        "parameter": ["BSi"]
+      },
+      {
+        "number": [4],
+        "dataType": ["character"],
+        "shortName": ["NA"],
+        "parameter": ["NA"]
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["qipisirargo.frechétte.2002NA.csv"],
+    "columns": [""]
+  }
+}

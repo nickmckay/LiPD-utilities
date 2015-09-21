@@ -1,0 +1,82 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["KR02.peros.2008"],
+  "pubYear": ["2008"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-113.78, 71.34, 299]
+    },
+    "properties": {
+      "siteName": ["KR02"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["temp_precip"],
+    "filename": ["KR02.peros.2008temp_precip.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JUL"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["Precip"],
+        "units": [""],
+        "parameter": ["Precip"],
+        "climateInterpretation": {
+          "parameter": ["P"],
+          "interpDirection": [1],
+          "parameterDetail": ["all"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["KR02.peros.2008NA.csv"],
+    "columns": [""]
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Marine sediments"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["MSM05-712.müller.2013"],
+  "pubYear": ["2013"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [6.767, 78.916, -1487]
+    },
+    "properties": {
+      "siteName": ["MSM05-712"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["dinocysts"],
+    "filename": ["MSM05-712.müller.2013dinocysts.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["C"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["SST"],
+          "seasonality": ["summer"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["Salinity"],
+        "units": ["psu"],
+        "parameter": ["Salinity"],
+        "climateInterpretation": {
+          "parameter": ["S"],
+          "interpDirection": [1],
+          "parameterDetail": ["SSS"],
+          "seasonality": ["summer"]
+        }
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["Sea_Ice_months"],
+        "units": ["months/year"],
+        "parameter": ["Sea_Ice_months"],
+        "climateInterpretation": {
+          "parameter": ["ICE"],
+          "interpDirection": [1],
+          "parameterDetail": ["sea"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [6],
+        "dataType": ["numeric"],
+        "shortName": ["Sea_Ice_conc"],
+        "units": ["0-10"],
+        "parameter": ["Sea_Ice_conc"],
+        "climateInterpretation": {
+          "parameter": ["ICE"],
+          "interpDirection": [1],
+          "parameterDetail": ["sea"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [7],
+        "dataType": ["numeric"],
+        "shortName": ["productivity"],
+        "units": ["gcm2"],
+        "parameter": ["productivity"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [9],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [10],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [11],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [12],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["MSM05-712.müller.2013NA.csv"],
+    "columns": [""]
+  }
+}

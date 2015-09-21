@@ -1,0 +1,150 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Peat"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["kortlanda.borgmark.2008"],
+  "pubYear": ["2008"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [12.2883, 59.85, 112]
+    },
+    "properties": {
+      "siteName": ["kortlanda"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["kortlanda2"],
+    "filename": ["kortlanda.borgmark.2008kortlanda2.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["HumidificationIndex"],
+        "units": ["abs"],
+        "parameter": ["HumidificationIndex"],
+        "climateInterpretation": {
+          "parameter": ["P"],
+          "interpDirection": [-1],
+          "parameterDetail": ["eff"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["kortlanda2"],
+    "filename": ["kortlanda.borgmark.2008kortlanda2.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["1s"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [4],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [5],
+        "dataType": ["integer"],
+        "shortName": ["cal_age_range_old"],
+        "units": ["bp"],
+        "parameter": ["cal_age_range_old"]
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["cal_age_range_young"],
+        "units": ["bp"],
+        "parameter": ["cal_age_range_young"]
+      },
+      {
+        "number": [7],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [8],
+        "dataType": ["character"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [9],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      },
+      {
+        "number": [10],
+        "dataType": ["character"],
+        "shortName": ["note"],
+        "parameter": ["note"]
+      }
+    ]
+  }
+}

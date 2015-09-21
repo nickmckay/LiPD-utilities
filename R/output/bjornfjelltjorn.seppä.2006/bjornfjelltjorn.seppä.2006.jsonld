@@ -1,0 +1,131 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["bjornfjelltjorn.seppä.2006"],
+  "pubYear": ["2006"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [18.0667, 68.4333, 510]
+    },
+    "properties": {
+      "siteName": ["bjornfjelltjorn"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["bjornfjelltjorn.seppä.2006s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["degc"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JUL"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["bjornfjelltjorn.seppä.2006c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth_bot"],
+        "units": ["mm"],
+        "parameter": ["depth_bot"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth_top"],
+        "units": ["mm"],
+        "parameter": ["depth_top"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [4],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["years"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["thickness"],
+        "units": ["mm"],
+        "parameter": ["thickness"]
+      },
+      {
+        "number": [7],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [8],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      }
+    ]
+  }
+}

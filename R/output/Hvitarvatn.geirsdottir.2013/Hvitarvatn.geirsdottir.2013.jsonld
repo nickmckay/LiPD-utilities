@@ -1,0 +1,71 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["Hvitarvatn.geirsdottir.2013"],
+  "pubYear": ["2013"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-19.85, 64.6167, 422]
+    },
+    "properties": {
+      "siteName": ["Hvitarvatn"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["composite"],
+    "filename": ["Hvitarvatn.geirsdottir.2013composite.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": [""],
+        "shortName": [""],
+        "units": [""],
+        "parameter": [""]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["PC1"],
+        "units": [""],
+        "parameter": ["PC1"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["summer"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  }
+}

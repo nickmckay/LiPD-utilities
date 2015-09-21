@@ -1,0 +1,204 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Marine sediment"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["HU90.devernal.2013"],
+  "pubYear": ["2013"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-48.3733, 58.2098, -3380]
+    },
+    "properties": {
+      "siteName": ["HU90"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["HU90.devernal.2013s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["C"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["SST"],
+          "seasonality": ["summer"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["Salinity"],
+        "units": ["psu"],
+        "parameter": ["Salinity"],
+        "climateInterpretation": {
+          "parameter": ["S"],
+          "interpDirection": [1],
+          "parameterDetail": ["SSS"],
+          "seasonality": ["summer"]
+        }
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["Sea_Ice_months"],
+        "units": ["months/year"],
+        "parameter": ["Sea_Ice_months"],
+        "climateInterpretation": {
+          "parameter": ["ICE"],
+          "interpDirection": [1],
+          "parameterDetail": ["sea"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [6],
+        "dataType": ["numeric"],
+        "shortName": ["Sea_Ice_conc"],
+        "units": ["0-10"],
+        "parameter": ["Sea_Ice_conc"],
+        "climateInterpretation": {
+          "parameter": ["ICE"],
+          "interpDirection": [1],
+          "parameterDetail": ["sea"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [7],
+        "dataType": ["numeric"],
+        "shortName": ["productivity"],
+        "units": ["gcm2"],
+        "parameter": ["productivity"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["character"],
+        "shortName": ["A"],
+        "parameter": ["A"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["HU90.devernal.2013c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth_top"],
+        "units": ["mm"],
+        "parameter": ["depth_top"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth_bot"],
+        "units": ["mm"],
+        "parameter": ["depth_bot"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [4],
+        "dataType": ["character"],
+        "shortName": ["lab_id"],
+        "units": [""],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["mass dry"],
+        "units": ["mg"],
+        "parameter": ["mass dry"]
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp14C"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [7],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["1_s"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [8],
+        "dataType": ["integer"],
+        "shortName": ["deltaR"],
+        "units": ["years"],
+        "parameter": ["deltaR"]
+      },
+      {
+        "number": [9],
+        "dataType": ["integer"],
+        "shortName": ["depth_mid"],
+        "units": ["mm"],
+        "parameter": ["depth_mid"]
+      },
+      {
+        "number": [10],
+        "dataType": ["integer"],
+        "shortName": ["thickness"],
+        "units": ["mm"],
+        "parameter": ["thickness"]
+      },
+      {
+        "number": [11],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [12],
+        "dataType": ["character"],
+        "shortName": ["core_name"],
+        "parameter": ["core_name"]
+      },
+      {
+        "number": [13],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      },
+      {
+        "number": [14],
+        "dataType": ["character"],
+        "shortName": ["original_reference"],
+        "parameter": ["original_reference"]
+      }
+    ]
+  }
+}

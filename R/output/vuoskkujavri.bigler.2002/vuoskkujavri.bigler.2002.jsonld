@@ -1,0 +1,82 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["vuoskkujavri.bigler.2002"],
+  "pubYear": ["2002"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [19.1, 68.33, 348]
+    },
+    "properties": {
+      "siteName": ["vuoskkujavri"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["pollen"],
+    "filename": ["vuoskkujavri.bigler.2002pollen.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JAN"]
+        }
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Precip"],
+        "units": ["mm"],
+        "parameter": ["Precip"],
+        "climateInterpretation": {
+          "parameter": ["P"],
+          "interpDirection": [1],
+          "parameterDetail": ["all"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["vuoskkujavri.bigler.2002NA.csv"],
+    "columns": [""]
+  }
+}

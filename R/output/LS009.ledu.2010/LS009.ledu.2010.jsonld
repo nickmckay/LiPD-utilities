@@ -1,0 +1,111 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["marine"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["LS009.ledu.2010"],
+  "pubYear": ["2010"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-81.195, 74.187, -781]
+    },
+    "properties": {
+      "siteName": ["LS009"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["LS009.ledu.2010s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": [""],
+        "shortName": [""],
+        "units": [""],
+        "parameter": [""]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["C"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["SST"],
+          "seasonality": ["summer"]
+        }
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["Salinity"],
+        "units": ["psu"],
+        "parameter": ["Salinity"],
+        "climateInterpretation": {
+          "parameter": ["S"],
+          "interpDirection": [1],
+          "parameterDetail": ["SSS"],
+          "seasonality": ["summer"]
+        }
+      },
+      {
+        "number": [6],
+        "dataType": ["numeric"],
+        "shortName": ["Sea_Ice_months"],
+        "units": ["months/year"],
+        "parameter": ["Sea_Ice_months"],
+        "climateInterpretation": {
+          "parameter": ["ICE"],
+          "interpDirection": [1],
+          "parameterDetail": ["sea"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [7],
+        "dataType": ["numeric"],
+        "shortName": ["Sea_Ice_conc"],
+        "units": ["0-10"],
+        "parameter": ["Sea_Ice_conc"],
+        "climateInterpretation": {
+          "parameter": ["ICE"],
+          "interpDirection": [1],
+          "parameterDetail": ["sea"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [8],
+        "dataType": ["numeric"],
+        "shortName": ["productivity"],
+        "units": ["gcm2"],
+        "parameter": ["productivity"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [9],
+        "dataType": ["character"],
+        "shortName": ["B"],
+        "parameter": ["B"],
+        "climateInterpretation": {}
+      }
+    ]
+  }
+}

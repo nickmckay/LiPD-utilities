@@ -17,43 +17,28 @@ convert_to_rdata <- function(json_files, csv_files){
     x = json_data
     x <- data.frame(context = json_data$`@context`)
     #print(json_data)
-    
     filename = json_data$chronData$filename
     #print(filename)
-    #x$filename$archiveType = json_data$archiveType
-    #x$filename$collectionName = json_data$collectionName
-    #x$filename$comments = json_data$comments
-    #x$filename$dataSetName = json_data$dataSetName
-    #x$filename$pubYear = json_data$pubYear
-    #x$filename$geo$geometry$type = json_data$geo$geometry$type
-    #x$filename$geo$geometry$coordinates = json_data$geo$geometry$coordinates
-    #x$filename$geo$properties$siteName = json_data$geo$properties$siteName
-    #x$filename$paleoData$paleoDataTableName = json_data$paleoData$paleoDataTableName
-    #x$filename$paleoData$filename = json_data$paleoData$filename
-    #x$filename$paleoData$columns = json_data$paleoData$columns
-    #x$filename$chronData$chronDataTableName = json_data$chronData$chronDataTableName
-    #x$filename$chronData$columns = json_data$chronData$columns
-    #print(json_data)
     
     # put all of the .jsonld and .csv data together
-    returned_data = csv_to_r(csv, json_data, filename)
+    returned_data = csv_to_r(csv, x, filename)
     
     # get final product once all of the data is together
     to_r(returned_data)
   }
 }
 
-csv_to_r <- function(csv, json_data, filename){
+csv_to_r <- function(csv, x, filename){
   csv_files = csv
-  json = json_data
+  json = x
   n = filename
   
   for(i in csv_files){
+    paleoDataTableName = json_data$paleoData$paleoDataTableName
     for(j in length(1:20)){
-      #c <- read.csv(i)[, j:j]
-      #print(c)
-      data = get_column_data(n, csv_files)
+      data[j] = get_column_data(n, csv_files)
     }
+    json$paleoDataTableName = data
   }
 }
 

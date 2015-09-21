@@ -1,0 +1,75 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["chuna.jones.2005"],
+  "pubYear": ["2005"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [32.48, 67.95, 475.3]
+    },
+    "properties": {
+      "siteName": ["chuna"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["solovieva2005"],
+    "filename": ["chuna.jones.2005solovieva2005.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JUL"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["Precip"],
+        "units": ["mm"],
+        "parameter": ["Precip"],
+        "climateInterpretation": {
+          "parameter": ["P"],
+          "interpDirection": [1],
+          "parameterDetail": ["all"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["14C"],
+        "parameter": ["14C"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["chuna.jones.2005NA.csv"],
+    "columns": [""]
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Ice"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["logan.fisher.2008"],
+  "pubYear": ["2008"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-140.5, 60.58, 5300]
+    },
+    "properties": {
+      "siteName": ["logan"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["logan.fisher.2008s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": [""],
+        "shortName": [""],
+        "units": [""],
+        "parameter": [""]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["d18O"],
+        "units": ["â°"],
+        "parameter": ["d18O"],
+        "climateInterpretation": {
+          "parameter": ["MODE"],
+          "interpDirection": [-1],
+          "parameterDetail": ["AL"],
+          "seasonality": ["WIN"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  }
+}
