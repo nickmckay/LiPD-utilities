@@ -3,6 +3,7 @@ library(stringr)
 
 # input : .Rdata
 # output: .jsonld & .csv in new folder
+# new update
 
 csv_out_paleoData <- function(current, num, n){
   name = n
