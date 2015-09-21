@@ -1,0 +1,86 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Marine sediment"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["MD99-2317.jennings.2011"],
+  "pubYear": ["2011"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-27.8615, 68.103, -536]
+    },
+    "properties": {
+      "siteName": ["MD99-2317"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["IRD"],
+    "filename": ["MD99-2317.jennings.2011IRD.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": [""],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["mass dry"],
+        "units": ["g"],
+        "parameter": ["mass dry"]
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["mass dry >1mm"],
+        "units": ["g"],
+        "parameter": ["mass dry >1mm"]
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"]
+      },
+      {
+        "number": [9],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"]
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["MD99-2317.jennings.2011NA.csv"],
+    "columns": [""]
+  }
+}

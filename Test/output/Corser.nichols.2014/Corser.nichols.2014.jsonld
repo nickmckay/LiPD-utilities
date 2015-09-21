@@ -1,0 +1,136 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["bog"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["Corser.nichols.2014"],
+  "pubYear": ["2014"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-145.45, 60.53, "NA"]
+    },
+    "properties": {
+      "siteName": ["Corser"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["Corser.nichols.2014s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["dD"],
+        "units": ["permil"],
+        "parameter": ["dD"],
+        "climateInterpretation": {
+          "parameter": ["P"],
+          "interpDirection": [-1],
+          "parameterDetail": ["eff"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["Corser.nichols.2014c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["1_s"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [4],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [5],
+        "dataType": ["character"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [6],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      }
+    ]
+  }
+}

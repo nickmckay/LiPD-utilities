@@ -1,0 +1,180 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["rainbow.clegg.2011"],
+  "pubYear": ["2011"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-150.8, 60.7167, 63]
+    },
+    "properties": {
+      "siteName": ["rainbow"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["rainbow.clegg.2011s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": [""],
+        "shortName": [""],
+        "units": [""],
+        "parameter": [""]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["depth_bot"],
+        "units": ["mm"],
+        "parameter": ["depth_bot"]
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JUL"]
+        }
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [9],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["rainbow.clegg.2011c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["lab_id"],
+        "units": [""],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth_top"],
+        "units": ["mm"],
+        "parameter": ["depth_top"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["depth_bot"],
+        "units": ["mm"],
+        "parameter": ["depth_bot"]
+      },
+      {
+        "number": [4],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [5],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["1s"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [7],
+        "dataType": ["integer"],
+        "shortName": ["cal_age_range_old"],
+        "units": ["bp"],
+        "parameter": ["cal_age_range_old"]
+      },
+      {
+        "number": [8],
+        "dataType": ["integer"],
+        "shortName": ["cal_age_range_young"],
+        "units": ["bp"],
+        "parameter": ["cal_age_range_young"]
+      },
+      {
+        "number": [9],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [10],
+        "dataType": ["integer"],
+        "shortName": ["thickness"],
+        "units": ["mm"],
+        "parameter": ["thickness"]
+      },
+      {
+        "number": [11],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [12],
+        "dataType": ["character"],
+        "shortName": ["note"],
+        "parameter": ["note"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["north.axford.2013"],
+  "pubYear": ["2013"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-50.0267, 69.2417, 190]
+    },
+    "properties": {
+      "siteName": ["north"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["chironomids"],
+    "filename": ["north.axford.2013chironomids.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JUL"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["north.axford.2013NA.csv"],
+    "columns": [""]
+  }
+}

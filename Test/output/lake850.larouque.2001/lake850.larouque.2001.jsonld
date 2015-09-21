@@ -1,0 +1,83 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["lake850.larouque.2001"],
+  "pubYear": ["2001"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [19.12, 68.37, 850]
+    },
+    "properties": {
+      "siteName": ["lake850"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["d18O_shemish"],
+    "filename": ["lake850.larouque.2001d18O_shemish.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["d18O"],
+        "units": ["permil"],
+        "parameter": ["d18O"],
+        "climateInterpretation": {
+          "parameter": ["MODE"],
+          "interpDirection": [1],
+          "parameterDetail": ["?"],
+          "seasonality": ["?"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["lake850.larouque.2001NA.csv"],
+    "columns": [""]
+  }
+}

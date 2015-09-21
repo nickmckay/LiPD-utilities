@@ -1,0 +1,149 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["mjauvotn.olsen.2010"],
+  "pubYear": ["2010"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-7, 62.12, 200]
+    },
+    "properties": {
+      "siteName": ["mjauvotn"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["mjauvotn.olsen.2010s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["PC1"],
+        "units": [""],
+        "parameter": ["PC1"],
+        "climateInterpretation": {
+          "parameter": ["T&P"],
+          "interpDirection": [1],
+          "parameterDetail": ["air&all"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [3],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["mjauvotn.olsen.2010c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["d13C"],
+        "units": ["permil"],
+        "parameter": ["d13C"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [4],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["1s"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [5],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["cal_age_error"],
+        "units": ["2s"],
+        "parameter": ["cal_age_error"]
+      },
+      {
+        "number": [7],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [8],
+        "dataType": ["character"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [9],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      },
+      {
+        "number": [10],
+        "dataType": ["character"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"]
+      },
+      {
+        "number": [11],
+        "dataType": ["character"],
+        "shortName": ["note"],
+        "parameter": ["note"]
+      }
+    ]
+  }
+}

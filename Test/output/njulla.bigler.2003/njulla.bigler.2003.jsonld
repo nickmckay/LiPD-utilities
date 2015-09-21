@@ -1,0 +1,76 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["njulla.bigler.2003"],
+  "pubYear": ["2003"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [18.7, 68.37, 999]
+    },
+    "properties": {
+      "siteName": ["njulla"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["Chironomids_"],
+    "filename": ["njulla.bigler.2003Chironomids_.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JUL"]
+        }
+      },
+      {
+        "number": [3],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["njulla.bigler.2003NA.csv"],
+    "columns": [""]
+  }
+}

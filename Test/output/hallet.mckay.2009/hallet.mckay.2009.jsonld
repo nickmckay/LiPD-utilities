@@ -1,0 +1,90 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["hallet.mckay.2009"],
+  "pubYear": ["2009"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-146.2, 61.5, 1128]
+    },
+    "properties": {
+      "siteName": ["hallet"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["BSi"],
+    "filename": ["hallet.mckay.2009BSi.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": [""],
+        "shortName": [""],
+        "units": [""],
+        "parameter": [""]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["BSi"],
+        "units": ["mg g-1"],
+        "parameter": ["BSi"]
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["logBSi"],
+        "units": [""],
+        "parameter": ["logBSi"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["SUMMER"]
+        }
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["hallet.mckay.2009NA.csv"],
+    "columns": [""]
+  }
+}

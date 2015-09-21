@@ -1,0 +1,149 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["igaliku.massa.2012"],
+  "pubYear": ["2012"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-45.43, 61, 30]
+    },
+    "properties": {
+      "siteName": ["igaliku"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["igaliku.massa.2012s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["pollen_count"],
+        "units": ["gr cm-2 yr-1"],
+        "parameter": ["pollen_count"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["SUMMER"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["igaliku.massa.2012c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["age_error"],
+        "units": ["1s"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [4],
+        "dataType": ["integer"],
+        "shortName": ["cal_age_range_old"],
+        "units": ["bp"],
+        "parameter": ["cal_age_range_old"]
+      },
+      {
+        "number": [5],
+        "dataType": ["integer"],
+        "shortName": ["cal_age_range_young"],
+        "units": ["bp"],
+        "parameter": ["cal_age_range_young"]
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [7],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [8],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      },
+      {
+        "number": [9],
+        "dataType": ["character"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [10],
+        "dataType": ["character"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"]
+      },
+      {
+        "number": [11],
+        "dataType": ["character"],
+        "shortName": ["note"],
+        "parameter": ["note"]
+      }
+    ]
+  }
+}

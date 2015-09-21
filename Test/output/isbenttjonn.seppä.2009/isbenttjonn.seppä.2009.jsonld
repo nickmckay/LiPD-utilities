@@ -1,0 +1,124 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["isbenttjonn.seppä.2009"],
+  "pubYear": ["2009"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [7.4333, 59.7667, 787]
+    },
+    "properties": {
+      "siteName": ["isbenttjonn"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["isbenttjonn.seppä.2009s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JUL"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["14C_bulk"],
+        "parameter": ["14C_bulk"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["isbenttjonn.seppä.2009c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth_bot"],
+        "units": ["mm"],
+        "parameter": ["depth_bot"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth_top"],
+        "units": ["mm"],
+        "parameter": ["depth_top"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [4],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["1s"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [7],
+        "dataType": ["integer"],
+        "shortName": ["thickness"],
+        "units": ["mm"],
+        "parameter": ["thickness"]
+      },
+      {
+        "number": [8],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [9],
+        "dataType": ["character"],
+        "shortName": ["note"],
+        "parameter": ["note"]
+      }
+    ]
+  }
+}

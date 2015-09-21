@@ -1,0 +1,89 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["tsuolbmajavri.korhola.2009"],
+  "pubYear": ["2009"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [22.05, 68.41, 526]
+    },
+    "properties": {
+      "siteName": ["tsuolbmajavri"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["pollen"],
+    "filename": ["tsuolbmajavri.korhola.2009pollen.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JJA"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["Precip"],
+        "units": ["mm"],
+        "parameter": ["Precip"],
+        "climateInterpretation": {
+          "parameter": ["P"],
+          "interpDirection": [1],
+          "parameterDetail": ["all"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["tsuolbmajavri.korhola.2009NA.csv"],
+    "columns": [""]
+  }
+}

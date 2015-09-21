@@ -1,0 +1,144 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["kjennsvatn.bakke.2010"],
+  "pubYear": ["2010"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [14.26, 66, 527]
+    },
+    "properties": {
+      "siteName": ["kjennsvatn"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["kjennsvatn.bakke.2010s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["bulk density"],
+        "units": ["g cm-1"],
+        "parameter": ["bulk density"]
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["ELA_alt"],
+        "units": ["mm"],
+        "parameter": ["ELA_alt"]
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["ELA"],
+        "units": ["mm"],
+        "parameter": ["ELA"],
+        "climateInterpretation": {
+          "parameter": ["ELA"],
+          "interpDirection": [1],
+          "parameterDetail": ["NA"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["error"],
+        "units": [""],
+        "parameter": ["error"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [9],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["kjennsvatn.bakke.2010c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["1 sigma"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [4],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [5],
+        "dataType": ["character"],
+        "shortName": ["core_name"],
+        "parameter": ["core_name"]
+      },
+      {
+        "number": [6],
+        "dataType": ["character"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [7],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Marine sediments"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["PS2641.müller.2012"],
+  "pubYear": ["2012"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [19.482, 73.155, -469]
+    },
+    "properties": {
+      "siteName": ["PS2641"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["PS2641.müller.2012s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["IP25_flux"],
+        "units": ["Âµg/cm2/ka"],
+        "parameter": ["IP25_flux"],
+        "climateInterpretation": {
+          "parameter": ["ice"],
+          "interpDirection": [1],
+          "parameterDetail": ["sea"],
+          "seasonality": ["?"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["core_name"],
+        "parameter": ["core_name"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["original_reference"],
+        "parameter": ["original_reference"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["PS2641.müller.2012c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["1s"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [4],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["cal_age_error"],
+        "units": ["2s"],
+        "parameter": ["cal_age_error"]
+      },
+      {
+        "number": [6],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [7],
+        "dataType": ["character"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [8],
+        "dataType": ["character"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"]
+      },
+      {
+        "number": [9],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      }
+    ]
+  }
+}

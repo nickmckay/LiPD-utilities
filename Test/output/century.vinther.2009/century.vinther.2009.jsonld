@@ -1,0 +1,50 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Ice"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["century.vinther.2009"],
+  "pubYear": ["2009"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-61.13, 77.17, 1890]
+    },
+    "properties": {
+      "siteName": ["century"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["century.vinther.2009s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["d18O"],
+        "units": ["per mil vsmow"],
+        "parameter": ["d18O"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [3],
+        "dataType": ["NULL"],
+        "shortName": ["14C"],
+        "parameter": ["14C"],
+        "climateInterpretation": {}
+      }
+    ]
+  }
+}

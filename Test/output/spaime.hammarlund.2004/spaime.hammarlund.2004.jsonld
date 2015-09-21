@@ -1,0 +1,90 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["spaime.hammarlund.2004"],
+  "pubYear": ["2004"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [12.32, 63.12, 887]
+    },
+    "properties": {
+      "siteName": ["spaime"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["stamour2010"],
+    "filename": ["spaime.hammarlund.2004stamour2010.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["d18O"],
+        "units": ["permil v smow"],
+        "parameter": ["d18O"],
+        "climateInterpretation": {
+          "parameter": ["MODE"],
+          "interpDirection": [1],
+          "parameterDetail": ["NAO"],
+          "seasonality": ["winter"]
+        }
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["spaime.hammarlund.2004NA.csv"],
+    "columns": [""]
+  }
+}

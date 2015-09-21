@@ -1,0 +1,71 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["Ice"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["penny.fisher.1998"],
+  "pubYear": ["1998"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-66.75, 67.25, 1900]
+    },
+    "properties": {
+      "siteName": ["penny"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["1996"],
+    "filename": ["penny.fisher.19981996.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [2],
+        "dataType": ["numeric"],
+        "shortName": ["d18O"],
+        "units": ["permil"],
+        "parameter": ["d18O"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [3],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [4],
+        "dataType": ["NULL"],
+        "shortName": ["core_name"],
+        "parameter": ["core_name"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [5],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  }
+}

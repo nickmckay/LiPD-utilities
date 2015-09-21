@@ -1,0 +1,157 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["hail.cwynar.1995"],
+  "pubYear": ["1995"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [-129.0167, 60.0333, 690]
+    },
+    "properties": {
+      "siteName": ["hail"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["s1"],
+    "filename": ["hail.cwynar.1995s1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": [""],
+        "shortName": [""],
+        "units": [""],
+        "parameter": [""]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["C"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["coldest"]
+        }
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["Precip"],
+        "units": ["mm"],
+        "parameter": ["Precip"],
+        "climateInterpretation": {
+          "parameter": ["P"],
+          "interpDirection": [1],
+          "parameterDetail": ["all"],
+          "seasonality": ["ANN"]
+        }
+      },
+      {
+        "number": [6],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [9],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [10],
+        "dataType": ["NULL"],
+        "shortName": ["rejected_dates"],
+        "parameter": ["rejected_dates"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": ["c1"],
+    "filename": ["hail.cwynar.1995c1.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["age14C"],
+        "units": ["bp"],
+        "parameter": ["age14C"]
+      },
+      {
+        "number": [3],
+        "dataType": ["integer"],
+        "shortName": ["age_error"],
+        "units": ["years"],
+        "parameter": ["age_error"]
+      },
+      {
+        "number": [4],
+        "dataType": ["integer"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [5],
+        "dataType": ["character"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"]
+      },
+      {
+        "number": [6],
+        "dataType": ["character"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"]
+      },
+      {
+        "number": [7],
+        "dataType": ["character"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"]
+      }
+    ]
+  }
+}

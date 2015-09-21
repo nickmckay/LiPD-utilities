@@ -1,0 +1,106 @@
+{
+  "@context": ["context.jsonld"],
+  "archiveType": ["lake"],
+  "collectionName": [""],
+  "comments": [""],
+  "dataSetName": ["Kharinei.jones.2011"],
+  "pubYear": ["2011"],
+  "geo": {
+    "geometry": {
+      "type": ["Point"],
+      "coordinates": [62.7507, 67.3628, 108]
+    },
+    "properties": {
+      "siteName": ["Kharinei"]
+    }
+  },
+  "paleoData": {
+    "paleoDataTableName": ["chironomids_Jones2011"],
+    "filename": ["Kharinei.jones.2011chironomids_Jones2011.csv"],
+    "columns": [
+      {
+        "number": [1],
+        "dataType": ["integer"],
+        "shortName": ["depth_top"],
+        "units": ["mm"],
+        "parameter": ["depth_top"]
+      },
+      {
+        "number": [2],
+        "dataType": ["integer"],
+        "shortName": ["depth_bot"],
+        "units": ["mm"],
+        "parameter": ["depth_bot"]
+      },
+      {
+        "number": [3],
+        "dataType": ["numeric"],
+        "shortName": ["age"],
+        "units": ["bp"],
+        "parameter": ["age"]
+      },
+      {
+        "number": [4],
+        "dataType": ["numeric"],
+        "shortName": ["Temp"],
+        "units": ["deg c"],
+        "parameter": ["Temp"],
+        "climateInterpretation": {
+          "parameter": ["T"],
+          "interpDirection": [1],
+          "parameterDetail": ["air"],
+          "seasonality": ["JUL"]
+        }
+      },
+      {
+        "number": [5],
+        "dataType": ["numeric"],
+        "shortName": ["depth"],
+        "units": ["mm"],
+        "parameter": ["depth"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [6],
+        "dataType": ["integer"],
+        "shortName": ["thickness"],
+        "units": ["mm"],
+        "parameter": ["thickness"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [7],
+        "dataType": ["NULL"],
+        "shortName": ["age_type"],
+        "parameter": ["age_type"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [8],
+        "dataType": ["NULL"],
+        "shortName": ["lab_id"],
+        "parameter": ["lab_id"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [9],
+        "dataType": ["NULL"],
+        "shortName": ["material_dated"],
+        "parameter": ["material_dated"],
+        "climateInterpretation": {}
+      },
+      {
+        "number": [10],
+        "dataType": ["NULL"],
+        "shortName": ["note"],
+        "parameter": ["note"],
+        "climateInterpretation": {}
+      }
+    ]
+  },
+  "chronData": {
+    "chronDataTableName": [null],
+    "filename": ["Kharinei.jones.2011NA.csv"],
+    "columns": [""]
+  }
+}
