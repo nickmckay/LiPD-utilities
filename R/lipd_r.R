@@ -5,76 +5,91 @@ library(rjson)
 # input : .jsonld & .csv
 # output: .Rdata
 
-convert_to_rdata <- function(json_files, csv_files){
+convert_to_rdata <- function(json_files, csv_files, j){
   json = json_files
   csv = csv_files
+  name = j
   
   # set the directory
-  setwd('~/GitHub/LiPD-utilities/R/test')
+  setwd(paste('~/GitHub/LiPD-utilities/R/test/', name, sep = ""))
   
   for(i in json){
     json_data <- fromJSON(file = i)
-    x = json_data
-    x <- data.frame(context = json_data$`@context`)
-    #print(json_data)
-    filename = json_data$chronData$filename
-    #print(filename)
+    
+    if(json_data$chronData != ""){
+      chron_filename = json_data$chronData$filename
+    }
+    
+    if(json_data$paleoData != ""){
+      paleo_filename = json_data$paleoData$filename
+    }
+    
+    filenames = c(chron_filename, paleo_filename)
     
     # put all of the .jsonld and .csv data together
-    returned_data = csv_to_r(csv, x, filename)
-    
+    returned_data = csv_to_r(csv, json_data, filenames)
+
     # get final product once all of the data is together
     to_r(returned_data)
   }
 }
 
-csv_to_r <- function(csv, x, filename){
+csv_to_r <- function(csv, x, filenames){
+
   csv_files = csv
   json = x
-  n = filename
+  files = filenames
   
   for(i in csv_files){
-    paleoDataTableName = json_data$paleoData$paleoDataTableName
+    paleoDataTableName = json$paleoData$paleoDataTableName
+    chronDataTableName = json$chronData$chronDataTableName
+    
+    paleoName = json$paleoData$filename
+    chronName = json$chronData$filename
+    
+    paleo_data = list()
+    chron_data = list()
+    
     for(j in length(1:20)){
-      data[j] = get_column_data(n, csv_files)
+      # build individual columns from the csv files
+      d = get_column_data(paleoName, csv_files, j)
+      if(d != ""){
+        paleo_data[j] = d
+      }
     }
-    json$paleoDataTableName = data
+    
+    json$paleoDataTableName = paleo_data
+    json$chronDataTableName = chron_data
   }
-}
-
-# this is to get the names that the .csv files will be labeled as
-get_json_data <- function(filename){
-  print("Skip")
+  return(json)
 }
 
 # get the *.csv data from the corresponding column
-get_column_data <- function(filename, csv_files){
+get_column_data <- function(filename, csv_files, j){
   name = filename
   csv = csv_files
+  num = 1
+  
   columns = list()
-  for(i in csv){
-    if(length(grep(name, i)) > 0){
-      for(j in length(1:20)){
-        col = read.csv(i)
-        print(col)
-        for(k in col){
-          if(is.integer(k)){
-            columns[j] = col
-            print(columns)
-          }
-        }
-      }
+  
+  file = read.csv(name)
+  for(i in read.csv(name)[ ,num:num]){
+    if(is.integer(i)){
+      columns[j] = i
     }
-    return(columns)
   }
+  
+  return(columns)
 }
 
 # Final output of .Rdata file
 # Takes in all .jsonld and .csv files
 to_r <- function(returned_data){
   toR = returned_data
-  saveRDS(toR, "test.Rdata")
   #print(toR)
+  setwd("~/GitHub/LiPD-utilities/R")
+  saveRDS(toR, "test.Rdata")
+  print(toR)
 }
 
 run <- function(){
@@ -94,21 +109,23 @@ run <- function(){
     file_list[count_files + 1] = i
     for(j in file_list){
       # if a .jsonld file, add to json_files
-      new_dir = paste("~/GitHub'LiPD-utilities/R/test/", j)
-      for(k in new_dir){
-        if(substring(i, nchar(i)) == "d"){
-          json_files[count_json + 1] = i
+      new_dir = paste("~/GitHub/LiPD-utilities/R/test/", j, sep = "")
+      setwd(new_dir)
+      for(k in list.files(new_dir)){
+        if(substring(k, nchar(k)) == "d"){
+          json_files[count_json + 1] = k
           count_json = count_json + 1
         }
+      
         # if a .csv file, add to csv_files
-        if(substring(i, nchar(i)) == "v"){
-          csv_files[count_csv + 1] = i
+        if(substring(k, nchar(k)) == "v"){
+          csv_files[count_csv + 1] = k
           count_csv = count_csv + 1
         }
       }
       # if there are .jsonld files, then run. Otherwise stop.
       if(count_json > 0){
-        convert_to_rdata(json_files, csv_files)
+        convert_to_rdata(json_files, csv_files, j)
       }
     }
   }
