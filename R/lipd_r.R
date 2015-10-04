@@ -10,11 +10,13 @@ convert_to_rdata <- function(json_files, csv_files, j){
   csv = csv_files
   name = j
   
+  filen = "example"
+  
   # set the directory
   setwd(paste('~/GitHub/LiPD-utilities/R/test/', name, sep = ""))
   
   for(i in json){
-    json_data <- fromJSON(file = i)
+    json_data[[filen]] <- fromJSON(file = i)
     
     if(json_data$chronData != ""){
       chron_filename = json_data$chronData$filename
@@ -40,31 +42,38 @@ csv_to_r <- function(csv, x, filenames){
   json = x
   files = filenames
   
-  for(i in csv_files){
-    paleoDataTableName = json$paleoData$paleoDataTableName
-    chronDataTableName = json$chronData$chronDataTableName
+  paleoDataTableName = json$paleoData$paleoDataTableName
+  chronDataTableName = json$chronData$chronDataTableName
     
-    paleoName = json$paleoData$filename
-    chronName = json$chronData$filename
+  paleoName = json$paleoData$filename
+  chronName = json$chronData$filename
     
-    paleo_data = list()
-    chron_data = list()
+  paleo_data = list()
+  chron_data = list()
     
-    for(j in length(1:20)){
-      # build individual columns from the csv files
-      d = get_column_data(paleoName, csv_files, j)
-      if(d != ""){
-        paleo_data[j] = d
-      }
-    }
-    
-    json$paleoDataTableName = paleo_data
-    json$chronDataTableName = chron_data
-  }
+  name = get_table_name(json, paleoName)
+  json[[name]]$paleoDataTableName = get_table_name(json, paleoName)
+  json[[name]]$filename = paleoName
+  json$chronData$chronDataTableName = get_table_name(json, chronName)
+
   return(json)
 }
 
-# get the *.csv data from the corresponding column
+# pull out the csv table name from the filename
+# i.e. 'ARC3.vare.2010s1.csv' -> 'returns s1' and
+get_table_name <- function(json, filename){
+  j = json
+  file = filename
+  remove = j$dataSetName
+  
+  if(grepl(remove, file)){
+    name = unlist(strsplit(file, split = remove, fixed = TRUE))[2]
+    n = unlist(strsplit(name, split = '.', fixed = TRUE))[1]
+  }
+  return(n)
+}
+
+# get the .csv data from the corresponding column
 get_column_data <- function(filename, csv_files, j){
   name = filename
   csv = csv_files
@@ -72,11 +81,10 @@ get_column_data <- function(filename, csv_files, j){
   
   columns = list()
   
-  file = read.csv(name)
-  for(i in read.csv(name)[ ,num:num]){
-    if(is.integer(i)){
-      columns[j] = i
-    }
+  # read in csv as matrix and separate into separate columns
+  csv <- as.matrix(read.csv(file, sep = ""))
+  for(i in length(csv)){
+    columns[i] = matrix[i:i]
   }
   
   return(columns)
