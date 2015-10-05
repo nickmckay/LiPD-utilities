@@ -5,58 +5,120 @@ library(rjson)
 # input : .jsonld & .csv
 # output: .Rdata
 
+### TODO ###
+# 1. Redo the naming scheme
+#   - when pulling in the json, R doesn't allow for renaming
+#   - create new list for json and rename during the piping
+#
+# 2. The csv is not read into R correctly
+#   - read in as a matrix
+#   - pull each column from the matrix individually
+
 convert_to_rdata <- function(json_files, csv_files, j){
-  json = json_files
+  old_json = json_files
   csv = csv_files
   name = j
+  toR = list()
+  json = list()
   
-  filen = "example"
-  
+  new_dir = paste('~/Github/LiPD-utilities/R/test/', name, sep = "")
+
   # set the directory
-  setwd(paste('~/GitHub/LiPD-utilities/R/test/', name, sep = ""))
+  setwd(new_dir)
   
-  for(i in json){
-    json_data[[filen]] <- fromJSON(file = i)
+  for(i in old_json){
+    old_json_data <- fromJSON(file = i)
     
-    if(json_data$chronData != ""){
-      chron_filename = json_data$chronData$filename
+    filename = old_json_data$dataSetName
+    
+    json$context = old_json_data$'@context'
+    json$archiveType = old_json_data$archiveType
+    json$collectionName = old_json_data$collectionName
+    json$comments = old_json_data$comments
+    json$dataSetName = old_json_data$dataSetName
+    json$pubYear = old_json_data$pubYear
+    json$geo = old_json_data$geo
+    
+    
+    # get the paleoData column data from .jsonld file
+    for(i in old_json_data$paleoData){
+      if(i == old_json_data$paleoData$paleoDataTableName){
+        json$paleoData[[i]]$filename = old_json_data$paleoData$filename
+        for(j in 1:length(old_json_data$paleoData$columns)){
+          for(k in old_json_data$paleoData$columns[[j]]$shortName){
+            json$paleoData[[i]][[k]]$parameter = k
+            json$paleoData[[i]][[k]]$units = old_json_data$paleoData$columns[[j]]$units
+            json$paleoData[[i]][[k]]$dataType = old_json_data$paleoData$columns[[j]]$dataType
+            if(length(json$paleoData[[i]][[k]]$units) == 0){
+              print("no units")
+            }
+            else{
+              json$paleoData[[i]][[k]]$values = csv_to_r(json$paleoData[[i]]$filename, json, j, json$paleoData[[i]][[k]]$units)
+            }
+          }
+        }
+      }
     }
     
-    if(json_data$paleoData != ""){
-      paleo_filename = json_data$paleoData$filename
+    # get the chronData column data form .jsonld file
+    for(i in old_json_data$chronData){
+      if(i == old_json_data$chronData$chronDataTableName){
+        json$chronData[[i]]$filename = old_json_data$chronData$filename
+        for(j in 1:length(old_json_data$chronData$columns)){
+          for(k in old_json_data$chronData$columns[[j]]$shortName){
+            json$chronData[[i]][[k]]$parameter = k
+            json$chronData[[i]][[k]]$units = old_json_data$chronData$columns[[j]]$units
+            json$chronData[[i]][[k]]$dataType = old_json_data$chronData$columns[[j]]$dataType
+            json$chronData[[i]][[k]]$values = csv_to_r(json$chronData[[i]]$filename, json, j, json$chronData[[i]][[k]]$units)
+          }
+        }
+      }
+    }
+    
+    print(json)
+    
+    if(old_json_data$chronData != ""){
+      chron_filename = old_json_data$chronData$filename
+    }
+    
+    if(old_json_data$paleoData != ""){
+      paleo_filename = old_json_data$paleoData$filename
     }
     
     filenames = c(chron_filename, paleo_filename)
     
-    # put all of the .jsonld and .csv data together
-    returned_data = csv_to_r(csv, json_data, filenames)
+    
+    
+    toR[[filename]] = json
 
     # get final product once all of the data is together
-    to_r(returned_data)
+    to_r(toR)
   }
 }
 
-csv_to_r <- function(csv, x, filenames){
+csv_to_r <- function(filename, x, j, u){
 
-  csv_files = csv
+  csv_file = filename
   json = x
-  files = filenames
+  col_num = j
+  units = u
   
-  paleoDataTableName = json$paleoData$paleoDataTableName
-  chronDataTableName = json$chronData$chronDataTableName
+  if(length(units) == 0){
+    return("")
+  }
+  
+  else{
+    data = list()
     
-  paleoName = json$paleoData$filename
-  chronName = json$chronData$filename
+    csv_table = read.csv(csv_file)
+    csv = as.matrix(csv_table)
     
-  paleo_data = list()
-  chron_data = list()
+    #print(csv[, 1])
     
-  name = get_table_name(json, paleoName)
-  json[[name]]$paleoDataTableName = get_table_name(json, paleoName)
-  json[[name]]$filename = paleoName
-  json$chronData$chronDataTableName = get_table_name(json, chronName)
-
-  return(json)
+    data = csv[, col_num]
+    #print(data)
+    return(data)
+  }
 }
 
 # pull out the csv table name from the filename
@@ -73,38 +135,20 @@ get_table_name <- function(json, filename){
   return(n)
 }
 
-# get the .csv data from the corresponding column
-get_column_data <- function(filename, csv_files, j){
-  name = filename
-  csv = csv_files
-  num = 1
-  
-  columns = list()
-  
-  # read in csv as matrix and separate into separate columns
-  csv <- as.matrix(read.csv(file, sep = ""))
-  for(i in length(csv)){
-    columns[i] = matrix[i:i]
-  }
-  
-  return(columns)
-}
 
 # Final output of .Rdata file
 # Takes in all .jsonld and .csv files
-to_r <- function(returned_data){
-  toR = returned_data
-  #print(toR)
-  setwd("~/GitHub/LiPD-utilities/R")
-  saveRDS(toR, "test.Rdata")
-  print(toR)
+to_r <- function(toR){
+  set = toR
+  setwd('~/Github/LiPD-utilities/R/')
+  saveRDS(set, "test.Rdata")
 }
 
 run <- function(){
   
-  setwd("~/GitHub/LiPD-utilities/R")
+  setwd('~/Github/LiPD-utilities/R/test')
   
-  for(i in list.files("~/GitHub/LiPD-utilities/R/test")){
+  for(i in list.files('~/Github/LiPD-utilities/R/test')){
     # get all of the different folders
     csv_files = list()
     json_files = list()
@@ -115,23 +159,27 @@ run <- function(){
     count_files = 0
 
     file_list[count_files + 1] = i
+
     for(j in file_list){
       # if a .jsonld file, add to json_files
-      new_dir = paste("~/GitHub/LiPD-utilities/R/test/", j, sep = "")
-      setwd(new_dir)
+      new_dir = paste('/Users/austin/Github/LiPD-utilities/R/test/', j, sep = "")
+      #print(new_dir)
+      #print(getwd())
+      #setwd(new_dir)
       for(k in list.files(new_dir)){
+        # if the file ends in 'd' then it is a .jsonld file
         if(substring(k, nchar(k)) == "d"){
           json_files[count_json + 1] = k
           count_json = count_json + 1
         }
       
-        # if a .csv file, add to csv_files
+        # if the file ends in 'v' then it is a .csv file
         if(substring(k, nchar(k)) == "v"){
           csv_files[count_csv + 1] = k
           count_csv = count_csv + 1
         }
       }
-      # if there are .jsonld files, then run. Otherwise stop.
+      # if there are .jsonld files, then run, otherwise stop
       if(count_json > 0){
         convert_to_rdata(json_files, csv_files, j)
       }

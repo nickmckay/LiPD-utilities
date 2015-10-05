@@ -96,7 +96,9 @@ jsonld_out <- function(current, num){
   "collectionName" : "",
   "comments" : "",
   "dataSetName" : "",
-  "pubYear" : "",
+  "pub" : {
+      "pubYear" : ""
+  },
   "geo" : {
       "geometry" : {
           "type" : "",
@@ -113,39 +115,42 @@ jsonld_out <- function(current, num){
   }
 }'
   
-  json_data <- fromJSON(template)
+  #json_data <- fromJSON(template)
   
-  
+  json_data=list()
   # sets all of the json data in the .jsonld file
   json_data$archiveType <- D[[count]]$archiveType
   json_data$collectionName <- ""
   json_data$comments <- ""
   json_data$dataSetName <- D[[count]]$dataSetName
-  json_data$pubYear <- D[[count]]$pub$pubYear
+  for (p in 1:length(D[[count]]$pub)){
+    json_data$pub[[p]]$pubYear <- D[[count]]$pub[p]$pubYear
+  }
   json_data$geo$geometry$coordinates <- get_coordinates(count)
-  json_data$geo$geometry$type <- D[[count]]$geo$type
+  json_data$geo$geometry$type =D[[count]]$geo$type  
   json_data$geo$properties$siteName <- D[[count]]$geo$siteName
+  
   
   for(i in length(D[[count]]$paleoData)){
     paleoDataTableName = names(D[[count]]$paleoData)[i]
-    json_data$paleoData$paleoDataTableName <- paleoDataTableName
-    json_data$paleoData$filename <- paste(file_name, paleoDataTableName, ".csv", sep = "")
-    json_data$paleoData$columns <- make_columns_paleoData(count, i)
+    json_data$paleoData[[i]]$paleoDataTableName <- paleoDataTableName
+    json_data$paleoData[[i]]$filename <- paste(file_name, paleoDataTableName, ".csv", sep = "")
+    json_data$paleoData[[i]]$columns <- make_columns_paleoData(count, i)
     csv_out_paleoData(names(D)[num], num, names(D[[num]]$paleoData)[i])
   }
   
   if(length(D[[count]]$chronData) != 0){
     for(i in length(D[[count]]$chronData)){
       chronDataTableName = names(D[[count]]$chronData)[i]
-      json_data$chronData$chronDataTableName <- chronDataTableName
-      json_data$chronData$filename <- paste(file_name, chronDataTableName, ".csv", sep = "")
-      json_data$chronData$columns <- make_columns_chronData(count, i)
+      json_data$chronData[[i]]$chronDataTableName <- chronDataTableName
+      json_data$chronData[[i]]$filename <- paste(file_name, chronDataTableName, ".csv", sep = "")
+      json_data$chronData[[i]]$columns <- make_columns_chronData(count, i)
       csv_out_chronData(names(D)[num], num, names(D[[num]]$chronData)[i])
     }
   }
   
-  x <- toJSON(json_data, pretty = TRUE, byrow = TRUE)
-  setwd('/Users/austin/Desktop/R')
+  x <- toJSON(json_data, pretty = TRUE, byrow = TRUE,auto_unbox=TRUE)
+ #setwd('/Users/austin/Desktop/R')
   dir.create("output", showWarnings = FALSE,  mode = "0777")    
   directory <- paste('output/', current, '/', sep = "")
   #print(directory)
@@ -163,9 +168,13 @@ get_coordinates <- function(count){
   latitude = D[[count]]$geo$latitude
   elevation = D[[count]]$geo$elevation
   
-  coordinates = c(longitude, latitude, elevation)
+  if(is.null(elevation) | is.na(elevation)){
+    coordinates = c(longitude, latitude)
+  }else{
+    coordinates = c(longitude, latitude, elevation)
+  }
   
-  print(coordinates)
+  #print(coordinates)
   return(coordinates)
 }
 
@@ -330,6 +339,7 @@ make_pub <- function(count, doi){
 run <- function(){
   file_names <- names(D)
   for (i in 1:length(file_names)) {
+    print(i)
     jsonld_out(names(D)[i], i)
   }
 }
