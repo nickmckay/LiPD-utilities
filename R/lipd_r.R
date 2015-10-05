@@ -5,15 +5,6 @@ library(rjson)
 # input : .jsonld & .csv
 # output: .Rdata
 
-### TODO ###
-# 1. Redo the naming scheme
-#   - when pulling in the json, R doesn't allow for renaming
-#   - create new list for json and rename during the piping
-#
-# 2. The csv is not read into R correctly
-#   - read in as a matrix
-#   - pull each column from the matrix individually
-
 convert_to_rdata <- function(json_files, csv_files, j){
   old_json = json_files
   csv = csv_files
