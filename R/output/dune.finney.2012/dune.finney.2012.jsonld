@@ -1,148 +1,154 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["dune.finney.2012"],
-  "pubYear": ["2012"],
+  "@context": "context.jsonld",
+  "archiveType": "lake",
+  "dataSetName": "dune.finney.2012",
+  "pub": [
+    {
+      "pubYear": "2012"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [-149.9, 64.42, 134]
+      "coordinates": [-149.9, 64.42, 134],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["dune"]
+      "siteName": "dune"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["dune.finney.2012s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": [""],
-        "shortName": [""],
-        "units": [""],
-        "parameter": [""]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["depth_alt"],
-        "units": ["mm"],
-        "parameter": ["depth_alt"]
-      },
-      {
-        "number": [4],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [5],
-        "dataType": ["numeric"],
-        "shortName": ["d13C"],
-        "units": ["permil"],
-        "parameter": ["d13C"],
-        "climateInterpretation": {
-          "parameter": ["P"],
-          "interpDirection": [-1],
-          "parameterDetail": ["eff"],
-          "seasonality": ["ANN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "dune.finney.2012s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "",
+          "shortName": "",
+          "units": "",
+          "parameter": ""
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "depth_alt",
+          "units": "mm",
+          "parameter": "depth_alt"
+        },
+        {
+          "number": 4,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 5,
+          "dataType": "numeric",
+          "shortName": "d13C",
+          "units": "permil",
+          "parameter": "d13C",
+          "climateInterpretation": {
+            "parameter": "P",
+            "interpDirection": -1,
+            "parameterDetail": "eff",
+            "seasonality": "ANN"
+          }
+        },
+        {
+          "number": 6,
+          "dataType": "character",
+          "shortName": "DUNE_A",
+          "parameter": "DUNE_A",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [6],
-        "dataType": ["character"],
-        "shortName": ["DUNE_A"],
-        "parameter": ["DUNE_A"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["dune.finney.2012c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["numeric"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["thickness"],
-        "units": ["mm"],
-        "parameter": ["thickness"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["1_s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [6],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [7],
-        "dataType": ["character"],
-        "shortName": ["core_name"],
-        "parameter": ["core_name"]
-      },
-      {
-        "number": [8],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [9],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"]
-      },
-      {
-        "number": [11],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "dune.finney.2012c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1_s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 6,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 7,
+          "dataType": "character",
+          "shortName": "core_name",
+          "parameter": "core_name"
+        },
+        {
+          "number": 8,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 9,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

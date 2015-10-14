@@ -1,170 +1,176 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["trehorningen.antonsson.2007"],
-  "pubYear": ["2007"],
+  "@context": "context.jsonld",
+  "archiveType": "Lake",
+  "dataSetName": "trehorningen.antonsson.2007",
+  "pub": [
+    {
+      "pubYear": "2007"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [11.6, 58.55, 112]
+      "coordinates": [11.6, 58.55, 112],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["trehorningen"]
+      "siteName": "trehorningen"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["trehorningen.antonsson.2007s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["Temp"],
-        "units": ["deg c"],
-        "parameter": ["Temp"],
-        "climateInterpretation": {
-          "parameter": ["T"],
-          "interpDirection": [1],
-          "parameterDetail": ["air"],
-          "seasonality": ["ANN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "trehorningen.antonsson.2007s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "Temp",
+          "units": "deg c",
+          "parameter": "Temp",
+          "climateInterpretation": {
+            "parameter": "T",
+            "interpDirection": 1,
+            "parameterDetail": "air",
+            "seasonality": "ANN"
+          }
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "note",
+          "parameter": "note",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 7,
+          "dataType": "NULL",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["note"],
-        "parameter": ["note"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [7],
-        "dataType": ["NULL"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["trehorningen.antonsson.2007c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth_bot"],
-        "units": ["mm"],
-        "parameter": ["depth_bot"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["depth_top"],
-        "units": ["mm"],
-        "parameter": ["depth_top"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["2s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_old"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_old"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_young"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_young"]
-      },
-      {
-        "number": [7],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [8],
-        "dataType": ["integer"],
-        "shortName": ["thickness"],
-        "units": ["mm"],
-        "parameter": ["thickness"]
-      },
-      {
-        "number": [9],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [11],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [12],
-        "dataType": ["character"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"]
-      },
-      {
-        "number": [13],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "trehorningen.antonsson.2007c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "2s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "bp",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 8,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 9,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 12,
+          "dataType": "character",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates"
+        },
+        {
+          "number": 13,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

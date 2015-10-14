@@ -1,137 +1,143 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["marine"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["DA05.lloyd.2007"],
-  "pubYear": ["2007"],
+  "@context": "context.jsonld",
+  "archiveType": "marine",
+  "dataSetName": "DA05.lloyd.2007",
+  "pub": [
+    {
+      "pubYear": "2007"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [-51.107, 68.715, -335]
+      "coordinates": [-51.107, 68.715, -335],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["DA05"]
+      "siteName": "DA05"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["DA05.lloyd.2007s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["sea ice diatoms"],
-        "units": ["%"],
-        "parameter": ["sea ice diatoms"],
-        "climateInterpretation": {
-          "parameter": ["ICE"],
-          "interpDirection": [1],
-          "parameterDetail": ["sea"],
-          "seasonality": ["ANN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "DA05.lloyd.2007s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "sea ice diatoms",
+          "units": "%",
+          "parameter": "sea ice diatoms",
+          "climateInterpretation": {
+            "parameter": "ICE",
+            "interpDirection": 1,
+            "parameterDetail": "sea",
+            "seasonality": "ANN"
+          }
+        },
+        {
+          "number": 3,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [3],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["DA05.lloyd.2007c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["age_alt"],
-        "units": ["bp"],
-        "parameter": ["age_alt"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["1s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_young"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_young"]
-      },
-      {
-        "number": [7],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_old"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_old"]
-      },
-      {
-        "number": [8],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [9],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "DA05.lloyd.2007c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "age_alt",
+          "units": "bp",
+          "parameter": "age_alt"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "bp",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 8,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 9,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        }
+      ]
+    }
+  ]
 }

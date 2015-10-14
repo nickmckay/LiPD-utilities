@@ -1,125 +1,131 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["jake.kerwin.2005"],
-  "pubYear": ["2005"],
+  "@context": "context.jsonld",
+  "archiveType": "lake",
+  "dataSetName": "jake.kerwin.2005",
+  "pub": [
+    {
+      "pubYear": "2005"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [-65.152, 63.667, 300]
+      "coordinates": [-65.152, 63.667, 300],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["jake"]
+      "siteName": "jake"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["jake.kerwin.2005s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["Temp"],
-        "units": ["c"],
-        "parameter": ["Temp"],
-        "climateInterpretation": {
-          "parameter": ["T"],
-          "interpDirection": [1],
-          "parameterDetail": ["air"],
-          "seasonality": ["JUL"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "jake.kerwin.2005s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "Temp",
+          "units": "c",
+          "parameter": "Temp",
+          "climateInterpretation": {
+            "parameter": "T",
+            "interpDirection": 1,
+            "parameterDetail": "air",
+            "seasonality": "JUL"
+          }
+        },
+        {
+          "number": 4,
+          "dataType": "numeric",
+          "shortName": "error",
+          "units": "c",
+          "parameter": "error",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "note",
+          "parameter": "note",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [4],
-        "dataType": ["numeric"],
-        "shortName": ["error"],
-        "units": ["c"],
-        "parameter": ["error"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["note"],
-        "parameter": ["note"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["jake.kerwin.2005c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["years"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_error"],
-        "units": ["2s"],
-        "parameter": ["cal_age_error"]
-      },
-      {
-        "number": [6],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [7],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "jake.kerwin.2005c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "years",
+          "parameter": "age_error"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "cal_age_error",
+          "units": "2s",
+          "parameter": "cal_age_error"
+        },
+        {
+          "number": 6,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 7,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

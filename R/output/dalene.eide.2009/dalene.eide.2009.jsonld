@@ -1,116 +1,122 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["dalene.eide.2009"],
-  "pubYear": ["2009"],
+  "@context": "context.jsonld",
+  "archiveType": "Lake",
+  "dataSetName": "dalene.eide.2009",
+  "pub": [
+    {
+      "pubYear": "2009"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [8, 58.25, 40]
+      "coordinates": [8, 58.25, 40],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["dalene"]
+      "siteName": "dalene"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["dalene.eide.2009s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["Temp"],
-        "units": ["deg c"],
-        "parameter": ["Temp"],
-        "climateInterpretation": {
-          "parameter": ["T"],
-          "interpDirection": [1],
-          "parameterDetail": ["air"],
-          "seasonality": ["JUL"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "dalene.eide.2009s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "Temp",
+          "units": "deg c",
+          "parameter": "Temp",
+          "climateInterpretation": {
+            "parameter": "T",
+            "interpDirection": 1,
+            "parameterDetail": "air",
+            "seasonality": "JUL"
+          }
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["dalene.eide.2009c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["age_error"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [4],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [5],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [6],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "dalene.eide.2009c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "age_error",
+          "parameter": "age_error"
+        },
+        {
+          "number": 4,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 5,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 6,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

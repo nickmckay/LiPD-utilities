@@ -1,185 +1,191 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["igelsjon.hammarlund.2003"],
-  "pubYear": ["2003"],
+  "@context": "context.jsonld",
+  "archiveType": "Lake",
+  "dataSetName": "igelsjon.hammarlund.2003",
+  "pub": [
+    {
+      "pubYear": "2003"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [13.7333, 58.4667, 111]
+      "coordinates": [13.7333, 58.4667, 111],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["igelsjon"]
+      "siteName": "igelsjon"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["igelsjon.hammarlund.2003s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": [""],
-        "shortName": [""],
-        "units": [""],
-        "parameter": [""]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [4],
-        "dataType": ["numeric"],
-        "shortName": ["d18O"],
-        "units": ["permil vs pdb"],
-        "parameter": ["d18O"],
-        "climateInterpretation": {
-          "parameter": ["P"],
-          "interpDirection": [-1],
-          "parameterDetail": ["eff"],
-          "seasonality": ["ANN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "igelsjon.hammarlund.2003s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "",
+          "shortName": "",
+          "units": "",
+          "parameter": ""
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 4,
+          "dataType": "numeric",
+          "shortName": "d18O",
+          "units": "permil vs pdb",
+          "parameter": "d18O",
+          "climateInterpretation": {
+            "parameter": "P",
+            "interpDirection": -1,
+            "parameterDetail": "eff",
+            "seasonality": "ANN"
+          }
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 7,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 8,
+          "dataType": "NULL",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 9,
+          "dataType": "NULL",
+          "shortName": "note",
+          "parameter": "note",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [7],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [8],
-        "dataType": ["NULL"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [9],
-        "dataType": ["NULL"],
-        "shortName": ["note"],
-        "parameter": ["note"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["igelsjon.hammarlund.2003c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth_bot"],
-        "units": ["mm"],
-        "parameter": ["depth_bot"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["depth_top"],
-        "units": ["mm"],
-        "parameter": ["depth_top"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["2s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [5],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_old"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_old"]
-      },
-      {
-        "number": [7],
-        "dataType": ["numeric"],
-        "shortName": ["cal_age_range_young"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_young"]
-      },
-      {
-        "number": [8],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [9],
-        "dataType": ["integer"],
-        "shortName": ["thickness"],
-        "units": ["mm"],
-        "parameter": ["thickness"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [11],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [12],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [13],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "igelsjon.hammarlund.2003c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "2s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 7,
+          "dataType": "numeric",
+          "shortName": "cal_age_range_young",
+          "units": "bp",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 8,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 9,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 12,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 13,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

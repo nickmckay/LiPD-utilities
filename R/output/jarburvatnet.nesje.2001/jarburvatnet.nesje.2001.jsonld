@@ -1,165 +1,171 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["jarburvatnet.nesje.2001"],
-  "pubYear": ["2001"],
+  "@context": "context.jsonld",
+  "archiveType": "Lake",
+  "dataSetName": "jarburvatnet.nesje.2001",
+  "pub": [
+    {
+      "pubYear": "2001"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [6.76, 61.7, 1001]
+      "coordinates": [6.76, 61.7, 1001],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["jarburvatnet"]
+      "siteName": "jarburvatnet"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["jarburvatnet.nesje.2001s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["OM"],
-        "units": ["%"],
-        "parameter": ["OM"],
-        "climateInterpretation": {
-          "parameter": ["ELA"],
-          "interpDirection": [1],
-          "parameterDetail": ["NA"],
-          "seasonality": ["ANN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "jarburvatnet.nesje.2001s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "OM",
+          "units": "%",
+          "parameter": "OM",
+          "climateInterpretation": {
+            "parameter": "ELA",
+            "interpDirection": 1,
+            "parameterDetail": "NA",
+            "seasonality": "ANN"
+          }
+        },
+        {
+          "number": 4,
+          "dataType": "numeric",
+          "shortName": "MS",
+          "units": "10-5",
+          "parameter": "MS",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "note",
+          "parameter": "note",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [4],
-        "dataType": ["numeric"],
-        "shortName": ["MS"],
-        "units": ["10-5"],
-        "parameter": ["MS"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["note"],
-        "parameter": ["note"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["jarburvatnet.nesje.2001c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth_bot"],
-        "units": ["mm"],
-        "parameter": ["depth_bot"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["depth_top"],
-        "units": ["mm"],
-        "parameter": ["depth_top"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["1s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_old"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_old"]
-      },
-      {
-        "number": [7],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_young"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_young"]
-      },
-      {
-        "number": [8],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [9],
-        "dataType": ["integer"],
-        "shortName": ["thickness"],
-        "units": ["mm"],
-        "parameter": ["thickness"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [11],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [12],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [13],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "jarburvatnet.nesje.2001c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "bp",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 8,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 9,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 12,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 13,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

@@ -23,13 +23,24 @@ convert_to_rdata <- function(json_files, csv_files, j){
     filename = old_json_data$dataSetName
     
     json$context = old_json_data$'@context'
-    json$archiveType = old_json_data$archiveType
-    json$collectionName = old_json_data$collectionName
-    json$comments = old_json_data$comments
-    json$dataSetName = old_json_data$dataSetName
-    json$pubYear = old_json_data$pubYear
-    json$geo = old_json_data$geo
-    
+    if(old_json_data$archiveType != ""){
+      json$archiveType = old_json_data$archiveType
+    }
+    if(old_json_data$collectionName != ""){
+      json$collectionName = old_json_data$collectionName
+    }
+    if(old_json_data$comments != ""){
+      json$comments = old_json_data$comments
+    }
+    if(old_json_data$dataSetName != ""){
+      json$dataSetName = old_json_data$dataSetName
+    }
+    if(old_json_data$pubYear != ""){
+      json$pub$pubYear = old_json_data$pubYear
+    }
+    if(old_json_data$geo != ""){
+      json$geo = old_json_data$geo
+    }
     
     # get the paleoData column data from .jsonld file
     for(i in old_json_data$paleoData){
@@ -40,10 +51,7 @@ convert_to_rdata <- function(json_files, csv_files, j){
             json$paleoData[[i]][[k]]$parameter = k
             json$paleoData[[i]][[k]]$units = old_json_data$paleoData$columns[[j]]$units
             json$paleoData[[i]][[k]]$dataType = old_json_data$paleoData$columns[[j]]$dataType
-            if(length(json$paleoData[[i]][[k]]$units) == 0){
-              print("no units")
-            }
-            else{
+            if(length(json$paleoData[[i]][[k]]$units) != 0){
               json$paleoData[[i]][[k]]$values = csv_to_r(json$paleoData[[i]]$filename, json, j, json$paleoData[[i]][[k]]$units)
             }
           }
@@ -60,8 +68,10 @@ convert_to_rdata <- function(json_files, csv_files, j){
             json$chronData[[i]][[k]]$parameter = k
             json$chronData[[i]][[k]]$units = old_json_data$chronData$columns[[j]]$units
             json$chronData[[i]][[k]]$dataType = old_json_data$chronData$columns[[j]]$dataType
-            json$chronData[[i]][[k]]$values = csv_to_r(json$chronData[[i]]$filename, json, j, json$chronData[[i]][[k]]$units)
-          }
+            if(length(json$chronData[[i]][[k]]$units) != 0){
+              json$chronData[[i]][[k]]$values = csv_to_r(json$chronData[[i]]$filename, json, j, json$chronData[[i]][[k]]$units)
+            }
+          }  
         }
       }
     }
@@ -77,8 +87,6 @@ convert_to_rdata <- function(json_files, csv_files, j){
     }
     
     filenames = c(chron_filename, paleo_filename)
-    
-    
     
     toR[[filename]] = json
 

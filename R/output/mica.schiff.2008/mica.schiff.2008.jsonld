@@ -1,143 +1,149 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["mica.schiff.2008"],
-  "pubYear": ["2008"],
+  "@context": "context.jsonld",
+  "archiveType": "lake",
+  "dataSetName": "mica.schiff.2008",
+  "pub": [
+    {
+      "pubYear": "2008"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [-148.15, 60.95, 3]
+      "coordinates": [-148.15, 60.95, 3],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["mica"]
+      "siteName": "mica"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["mica.schiff.2008s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["numeric"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["d18O"],
-        "units": ["permil"],
-        "parameter": ["d18O"],
-        "climateInterpretation": {
-          "parameter": ["MODE"],
-          "interpDirection": [1],
-          "parameterDetail": ["AL"],
-          "seasonality": ["WIN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "mica.schiff.2008s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "d18O",
+          "units": "permil",
+          "parameter": "d18O",
+          "climateInterpretation": {
+            "parameter": "MODE",
+            "interpDirection": 1,
+            "parameterDetail": "AL",
+            "seasonality": "WIN"
+          }
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["mica.schiff.2008c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["lab_id"],
-        "units": [""],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["1s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_old"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_old"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_young"],
-        "units": ["2_s"],
-        "parameter": ["cal_age_range_young"]
-      },
-      {
-        "number": [7],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [8],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [9],
-        "dataType": ["character"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "mica.schiff.2008c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "lab_id",
+          "units": "",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "2_s",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 7,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 8,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 9,
+          "dataType": "character",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

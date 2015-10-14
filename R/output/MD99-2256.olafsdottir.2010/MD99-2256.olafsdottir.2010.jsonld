@@ -1,177 +1,183 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Marine sediments"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["MD99-2256.olafsdottir.2010"],
-  "pubYear": ["2010"],
+  "@context": "context.jsonld",
+  "archiveType": "Marine sediments",
+  "dataSetName": "MD99-2256.olafsdottir.2010",
+  "pub": [
+    {
+      "pubYear": "2010"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [-24.2067, 64.3032, 246]
+      "coordinates": [-24.2067, 64.3032, 246],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["MD99-2256"]
+      "siteName": "MD99-2256"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["MD99-2256.olafsdottir.2010s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["SBT"],
-        "units": ["deg c"],
-        "parameter": ["SBT"],
-        "climateInterpretation": {
-          "parameter": ["T"],
-          "interpDirection": [1],
-          "parameterDetail": ["SBT"],
-          "seasonality": ["ANN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "MD99-2256.olafsdottir.2010s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "SBT",
+          "units": "deg c",
+          "parameter": "SBT",
+          "climateInterpretation": {
+            "parameter": "T",
+            "interpDirection": 1,
+            "parameterDetail": "SBT",
+            "seasonality": "ANN"
+          }
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "core_name",
+          "parameter": "core_name",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 7,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 8,
+          "dataType": "NULL",
+          "shortName": "original_reference",
+          "parameter": "original_reference",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["core_name"],
-        "parameter": ["core_name"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [7],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [8],
-        "dataType": ["NULL"],
-        "shortName": ["original_reference"],
-        "parameter": ["original_reference"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["MD99-2256.olafsdottir.2010c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth_bot"],
-        "units": ["mm"],
-        "parameter": ["depth_bot"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["depth_top"],
-        "units": ["mm"],
-        "parameter": ["depth_top"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["years"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_old"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_old"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_young"],
-        "units": ["2_s"],
-        "parameter": ["cal_age_range_young"]
-      },
-      {
-        "number": [7],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [8],
-        "dataType": ["integer"],
-        "shortName": ["thickness"],
-        "units": ["mm"],
-        "parameter": ["thickness"]
-      },
-      {
-        "number": [9],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [11],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [12],
-        "dataType": ["character"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"]
-      },
-      {
-        "number": [13],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "MD99-2256.olafsdottir.2010c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "years",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "2_s",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 8,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 9,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 12,
+          "dataType": "character",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates"
+        },
+        {
+          "number": 13,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

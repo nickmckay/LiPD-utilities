@@ -1,77 +1,177 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["upper_fly.fly.2009"],
-  "pubYear": ["2009"],
+  "@context": "context.jsonld",
+  "archiveType": "lake",
+  "dataSetName": "upper_fly.fly.2009",
+  "pub": [
+    {
+      "pubYear": "2009"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [-138.09, 61.07, 1326]
+      "coordinates": [-138.09, 61.07, 1326],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["upper_fly"]
+      "siteName": "upper_fly"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["chironomid"],
-    "filename": ["upper_fly.fly.2009chironomid.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["Temp"],
-        "units": ["C"],
-        "parameter": ["Temp"],
-        "climateInterpretation": {
-          "parameter": ["T"],
-          "interpDirection": [1],
-          "parameterDetail": ["LST"],
-          "seasonality": ["summer"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "chironomid",
+      "filename": "upper_fly.fly.2009chironomid.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "Temp",
+          "units": "C",
+          "parameter": "Temp",
+          "climateInterpretation": {
+            "parameter": "T",
+            "interpDirection": 1,
+            "parameterDetail": "LST",
+            "seasonality": "summer"
+          }
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "water depth",
+          "units": "cm",
+          "parameter": "water depth",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["water depth"],
-        "units": ["cm"],
-        "parameter": ["water depth"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": [null],
-    "filename": ["upper_fly.fly.2009NA.csv"],
-    "columns": [""]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "upper_fly.fly.2009c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "2_s",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 8,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 9,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 12,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 13,
+          "dataType": "character",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates"
+        },
+        {
+          "number": 14,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

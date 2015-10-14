@@ -1,156 +1,163 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["dravladalsvatn.bakke.2005"],
-  "pubYear": ["2005"],
+  "@context": "context.jsonld",
+  "archiveType": "Lake",
+  "dataSetName": "dravladalsvatn.bakke.2005",
+  "pub": [
+    {
+      "pubYear": "2005"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [6.0667, 60.0333, "NA"]
+      "coordinates": [6.0667, 60.0333],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["dravladalsvatn"]
+      "siteName": "dravladalsvatn"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["dravladalsvatn.bakke.2005s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["ELA"],
-        "units": ["mm"],
-        "parameter": ["ELA"],
-        "climateInterpretation": {
-          "parameter": ["ELA"],
-          "interpDirection": [1],
-          "parameterDetail": ["NA"],
-          "seasonality": ["ANN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "dravladalsvatn.bakke.2005s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "ELA",
+          "units": "mm",
+          "parameter": "ELA",
+          "climateInterpretation": {
+            "parameter": "ELA",
+            "interpDirection": 1,
+            "parameterDetail": "NA",
+            "seasonality": "ANN"
+          }
+        },
+        {
+          "number": 3,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "note",
+          "parameter": "note",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [3],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["note"],
-        "parameter": ["note"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["drav1"],
-    "filename": ["dravladalsvatn.bakke.2005drav1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth_top"],
-        "units": ["mm"],
-        "parameter": ["depth_top"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["depth_bot"],
-        "units": ["mm"],
-        "parameter": ["depth_bot"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["1s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [7],
-        "dataType": ["integer"],
-        "shortName": ["thickness"],
-        "units": ["mm"],
-        "parameter": ["thickness"]
-      },
-      {
-        "number": [8],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [9],
-        "dataType": ["character"],
-        "shortName": ["core_name"],
-        "parameter": ["core_name"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [11],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [12],
-        "dataType": ["character"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {},
+    {
+      "chronDataTableName": "drav2",
+      "filename": "dravladalsvatn.bakke.2005drav2.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 8,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 9,
+          "dataType": "character",
+          "shortName": "core_name",
+          "parameter": "core_name"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 12,
+          "dataType": "character",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates"
+        }
+      ]
+    }
+  ]
 }

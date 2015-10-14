@@ -17,27 +17,27 @@ csv_out_paleoData <- function(current, num, n){
     bind <- list()
     
     for (i in 1:length(out_names)) {
-      tryCatch(if(is.numeric(D[[num]]$paleoData[[name]][[i]]$values)){
+      tryCatch(if(is.numeric(D[[num]]$paleoData[[name]][[i]]$values) || is.character(D[[num]]$paleoData[[name]][[i]]$values)){
         tryCatch(x <- D[[num]]$paleoData[[name]][[i]]$values, error=function(e) NULL)
         tryCatch(bind[[i]] <- x, error=function(e) NULL)
       }, error=function(e) NULL)
     }
-      
-  new <- bind[[1]]
-  for(i in 2:length(bind)){
-    new=cbind(new,bind[[i]])
-  }
-
-  #creating the csv file
-  #check if output folder
-  dir.create("output", showWarnings = FALSE,  mode = "0777")    
-  directory <- paste('output/', current, '/', sep = "")
-  path <- paste(directory, current, name, '.csv', sep = "")
-  print(directory)
-  dir.create(directory, showWarnings = FALSE,  mode = "0777")
-  file.create(path, showWarnings = FALSE)
-  write.table(new, file = path, row.names = FALSE, col.names = FALSE,sep=",")
-
+    
+    new <- bind[[1]]
+    for(i in 2:length(bind)){
+      new=cbind(new,bind[[i]])
+    }
+    
+    #creating the csv file
+    #check if output folder
+    dir.create("output", showWarnings = FALSE,  mode = "0777")    
+    directory <- paste('output/', current, '/', sep = "")
+    path <- paste(directory, current, name, '.csv', sep = "")
+    print(directory)
+    dir.create(directory, showWarnings = FALSE,  mode = "0777")
+    file.create(path, showWarnings = FALSE)
+    write.table(new, file = path, row.names = FALSE, col.names = FALSE,sep=",")
+    
   }
 }
 
@@ -56,7 +56,7 @@ csv_out_chronData <- function(current, num, n){
     bind <- list()
     
     for (i in 1:length(out_names)) {
-      tryCatch(if(is.numeric(D[[num]]$chronData[[name]][[i]]$values)){
+      tryCatch(if(is.numeric(D[[num]]$chronData[[name]][[i]]$values) || is.character(D[[num]]$chronData[[name]][[i]]$values)){
         tryCatch(x <- D[[num]]$chronData[[name]][[i]]$values, error=function(e) NULL)
         tryCatch(bind[[i]] <- x, error=function(e) NULL)
       }, error=function(e) NULL)
@@ -88,40 +88,11 @@ jsonld_out <- function(current, num){
   
   count <- num
   
-  
-  template <- '{
-
-  "@context" : "context.jsonld",
-  "archiveType" : "",
-  "collectionName" : "",
-  "comments" : "",
-  "dataSetName" : "",
-  "pub" : {
-      "pubYear" : ""
-  },
-  "geo" : {
-      "geometry" : {
-          "type" : "",
-          "coordinates" : ""
-      },
-      "properties" : {
-          "siteName" : ""
-      }
-  },
-  "paleoData" : {
-      "paleoDataTableName" : "",
-      "filename" : "",
-      "columns" : []
-  }
-}'
-  
   #json_data <- fromJSON(template)
   
   json_data=list()
   # sets all of the json data in the .jsonld file
   json_data$archiveType <- D[[count]]$archiveType
-  json_data$collectionName <- ""
-  json_data$comments <- ""
   json_data$dataSetName <- D[[count]]$dataSetName
   for (p in 1:length(D[[count]]$pub)){
     json_data$pub[[p]]$pubYear <- D[[count]]$pub[p]$pubYear
@@ -150,16 +121,18 @@ jsonld_out <- function(current, num){
   }
   
   x <- toJSON(json_data, pretty = TRUE, byrow = TRUE,auto_unbox=TRUE)
- #setwd('/Users/austin/Desktop/R')
+  setwd('~/GitHub/LiPD-utilities/R/')
   dir.create("output", showWarnings = FALSE,  mode = "0777")    
   directory <- paste('output/', current, '/', sep = "")
-  #print(directory)
+  print(directory)
   path <- paste(directory, current, '.jsonld', sep = "")
   dir.create(directory, showWarnings = FALSE,  mode = "0777")
   file.create(path, showWarnings = FALSE, mode = "0777")
+  
+  print(path)
   writeLines(x, path)
   print(file_name)
-}
+  }
 
 # returns [latitude, longitude, elevation]
 get_coordinates <- function(count){
@@ -185,15 +158,7 @@ make_columns_paleoData <- function(count, i){
   name <- i
   
   
-  json <- '{
-    "number": "",
-    "dataType": "",
-    "shortName": "",
-    "units": "",
-    "parameter": ""
-  }'
-  
-  json_data <- fromJSON(json)
+  #json <- '{}'
   
   
   file <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]]
@@ -209,24 +174,31 @@ make_columns_paleoData <- function(count, i){
   }
   
   else {
+    int <- 1
     count <- 1
     for(i in 1:index){
-      json_data$number <- count
-      tryCatch(json_data$dataType <- class(D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$values[1]), error=function(e) NULL)
+      json_data <- list()
       tryCatch(json_data$shortName <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$parameter, error=function(e) NULL)
+      tryCatch(json_data$dataType <- class(D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$values[1]), error=function(e) NULL)
       tryCatch(json_data$units <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$units, error=function(e) NULL)
-      tryCatch(json_data$parameter <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$parameter, error=function(e) NULL)
       tryCatch(json_data$climateInterpretation$parameter <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$climateInterpretation$parameter, error=function(e) NULL)
       tryCatch(json_data$climateInterpretation$interpDirection <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$climateInterpretation$interpDirection, error=function(e) NULL)
       tryCatch(json_data$climateInterpretation$parameterDetail <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$climateInterpretation$parameterDetail, error=function(e) NULL)
       tryCatch(json_data$climateInterpretation$seasonality <- D[[num]]$paleoData[[names(D[[num]]$paleoData)[name]]][[count]]$climateInterpretation$seasonality, error=function(e) NULL)
-      
-      return_value[[i]] <- json_data
+      print(json_data)
+      if(length(json_data) == 0){
+        print("emtpy")
+      }
+      else{
+        json_data$number = int
+        return_value[[int]] <- json_data
+        int = int + 1
+      }
       count <- count + 1
+      
     }
     return(return_value)
   }
-  
 }
 
 make_columns_chronData <- function(count, i){
@@ -234,15 +206,9 @@ make_columns_chronData <- function(count, i){
   index <- 0
   name <- i
   
-  json <- '{
-  "number": "",
-  "dataType": "",
-  "shortName": "",
-  "units": "",
-  "parameter": ""
-}'
+
   
-  json_data <- fromJSON(json)
+  json_data <- list()
   
   file <- D[[num]]$chronData[[names(D[[num]]$chronData)[name]]]
   
@@ -313,35 +279,15 @@ make_pub <- function(count, doi){
     if (index == 0){
       return('')
     }
-    
-    #else {
-    #count <- 1
-    #       for(i in 1:index){
-    #         json_data$number <- count
-    #         tryCatch(json_data$dataType <- class(D[[num]]$paleoData$s1[[count]]$values[1]), error=function(e) NULL)
-    #         tryCatch(json_data$shortName <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-    #         json_data$longName <- ''
-    #         tryCatch(json_data$units <- D[[num]]$paleoData$s1[[count]]$units, error=function(e) NULL)
-    #         tryCatch(json_data$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-    #         #tryCatch(json_data$climateInterpretation$parameter <- D[[num]]$paleoData$s1[[count]]$parameter, error=function(e) NULL)
-    #         json_data$climateInterpretation$interpDirection <- ''
-    #         json_data$climateInterpretation$parameterDetail <- ''
-    #         json_data$climateInterpretation$seasonality <- ''
-    #         
-    #         return_value[[i]] <- json_data
-    #         count <- count + 1
-    #       }
-    #       return(return_value)
-    #     }
   }
 }
 
 run <- function(){
   file_names <- names(D)
-  for (i in 1:length(file_names)) {
-    print(i)
-    jsonld_out(names(D)[i], i)
-  }
+  #for (i in 1:length(file_names)) {
+   # print(i)
+    jsonld_out(names(D)[1], 1)
+  #}
 }
 
 load("~/GitHub/LiPD-utilities/R/LiPD_R_Data.Rdata")

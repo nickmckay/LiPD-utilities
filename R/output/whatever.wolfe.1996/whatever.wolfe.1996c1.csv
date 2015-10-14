@@ -1,4 +1,4 @@
-0,0,NA,NA,-35,5,0,0
-220,200,1410,110,NA,NA,210,20
-915,890,3650,130,NA,NA,902.5,25
-1750,1725,6080,80,NA,NA,1737.5,25
+"0","0",NA,NA,"-35","5","0","0","surface","NA","NA","Assumed_top_age_based_on_collection_year_(1985_DK-ASSUMED)"
+"220","200","1410","110",NA,NA,"210","20","14C_bulk","TO-4526","organic_sediment","NA"
+"915","890","3650","130",NA,NA,"902.5","25","14C_bulk","TO-4527","organic_sediment","NA"
+"1750","1725","6080","80",NA,NA,"1737.5","25","14C_bulk","TO-4528","organic_sediment","NA"

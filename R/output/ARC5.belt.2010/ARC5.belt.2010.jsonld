@@ -1,130 +1,136 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Marine sediment"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["ARC5.belt.2010"],
-  "pubYear": ["2010"],
+  "@context": "context.jsonld",
+  "archiveType": "Marine sediment",
+  "dataSetName": "ARC5.belt.2010",
+  "pub": [
+    {
+      "pubYear": "2010"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [-106.5712, 68.9908, -112]
+      "coordinates": [-106.5712, 68.9908, -112],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["ARC5"]
+      "siteName": "ARC5"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["ARC5.belt.2010s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["IP25_flux"],
-        "units": ["g cm-2 yr-1"],
-        "parameter": ["IP25_flux"],
-        "climateInterpretation": {
-          "parameter": ["ICE"],
-          "interpDirection": [1],
-          "parameterDetail": ["sea"],
-          "seasonality": ["SPRING"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "ARC5.belt.2010s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "IP25_flux",
+          "units": "g cm-2 yr-1",
+          "parameter": "IP25_flux",
+          "climateInterpretation": {
+            "parameter": "ICE",
+            "interpDirection": 1,
+            "parameterDetail": "sea",
+            "seasonality": "SPRING"
+          }
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["ARC5.belt.2010c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["years"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_old"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_old"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_young"],
-        "units": ["2_s"],
-        "parameter": ["cal_age_range_young"]
-      },
-      {
-        "number": [6],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [7],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [8],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "ARC5.belt.2010c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "years",
+          "parameter": "age_error"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "2_s",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 6,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 7,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 8,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        }
+      ]
+    }
+  ]
 }

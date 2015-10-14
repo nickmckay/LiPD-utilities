@@ -1,74 +1,154 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Marine sediment"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["MD95-2011.berner.2010"],
-  "pubYear": ["2010"],
+  "@context": "context.jsonld",
+  "archiveType": "Marine sediment",
+  "dataSetName": "MD95-2011.berner.2010",
+  "pub": [
+    {
+      "pubYear": "2010"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [7.64, 66.97, -1048]
+      "coordinates": [7.64, 66.97, -1048],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["MD95-2011"]
+      "siteName": "MD95-2011"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["d18O"],
-    "filename": ["MD95-2011.berner.2010d18O.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": [""],
-        "shortName": [""],
-        "units": [""],
-        "parameter": [""]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [4],
-        "dataType": ["numeric"],
-        "shortName": ["d18O"],
-        "units": ["permil"],
-        "parameter": ["d18O"]
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [7],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": [null],
-    "filename": ["MD95-2011.berner.2010NA.csv"],
-    "columns": [""]
-  }
+  "paleoData": [
+    {
+      "paleoDataTableName": "d18O",
+      "filename": "MD95-2011.berner.2010d18O.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "",
+          "shortName": "",
+          "units": "",
+          "parameter": ""
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 4,
+          "dataType": "numeric",
+          "shortName": "d18O",
+          "units": "permil",
+          "parameter": "d18O"
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 7,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "MD95-2011.berner.2010c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "depth_alt",
+          "units": "mm",
+          "parameter": "depth_alt"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "reservoir",
+          "units": "age",
+          "parameter": "reservoir"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "reservoir_error",
+          "units": "1s",
+          "parameter": "reservoir_error"
+        },
+        {
+          "number": 7,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 8,
+          "dataType": "character",
+          "shortName": "core_name",
+          "parameter": "core_name"
+        },
+        {
+          "number": 9,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ]
 }

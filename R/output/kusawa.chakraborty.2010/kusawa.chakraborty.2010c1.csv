@@ -1,6 +1,6 @@
-0,NA,NA,-54,0,NA,NA
-200,NA,NA,1135,121,1256,1014
-530,2180,50,NA,160,2330,2010
-1350,4740,60,NA,130,5590,5330
-1780,7050,100,NA,185,8040,7670
-2140,8460,80,NA,135,9550,9280
+"0",NA,NA,"-54","0",NA,NA,"surface_age","NA","NA","Assumed_top_age_based_on_collection_year_(2004)"
+"200",NA,NA,"1135","121","1256","1014","tephra","NA","White_River_Ash","Age_of_White_River_Ash_from_Clague_et_al._(1995)"
+"530","2180","50",NA,"160","2330","2010","14C","TO-13665","Unidentified_plant_material_and_confier_needles","NA"
+"1350","4740","60",NA,"130","5590","5330","14C","TO-13664","Unidentified_plant_material","NA"
+"1780","7050","100",NA,"185","8040","7670","14C","TO-13415","Wood_fragments","NA"
+"2140","8460","80",NA,"135","9550","9280","14C","TO-13414","Unidentified_plant_material","NA"

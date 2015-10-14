@@ -1,79 +1,160 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Marine sediments"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["Troll28-03.klitgard-kristensen.2001"],
-  "pubYear": ["2001"],
+  "@context": "context.jsonld",
+  "archiveType": "Marine sediments",
+  "dataSetName": "Troll28-03.klitgard-kristensen.2001",
+  "pub": [
+    {
+      "pubYear": "2001"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [3.7333, 60.8667, -345]
+      "coordinates": [3.7333, 60.8667, -345],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["Troll28-03"]
+      "siteName": "Troll28-03"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["d18O_Pif"],
-    "filename": ["Troll28-03.klitgard-kristensen.2001d18O_Pif.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["numeric"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["d18O"],
-        "units": ["permil"],
-        "parameter": ["d18O"]
-      },
-      {
-        "number": [4],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [5],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [6],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [7],
-        "dataType": ["NULL"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"]
-      },
-      {
-        "number": [8],
-        "dataType": ["NULL"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": [null],
-    "filename": ["Troll28-03.klitgard-kristensen.2001NA.csv"],
-    "columns": [""]
-  }
+  "paleoData": [
+    {
+      "paleoDataTableName": "d18O_Pif",
+      "filename": "Troll28-03.klitgard-kristensen.2001d18O_Pif.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "d18O",
+          "units": "permil",
+          "parameter": "d18O"
+        },
+        {
+          "number": 4,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 5,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 6,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 7,
+          "dataType": "NULL",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates"
+        },
+        {
+          "number": 8,
+          "dataType": "NULL",
+          "shortName": "note",
+          "parameter": "note"
+        }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "Troll28-03.klitgard-kristensen.2001c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "years",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "2_s",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 8,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 9,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        }
+      ]
+    }
+  ]
 }

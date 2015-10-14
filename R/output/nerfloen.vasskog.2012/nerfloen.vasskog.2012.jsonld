@@ -1,144 +1,150 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["nerfloen.vasskog.2012"],
-  "pubYear": ["2012"],
+  "@context": "context.jsonld",
+  "archiveType": "Lake",
+  "dataSetName": "nerfloen.vasskog.2012",
+  "pub": [
+    {
+      "pubYear": "2012"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [6.8667, 61.9333, 938]
+      "coordinates": [6.8667, 61.9333, 938],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["nerfloen"]
+      "siteName": "nerfloen"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["nerfloen.vasskog.2012s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["PC1"],
-        "units": [""],
-        "parameter": ["PC1"],
-        "climateInterpretation": {
-          "parameter": ["P"],
-          "interpDirection": [1],
-          "parameterDetail": ["all"],
-          "seasonality": ["WIN"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "nerfloen.vasskog.2012s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "PC1",
+          "units": "",
+          "parameter": "PC1",
+          "climateInterpretation": {
+            "parameter": "P",
+            "interpDirection": 1,
+            "parameterDetail": "all",
+            "seasonality": "WIN"
+          }
+        },
+        {
+          "number": 3,
+          "dataType": "NULL",
+          "shortName": "NA",
+          "parameter": "NA",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [3],
-        "dataType": ["NULL"],
-        "shortName": ["NA"],
-        "parameter": ["NA"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["nerfloen.vasskog.2012c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["numeric"],
-        "shortName": ["Carbon"],
-        "units": ["mg"],
-        "parameter": ["Carbon"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["depth_top_alt"],
-        "units": ["mm"],
-        "parameter": ["depth_top_alt"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["depth_bot_alt"],
-        "units": ["mm"],
-        "parameter": ["depth_bot_alt"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [5],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["1s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [7],
-        "dataType": ["integer"],
-        "shortName": ["depth_top"],
-        "units": ["mm"],
-        "parameter": ["depth_top"]
-      },
-      {
-        "number": [8],
-        "dataType": ["integer"],
-        "shortName": ["depth_bot"],
-        "units": ["mm"],
-        "parameter": ["depth_bot"]
-      },
-      {
-        "number": [9],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [10],
-        "dataType": ["integer"],
-        "shortName": ["thickness"],
-        "units": ["mm"],
-        "parameter": ["thickness"]
-      },
-      {
-        "number": [11],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [12],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [13],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      }
-    ]
-  }
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "nerfloen.vasskog.2012c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "numeric",
+          "shortName": "Carbon",
+          "units": "mg",
+          "parameter": "Carbon"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_top_alt",
+          "units": "mm",
+          "parameter": "depth_top_alt"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "depth_bot_alt",
+          "units": "mm",
+          "parameter": "depth_bot_alt"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 5,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 8,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 9,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 10,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 12,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 13,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        }
+      ]
+    }
+  ]
 }

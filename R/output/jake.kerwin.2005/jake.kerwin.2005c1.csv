@@ -1,8 +1,8 @@
-1,NA,NA,-41,2
-65,2110,300,NA,NA
-155,3960,300,NA,NA
-255,4990,300,NA,NA
-355,6140,300,NA,NA
-455,7070,300,NA,NA
-555,8460,300,NA,NA
-655,8710,300,NA,NA
+"1",NA,NA,"-41","2","surface","assumed_top_age"
+"65","2110","300",NA,NA,"14C_bulk","Adjusted_hummic_acid"
+"155","3960","300",NA,NA,"14C_bulk","Adjusted_hummic_acid"
+"255","4990","300",NA,NA,"14C_bulk","Adjusted_hummic_acid"
+"355","6140","300",NA,NA,"14C_bulk","Adjusted_hummic_acid"
+"455","7070","300",NA,NA,"14C_bulk","Adjusted_hummic_acid"
+"555","8460","300",NA,NA,"14C_bulk","Adjusted_hummic_acid"
+"655","8710","300",NA,NA,"14C_bulk","Adjusted_hummic_acid"

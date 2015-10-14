@@ -1,231 +1,237 @@
 {
-  "@context": ["context.jsonld"],
-  "archiveType": ["Lake"],
-  "collectionName": [""],
-  "comments": [""],
-  "dataSetName": ["gunnarsfjorden.allen.2007"],
-  "pubYear": ["2007"],
+  "@context": "context.jsonld",
+  "archiveType": "Lake",
+  "dataSetName": "gunnarsfjorden.allen.2007",
+  "pub": [
+    {
+      "pubYear": "2007"
+    }
+  ],
   "geo": {
     "geometry": {
-      "type": ["Point"],
-      "coordinates": [28.1685, 71.0383, 78]
+      "coordinates": [28.1685, 71.0383, 78],
+      "type": "Point"
     },
     "properties": {
-      "siteName": ["gunnarsfjorden"]
+      "siteName": "gunnarsfjorden"
     }
   },
-  "paleoData": {
-    "paleoDataTableName": ["s1"],
-    "filename": ["gunnarsfjorden.allen.2007s1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [2],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [3],
-        "dataType": ["numeric"],
-        "shortName": ["sample_id"],
-        "units": [""],
-        "parameter": ["sample_id"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["Precip"],
-        "units": ["mm"],
-        "parameter": ["Precip"],
-        "climateInterpretation": {
-          "parameter": ["P"],
-          "interpDirection": [1],
-          "parameterDetail": ["all"],
-          "seasonality": ["SUMMER"]
+  "paleoData": [
+    {
+      "paleoDataTableName": "s1",
+      "filename": "gunnarsfjorden.allen.2007s1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 2,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 3,
+          "dataType": "numeric",
+          "shortName": "sample_id",
+          "units": "",
+          "parameter": "sample_id"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "Precip",
+          "units": "mm",
+          "parameter": "Precip",
+          "climateInterpretation": {
+            "parameter": "P",
+            "interpDirection": 1,
+            "parameterDetail": "all",
+            "seasonality": "SUMMER"
+          }
+        },
+        {
+          "number": 5,
+          "dataType": "numeric",
+          "shortName": "error",
+          "units": "1s",
+          "parameter": "error",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "GDD",
+          "units": "sum deg c",
+          "parameter": "GDD",
+          "climateInterpretation": {
+            "parameter": "GDD",
+            "interpDirection": 1,
+            "parameterDetail": "air",
+            "seasonality": "SUMMER"
+          }
+        },
+        {
+          "number": 7,
+          "dataType": "numeric",
+          "shortName": "Temp",
+          "units": "deg c",
+          "parameter": "Temp",
+          "climateInterpretation": {
+            "parameter": "T",
+            "interpDirection": 1,
+            "parameterDetail": "air",
+            "seasonality": "WARMEST"
+          }
+        },
+        {
+          "number": 8,
+          "dataType": "numeric",
+          "shortName": "AET/PET",
+          "units": "",
+          "parameter": "AET/PET",
+          "climateInterpretation": {
+            "parameter": "P",
+            "interpDirection": 1,
+            "parameterDetail": "eff",
+            "seasonality": "ANN"
+          }
+        },
+        {
+          "number": 9,
+          "dataType": "NULL",
+          "shortName": "age_type",
+          "parameter": "age_type",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 10,
+          "dataType": "NULL",
+          "shortName": "lab_id",
+          "parameter": "lab_id",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 11,
+          "dataType": "NULL",
+          "shortName": "material_dated",
+          "parameter": "material_dated",
+          "climateInterpretation": {}
+        },
+        {
+          "number": 12,
+          "dataType": "NULL",
+          "shortName": "note",
+          "parameter": "note",
+          "climateInterpretation": {}
         }
-      },
-      {
-        "number": [5],
-        "dataType": ["numeric"],
-        "shortName": ["error"],
-        "units": ["1s"],
-        "parameter": ["error"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["GDD"],
-        "units": ["sum deg c"],
-        "parameter": ["GDD"],
-        "climateInterpretation": {
-          "parameter": ["GDD"],
-          "interpDirection": [1],
-          "parameterDetail": ["air"],
-          "seasonality": ["SUMMER"]
+      ]
+    }
+  ],
+  "chronData": [
+    {
+      "chronDataTableName": "c1",
+      "filename": "gunnarsfjorden.allen.2007c1.csv",
+      "columns": [
+        {
+          "number": 1,
+          "dataType": "integer",
+          "shortName": "depth_bot",
+          "units": "mm",
+          "parameter": "depth_bot"
+        },
+        {
+          "number": 2,
+          "dataType": "integer",
+          "shortName": "depth_top",
+          "units": "mm",
+          "parameter": "depth_top"
+        },
+        {
+          "number": 3,
+          "dataType": "integer",
+          "shortName": "age14C",
+          "units": "bp",
+          "parameter": "age14C"
+        },
+        {
+          "number": 4,
+          "dataType": "integer",
+          "shortName": "age_error",
+          "units": "1s",
+          "parameter": "age_error"
+        },
+        {
+          "number": 5,
+          "dataType": "numeric",
+          "shortName": "age",
+          "units": "bp",
+          "parameter": "age"
+        },
+        {
+          "number": 6,
+          "dataType": "integer",
+          "shortName": "cal_age_range_old",
+          "units": "bp",
+          "parameter": "cal_age_range_old"
+        },
+        {
+          "number": 7,
+          "dataType": "integer",
+          "shortName": "cal_age_range_young",
+          "units": "bp",
+          "parameter": "cal_age_range_young"
+        },
+        {
+          "number": 8,
+          "dataType": "integer",
+          "shortName": "depth",
+          "units": "mm",
+          "parameter": "depth"
+        },
+        {
+          "number": 9,
+          "dataType": "integer",
+          "shortName": "thickness",
+          "units": "mm",
+          "parameter": "thickness"
+        },
+        {
+          "number": 10,
+          "dataType": "character",
+          "shortName": "age_type",
+          "parameter": "age_type"
+        },
+        {
+          "number": 11,
+          "dataType": "character",
+          "shortName": "lab_id",
+          "parameter": "lab_id"
+        },
+        {
+          "number": 12,
+          "dataType": "character",
+          "shortName": "material_dated",
+          "parameter": "material_dated"
+        },
+        {
+          "number": 13,
+          "dataType": "character",
+          "shortName": "note",
+          "parameter": "note"
+        },
+        {
+          "number": 14,
+          "dataType": "character",
+          "shortName": "rejected_dates",
+          "parameter": "rejected_dates"
         }
-      },
-      {
-        "number": [7],
-        "dataType": ["numeric"],
-        "shortName": ["Temp"],
-        "units": ["deg c"],
-        "parameter": ["Temp"],
-        "climateInterpretation": {
-          "parameter": ["T"],
-          "interpDirection": [1],
-          "parameterDetail": ["air"],
-          "seasonality": ["WARMEST"]
-        }
-      },
-      {
-        "number": [8],
-        "dataType": ["numeric"],
-        "shortName": ["AET/PET"],
-        "units": [""],
-        "parameter": ["AET/PET"],
-        "climateInterpretation": {
-          "parameter": ["P"],
-          "interpDirection": [1],
-          "parameterDetail": ["eff"],
-          "seasonality": ["ANN"]
-        }
-      },
-      {
-        "number": [9],
-        "dataType": ["NULL"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [10],
-        "dataType": ["NULL"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [11],
-        "dataType": ["NULL"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"],
-        "climateInterpretation": {}
-      },
-      {
-        "number": [12],
-        "dataType": ["NULL"],
-        "shortName": ["note"],
-        "parameter": ["note"],
-        "climateInterpretation": {}
-      }
-    ]
-  },
-  "chronData": {
-    "chronDataTableName": ["c1"],
-    "filename": ["gunnarsfjorden.allen.2007c1.csv"],
-    "columns": [
-      {
-        "number": [1],
-        "dataType": ["integer"],
-        "shortName": ["depth_bot"],
-        "units": ["mm"],
-        "parameter": ["depth_bot"]
-      },
-      {
-        "number": [2],
-        "dataType": ["integer"],
-        "shortName": ["depth_top"],
-        "units": ["mm"],
-        "parameter": ["depth_top"]
-      },
-      {
-        "number": [3],
-        "dataType": ["integer"],
-        "shortName": ["age14C"],
-        "units": ["bp"],
-        "parameter": ["age14C"]
-      },
-      {
-        "number": [4],
-        "dataType": ["integer"],
-        "shortName": ["age_error"],
-        "units": ["1s"],
-        "parameter": ["age_error"]
-      },
-      {
-        "number": [5],
-        "dataType": ["numeric"],
-        "shortName": ["age"],
-        "units": ["bp"],
-        "parameter": ["age"]
-      },
-      {
-        "number": [6],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_old"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_old"]
-      },
-      {
-        "number": [7],
-        "dataType": ["integer"],
-        "shortName": ["cal_age_range_young"],
-        "units": ["bp"],
-        "parameter": ["cal_age_range_young"]
-      },
-      {
-        "number": [8],
-        "dataType": ["integer"],
-        "shortName": ["depth"],
-        "units": ["mm"],
-        "parameter": ["depth"]
-      },
-      {
-        "number": [9],
-        "dataType": ["integer"],
-        "shortName": ["thickness"],
-        "units": ["mm"],
-        "parameter": ["thickness"]
-      },
-      {
-        "number": [10],
-        "dataType": ["character"],
-        "shortName": ["age_type"],
-        "parameter": ["age_type"]
-      },
-      {
-        "number": [11],
-        "dataType": ["character"],
-        "shortName": ["lab_id"],
-        "parameter": ["lab_id"]
-      },
-      {
-        "number": [12],
-        "dataType": ["character"],
-        "shortName": ["material_dated"],
-        "parameter": ["material_dated"]
-      },
-      {
-        "number": [13],
-        "dataType": ["character"],
-        "shortName": ["note"],
-        "parameter": ["note"]
-      },
-      {
-        "number": [14],
-        "dataType": ["character"],
-        "shortName": ["rejected_dates"],
-        "parameter": ["rejected_dates"]
-      }
-    ]
-  }
+      ]
+    }
+  ]
 }
