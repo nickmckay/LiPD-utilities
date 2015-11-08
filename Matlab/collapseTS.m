@@ -20,6 +20,12 @@ TS(4646).pub_year=2011;
 TS=renameTS(TS,1); %removing entries that aren't in the table
 
 %%
+%intialize some variables
+lastParamName='dum';
+lastPDName='dum';
+lastDataSetName='dum';
+
+
 %create a LiPD object for every unique dataSetName
 udsn=unique({TS.dataSetName}');
 
@@ -92,37 +98,72 @@ for i=1:length(udsn)
         
         %get or create the name of the relevant paleodata table
         if isfield(T,'paleoData_tableName')
-            pdName=T.paleoData_tableName;
+
+                pdName=T.paleoData_tableName;
         else
             pdName='s1';
         end
         
-        %get parameter name
-        paramName=matlab.lang.makeValidName(T.paleoData_parameter);
+        %check if this name has been used before - make sure entries are same
+        %find all other TS with this dataSetName and paleoData_tableName
+        samei=find(strcmp(udsn{i},{TS.dataSetName}')&strcmp(T.paleoData_tableName,{TS.paleoData_tableName}'));
+        if length(samei)>1
+            clear dll
+            for dl=1:length(samei)
+                dll(dl)=length(TS(samei(dl)).paleoData_values);
+            end
+        
+        %if they're not all thesame length, rename all tables including the length    
+            if length(unique(dll))>1
+                                pdName=['pdt' num2str(length(T.paleoData_values))];
+            end
+        end
+                
+        
+        %get variablename name
+        variableName=matlab.lang.makeValidName(T.paleoData_variableName);
         
         for pdin=1:length(pd)
             pdVarName=fT{pd(pdin)};
             
             %add in parameter
-            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(paramName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
                 T.(fT{pd(pdin)});
+            
+            %store last param name and last paleodata name for reference
+            lastParamName=variableName;
+            lastPDName=pdName;
+            lastDataSetName=matlab.lang.makeValidName(udsn{i});
+            
         end
         
         %add year as a column
+        yearFlag=0;
         if any(strcmp('year',fT))
+            if length(T.year) == length(T.paleoData_values)
             Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.values=T.year;
             Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.units='AD';
             Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.description='Year AD';
-            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.parameter='year';
-            
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.variableName='year';
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.dataType='float';
+            yearFlag=1;
+            end
         end
         %add age as column
+        ageFlag=0;
         if any(strcmp('age',fT))
+            %don't add age if it's a different length than the data
+            if length(T.age) == length(T.paleoData_values)
             Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.values=T.age;
             Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.units='BP';
             Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.description='Years before present (1950) BP';
-            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.parameter='age';
-            
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.variableName='age';
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.dataType='float';
+            ageFlag=1;
+            end
+        end
+        if ~ageFlag && ~yearFlag
+            error('no age or year data. The linearity (and existence) of time are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors')
         end
         
         %check for climate interpretation
@@ -132,7 +173,7 @@ for i=1:length(udsn)
                 ciVarName=fT{ci(cin)};
                 
                 %add in parameter
-                Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(paramName).climateInterpretation.(ciVarName(strfind(ciVarName,'_')+1:end))=...
+                Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).climateInterpretation.(ciVarName(strfind(ciVarName,'_')+1:end))=...
                     T.(fT{ci(cin)});
             end
         end
@@ -144,11 +185,16 @@ for i=1:length(udsn)
                 caiVarName=fT{cai(cain)};
                 
                 %add in parameter
-                Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(paramName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
                     T.(fT{cai(cain)});
             end
         end
         
     end
     
+end
+%%
+dnames=fieldnames(Dnew);
+for d=1:length(dnames)
+   writeLiPD(Dnew.(dnames{d}),1,'~/Dropbox/LiPD/library/'); 
 end
