@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "N14.andresen.2004",
   "pub": [
@@ -22,52 +21,43 @@
       "filename": "N14.andresen.2004s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "BSi",
+          "dataType": "numeric",
           "units": "%",
-          "parameter": "BSi",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "all",
             "seasonality": "ANN"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         }
       ]
     }

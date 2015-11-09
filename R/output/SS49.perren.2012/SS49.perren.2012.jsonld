@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "SS49.perren.2012",
   "pub": [
@@ -22,81 +21,66 @@
       "filename": "SS49.perren.2012s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "cal_age_range_young",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "cal_age_range_young"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "cal_age_range_old",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "cal_age_range_old"
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "CCA1",
+          "dataType": "numeric",
           "units": "",
-          "parameter": "CCA1",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "eff",
             "seasonality": "ANN"
-          }
+          },
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "numeric",
           "shortName": "CCA2",
+          "dataType": "numeric",
           "units": "",
-          "parameter": "CCA2",
-          "climateInterpretation": {}
+          "number": 6
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 8
         },
         {
-          "number": 9,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 9
         },
         {
-          "number": 10,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 10
         }
       ]
     }

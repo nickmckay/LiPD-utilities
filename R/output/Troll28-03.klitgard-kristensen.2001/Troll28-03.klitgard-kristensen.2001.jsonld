@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Marine sediments",
   "dataSetName": "Troll28-03.klitgard-kristensen.2001",
   "pub": [
@@ -22,55 +21,47 @@
       "filename": "Troll28-03.klitgard-kristensen.2001d18O_Pif.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "depth",
-          "units": "mm",
-          "parameter": "depth"
-        },
-        {
-          "number": 2,
-          "dataType": "integer",
-          "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
-        },
-        {
-          "number": 3,
           "dataType": "numeric",
+          "units": "mm",
+          "number": 1
+        },
+        {
+          "shortName": "age",
+          "dataType": "integer",
+          "units": "bp",
+          "number": 2
+        },
+        {
           "shortName": "d18O",
+          "dataType": "numeric",
           "units": "permil",
-          "parameter": "d18O"
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type"
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id"
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated"
+          "dataType": "NULL",
+          "number": 6
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "rejected_dates",
-          "parameter": "rejected_dates"
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note"
+          "dataType": "NULL",
+          "number": 8
         }
       ]
     }

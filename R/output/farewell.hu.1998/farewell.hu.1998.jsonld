@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "farewell.hu.1998",
   "pub": [
@@ -22,67 +21,51 @@
       "filename": "farewell.hu.1998s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "integer",
           "shortName": "age14C",
+          "dataType": "integer",
           "units": "bp14C",
-          "parameter": "age14C"
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth"
+          "number": 3
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "mg/ca",
+          "dataType": "numeric",
           "units": "mmol/mol",
-          "parameter": "mg/ca",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "LST",
             "seasonality": "SUMMER"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
-        }
+          "dataType": "NULL",
+          "number": 7
+        },
+        {}
       ]
     }
   ],

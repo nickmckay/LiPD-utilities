@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Marine sediments",
   "dataSetName": "MSM05-723.müller.2012",
   "pub": [
@@ -22,45 +21,38 @@
       "filename": "MSM05-723.müller.2012s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "depth",
-          "units": "mm",
-          "parameter": "depth"
-        },
-        {
-          "number": 2,
-          "dataType": "integer",
-          "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
-        },
-        {
-          "number": 3,
           "dataType": "numeric",
+          "units": "mm",
+          "number": 1
+        },
+        {
+          "shortName": "age",
+          "dataType": "integer",
+          "units": "bp",
+          "number": 2
+        },
+        {
           "shortName": "IP25_flux",
+          "dataType": "numeric",
           "units": "Âµg/cm2/ka",
-          "parameter": "IP25_flux",
           "climateInterpretation": {
             "parameter": "ice",
             "interpDirection": 1,
             "parameterDetail": "sea",
             "seasonality": "?"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         }
       ]
     }

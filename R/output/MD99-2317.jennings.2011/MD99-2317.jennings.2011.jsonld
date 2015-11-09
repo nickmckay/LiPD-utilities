@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Marine sediment",
   "dataSetName": "MD99-2317.jennings.2011",
   "pub": [
@@ -22,62 +21,53 @@
       "filename": "MD99-2317.jennings.2011IRD.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "mass dry",
-          "units": "g",
-          "parameter": "mass dry"
-        },
-        {
-          "number": 4,
           "dataType": "numeric",
-          "shortName": "mass dry >1mm",
           "units": "g",
-          "parameter": "mass dry >1mm"
+          "number": 3
         },
         {
-          "number": 5,
-          "dataType": "NULL",
+          "shortName": "mass dry >1mm",
+          "dataType": "numeric",
+          "units": "g",
+          "number": 4
+        },
+        {
           "shortName": "age_type",
-          "parameter": "age_type"
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id"
+          "dataType": "NULL",
+          "number": 6
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated"
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "rejected_dates",
-          "parameter": "rejected_dates"
+          "dataType": "NULL",
+          "number": 8
         },
         {
-          "number": 9,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note"
+          "dataType": "NULL",
+          "number": 9
         }
       ]
     }

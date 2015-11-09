@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "screaminglynx.clegg.2011",
   "pub": [
@@ -22,97 +21,73 @@
       "filename": "screaminglynx.clegg.2011s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "depth_top",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth_top"
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "depth_bot",
-          "units": "mm",
-          "parameter": "depth_bot"
-        },
-        {
-          "number": 4,
-          "dataType": "integer",
-          "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
-        },
-        {
-          "number": 5,
           "dataType": "numeric",
+          "units": "mm",
+          "number": 2
+        },
+        {
+          "shortName": "age",
+          "dataType": "integer",
+          "units": "bp",
+          "number": 3
+        },
+        {
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth",
-          "climateInterpretation": {}
+          "number": 5
         },
         {
-          "number": 7,
-          "dataType": "integer",
           "shortName": "thickness",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "thickness",
-          "climateInterpretation": {}
+          "number": 6
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 9,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 8
         },
         {
-          "number": 10,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 9
         },
         {
-          "number": 11,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 10
         },
         {
-          "number": 12,
-          "dataType": "NULL",
           "shortName": "rejected_dates",
-          "parameter": "rejected_dates",
-          "climateInterpretation": {}
-        }
+          "dataType": "NULL",
+          "number": 11
+        },
+        {}
       ]
     }
   ],

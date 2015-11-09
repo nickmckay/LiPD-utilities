@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Lake",
   "dataSetName": "njulla.bigler.2003",
   "pub": [
@@ -22,52 +21,42 @@
       "filename": "njulla.bigler.2003Chironomids_.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         }
       ]
     }

@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "KR02.peros.2008",
   "pub": [
@@ -22,58 +21,50 @@
       "filename": "KR02.peros.2008temp_precip.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "Precip",
+          "dataType": "numeric",
           "units": "",
-          "parameter": "Precip",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "all",
             "seasonality": "ANN"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         }
       ]
     }

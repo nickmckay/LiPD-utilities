@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "marine",
   "dataSetName": "DA05.lloyd.2007",
   "pub": [
@@ -22,45 +21,37 @@
       "filename": "DA05.lloyd.2007s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "sea ice diatoms",
+          "dataType": "numeric",
           "units": "%",
-          "parameter": "sea ice diatoms",
           "climateInterpretation": {
             "parameter": "ICE",
             "interpDirection": 1,
             "parameterDetail": "sea",
             "seasonality": "ANN"
-          }
+          },
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         }
       ]
     }

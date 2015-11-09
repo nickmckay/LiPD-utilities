@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "akvaquak.frechétte.2009",
   "pub": [
@@ -22,110 +21,99 @@
       "filename": "akvaquak.frechétte.2009s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "depth_alt",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth_alt"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "integer",
           "shortName": "age",
+          "dataType": "integer",
           "units": "bp",
-          "parameter": "age"
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "C",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "TempMin",
+          "dataType": "numeric",
           "units": "C",
-          "parameter": "TempMin",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "numeric",
           "shortName": "TempMax",
+          "dataType": "numeric",
           "units": "C",
-          "parameter": "TempMax",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 6
         },
         {
-          "number": 7,
-          "dataType": "numeric",
           "shortName": "SunFrac",
+          "dataType": "numeric",
           "units": "",
-          "parameter": "SunFrac",
           "climateInterpretation": {
             "parameter": "SUN",
             "interpDirection": 1,
             "parameterDetail": "surface",
             "seasonality": "JJAS"
-          }
+          },
+          "number": 7
         },
         {
-          "number": 8,
-          "dataType": "numeric",
           "shortName": "SunFracMin",
-          "units": "",
-          "parameter": "SunFracMin",
-          "climateInterpretation": {
-            "parameter": "SUN",
-            "interpDirection": 1,
-            "parameterDetail": "surface",
-            "seasonality": "JJAS"
-          }
-        },
-        {
-          "number": 9,
           "dataType": "numeric",
-          "shortName": "SunFracMax",
           "units": "",
-          "parameter": "SunFracMax",
           "climateInterpretation": {
             "parameter": "SUN",
             "interpDirection": 1,
             "parameterDetail": "surface",
             "seasonality": "JJAS"
-          }
+          },
+          "number": 8
         },
         {
-          "number": 10,
-          "dataType": "character",
+          "shortName": "SunFracMax",
+          "dataType": "numeric",
+          "units": "",
+          "climateInterpretation": {
+            "parameter": "SUN",
+            "interpDirection": 1,
+            "parameterDetail": "surface",
+            "seasonality": "JJAS"
+          },
+          "number": 9
+        },
+        {
           "shortName": "NA",
-          "parameter": "NA",
-          "climateInterpretation": {}
+          "dataType": "character",
+          "number": 10
         }
       ]
     }

@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "Lyadhej-To.andreev.2005",
   "pub": [
@@ -22,31 +21,27 @@
       "filename": "Lyadhej-To.andreev.2005s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "NULL",
           "shortName": "B",
-          "parameter": "B",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 3
         }
       ]
     }

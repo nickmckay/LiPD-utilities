@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Lake",
   "dataSetName": "gunnarsfjorden.allen.2007",
   "pub": [
@@ -22,113 +21,96 @@
       "filename": "gunnarsfjorden.allen.2007s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
-          "units": "mm",
-          "parameter": "depth"
-        },
-        {
-          "number": 2,
-          "dataType": "numeric",
-          "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
-        },
-        {
-          "number": 3,
-          "dataType": "numeric",
-          "shortName": "sample_id",
-          "units": "",
-          "parameter": "sample_id"
-        },
-        {
-          "number": 4,
           "dataType": "integer",
-          "shortName": "Precip",
           "units": "mm",
-          "parameter": "Precip",
+          "number": 1
+        },
+        {
+          "shortName": "age",
+          "dataType": "numeric",
+          "units": "bp",
+          "number": 2
+        },
+        {
+          "shortName": "sample_id",
+          "dataType": "numeric",
+          "units": "",
+          "number": 3
+        },
+        {
+          "shortName": "Precip",
+          "dataType": "integer",
+          "units": "mm",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "all",
             "seasonality": "SUMMER"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "error",
+          "dataType": "numeric",
           "units": "1s",
-          "parameter": "error",
-          "climateInterpretation": {}
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "integer",
           "shortName": "GDD",
+          "dataType": "integer",
           "units": "sum deg c",
-          "parameter": "GDD",
           "climateInterpretation": {
             "parameter": "GDD",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "SUMMER"
-          }
+          },
+          "number": 6
         },
         {
-          "number": 7,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "WARMEST"
-          }
+          },
+          "number": 7
         },
         {
-          "number": 8,
-          "dataType": "numeric",
           "shortName": "AET/PET",
+          "dataType": "numeric",
           "units": "",
-          "parameter": "AET/PET",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "eff",
             "seasonality": "ANN"
-          }
+          },
+          "number": 8
         },
         {
-          "number": 9,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 9
         },
         {
-          "number": 10,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 10
         },
         {
-          "number": 11,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 11
         },
         {
-          "number": 12,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 12
         }
       ]
     }

@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "starvatn.andresen.2006",
   "pub": [
@@ -22,73 +21,59 @@
       "filename": "starvatn.andresen.2006s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "mineral_flux",
+          "dataType": "numeric",
           "units": "grains>255 micron/cm2/yr",
-          "parameter": "mineral_flux"
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "BSi",
+          "dataType": "numeric",
           "units": "%",
-          "parameter": "BSi",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "SUMMER"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "rejected_dates",
-          "parameter": "rejected_dates",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 8
         },
         {
-          "number": 9,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 9
         }
       ]
     }

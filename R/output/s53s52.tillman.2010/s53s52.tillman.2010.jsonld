@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Peat",
   "dataSetName": "s53s52.tillman.2010",
   "pub": [
@@ -22,38 +21,33 @@
       "filename": "s53s52.tillman.2010s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "character",
           "shortName": "S52",
-          "parameter": "S52",
-          "climateInterpretation": {}
+          "dataType": "character",
+          "number": 4
         }
       ]
     }

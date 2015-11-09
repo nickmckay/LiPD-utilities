@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Speleothem",
   "dataSetName": "fauske.linge.2009",
   "pub": [
@@ -22,67 +21,51 @@
       "filename": "fauske.linge.2009s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "age_alt",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age_alt"
+          "number": 2
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 3
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "d18O",
+          "dataType": "numeric",
           "units": "permil",
-          "parameter": "d18O",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": -1,
             "parameterDetail": "air",
             "seasonality": "ANN"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
-        }
+          "dataType": "NULL",
+          "number": 7
+        },
+        {}
       ]
     }
   ],

@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Lake",
   "dataSetName": "Fiskebolvatnet.balascio.2012",
   "pub": [
@@ -22,38 +21,33 @@
       "filename": "Fiskebolvatnet.balascio.2012s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
-          "units": "mm",
-          "parameter": "depth"
-        },
-        {
-          "number": 2,
           "dataType": "integer",
-          "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
+          "units": "mm",
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "numeric",
+          "shortName": "age",
+          "dataType": "integer",
+          "units": "bp",
+          "number": 2
+        },
+        {
           "shortName": "MAR",
+          "dataType": "numeric",
           "units": "g/cm2/yr",
-          "parameter": "MAR",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "eff",
             "seasonality": "ANN"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "U/Th",
-          "parameter": "U/Th",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         }
       ]
     }

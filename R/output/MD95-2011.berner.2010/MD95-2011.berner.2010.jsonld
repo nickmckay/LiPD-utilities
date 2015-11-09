@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Marine sediment",
   "dataSetName": "MD95-2011.berner.2010",
   "pub": [
@@ -22,51 +21,39 @@
       "filename": "MD95-2011.berner.2010d18O.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "integer",
           "shortName": "depth",
-          "units": "mm",
-          "parameter": "depth"
-        },
-        {
-          "number": 3,
           "dataType": "integer",
+          "units": "mm",
+          "number": 1
+        },
+        {
           "shortName": "age",
+          "dataType": "integer",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "d18O",
+          "dataType": "numeric",
           "units": "permil",
-          "parameter": "d18O"
+          "number": 3
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type"
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id"
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated"
-        }
+          "dataType": "NULL",
+          "number": 6
+        },
+        {}
       ]
     }
   ],

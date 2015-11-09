@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Lake",
   "dataSetName": "ruila.seppa.2004",
   "pub": [
@@ -22,38 +21,32 @@
       "filename": "ruila.seppa.2004s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "ANN"
-          }
+          },
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         }
       ]
     }

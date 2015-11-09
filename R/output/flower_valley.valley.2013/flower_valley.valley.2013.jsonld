@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "flower_valley.valley.2013",
   "pub": [
@@ -22,60 +21,45 @@
       "filename": "flower_valley.valley.2013s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "integer",
           "shortName": "depth",
-          "units": "mm",
-          "parameter": "depth"
-        },
-        {
-          "number": 3,
           "dataType": "integer",
-          "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
+          "units": "mm",
+          "number": 1
         },
         {
-          "number": 4,
-          "dataType": "numeric",
+          "shortName": "age",
+          "dataType": "integer",
+          "units": "bp",
+          "number": 2
+        },
+        {
           "shortName": "dD",
+          "dataType": "numeric",
           "units": "permil",
-          "parameter": "dD",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "eff",
             "seasonality": "ANN"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
-        }
+          "dataType": "NULL",
+          "number": 6
+        },
+        {}
       ]
     }
   ],

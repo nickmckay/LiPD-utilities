@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "SS8.anderson.2012",
   "pub": [
@@ -22,82 +21,62 @@
       "filename": "SS8.anderson.2012s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "integer",
           "shortName": "depth_bot",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth_bot"
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "integer",
           "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
-        },
-        {
-          "number": 4,
           "dataType": "integer",
-          "shortName": "age_error",
-          "units": "years",
-          "parameter": "age_error"
+          "units": "bp",
+          "number": 2
         },
         {
-          "number": 5,
-          "dataType": "numeric",
+          "shortName": "age_error",
+          "dataType": "integer",
+          "units": "years",
+          "number": 3
+        },
+        {
           "shortName": "mineral_flux",
+          "dataType": "numeric",
           "units": "cm2 yr -1",
-          "parameter": "mineral_flux",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "eff",
             "seasonality": "ANN"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "numeric",
           "shortName": "C_organic_flux",
+          "dataType": "numeric",
           "units": "g m2 yr-1",
-          "parameter": "C_organic_flux",
-          "climateInterpretation": {}
+          "number": 5
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 9,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 8
         },
         {
-          "number": 10,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
-        }
+          "dataType": "NULL",
+          "number": 9
+        },
+        {}
       ]
     }
   ],

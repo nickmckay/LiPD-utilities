@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Ice",
   "dataSetName": "century.vinther.2009",
   "pub": [
@@ -22,31 +21,27 @@
       "filename": "century.vinther.2009s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "age",
+          "dataType": "integer",
           "units": "bp",
-          "parameter": "age"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "d18O",
+          "dataType": "numeric",
           "units": "per mil vsmow",
-          "parameter": "d18O",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "ANN"
-          }
+          },
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "NULL",
           "shortName": "14C",
-          "parameter": "14C",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 3
         }
       ]
     }

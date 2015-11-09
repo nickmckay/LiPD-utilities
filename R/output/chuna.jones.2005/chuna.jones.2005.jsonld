@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Lake",
   "dataSetName": "chuna.jones.2005",
   "pub": [
@@ -22,51 +21,45 @@
       "filename": "chuna.jones.2005solovieva2005.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "Precip",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "Precip",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "all",
             "seasonality": "ANN"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "14C",
-          "parameter": "14C",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         }
       ]
     }

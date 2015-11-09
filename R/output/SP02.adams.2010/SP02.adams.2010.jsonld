@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "SP02.adams.2010",
   "pub": [
@@ -22,43 +21,37 @@
       "filename": "SP02.adams.2010MS.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
-        },
-        {
-          "number": 3,
           "dataType": "numeric",
+          "units": "bp",
+          "number": 2
+        },
+        {
           "shortName": "MS",
+          "dataType": "numeric",
           "units": "",
-          "parameter": "MS"
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type"
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id"
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note"
+          "dataType": "NULL",
+          "number": 6
         }
       ]
     }

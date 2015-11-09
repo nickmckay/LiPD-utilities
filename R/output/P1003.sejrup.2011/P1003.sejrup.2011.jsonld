@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Marine sediment",
   "dataSetName": "P1003.sejrup.2011",
   "pub": [
@@ -22,52 +21,45 @@
       "filename": "P1003.sejrup.2011s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "depth_alt",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth_alt"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "d18O",
+          "dataType": "numeric",
           "units": "permil",
-          "parameter": "d18O"
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg C",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "NST",
             "seasonality": "JJAS"
-          }
+          },
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "character",
           "shortName": "SC",
-          "parameter": "SC",
-          "climateInterpretation": {}
+          "dataType": "character",
+          "number": 6
         }
       ]
     }

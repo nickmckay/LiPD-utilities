@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "igaliku.massa.2012",
   "pub": [
@@ -22,52 +21,43 @@
       "filename": "igaliku.massa.2012s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "depth",
-          "units": "mm",
-          "parameter": "depth"
-        },
-        {
-          "number": 2,
           "dataType": "numeric",
-          "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
+          "units": "mm",
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "integer",
+          "shortName": "age",
+          "dataType": "numeric",
+          "units": "bp",
+          "number": 2
+        },
+        {
           "shortName": "pollen_count",
+          "dataType": "integer",
           "units": "gr cm-2 yr-1",
-          "parameter": "pollen_count",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "SUMMER"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "rejected_dates",
-          "parameter": "rejected_dates",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         }
       ]
     }

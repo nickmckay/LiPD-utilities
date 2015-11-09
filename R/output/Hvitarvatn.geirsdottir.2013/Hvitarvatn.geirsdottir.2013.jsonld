@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "Hvitarvatn.geirsdottir.2013",
   "pub": [
@@ -22,53 +21,39 @@
       "filename": "Hvitarvatn.geirsdottir.2013composite.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "PC1",
+          "dataType": "numeric",
           "units": "",
-          "parameter": "PC1",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "summer"
-          }
+          },
+          "number": 2
         },
         {
-          "number": 4,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 3
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "rejected_dates",
-          "parameter": "rejected_dates",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
-        }
+          "dataType": "NULL",
+          "number": 5
+        },
+        {}
       ]
     }
   ]

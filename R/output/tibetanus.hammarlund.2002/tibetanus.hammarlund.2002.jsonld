@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "Lake",
   "dataSetName": "tibetanus.hammarlund.2002",
   "pub": [
@@ -22,76 +21,58 @@
       "filename": "tibetanus.hammarlund.2002d18O.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "integer",
           "shortName": "depth_top",
-          "units": "mm",
-          "parameter": "depth_top"
-        },
-        {
-          "number": 3,
           "dataType": "integer",
-          "shortName": "depth_bot",
           "units": "mm",
-          "parameter": "depth_bot"
+          "number": 1
         },
         {
-          "number": 4,
-          "dataType": "numeric",
+          "shortName": "depth_bot",
+          "dataType": "integer",
+          "units": "mm",
+          "number": 2
+        },
+        {
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 3
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "d18O",
+          "dataType": "numeric",
           "units": "permil v pdb",
-          "parameter": "d18O",
           "climateInterpretation": {
             "parameter": "MODE",
             "interpDirection": 1,
             "parameterDetail": "?",
             "seasonality": "?"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth",
-          "climateInterpretation": {}
+          "number": 5
         },
         {
-          "number": 7,
-          "dataType": "integer",
           "shortName": "thickness",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "thickness",
-          "climateInterpretation": {}
+          "number": 6
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 9,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
-        }
+          "dataType": "NULL",
+          "number": 8
+        },
+        {}
       ]
     }
   ],

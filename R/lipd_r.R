@@ -1,6 +1,7 @@
 library(jsonlite)
 library(stringr)
 library(rjson)
+library(TestPackage)
 
 # input : .jsonld & .csv
 # output: .Rdata
@@ -11,17 +12,17 @@ convert_to_rdata <- function(json_files, csv_files, j){
   name = j
   toR = list()
   json = list()
-  
+
   new_dir = paste('~/Github/LiPD-utilities/R/test/', name, sep = "")
 
   # set the directory
   setwd(new_dir)
-  
+
   for(i in old_json){
     old_json_data <- fromJSON(file = i)
-    
+
     filename = old_json_data$dataSetName
-    
+
     json$context = old_json_data$'@context'
     if(old_json_data$archiveType != ""){
       json$archiveType = old_json_data$archiveType
@@ -41,7 +42,7 @@ convert_to_rdata <- function(json_files, csv_files, j){
     if(old_json_data$geo != ""){
       json$geo = old_json_data$geo
     }
-    
+
     # get the paleoData column data from .jsonld file
     for(i in old_json_data$paleoData){
       if(i == old_json_data$paleoData$paleoDataTableName){
@@ -58,7 +59,7 @@ convert_to_rdata <- function(json_files, csv_files, j){
         }
       }
     }
-    
+
     # get the chronData column data form .jsonld file
     for(i in old_json_data$chronData){
       if(i == old_json_data$chronData$chronDataTableName){
@@ -71,23 +72,23 @@ convert_to_rdata <- function(json_files, csv_files, j){
             if(length(json$chronData[[i]][[k]]$units) != 0){
               json$chronData[[i]][[k]]$values = csv_to_r(json$chronData[[i]]$filename, json, j, json$chronData[[i]][[k]]$units)
             }
-          }  
+          }
         }
       }
     }
-    
+
     print(json)
-    
+
     if(old_json_data$chronData != ""){
       chron_filename = old_json_data$chronData$filename
     }
-    
+
     if(old_json_data$paleoData != ""){
       paleo_filename = old_json_data$paleoData$filename
     }
-    
+
     filenames = c(chron_filename, paleo_filename)
-    
+
     toR[[filename]] = json
 
     # get final product once all of the data is together
@@ -101,19 +102,19 @@ csv_to_r <- function(filename, x, j, u){
   json = x
   col_num = j
   units = u
-  
+
   if(length(units) == 0){
     return("")
   }
-  
+
   else{
     data = list()
-    
+
     csv_table = read.csv(csv_file)
     csv = as.matrix(csv_table)
-    
+
     #print(csv[, 1])
-    
+
     data = csv[, col_num]
     #print(data)
     return(data)
@@ -126,14 +127,13 @@ get_table_name <- function(json, filename){
   j = json
   file = filename
   remove = j$dataSetName
-  
+
   if(grepl(remove, file)){
     name = unlist(strsplit(file, split = remove, fixed = TRUE))[2]
     n = unlist(strsplit(name, split = '.', fixed = TRUE))[1]
   }
   return(n)
 }
-
 
 # Final output of .Rdata file
 # Takes in all .jsonld and .csv files
@@ -143,16 +143,17 @@ to_r <- function(toR){
   saveRDS(set, "test.Rdata")
 }
 
-run <- function(){
-  
-  setwd('~/Github/LiPD-utilities/R/test')
-  
-  for(i in list.files('~/Github/LiPD-utilities/R/test')){
+lipd_to_r <- function(directory){
+  #just_in_case = '~/Github/LiPD-utilities/R/test'
+  d = directory
+  setwd(d)
+
+  for(i in list.files(d)){
     # get all of the different folders
     csv_files = list()
     json_files = list()
     file_list = list()
-    
+
     count_json = 0
     count_csv = 0
     count_files = 0
@@ -161,7 +162,7 @@ run <- function(){
 
     for(j in file_list){
       # if a .jsonld file, add to json_files
-      new_dir = paste('/Users/austin/Github/LiPD-utilities/R/test/', j, sep = "")
+      new_dir = paste(d, j, sep = "")
       #print(new_dir)
       #print(getwd())
       #setwd(new_dir)
@@ -171,7 +172,7 @@ run <- function(){
           json_files[count_json + 1] = k
           count_json = count_json + 1
         }
-      
+
         # if the file ends in 'v' then it is a .csv file
         if(substring(k, nchar(k)) == "v"){
           csv_files[count_csv + 1] = k
@@ -185,5 +186,3 @@ run <- function(){
     }
   }
 }
-
-run()

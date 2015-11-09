@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "whatever.wolfe.1996",
   "pub": [
@@ -22,52 +21,44 @@
       "filename": "whatever.wolfe.1996s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age14C",
-          "units": "bp",
-          "parameter": "age14C"
-        },
-        {
-          "number": 3,
-          "dataType": "integer",
-          "shortName": "age",
-          "units": "bp",
-          "parameter": "age"
-        },
-        {
-          "number": 4,
           "dataType": "numeric",
+          "units": "bp",
+          "number": 2
+        },
+        {
+          "shortName": "age",
+          "dataType": "integer",
+          "units": "bp",
+          "number": 3
+        },
+        {
           "shortName": "d18O",
+          "dataType": "numeric",
           "units": "â° vsmow",
-          "parameter": "d18O",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": -1,
             "parameterDetail": "eff",
             "seasonality": "ANN"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         }
       ]
     }

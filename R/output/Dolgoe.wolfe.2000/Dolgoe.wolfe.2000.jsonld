@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "Dolgoe.wolfe.2000",
   "pub": [
@@ -22,73 +21,61 @@
       "filename": "Dolgoe.wolfe.2000pollen.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "deg c",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "JUL"
-          }
+          },
+          "number": 3
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "error",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "error",
-          "climateInterpretation": {}
+          "number": 4
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "Precip",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "Precip",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "aill",
             "seasonality": "ANN"
-          }
+          },
+          "number": 5
         },
         {
-          "number": 6,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 8
         }
       ]
     }

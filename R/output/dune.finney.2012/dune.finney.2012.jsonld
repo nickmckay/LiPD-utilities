@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "dune.finney.2012",
   "pub": [
@@ -22,53 +21,41 @@
       "filename": "dune.finney.2012s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "numeric",
           "shortName": "depth",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "numeric",
           "shortName": "depth_alt",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "depth_alt"
+          "number": 2
         },
         {
-          "number": 4,
-          "dataType": "numeric",
           "shortName": "age",
+          "dataType": "numeric",
           "units": "bp",
-          "parameter": "age"
+          "number": 3
         },
         {
-          "number": 5,
-          "dataType": "numeric",
           "shortName": "d13C",
+          "dataType": "numeric",
           "units": "permil",
-          "parameter": "d13C",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": -1,
             "parameterDetail": "eff",
             "seasonality": "ANN"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "character",
           "shortName": "DUNE_A",
-          "parameter": "DUNE_A",
-          "climateInterpretation": {}
-        }
+          "dataType": "character",
+          "number": 5
+        },
+        {}
       ]
     }
   ],

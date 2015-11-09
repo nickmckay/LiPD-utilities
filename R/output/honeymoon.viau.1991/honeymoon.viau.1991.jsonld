@@ -1,5 +1,4 @@
 {
-  "@context": "context.jsonld",
   "archiveType": "lake",
   "dataSetName": "honeymoon.viau.1991",
   "pub": [
@@ -22,87 +21,68 @@
       "filename": "honeymoon.viau.1991s1.csv",
       "columns": [
         {
-          "number": 1,
-          "dataType": "",
-          "shortName": "",
-          "units": "",
-          "parameter": ""
-        },
-        {
-          "number": 2,
-          "dataType": "integer",
           "shortName": "depth",
+          "dataType": "integer",
           "units": "mm",
-          "parameter": "depth"
+          "number": 1
         },
         {
-          "number": 3,
-          "dataType": "integer",
           "shortName": "age14C",
-          "units": "bp",
-          "parameter": "age14C"
-        },
-        {
-          "number": 4,
           "dataType": "integer",
-          "shortName": "age",
           "units": "bp",
-          "parameter": "age"
+          "number": 2
         },
         {
-          "number": 5,
-          "dataType": "numeric",
+          "shortName": "age",
+          "dataType": "integer",
+          "units": "bp",
+          "number": 3
+        },
+        {
           "shortName": "Temp",
+          "dataType": "numeric",
           "units": "C",
-          "parameter": "Temp",
           "climateInterpretation": {
             "parameter": "T",
             "interpDirection": 1,
             "parameterDetail": "air",
             "seasonality": "coldest"
-          }
+          },
+          "number": 4
         },
         {
-          "number": 6,
-          "dataType": "numeric",
           "shortName": "Precip",
+          "dataType": "numeric",
           "units": "mm",
-          "parameter": "Precip",
           "climateInterpretation": {
             "parameter": "P",
             "interpDirection": 1,
             "parameterDetail": "all",
             "seasonality": "ANN"
-          }
+          },
+          "number": 5
         },
         {
-          "number": 7,
-          "dataType": "NULL",
           "shortName": "age_type",
-          "parameter": "age_type",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 6
         },
         {
-          "number": 8,
-          "dataType": "NULL",
           "shortName": "lab_id",
-          "parameter": "lab_id",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 7
         },
         {
-          "number": 9,
-          "dataType": "NULL",
           "shortName": "material_dated",
-          "parameter": "material_dated",
-          "climateInterpretation": {}
+          "dataType": "NULL",
+          "number": 8
         },
         {
-          "number": 10,
-          "dataType": "NULL",
           "shortName": "note",
-          "parameter": "note",
-          "climateInterpretation": {}
-        }
+          "dataType": "NULL",
+          "number": 9
+        },
+        {}
       ]
     }
   ],
