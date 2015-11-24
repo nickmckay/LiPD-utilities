@@ -32,11 +32,11 @@ for u=1:length(uNames)
     %find all oldNames
     oi=find(strcmp(uNames{u},oldDataSetName));
     %is there a new name for all of those?
-    ne=find(strcmpi(uNames{u},newDataSetName(oi)));
-    if length(ne)<length(oi)%if any are different
+    ne=find(~strcmpi(uNames{u},newDataSetName(oi)));
+    if length(ne)>0%if any are empty
         nf=setdiff(oi,oi(ne));
         ne=oi(ne);
-        if length(nf>0)%replace all the old names with new names
+        if length(nf>0)%replace all the empty names with new names
             for n=1:length(ne)
             newDataSetName{ne(n)}=newDataSetName{nf(1)};
             end
