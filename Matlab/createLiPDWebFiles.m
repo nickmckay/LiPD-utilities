@@ -118,13 +118,104 @@ wsNames=getWorksheetList(spreadSheetNew.spreadsheetKey,aTokenSpreadsheet);
 %metadata
 %edit that first sheet to become the metadatasheet
 
+%extract timeseries
+TS=structord( extractTimeseriesLiPD(L,1));
+
+%get rid of unnecessary metadata
+torem={'age','ageUnits','depth','depthUnits','year','yearUnits','geo_type','paleoData_values'};
+f=fieldnames(TS);
+pid=f(find(~cellfun(@isempty,(strfind(f,'identifier')))&strncmpi('pub',f,3)));
+if ~isempty(pid)%remove any pub identifiers, if there are any
+    TS=rmfield(TS,pid);
+end
+TS=rmfield(TS,torem);
+f=fieldnames(TS);
+%make chunks. 
+baseNames=f(find(cellfun(@isempty,(strfind(f,'_')))));
+geoNames=f(find(strncmpi('geo_',f,4)));
+pubNames=f(find(strncmpi('pub',f,3)));
+paleoDataNames=f(find(strncmpi('paleoData_',f,10)));
+ciNames=f(find(strncmpi('climateInterpretation_',f,22)));
+calNames=f(find(strncmpi('calibration_',f,12)));
+paleoDatai=(find(strncmpi('paleoData_',f,10)));
+cii=(find(strncmpi('climateInterpretation_',f,22)));
+cali=(find(strncmpi('calibration_',f,12)));
+
+%need to add chron!
+
+
+%create top chunk, includes, base, pub and geo metadata
+%how big to make it?
+tcr=max([length(geoNames) length(pubNames) length(baseNames)]);
+%8columns (2 and an empty one for each
+topChunk=cell(tcr,8); 
+
+%base first
+topChunk(1:length(baseNames),1)=baseNames;
+for n=1:length(baseNames)
+    topChunk{n,2}=TS(1).(baseNames{n});
+end
+
+%pub second
+topChunk(1:length(pubNames),4)=pubNames;
+for n=1:length(pubNames)
+    topChunk{n,5}=TS(1).(pubNames{n});
+end
+
+%geo third
+topChunk(1:length(geoNames),7)=geoNames;
+for n=1:length(geoNames)
+    topChunk{n,8}=TS(1).(geoNames{n});
+end
+
+%make header
+header={'Base Metadata', ' ',' ','Publication Metadata','','','Geographic metadata',''};
+%add in header
+topChunk=[header ; topChunk];
 
 
 
 
+%now make the paleoData chunks
+%make TSid first
+tsi=find(strcmp('paleoData_TSid',f));
+%make variableName second
+vni=find(strcmp('paleoData_variableName',f));
+%make description third
+di=find(strcmp('paleoData_description',f));
+%make units fourth
+ui=find(strcmp('paleoData_units',f));
 
-%delete that stupid first worksheet
-%deleteWorksheet(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,aTokenSpreadsheet);
+
+pdCi=[tsi; vni; di; ui;  setdiff(paleoDatai,[tsi vni di ui]); cii; cali];
+botChunk=cell(length(TS),length(pdCi)); 
+
+for p=1:length(pdCi)
+   botChunk(:,p)={TS.(f{pdCi(p)})}; 
+end
+
+%add in the header
+botChunk=[f(pdCi)';botChunk];
+
+%combine the two chunks
+nrow=size(topChunk,1)+size(botChunk,1)+1;
+
+ncol=max([size(topChunk,2),size(botChunk,2)]);
+
+%make final cell to be written to google
+metadataCell=cell(nrow,ncol);
+metadataCell(1:size(topChunk,1),1:size(topChunk,2))=topChunk;
+metadataCell((size(topChunk,1)+2):end,1:size(botChunk,2))=botChunk;
+
+%make all the cell entries strings
+metadataCell=stringifyCells(metadataCell);
+
+%now write this into the first worksheet
+changeWorksheetNameAndSize(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,nrow,ncol,'metadata',aTokenSpreadsheet);
+
+for m=1:ncol
+editWorksheetColumn(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,m,1:nrow,metadataCell(:,m),aTokenSpreadsheet);
+end
 
 
 %save updated LipD file?

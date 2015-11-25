@@ -2,80 +2,198 @@
 
 L=readLiPD('/Users/nick/Dropbox/LiPD/library/Arc-HalletLake.McKay.2008.lpd');
 
-%metadata
 
 
 %paleoData
 % % % deal with authorization on google
 %first create a new spreadsheet
-    load('google_tokens.mat');
-    
-    %see how long since last refresh; update if more than an hour
-    if ((now-lastUpdated)*24*60)>60
+load('google_tokens.mat');
+
+%see how long since last refresh; update if more than an hour
+if ((now-lastUpdated)*24*60)>60
     
     % to refresh the Docs access token (usually expires after 1 hr) you'd call
     aTokenDocs=refreshAccessToken(client_id,client_secret,rTokenDocs);
-
+    
     % to refresh the Spreadsheet access token (usually expires after 1 hr) you'd call
     aTokenSpreadsheet=refreshAccessToken(client_id,client_secret,rTokenSpreadsheet);
     
     %reset when last updated
     lastUpdated=now;
     save -append google_tokens.mat lastUpdated aTokenDocs aTokenSpreadsheet
-    end
-    
-    %this will create a new spreadsheet, with a useless first worksheet.
-    %We'll delete it later
-    spreadSheetNew=createSpreadsheet(L.dataSetName,aTokenDocs,'default.csv','text/csv');
+end
 
-    %now create a worksheet for each paleoDataTable
-    pdNames=fieldnames(L.paleoData);
-    for pd=1:length(L.paleoData)
-       P=L.paleoData.(pdNames{pd});
-       %get the names of the columns
-       colNames=structFieldNames(P);
-       nCol=length(colNames);
-       nRow=length(P.(colNames{1}).values);
+%this will create a new spreadsheet, with a useless first worksheet.
+%We'll delete it later
+spreadSheetNew=createSpreadsheet(L.dataSetName,aTokenDocs,'default.csv','text/csv');
+L.googleSpreadSheetKey=spreadSheetNew.spreadsheetKey;
+
+%now create a worksheet for each paleoDataTable
+pdNames=fieldnames(L.paleoData);
+for pd=1:length(L.paleoData)
+    P=L.paleoData.(pdNames{pd});
+    %get the names of the columns
+    colNames=structFieldNames(P);
+    nCol=length(colNames);
+    nRow=length(P.(colNames{1}).values);
     %create a new spreadsheet, with two extra rows (for variable name
-       %and TSID)
-       newWS=createWorksheet(spreadSheetNew.spreadsheetKey,nRow+2,nCol,['paleoData-' pdNames{pd}],aTokenSpreadsheet);
-       L.paleoData.(pdNames{pd}).googSpreadSheetKey=spreadSheetNew.spreadsheetKey;
-       L.paleoData.(pdNames{pd}).googWorkSheetKey=newWS.worksheetKey;
-
-        %go through the columns and populate the cells
-       for c=1:nCol
-           %check for TSid
-           if ~isfield(P.(colNames{c}),'TSid')
-               %should probably create one - function that checks against
-               %master list?
-               %for now - temporary id
-               P.(colNames{c}).TSid=['temp' num2str(rand*1e6,6)];
-           end
-               
-           if ~iscell(P.(colNames{c}).values)
-               colData=[P.(colNames{c}).variableName; P.(colNames{c}).TSid; cellstr(num2str(P.(colNames{c}).values))];
-           else
-               colData=[P.(colNames{c}).variableName; P.(colNames{c}).TSid; P.(colNames{c}).values];
-           end
-           %figure out what column to put it in
-           if isfield(P.(colNames{c}),'number')
-               colNum=P.(colNames{c}).number;
-           else
-               colNum=c;
-           end
-              editWorksheetColumn(spreadSheetNew.spreadsheetKey,newWS.worksheetKey,colNum,1:nRow,colData,aTokenSpreadsheet);
-       end
-       
-    end
+    %and TSID)
+    newWS=createWorksheet(spreadSheetNew.spreadsheetKey,nRow+2,nCol,['paleoData-' pdNames{pd}],aTokenSpreadsheet);
+    P.googWorkSheetKey=newWS.worksheetKey;
     
+    %go through the columns and populate the cells
+    for c=1:nCol
+        %check for TSid
+        if ~isfield(P.(colNames{c}),'TSid')
+            %should probably create one - function that checks against
+            %master list?
+            %for now - temporary id
+            P.(colNames{c}).TSid=['temp' num2str(rand*1e6,6)];
+        end
+        
+        if ~iscell(P.(colNames{c}).values)
+            colData=[P.(colNames{c}).variableName; P.(colNames{c}).TSid; cellstr(num2str(P.(colNames{c}).values))];
+        else
+            colData=[P.(colNames{c}).variableName; P.(colNames{c}).TSid; P.(colNames{c}).values];
+        end
+        %figure out what column to put it in
+        if isfield(P.(colNames{c}),'number')
+            colNum=P.(colNames{c}).number;
+        else
+            colNum=c;
+        end
+        editWorksheetColumn(spreadSheetNew.spreadsheetKey,newWS.worksheetKey,colNum,1:nRow,colData,aTokenSpreadsheet);
+    end
+    L.paleoData.(pdNames{pd})=P;
+    
+end
+
 %chronData
-if there's 
-
+%if there's chrondata, write that too.
+if isfield(L,'chronData')
+    %now create a worksheet for each chronDataTable
+    pdNames=fieldnames(L.chronData);
+    for pd=1:length(L.chronData)
+        P=L.chronData.(pdNames{pd});
+        %get the names of the columns
+        colNames=structFieldNames(P);
+        nCol=length(colNames);
+        nRow=length(P.(colNames{1}).values);
+        %create a new spreadsheet, with two extra rows (for variable name
+        %and TSID)
+        newWS=createWorksheet(spreadSheetNew.spreadsheetKey,nRow+2,nCol,['chronData-' pdNames{pd}],aTokenSpreadsheet);
+        P.googWorkSheetKey=newWS.worksheetKey;
+        
+        
+        %go through the columns and populate the cells
+        for c=1:nCol
+            %check for TSid
+            if ~isfield(P.(colNames{c}),'TSid')
+                %should probably create one - function that checks against
+                %master list?
+                %for now - temporary id
+                P.(colNames{c}).TSid=['temp' num2str(rand*1e6,6)];
+            end
+            
+            if ~iscell(P.(colNames{c}).values)
+                colData=[P.(colNames{c}).variableName; P.(colNames{c}).TSid; cellstr(num2str(P.(colNames{c}).values))];
+            else
+                colData=[P.(colNames{c}).variableName; P.(colNames{c}).TSid; P.(colNames{c}).values];
+            end
+            %figure out what column to put it in
+            if isfield(P.(colNames{c}),'number')
+                colNum=P.(colNames{c}).number;
+            else
+                colNum=c;
+            end
+            editWorksheetColumn(spreadSheetNew.spreadsheetKey,newWS.worksheetKey,colNum,1:nRow,colData,aTokenSpreadsheet);
+        end
+        L.chronData.(pdNames{pd})=P;%write it back into the main structure
+    end
+end
 %get the names of the worksheets
-       wsNames=getWorksheetList(spreadSheetNew.spreadsheetKey,aTokenSpreadsheet);
-         %delete that stupid first worksheet
-       deleteWorksheet(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,aTokenSpreadsheet);
+wsNames=getWorksheetList(spreadSheetNew.spreadsheetKey,aTokenSpreadsheet);
 
-       
-       %save updated LipD file?
-       
+
+%metadata
+%edit that first sheet to become the metadatasheet
+
+%extract timeseries
+TS=structord( extractTimeseriesLiPD(L,1));
+
+%get rid of unnecessary metadata
+torem={'age','ageUnits','depth','depthUnits','year','yearUnits','geo_type'};
+pid=f(find(~cellfun(@isempty,(strfind(f,'identifier')))&strncmpi('pub',f,3)));
+if ~isempty(pid)%remove any pub identifiers, if there are any
+    TS=rmfield(TS,pid)
+end
+TS=rmfield(TS,torem);
+f=fieldnames(TS);
+%make chunks. 
+baseNames=f(find(cellfun(@isempty,(strfind(f,'_')))));
+geoNames=f(find(strncmpi('geo_',f,4)));
+pubNames=f(find(strncmpi('pub',f,3)));
+paleoDataNames=f(find(strncmpi('paleoData_',f,10)));
+ciNames=f(find(strncmpi('climateInterpretation_',f,22)));
+calNames=f(find(strncmpi('calibration_',f,12)));
+paleoDatai=(find(strncmpi('paleoData_',f,10)));
+cii=(find(strncmpi('climateInterpretation_',f,22)));
+cali=(find(strncmpi('calibration_',f,12)));
+
+%need to add chron!
+
+
+%create top chunk, includes, base, pub and geo metadata
+%how big to make it?
+tcr=max([length(geoNames) length(pubNames) length(baseNames)]);
+%8columns (2 and an empty one for each
+topChunk=cell(tcr,8); 
+
+%base first
+topChunk(1:length(baseNames),1)=baseNames;
+for n=1:length(baseNames)
+    topChunk{n,2}=TS(1).(baseNames{n});
+end
+
+%pub second
+topChunk(1:length(pubNames),4)=pubNames;
+for n=1:length(pubNames)
+    topChunk{n,5}=TS(1).(pubNames{n});
+end
+
+%geo third
+topChunk(1:length(geoNames),7)=geoNames;
+for n=1:length(geoNames)
+    topChunk{n,8}=TS(1).(geoNames{n});
+end
+
+%make header
+header={'Base Metadata', ' ',' ','Publication Metadata','','','Geographic metadata',''};
+%add in header
+topChunk=[header ; topChunk];
+
+
+
+
+%now make the paleoData chunks
+%make TSid first
+tsi=find(strcmp('paleoData_TSid',f));
+
+pdCi=[tsi; setdiff(paleoDatai,tsi); cii; cali];
+botChunk=cell(length(TS),length(pdCi)); 
+
+for p=1:length(pdCi)
+   botChunk(:,p)={TS.(f{pdCi(p)})}; 
+end
+
+%add in the header
+botChunk=[f(pdCi)';botChunk];
+
+
+
+
+%delete that stupid first worksheet
+%deleteWorksheet(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,aTokenSpreadsheet);
+
+
+%save updated LipD file?
