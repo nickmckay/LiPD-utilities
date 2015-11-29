@@ -1,8 +1,11 @@
-%create lipd-web (google spreadsheet) files
+function L=createLiPDGoogleFile(L)
+%create lipd-web (google spreadsheet) files, L=single lipd hierarchical
+%object
 
-L=readLiPD('/Users/nick/Dropbox/LiPD/library/Arc-HalletLake.McKay.2008.lpd');
-
-
+%check to see if L already has a google file
+if isfield(L,'googleSpreadSheetKey')
+    error([L.dataSetName ' already has a google spreadsheet, you should use updateLiPDGoogleFile instead'])
+end
 
 %paleoData
 % % % deal with authorization on google
@@ -45,10 +48,8 @@ for pd=1:length(L.paleoData)
     for c=1:nCol
         %check for TSid
         if ~isfield(P.(colNames{c}),'TSid')
-            %should probably create one - function that checks against
-            %master list?
-            %for now - temporary id
-            P.(colNames{c}).TSid=['temp' num2str(rand*1e6,6)];
+            %create one - check against master list
+             P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName);
         end
         
         if ~iscell(P.(colNames{c}).values)

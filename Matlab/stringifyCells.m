@@ -7,13 +7,15 @@ nc=size(c,2);
 for i=1:nr
     for j=1:nc
         if ~ischar(c{i,j})
+          
             if isnumeric(c{i,j})
                 c{i,j}=num2str(c{i,j});
             elseif isstruct(c{i,j})
                 c{i,j}='nested data, can''t represent here';
             elseif iscell(c{i,j})
-                c{i,j}='nested data, can''t represent here';
+                c{i,j}=cell2str(c{i,j});
             end
         end
+        c{i,j}=regexprep(c{i,j},'[''}{]','');
     end
 end

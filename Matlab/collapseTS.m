@@ -1,55 +1,14 @@
-%collapseTS
-%converts TS (LiPD TS object) structure to D (Lipd Hierarchical Object) structure
-clear
-load ~/Dropbox/Pages2kPhase2/p2kDatabaseWithNewTSIDs.mat TS
+function Dnew=collapseTS(TS,yearTS)
+%tries to convert a LiPD Timeseries object back into a LiPD Hierarchical
+%object
+%TS is the TS structure
+%yearTS is an optional flag to tripped if your TS includes entries for
+%year/age/etc
 
-
-%update TS naming to LiPD
-%remove dataSetName field for now
-TS=rmfield(TS,'dataSetName');
-
-%HACKS
-TS(4504).pubYear=2005;
-TS(4508).pubYear=2007;
-TS(4579).pubYear=2002;
-TS(4579).pub_year=2002;
-TS(4646).pubYear=2011;
-TS(4646).pub_year=2011;
-
-TS=renameTS(TS,1); %removing entries that aren't in the table
-
-%hold onto dataset names
-oldDataSetName={TS.dataSetName}';
-
-%update from google
-run('~/Dropbox/Pages2kPhase2/updateTSfromGoogle.m');
-TS=renameTS(TS,1); %removing entries that aren't in the table
-newDataSetName={TS.dataSetName}';
-%handle dataset naming.
-%
-uNames=unique(oldDataSetName);
-for u=1:length(uNames)
-    %find all oldNames
-    oi=find(strcmp(uNames{u},oldDataSetName));
-    %is there a new name for all of those?
-    ne=find(strcmpi(uNames{u},newDataSetName(oi)));
-    if length(ne)<length(oi)%if any are different
-        nf=setdiff(oi,oi(ne));
-        ne=oi(ne);
-        if length(nf>0)%replace all the old names with new names
-            for n=1:length(ne)
-            newDataSetName{ne(n)}=newDataSetName{nf(1)};
-            end
-        end
-    end
+if nargin<2
+    yearTS=0;
 end
-%replace any remaining empty new names with oldnames
-    ne=find(cellfun(@isempty,newDataSetName));
-newDataSetName(ne)=oldDataSetName(ne);
 
-newName=strcat({TS.geo_pages2kRegion}',{'-'},newDataSetName);
-[TS.dataSetName]=newName{:};
-%%
 %intialize some variables
 lastParamName='dum';
 lastPDName='dum';
@@ -169,6 +128,11 @@ for i=1:length(udsn)
             
         end
         
+        
+        if yearTS % if years are included as TS entries do something new
+            
+            
+        else
         %add year as a column
         yearFlag=0;
         if any(strcmp('year',fT))
@@ -197,7 +161,7 @@ for i=1:length(udsn)
         if ~ageFlag && ~yearFlag
             error('no age or year data. The linearity (and existence) of time are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors')
         end
-        
+        end
         %check for climate interpretation
         if any(strncmp('climateInterpretation_',fT,22))
             ci=find(strncmp('climateInterpretation_',fT,22));
@@ -224,9 +188,4 @@ for i=1:length(udsn)
         
     end
     
-end
-%%
-dnames=fieldnames(Dnew);
-for d=1:length(dnames)
-   writeLiPD(Dnew.(dnames{d}),1,'~/Dropbox/LiPD/library/'); 
 end

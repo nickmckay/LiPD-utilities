@@ -2,25 +2,14 @@ function L=createLiPDGoogleFile(L)
 %create lipd-web (google spreadsheet) files, L=single lipd hierarchical
 %object
 
+%check to see if L already has a google file
+if isfield(L,'googleSpreadSheetKey')
+    error([L.dataSetName ' already has a google spreadsheet, you should use updateLiPDGoogleFile instead'])
+end
 
 %paleoData
 % % % deal with authorization on google
-%first create a new spreadsheet
-load('google_tokens.mat');
-
-%see how long since last refresh; update if more than an hour
-if ((now-lastUpdated)*24*60)>60
-    
-    % to refresh the Docs access token (usually expires after 1 hr) you'd call
-    aTokenDocs=refreshAccessToken(client_id,client_secret,rTokenDocs);
-    
-    % to refresh the Spreadsheet access token (usually expires after 1 hr) you'd call
-    aTokenSpreadsheet=refreshAccessToken(client_id,client_secret,rTokenSpreadsheet);
-    
-    %reset when last updated
-    lastUpdated=now;
-    save -append google_tokens.mat lastUpdated aTokenDocs aTokenSpreadsheet
-end
+checkGoogleTokens;
 
 %this will create a new spreadsheet, with a useless first worksheet.
 %We'll delete it later
@@ -110,6 +99,7 @@ if isfield(L,'chronData')
 end
 %get the names of the worksheets
 wsNames=getWorksheetList(spreadSheetNew.spreadsheetKey,aTokenSpreadsheet);
+L.googleMetadataWorksheet=wsNames(1).worksheetKey;
 
 
 %metadata
@@ -125,7 +115,11 @@ pid=f(find(~cellfun(@isempty,(strfind(f,'identifier')))&strncmpi('pub',f,3)));
 if ~isempty(pid)%remove any pub identifiers, if there are any
     TS=rmfield(TS,pid);
 end
-TS=rmfield(TS,torem);
+for i=1:length(torem)
+    if isfield(TS,torem{i})
+        TS=rmfield(TS,torem{i});
+    end
+end
 f=fieldnames(TS);
 %make chunks. 
 baseNames=f(find(cellfun(@isempty,(strfind(f,'_')))));
@@ -191,8 +185,10 @@ for p=1:length(pdCi)
    botChunk(:,p)={TS.(f{pdCi(p)})}; 
 end
 
-%add in the header
-botChunk=[f(pdCi)';botChunk];
+%add in the headers
+h1=cell(1,size(botChunk,2));
+h1{1}='paleoData column metadata';
+botChunk=[h1; f(pdCi)';botChunk];
 
 %combine the two chunks
 nrow=size(topChunk,1)+size(botChunk,1)+1;
@@ -205,13 +201,13 @@ metadataCell(1:size(topChunk,1),1:size(topChunk,2))=topChunk;
 metadataCell((size(topChunk,1)+2):end,1:size(botChunk,2))=botChunk;
 
 %make all the cell entries strings
-metadataCell=stringifyCells(metadataCell);
+metadataCell4Goog=stringifyCells(metadataCell);
 
 %now write this into the first worksheet
 changeWorksheetNameAndSize(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,nrow,ncol,'metadata',aTokenSpreadsheet);
 
 for m=1:ncol
-editWorksheetColumn(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,m,1:nrow,metadataCell(:,m),aTokenSpreadsheet);
+editWorksheetColumn(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,m,1:nrow,metadataCell4Goog(:,m),aTokenSpreadsheet);
 end
 
 
