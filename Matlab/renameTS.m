@@ -1,11 +1,26 @@
-function newTS=renameTS(TS,filter)
+function newTS=renameTS(TS,filter,useLocal)
 %update TS with current meta names
 %filter removes entries that don't match a name
 
 %download google name converter
-goog=GetGoogleSpreadsheet('1C135kP-SRRGO331v9d8fqJfa3ydmkG2QQ5tiXEHj5us');
 
 n=fieldnames(TS);
+
+if nargin<3
+    load localRenameTS.mat lastSync
+    howLong=(now-lastSync)*24*60;
+        if howLong<60
+            useLocal=1;
+        else
+            useLocal=0;
+        end    
+end
+
+if useLocal
+    load localRenameTS.mat goog
+else
+    goog=GetGoogleSpreadsheet('1C135kP-SRRGO331v9d8fqJfa3ydmkG2QQ5tiXEHj5us');
+end
 
 if nargin<2
     filter=0; %don't remove non matches by default

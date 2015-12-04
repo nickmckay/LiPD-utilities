@@ -7,7 +7,7 @@ if ~isfield(L,'googleSpreadSheetKey')
 end
 
 %make a ts from the lipd file, that we will update
-LTS=extractTimeseriesLiPD(L,1);
+LTS=renameTS(extractTimeseriesLiPD(L,1));
 
 %make a google version of the TS file
 %metadata first

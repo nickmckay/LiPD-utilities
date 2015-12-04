@@ -152,7 +152,7 @@ L.googleMetadataWorksheet=wsNames(1).worksheetKey;
 TS=structord(extractTimeseriesLiPD(L,1));
 
 %get rid of unnecessary metadata
-torem={'age','ageUnits','depth','depthUnits','year','yearUnits','geo_type','paleoData_values'};
+torem={'age','ageUnits','depth','depthUnits','year','yearUnits','geo_type','paleoData_values','pub1_abstract','pub2_abstract','paleoData_dataType','paleoData_missingValue'};
 f=fieldnames(TS);
 pid=f(find(~cellfun(@isempty,(strfind(f,'identifier')))&strncmpi('pub',f,3)));
 if ~isempty(pid)%remove any pub identifiers, if there are any

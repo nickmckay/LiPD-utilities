@@ -24,9 +24,13 @@ for i=1:length(udsn)
         %base level
         %all the fields that don't have underscores (except year and age)
         b=find(cellfun(@isempty,(strfind(fT,'_'))));
-        yi=find(strcmpi('year',fT));
-        ai=find(strcmpi('age',fT));
+        yi=find(strncmpi('year',fT,4));
+        ai=find(strncmpi('age',fT,3));
         yai=union(ai,yi);
+        %or depth
+        di=find(strncmpi('depth',fT,5));
+        yai=union(yai,di);
+
         b=setdiff(b,yai);
         
         for bi=1:length(b)
@@ -34,14 +38,16 @@ for i=1:length(udsn)
         end
         
         %funding
-        fun=find(strncmp('funding_',fT,8));
+        fun=find(strncmp('funding',fT,7));
         if numel(fun)>0
             Dnew.(matlab.lang.makeValidName(udsn{i})).funding=cell(1,1); %assign cell to funding
             for fin=1:length(fun)
                 funVarName=fT{fun(fin)};
                 fundNum=str2num(funVarName(8:(strfind(funVarName,'_')-1)));
-                Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=...
-                    T.(fT{fun(fin)});
+                if isempty(fundNum)
+                    fundNum=1;
+                end
+                Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=T.(fT{fun(fin)});
             end
         end
         
@@ -54,6 +60,9 @@ for i=1:length(udsn)
         for pin=1:length(p)
             pubVarName=fT{p(pin)};
             pubNum=str2num(pubVarName(4:(strfind(pubVarName,'_')-1)));
+             if isempty(pubNum)
+                    pubNum=1;
+                end
             Dnew.(matlab.lang.makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
                 T.(fT{p(pin)});
         end
@@ -83,6 +92,11 @@ for i=1:length(udsn)
         if isfield(T,'paleoData_tableName')
             
             pdName=T.paleoData_tableName;
+        elseif isfield(T,'paleoData_paleoDataTableName')
+            'here'
+            pdName=T.paleoData_paleoDataTableName;
+            
+            TS(fts(f)).paleoData_tableName=pdName;
         else
             pdName='s1';
             T.paleoData_tableName='s1';
