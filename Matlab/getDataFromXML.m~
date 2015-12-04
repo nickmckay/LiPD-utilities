@@ -1,4 +1,4 @@
-function data=getColumnFromXML(con)
+tic
 %test=xmlread(con.getInputStream());
 allListitems=test.getElementsByTagName('entry');
 clear data
@@ -30,5 +30,9 @@ if cL==8
     b=b+1;
 end
 
+          
+   
+ 
 end
 
+toc

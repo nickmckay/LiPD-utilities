@@ -24,8 +24,8 @@ if isfield(L,'googleSpreadSheetKey')
             L.paleoData.(pStructs{p})=rmfield(L.paleoData.(pStructs{p}),'googWorkSheetKey');
             ppstructs=structFieldNames(L.paleoData.(pStructs{p}));
             for pp=1:length(ppstructs)
-               if isfield(L.paleoData.(pStructs{p}).(ppstructs{pp}),'googWorkSheetKey')
-                   L.paleoData.(pStructs{p}).(ppstructs{pp})=rmfield(L.paleoData.(pStructs{p}).(ppstructs{pp}),'googWorkSheetKey');
+               if isfield(L.paleoData.(pStructs{p}).(ppstructs{pp}))
+                   isfield(L.paleoData.(pStructs{p}).(ppstructs{pp}))=field(L.paleoData.(pStructs{p}).(ppstructs{pp}),'googWorkSheetKey');
                end
             end
             

@@ -81,16 +81,13 @@ for i=1:length(udsn)
         
         %get or create the name of the relevant paleodata table
         if isfield(T,'paleoData_tableName')
-            
-            pdName=T.paleoData_tableName;
+
+                pdName=T.paleoData_tableName;
         else
             pdName='s1';
             T.paleoData_tableName='s1';
             TS(fts(f)).paleoData_tableName=pdName;
         end
-        
-        
-        
         
         %check if this name has been used before - make sure entries are same
         %find all other TS with this dataSetName and paleoData_tableName
@@ -100,26 +97,17 @@ for i=1:length(udsn)
             for dl=1:length(samei)
                 dll(dl)=length(TS(samei(dl)).paleoData_values);
             end
-            
-            %if they're not all thesame length, rename all tables including the length
+        
+        %if they're not all thesame length, rename all tables including the length    
             if length(unique(dll))>1
-                pdName=['pdt' num2str(length(T.paleoData_values))];
+                                pdName=['pdt' num2str(length(T.paleoData_values))];
             end
         end
-        
+                
         
         %get variablename name
         variableName=matlab.lang.makeValidName(T.paleoData_variableName);
         
-        
-        %ignore paleodata name from pd
-        pd=setdiff(pd,find(strcmp(fT,'paleoData_paleoDataTableName')));
-        
-        %also handle the google worksheet key differently
-        if any(strcmp('paleoData_googWorkSheetKey',fT))
-            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).googWorkSheetKey=T.paleoData_googWorkSheetKey;
-            pd=setdiff(pd,find(strcmp(fT,'paleoData_googWorkSheetKey')));
-        end
         for pdin=1:length(pd)
             pdVarName=fT{pd(pdin)};
             
@@ -127,6 +115,10 @@ for i=1:length(udsn)
             Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
                 T.(fT{pd(pdin)});
             
+            %store last param name and last paleodata name for reference
+            lastParamName=variableName;
+            lastPDName=pdName;
+            lastDataSetName=matlab.lang.makeValidName(udsn{i});
             
         end
         
@@ -135,34 +127,34 @@ for i=1:length(udsn)
             
             
         else
-            %add year as a column
-            yearFlag=0;
-            if any(strcmp('year',fT))
-                if length(T.year) == length(T.paleoData_values)
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.values=T.year;
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.units='AD';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.description='Year AD';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.variableName='year';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.dataType='float';
-                    yearFlag=1;
-                end
+        %add year as a column
+        yearFlag=0;
+        if any(strcmp('year',fT))
+            if length(T.year) == length(T.paleoData_values)
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.values=T.year;
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.units='AD';
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.description='Year AD';
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.variableName='year';
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).year.dataType='float';
+            yearFlag=1;
             end
-            %add age as column
-            ageFlag=0;
-            if any(strcmp('age',fT))
-                %don't add age if it's a different length than the data
-                if length(T.age) == length(T.paleoData_values)
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.values=T.age;
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.units='BP';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.description='Years before present (1950) BP';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.variableName='age';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.dataType='float';
-                    ageFlag=1;
-                end
+        end
+        %add age as column
+        ageFlag=0;
+        if any(strcmp('age',fT))
+            %don't add age if it's a different length than the data
+            if length(T.age) == length(T.paleoData_values)
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.values=T.age;
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.units='BP';
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.description='Years before present (1950) BP';
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.variableName='age';
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).age.dataType='float';
+            ageFlag=1;
             end
-            if ~ageFlag && ~yearFlag
-                error('no age or year data. The linearity (and existence) of time are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors')
-            end
+        end
+        if ~ageFlag && ~yearFlag
+            error('no age or year data. The linearity (and existence) of time are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors')
+        end
         end
         %check for climate interpretation
         if any(strncmp('climateInterpretation_',fT,22))

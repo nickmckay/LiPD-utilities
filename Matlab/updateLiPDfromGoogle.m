@@ -1,4 +1,4 @@
-%function updateLiPDfromGoogle(L)
+function L=updateLiPDfromGoogle(L)
 
 %make sure it actually has a google file
 
@@ -39,7 +39,7 @@ if ~isempty(dd)
     dum=repmat({GTS(dd).paleoData_units},length(GTS),1);
     [GTS.depthUnits]=dum{:};
 end
-%%
+
 %new structure
 %start with the old one
 NTS=LTS;
@@ -64,8 +64,11 @@ for g=1:length(gnames)
     N={GTS.(gnames{g})}';
     if ~isequal(O,N)%check to see if it changed,
         anyChanges=1;
-        (gnames{g})
+        display(['updating ' (gnames{g})])
        [NTS.(gnames{g})]=N{:};
     end
 end
+
+L=collapseTS(NTS,1);
+
    
