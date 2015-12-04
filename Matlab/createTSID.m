@@ -1,4 +1,4 @@
-function TSid=createTSID(variableName,dataSetName,altName,checkWeb)
+function TSid=createTSID(variableName,dataSetName,spreadsheetKey,worksheetKey,altName,checkWeb)
 %generates and registers a new TSID name. checkWeb boolean forces the code
 %to get the list from the master file each time, slow if running many times
 %in one session. Leaving checkWeb empty allows for smart choosing of when
@@ -6,7 +6,7 @@ function TSid=createTSID(variableName,dataSetName,altName,checkWeb)
 %altName proposes a TSid, rather than generating randomly
 
 
-if nargin<4
+if nargin<6
     checkWeb=1;
     
     curdir=pwd;
@@ -33,7 +33,7 @@ else
     load tsidCell.mat tsidCell
 end
 
-if nargin>2
+if nargin>4
     TSid=altName;
     if any(strcmp(TSid,tsidCell(:,1)))
         error('proposed name already exists')
@@ -51,7 +51,7 @@ else
     end
 end
 %add to list
-tsidCell=[tsidCell; {TSid} {dataSetName} {variableName}];
+tsidCell=[tsidCell; {TSid} {dataSetName} {variableName} {spreadsheetKey} {worksheetKey}];
 
 
 checkGoogleTokens;

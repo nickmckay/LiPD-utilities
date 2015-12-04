@@ -21,7 +21,9 @@ if isfield(L,'googleSpreadSheetKey')
 
         pStructs=structFieldNames(L.paleoData);
         for p=1:length(pStructs)
+            if isfield(L.paleoData.(pStructs{p}),'googWorkSheetKey');
             L.paleoData.(pStructs{p})=rmfield(L.paleoData.(pStructs{p}),'googWorkSheetKey');
+            end
             ppstructs=structFieldNames(L.paleoData.(pStructs{p}));
             for pp=1:length(ppstructs)
                if isfield(L.paleoData.(pStructs{p}).(ppstructs{pp}),'googWorkSheetKey')
@@ -71,7 +73,7 @@ for pd=1:length(pdNames)
         %check for TSid
         if ~isfield(P.(colNames{c}),'TSid')
             %create one - check against master list
-            P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName);
+            P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googWorkSheetKey);
         end
         
         if ~iscell(P.(colNames{c}).values)
@@ -148,7 +150,6 @@ L.googleMetadataWorksheet=wsNames(1).worksheetKey;
 
 %extract timeseries
 TS=structord(extractTimeseriesLiPD(L,1));
-display(TS.paleoData_googWorkSheetKey)
 
 %get rid of unnecessary metadata
 torem={'age','ageUnits','depth','depthUnits','year','yearUnits','geo_type','paleoData_values'};
