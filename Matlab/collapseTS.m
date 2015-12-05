@@ -47,7 +47,11 @@ for i=1:length(udsn)
                 if isempty(fundNum)
                     fundNum=1;
                 end
+                try
                 Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=T.(fT{fun(fin)});
+                catch DO
+                                    Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=char(T.(fT{fun(fin)}));
+                end
             end
         end
         
