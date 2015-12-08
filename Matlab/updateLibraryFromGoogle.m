@@ -1,6 +1,6 @@
 %update LiPD library from google
 
-cd ~/Dropbox/LiPD/library/NAm2k/notTR  
+cd ~/Dropbox/LiPD/library/
 
 l=dir('*.lpd');
 l={l.name}';
@@ -9,12 +9,12 @@ lNoExt=cellfun(@(x)x(1:end-4),l,'UniformOutput',0);
 %update
 checkGoogleTokens;
 
-if 0
+if 1
 %find which googleLiPDs have been recently updated.
 list=getSpreadsheetList(aTokenSpreadsheet);
 
-updateDate=now-1;
-recent=find(cell2mat({list.updatedNumeric}')-updateDate>0);
+updateDate=now-(4/24)+7/24;%acount for zulu time
+recent=find((cell2mat({list.updatedNumeric}')-updateDate)>0);
 
 n=1;
 clear toUpdate
@@ -29,7 +29,7 @@ end
 else
     toUpdate=1:length(l);
 end
-
+%%
 for i=1:length(toUpdate)
     name=l{toUpdate(i)};
     L=readLiPD(name);
@@ -42,3 +42,6 @@ writeLiPD(L);
     
 
 end
+
+%clear 
+%run('~/Dropbox/Pages2kPhase2/loadLiPDLibrary.m')
