@@ -1,0 +1,25 @@
+%update LiPD library from google
+
+cd ~/Dropbox/LiPD/library/
+
+l=dir('*.lpd');
+l={l.name}';
+
+%update
+checkGoogleTokens;
+
+%find which googleLiPDs have been recently updated.
+list=getSpreadsheetList(aTokenSheets);
+%%
+for i=6:length(l)
+    name=l{i};
+    L=readLiPD(name);
+L=updateLiPDfromGoogle(L);
+    
+%remove old file before writing new one.
+delete(name);
+
+writeLiPD(L);
+    
+
+end
