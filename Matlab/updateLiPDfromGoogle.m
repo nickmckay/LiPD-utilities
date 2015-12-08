@@ -15,7 +15,9 @@ GTS=getLiPDGoogleMetadata(L.googleSpreadSheetKey,L.googleMetadataWorksheet);
 %then grab the data
 GTS=getLiPDGooglePaleoData(GTS);
 
-%number columns aren't coming as numbers!!!!!!!
+%make sure not character columns
+ischar(GTS(2).paleoData_values)
+
 
 %add in special fields (year, depth, age)
 yy=find(strcmpi('year',{GTS.paleoData_variableName}'));
