@@ -125,21 +125,10 @@ for i=1:length(udsn)
             end
         end
         
-           
-        
-        %ignore paleodata name from pd
-        pd=setdiff(pd,find(strcmp(fT,'paleoData_paleoDataTableName')));
-        
-        %also handle the google worksheet key differently
-        if any(strcmp('paleoData_googWorkSheetKey',fT))
-            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).googWorkSheetKey=T.paleoData_googWorkSheetKey;
-            pd=setdiff(pd,find(strcmp(fT,'paleoData_googWorkSheetKey')));
-        end
-        
         
         %get variablename name
         variableName=matlab.lang.makeValidName(T.paleoData_variableName);
-       
+        if
         %see if that name has been used already
         alreadyNames=fieldnames(Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName));
         %iterate through numbers until it's unique
@@ -151,10 +140,14 @@ for i=1:length(udsn)
         end
         
         
+        %ignore paleodata name from pd
+        pd=setdiff(pd,find(strcmp(fT,'paleoData_paleoDataTableName')));
         
-        
-        
-        %add in the variable
+        %also handle the google worksheet key differently
+        if any(strcmp('paleoData_googWorkSheetKey',fT))
+            Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).googWorkSheetKey=T.paleoData_googWorkSheetKey;
+            pd=setdiff(pd,find(strcmp(fT,'paleoData_googWorkSheetKey')));
+        end
         for pdin=1:length(pd)
             pdVarName=fT{pd(pdin)};
             
