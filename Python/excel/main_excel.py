@@ -22,7 +22,7 @@ EMPTY = ['', ' ', None, 'na', 'nan']
 
 def main():
 
-    dir_root = '/Users/chrisheiser1/Desktop/test'
+    dir_root = 'SET_DIRECTORY_PATH_HERE'
     os.chdir(dir_root)
 
     # Ask user if they want to run the Chronology sheets or flatten the JSON files.
