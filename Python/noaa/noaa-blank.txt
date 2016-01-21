@@ -1,0 +1,89 @@
+﻿# Study Title
+#----------------------------------------------------------------------- 
+#                World Data Center for Paleoclimatology, Boulder 
+#                                  and 
+#                     NOAA Paleoclimatology Program 
+#----------------------------------------------------------------------- 
+# NOTE: Please cite Publication, and Online_Resource and date accessed when using these data. 
+# If there is no publication information, please cite Investigators, Title, and Online_Resource and date accessed. 
+#
+#
+# Online_Resource: http://www.hurricane.ncdc.noaa.gov/pls/paleox/f?p=519:1:::::P1_STUDY_ID:14 ??? (assigned by WDC Paleo)
+#
+# Original_Source_URL: ftp://ftp.ncdc.noaa.gov/pub/data/paleo/ (assigned by WDC Paleo)
+# 
+# Description/Documentation lines begin with #
+# Data lines have no #
+#
+# Archive:
+#--------------------
+# Contribution_Date
+#	Date:
+#--------------------
+# Title
+#	Study_Name:
+#--------------------
+# Investigators
+#       Investigators:
+#--------------------
+# Description_Notes_and_Keywords
+#	Description: 
+#--------------------
+# Publication 
+#       Authors: 
+#       Published_Date_or_Year:
+#       Published_Title: 
+#       Journal_Name: 
+#       Volume: 
+#       Edition: 
+#       Issue: 
+#       Pages: 
+#       DOI: 
+#       Online_Resource: 
+#       Full_Citation: 
+#       Abstract: 
+#------------------
+# Funding_Agency 
+#       Funding_Agency_Name: 
+#       Grant: 
+#------------------
+# Site_Information 
+#       Site_Name: 
+#       Location:
+#	Country:  
+#	Northernmost_Latitude:  
+# 	Southernmost_Latitude:  
+# 	Easternmost_Longitude:  
+# 	Westernmost_Longitude:  
+# 	Elevation:
+#------------------
+# Data_Collection   
+#	Collection_Name:  
+#	Earliest_Year:  
+#	Most_Recent_Year:  
+#	Time_Unit:  
+#	Core_Length:
+#	Notes: 
+#------------------
+# Chronology: 
+# 
+#
+# 
+#
+# 
+#
+#
+# 	
+#----------------	
+# Variables 
+#
+# Data variables follow are preceded by "##" in columns one and two.
+# Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components (9 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or Numeric data) 
+#
+#
+#----------------
+# Data:
+# Data lines follow (have no #)
+# Data line format - tab-delimited text, variable short name as header
+# Missing Values:  
+#
