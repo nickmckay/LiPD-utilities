@@ -94,20 +94,11 @@ for d=1:length(fnames)
         cnames=fieldnames(D.(fnames{d}).paleoData.(mnames{m}));
         for c=1:length(cnames)
             if isfield(D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}),'climateInterpretation')
-                if ~isfield(D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation,'parameter')
-                    if isfield(D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation,'climateParameter')
-                        D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation.parameter=D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation.climateParameter;
-                        CIflag=1;
-                        try
-                            D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation.parameterDetail=D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation.climateParameterDetail;
-                        catch DO
-                        end
-                    else
-                        
-                        
-                        D.(fnames{d}).paleoData.(mnames{m}).(cnames{c})=rmfield(D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}),'climateInterpretation');
-                    end
-                    
+                if isfield(D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation,'climateParameter')
+                    ~isfield(D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation,'parameter')
+                    D.(fnames{d}).paleoData.(mnames{m}).(cnames{c})=rmfield(D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}),'climateInterpretation');
+                elseif isfield(D.(fnames{d}).paleoData.(mnames{m}).(cnames{c}).climateInterpretation,'climateParameter')
+                
                 else
                     CIflag=1;
                 end
