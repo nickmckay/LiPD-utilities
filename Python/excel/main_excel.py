@@ -3,11 +3,10 @@
 import xlrd
 import logging
 
-from geoChronR.Parser.under_construction.flattener.flatten import *
-from geoChronR.Parser.doi.doi_resolver import *
-from geoChronR.Parser.modules.directory import *
-from geoChronR.Parser.modules.zips import *
-from geoChronR.Parser.modules.bag import *
+from Python.doi.doi_resolver import *
+from Python.modules.directory import *
+from Python.modules.zips import *
+from Python.modules.bag import *
 
 from collections import OrderedDict
 import csv

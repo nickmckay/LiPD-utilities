@@ -1,4 +1,4 @@
-from geoChronR.Parser.misc.directory import *
+from Python.modules.directory import *
 import os
 import re
 import shutil

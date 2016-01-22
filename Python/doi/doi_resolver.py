@@ -3,7 +3,7 @@ import json
 import requests
 import re
 import urllib.error
-from geoChronR.Parser.modules.loggers import *
+from Python.modules.loggers import *
 
 __author__ = 'Chris Heiser, Austin McDowell'
 """

@@ -1,7 +1,7 @@
-from geoChronR.Parser.modules.bag import *
-from geoChronR.Parser.modules.directory import *
-from geoChronR.Parser.modules.zips import *
-from geoChronR.Parser.doi.doi_resolver import *
+from Python.modules.bag import *
+from Python.modules.directory import *
+from Python.modules.zips import *
+from Python.doi.doi_resolver import *
 
 __author__ = 'Chris Heiser'
 

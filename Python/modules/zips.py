@@ -1,6 +1,6 @@
 import zipfile
 import shutil
-from geoChronR.Parser.modules.directory import create_tmp_dir
+from Python.modules.directory import create_tmp_dir
 
 __author__ = 'Chris Heiser'
 

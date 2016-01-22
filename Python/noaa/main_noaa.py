@@ -1,6 +1,5 @@
-from geoChronR.Parser.modules.zips import *
-from geoChronR.Parser.modules.directory import *
-from geoChronR.Parser.noaa.lpd_noaa import *
+from Python.modules.zips import *
+from Python.noaa.lpd_noaa import *
 import json
 
 __author__ = 'Chris Heiser'
