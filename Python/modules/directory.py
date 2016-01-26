@@ -1,13 +1,24 @@
 import os
 import tempfile
 import shutil
+import ntpath
 
 __author__ = 'Chris Heiser'
 
 
+def file_from_path(path):
+    """
+    Extract the file name from a given file path.
+    :param path: (str) File path
+    :return: (str) File name with extension
+    """
+    head, tail = ntpath.split(path)
+    return head, tail or ntpath.basename(head)
+
+
 def create_tmp_dir():
     """
-    Creates tmp working directory somewhere in OS.
+    Creates tmp directory in OS temp space.
     :return: (str) Path to tmp directory
     """
     path_tmp = tempfile.mkdtemp()

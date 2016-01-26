@@ -17,14 +17,13 @@ def re_zip(dir_tmp, name, name_ext):
     return
 
 
-def unzip(name_ext):
+def unzip(name_ext, dir_tmp):
     """
     Unzip .lpd file contents to tmp directory. Save path to the tmp directory.
     :param name_ext: (str) Name of lpd file with extension
-    :return: (str) Path to tmp directory
+    :param dir_tmp: (str) Tmp folder to extract contents to
+    :return:
     """
-    # Creates tmp directory somewhere deep in OS
-    dir_tmp = create_tmp_dir()
 
     # Unzip contents to the tmp directory
     try:
@@ -32,5 +31,5 @@ def unzip(name_ext):
             f.extractall(dir_tmp)
     except FileNotFoundError:
         shutil.rmtree(dir_tmp)
-        return None
-    return dir_tmp
+        return
+    return

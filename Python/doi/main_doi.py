@@ -14,6 +14,9 @@ problematic files.
 
 """
 
+# GLOBALS
+DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
+
 
 def main():
     """
@@ -21,7 +24,7 @@ def main():
     :return: None
     """
     # Enter user-chosen directory path
-    dir_root = 'ENTER_DIRECTORY_PATH_HERE'
+    dir_root = DIRECTORY_PATH
 
     # Find all .lpd files in current directory
     # dir: ? -> dir_root
@@ -35,7 +38,8 @@ def main():
         name = os.path.splitext(name_ext)[0]
 
         # Unzip file and get tmp directory path
-        dir_tmp = unzip(name_ext)
+        dir_tmp = create_tmp_dir()
+        unzip(name_ext, dir_tmp)
 
         # Unbag and check resolved flag. Don't run if flag exists
         if resolved_flag(open_bag(os.path.join(dir_tmp, name))):
@@ -73,14 +77,14 @@ def process_lpd(name, dir_tmp):
     # dir : dir_root -> dir_data
     os.chdir(dir_data)
 
-    # Open jld file and read in the contents. Execute DOI Resolver.
+    # Open jld file and read in the contents
     with open(os.path.join(dir_data, name + '.jsonld'), 'r') as jld_file:
         jld_data = json.load(jld_file)
 
-    # IS THIS EVEN RETURNING THE UPDATED JSON ??
+    # Create DOIResolver object and run
     jld_data = DOIResolver(dir_root, name, jld_data).main()
 
-    # Open the jld file and overwrite the contents with the new data.
+    # Open the jld file again, and overwrite the contents with the new data.
     with open(os.path.join(dir_data, name + '.jsonld'), 'w+') as jld_file:
         json.dump(jld_data, jld_file, indent=2, sort_keys=True)
 

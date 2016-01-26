@@ -16,12 +16,13 @@ import copy
 
 
 # GLOBALS
+DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
 EMPTY = ['', ' ', None, 'na', 'nan']
 
 
 def main():
 
-    dir_root = 'SET_DIRECTORY_PATH_HERE'
+    dir_root = DIRECTORY_PATH
     os.chdir(dir_root)
 
     # Ask user if they want to run the Chronology sheets or flatten the JSON files.

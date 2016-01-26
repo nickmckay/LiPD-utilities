@@ -4,10 +4,13 @@ import json
 
 __author__ = 'Chris Heiser'
 
+# GLOBALS
+DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
+
 
 def main():
     # Enter user-chosen directory path
-    dir_root = 'ENTER_DIRECTORY_PATH_HERE'
+    dir_root = DIRECTORY_PATH
     os.chdir(dir_root)
 
     # Run lpd_noaa or noaa_lpd ?
@@ -31,7 +34,8 @@ def main():
         name = os.path.splitext(name_ext)[0]
 
         # Unzip file and get tmp directory path
-        dir_tmp = unzip(name_ext)
+        dir_tmp = create_tmp_dir()
+        unzip(name_ext, dir_tmp)
 
         # Process file
         if dir_tmp:
