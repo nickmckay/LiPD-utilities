@@ -1,5 +1,5 @@
-from Python.lpd.lpd import *
-from Python.modules.directory import *
+from lpd import *
+from directory import *
 
 
 class LiPD_Library(object):

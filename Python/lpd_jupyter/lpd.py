@@ -1,6 +1,6 @@
-from Python.modules.zips import *
-from Python.modules.directory import *
-from Python.modules.bag import *
+from zips import *
+from directory import *
+from bag import *
 import json
 import csv
 
