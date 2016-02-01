@@ -1,6 +1,5 @@
 import zipfile
 import shutil
-from Python.modules.directory import create_tmp_dir
 
 __author__ = 'Chris Heiser'
 

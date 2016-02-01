@@ -1,6 +1,5 @@
 import zipfile
 import shutil
-from directory import create_tmp_dir
 
 __author__ = 'Chris Heiser'
 
@@ -22,7 +21,7 @@ def unzip(name_ext, dir_tmp):
     Unzip .lpd file contents to tmp directory. Save path to the tmp directory.
     :param name_ext: (str) Name of lpd file with extension
     :param dir_tmp: (str) Tmp folder to extract contents to
-    :return:
+    :return: None
     """
 
     # Unzip contents to the tmp directory

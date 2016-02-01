@@ -1,9 +1,10 @@
+import json
+
 from zips import *
 from directory import *
 from bag import *
-import json
-import csv
-
+from csvs import *
+from jsons import *
 
 class LiPD(object):
     """
@@ -16,54 +17,80 @@ class LiPD(object):
         self.name = os.path.splitext(name_ext)[0]
         self.dir_root = dir_root
         self.dir_tmp = dir_tmp
-        self.dir_bag = os.path.join(dir_tmp, self.name)
-        self.dir_data = os.path.join(self.dir_bag, 'data')
-        self.data = {}
+        self.dir_tmp_bag = os.path.join(dir_tmp, self.name)
+        self.dir_tmp_bag_data = os.path.join(self.dir_tmp_bag, 'data')
+        self.data_csv = {}
+        self.data_json = {}
+        self.data_master = {}
+
+    # OPENING
 
     def load(self):
-        # unzip lpd file to tmp workspace (in it's own folder)
+        # Unzip LiPD into tmp folder
         unzip(self.name_ext, self.dir_tmp)
-        try:
-            # Open jld file and read in the contents. Execute DOI Resolver.
-            with open(os.path.join(self.dir_data, self.name + '.jsonld'), 'r') as jld_file:
-                # set all the json data
-                self.data = json.load(jld_file)
-        except FileNotFoundError:
-            print("Lpd object: Load(). file not found")
+
+        # Import JSON into object
+        os.chdir(self.dir_tmp_bag_data)
+        self.data_master = import_json_from_file(self.name + '.jsonld')
+        self.data_json = import_json_from_file(self.name + '.jsonld')
+
+        # Import CSV into JSON
+        self.data_csv = add_csv_to_json(self.data_master['paleoData'])
+        os.chdir(self.dir_root)
+
         return
 
-    def addCSV(self):
-        # os.chdir(self.dir_data)
-        # # loop through for each data table in the paleoData dictionary
-        # for table in self.data['paleoData']:
-        #     # create a values list for the coming csv data
-        #     for col in table['columns']:
-        #         col['values'] = []
-        #     try:
-        #         with open(table['filename'], 'r') as f:
-        #             reader = csv.reader(f)
-        #             for row in reader:
-        #
-        # os.chdir(self.dir_root)
-        return
+    # ANALYSIS
 
-    def displayData(self):
+    def display_csv(self):
         """
-        Display all data for this file. Pretty print for readability.
+        Display only CSV data
         :return: None
         """
-        print(json.dumps(self.data, indent=2))
+        print(json.dumps(self.data_csv, indent=2))
+
+    def display_data(self):
+        """
+        Display CSV and JSON data.
+        :return: None
+        """
+        print(json.dumps(self.data_json, indent=2))
+
+    # CLOSING
 
     def save(self):
-        # write new CSV data to new CSV files
-        # remove CSV data from self.data dictionary
-        # write self.data dictionary to .jsonld file (overwrite the old one)
-        # run dir_cleanup (deletes old bag files and moves all data files to bag root)
-        # bag the directory (dir_bag)
-        # zip the directory (with the destination being the dir_root / overwrites old LPD file)
-        pass
+        # Move to data files
+        os.chdir(self.dir_tmp_bag_data)
 
-    def close(self):
-        # close without saving
-        # remove its folder from the tmp directory
-        pass
+        # Overwrite csv data to CSV files. Call once for each CSV file.
+        for filename, columns in self.data_csv.items():
+            write_csv_to_file(filename, columns)
+
+        # Remove CSV data from json
+        self.data_master = remove_csv_from_json(self.data_master)
+
+        # Overwrite json dictionary to file
+        write_json_to_file(self.name_ext, self.data_master)
+
+        # Cleanup directory and prep for bagit
+        dir_cleanup(self.dir_tmp_bag, self.dir_tmp_bag_data)
+
+        # Call bagit
+        create_bag(self.dir_tmp_bag)
+
+        # Zip directory and overwrite LiPD file
+        re_zip(self.dir_tmp, self.name, self.name_ext)
+
+        # Move back to root
+        os.chdir(self.dir_root)
+        return
+
+    def remove(self):
+        """
+        Remove the tmp folder for this object. Do not save data.
+        :return: None
+        """
+        shutil.rmtree(self.dir_tmp)
+        return
+
+

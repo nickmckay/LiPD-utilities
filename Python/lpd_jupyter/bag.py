@@ -3,23 +3,23 @@ import bagit
 __author__ = 'Chris Heiser'
 
 
-def create_bag(path_bag):
+def create_bag(dir_bag):
     """
     Create a Bag out of given files.
-    :param path_bag: (str) Directory that contains csv, jsonld, and changelog files.
+    :param dir_bag: (str) Directory that contains csv, jsonld, and changelog files.
     :return: (obj) Bag
     """
-    bag = bagit.make_bag(path_bag, {'Name': 'LiPD Project', 'Reference': 'www.lipd.net', 'DOI-Resolved': 'True'})
+    bag = bagit.make_bag(dir_bag, {'Name': 'LiPD Project', 'Reference': 'www.lipd.net', 'DOI-Resolved': 'True'})
     return bag
 
 
-def open_bag(path):
+def open_bag(dir_bag):
     """
     Open Bag at the given path
-    :param path: (str) Path to Bag
+    :param dir_bag: (str) Path to Bag
     :return: (obj) Bag
     """
-    bag = bagit.Bag(path)
+    bag = bagit.Bag(dir_bag)
     return bag
 
 

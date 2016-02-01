@@ -21,9 +21,7 @@ def create_tmp_dir():
     Creates tmp directory in OS temp space.
     :return: (str) Path to tmp directory
     """
-    path_tmp = tempfile.mkdtemp()
-    # os.makedirs(os.path.join(path, 'tmp'), exist_ok=True)
-    return path_tmp
+    return tempfile.mkdtemp()
 
 
 def list_files(x):
