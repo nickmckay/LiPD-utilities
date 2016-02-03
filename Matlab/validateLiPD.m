@@ -50,7 +50,7 @@ for d=1:length(fieldnames(D))
         
         
         if any(isfield(D.(fnames{d}).paleoData.(mtnames{mt}),'Year'))
-            if ~isempty(strfind(D.(fnames{d}).paleoData.(mtnames{mt}).Year.units,'AD')) | ~isempty(strfind(D.(fnames{d}).paleoData.(mtnames{mt}).Year.units,'CE'))
+            if ~isempty(strfind(D.(fnames{d}).paleoData.(mtnames{mt}).Year.units,'AD')) | ~isempty(strfind(D.(fnames{d}).paleoData.(mtnames{mt}).Year.units,'CE')) | ~isempty(strfind(D.(fnames{d}).paleoData.(mtnames{mt}).Year.units,'common era'))
                 D.(fnames{d}).paleoData.(mtnames{mt}).Year.units='AD';
             elseif ~isempty(strfind(D.(fnames{d}).paleoData.(mtnames{mt}).Year.units,'BP'))
                 D.(fnames{d}).paleoData.(mtnames{mt}).Year.units='AD';

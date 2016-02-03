@@ -75,14 +75,7 @@ for i=1:length(n)
                                     
                                     warning([name ' is trying to overwrite entries in ' n{i} '(entry ' num2str(targeti(notEmpty(ne))) ')'])
                                       answ=input(['Allow ' name ' to overwrite entries in ' n{i} '?']);
-                                      if ~strncmpi(answ,'y',1)
-                                          ans2=input(['Write ' n{i} ' into ' name ' first?']);
-                                          if ~strncmpi(answ,'y',1)
-                                              [TS(targeti).(name)]=TS(targeti).(n{i});
-
-                                          end
-
-                                      end
+                                      if ~str
                                 end
                             elseif iscell(TS(targeti(notEmpty(ne))).(name))
                                 

@@ -62,7 +62,7 @@ if isfield(LiPDStruct.geo,'elevation')
         if length(LiPDStruct.geo.elevation)~=length(LiPDStruct.geo.latitude)
             LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.latitude LiPDStruct.geo.longitude repmat(LiPDStruct.geo.elevation,length(LiPDStruct.geo.latitude),1)];
         else
-            LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.latitude LiPDStruct.geo.longitude LiPDStruct.geo.elevation.value];
+            LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.latitude LiPDStruct.geo.longitude LiPDStruct.geo.elevation];
         end
     end
 else
@@ -271,6 +271,11 @@ end
 %write out lipd file
 %1. write into directory
 jout=savejsonld('',LiPDStruct,[goodOutName '.jsonld']);
+
+%fix unicode issues
+if isunix
+    fixUnicodeFile([goodOutName '.jsonld'])
+end
 
 if bagit
     

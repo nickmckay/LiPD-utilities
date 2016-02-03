@@ -13,6 +13,7 @@ for i=1:nr
             elseif isstruct(c{i,j})
                 c{i,j}='nested data, can''t represent here';
             elseif iscell(c{i,j})
+              %  [i,j]
                 c{i,j}=cell2str(c{i,j});
             end
         end

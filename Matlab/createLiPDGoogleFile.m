@@ -168,6 +168,7 @@ f=fieldnames(TS);
 baseNames=f(find(cellfun(@isempty,(strfind(f,'_')))));
 geoNames=f(find(strncmpi('geo_',f,4)));
 pubNames=f(find(strncmpi('pub',f,3)));
+fundNames=f(find(strncmpi('fund',f,4)));
 paleoDataNames=f(find(strncmpi('paleoData_',f,10)));
 ciNames=f(find(strncmpi('climateInterpretation_',f,22)));
 calNames=f(find(strncmpi('calibration_',f,12)));
@@ -175,14 +176,19 @@ paleoDatai=(find(strncmpi('paleoData_',f,10)));
 cii=(find(strncmpi('climateInterpretation_',f,22)));
 cali=(find(strncmpi('calibration_',f,12)));
 
-%need to add chron!
+%need to add chron!%it think this is done
 
 
 %create top chunk, includes, base, pub and geo metadata
 %how big to make it?
-tcr=max([length(geoNames) length(pubNames) length(baseNames)]);
+tcr=max([length(geoNames) length(pubNames) length(baseNames) length(fundNames)]);
+
+if isempty(fundNames)%if no funding then
 %8columns (2 and an empty one for each
 topChunk=cell(tcr,8);
+else %include 3 more for funding
+topChunk=cell(tcr,11);
+end
 
 %base first
 topChunk(1:length(baseNames),1)=baseNames;
@@ -202,8 +208,20 @@ for n=1:length(geoNames)
     topChunk{n,8}=TS(1).(geoNames{n});
 end
 
+%funding fourth
+if ~isempty(fundNames)%
+    topChunk(1:length(fundNames),10)=fundNames;
+    for n=1:length(geoNames)
+        topChunk{n,11}=TS(1).(fundNames{n});
+    end
+end
+
 %make header
+if ~isempty(fundNames)%
+header={'Base Metadata', ' ',' ','Publication Metadata','','','Geographic metadata','','','Funding metadata',''};
+else
 header={'Base Metadata', ' ',' ','Publication Metadata','','','Geographic metadata',''};
+end
 %add in header
 topChunk=[header ; topChunk];
 
@@ -244,6 +262,7 @@ metadataCell(1:size(topChunk,1),1:size(topChunk,2))=topChunk;
 metadataCell((size(topChunk,1)+2):end,1:size(botChunk,2))=botChunk;
 
 %make all the cell entries strings
+save dum.mat metadataCell
 metadataCell4Goog=stringifyCells(metadataCell);
 
 %now write this into the first worksheet

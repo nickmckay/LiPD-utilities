@@ -80,6 +80,20 @@ for pp=1:length(I.pub)
             I.pub{pp}.DOI=I.pub{pp}.identifier{1,1}.id;
         end
     end
+    %deal with updated way to store authors (bibJSON standard)
+    %ultimately, they all should be this way
+    if isfield(I.pub{pp},'author')
+        if iscell(I.pub{pp}.author)
+            if isstruct(I.pub{pp}.author{1})
+                newAuthor=cell(1,length(I.pub{pp}.author));
+                for nA=1:length(cell(1,length(I.pub{pp}.author)))
+                    newAuthor{nA}= I.pub{pp}.author{nA}.name;
+                end
+                I.pub{pp}.author=newAuthor;
+            end
+        end
+    end
+    
 end
 
 

@@ -5,9 +5,9 @@ function Dnew=collapseTS(TS,yearTS)
 %yearTS is an optional flag to tripped if your TS includes entries for
 %year/age/etc
 
-if nargin<2
-    yearTS=0;
-end
+ if nargin<2
+     yearTS=0;
+ end
 
 %create a LiPD object for every unique dataSetName
 udsn=unique({TS.dataSetName}');
@@ -96,15 +96,15 @@ for i=1:length(udsn)
         if isfield(T,'paleoData_tableName')
             
             pdName=T.paleoData_tableName;
+                        TS(fts(f)).paleoData_paleoDataTableName=pdName;
+
         elseif isfield(T,'paleoData_paleoDataTableName')
-            'here'
             pdName=T.paleoData_paleoDataTableName;
             
-            TS(fts(f)).paleoData_tableName=pdName;
         else
             pdName='s1';
             T.paleoData_tableName='s1';
-            TS(fts(f)).paleoData_tableName=pdName;
+                        TS(fts(f)).paleoData_paleoDataTableName=pdName;
         end
         
         
@@ -112,7 +112,7 @@ for i=1:length(udsn)
         
         %check if this name has been used before - make sure entries are same
         %find all other TS with this dataSetName and paleoData_tableName
-        samei=find(strcmp(udsn{i},{TS.dataSetName}') & strcmp(T.paleoData_tableName,{TS.paleoData_tableName}'));
+        samei=find(strcmp(udsn{i},{TS.dataSetName}') & strcmp(T.paleoData_paleoDataTableName,{TS.paleoData_paleoDataTableName}'));
         if length(samei)>1
             clear dll
             for dl=1:length(samei)
@@ -125,6 +125,10 @@ for i=1:length(udsn)
             end
         end
         
+        
+        %assign in paleoData Table Name
+        
+        Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).paleoDataTableName=pdName;
            
         
         %ignore paleodata name from pd
