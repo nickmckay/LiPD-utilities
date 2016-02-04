@@ -1,8 +1,7 @@
-function writeLiPDLibrary(Dout,libDir)
+function writeLiPDLibrary(Dout,Dnew)
 %write LiPD library
-if nargin < 2
 libDir='~/Dropbox/Pages2kPhase2/LibraryNew/';
-end
+Dout=Dnew;
 
 %make the directory if you need to
 if ~isdir(libDir)
