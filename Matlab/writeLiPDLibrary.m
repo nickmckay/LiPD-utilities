@@ -1,5 +1,5 @@
 %write LiPD library
-libDir='~/Dropbox/Pages2kPhase2/Library/';
+libDir='~/Dropbox/Pages2kPhase2/LibraryNew/';
 Dout=Dnew;
 
 %make the directory if you need to
