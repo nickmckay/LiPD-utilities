@@ -62,7 +62,7 @@ for i=1:length(n)
                     
                 else% see if they're the same
                     notEmpty=find(~cellfun(@isempty,{TS(targeti).(n{i})}) & cellfun(@numel,{TS(targeti).(n{i})})>0);
-               
+               askOverwrite=1;
                     for ne=1:length(notEmpty)
                         %                         if numel(TS(targeti(notEmpty(ne))).(n{i}))~=numel(TS(targeti(notEmpty(ne))).(name))
                         %                             numel(TS(targeti(notEmpty(ne))).(n{i}))
@@ -71,17 +71,19 @@ for i=1:length(n)
                         %                         end
                         if ~strcmp(name,'paleoData_parameter')%for now, don't check for paleoData_parameter
                             if ischar(TS(targeti(notEmpty(ne))).(name))
-                                if ~strcmp(TS(targeti(notEmpty(ne))).(n{i}),TS(targeti(notEmpty(ne))).(name))
+                                if ~strcmp(TS(targeti(notEmpty(ne))).(n{i}),TS(targeti(notEmpty(ne))).(name)) && askOverwrite
                                     
                                     warning([name ' is trying to overwrite entries in ' n{i} '(entry ' num2str(targeti(notEmpty(ne))) ')'])
                                       answ=input(['Allow ' name ' to overwrite entries in ' n{i} '?']);
                                       if ~strncmpi(answ,'y',1)
                                           ans2=input(['Write ' n{i} ' into ' name ' first?']);
+                                          
                                           if ~strncmpi(answ,'y',1)
                                               [TS(targeti).(name)]=TS(targeti).(n{i});
-
+                                              
                                           end
-
+                                      else
+                                          askOverwrite=0;
                                       end
                                 end
                             elseif iscell(TS(targeti(notEmpty(ne))).(name))
