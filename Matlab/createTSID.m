@@ -1,19 +1,22 @@
-function TSid=createTSID(variableName,dataSetName,spreadsheetKey,worksheetKey,altName,checkWeb)
+function TSid=createTSID(variableName,dataSetName,spreadsheetKey,worksheetKey,altName,tsidPath,checkWeb)
 %generates and registers a new TSID name. checkWeb boolean forces the code
 %to get the list from the master file each time, slow if running many times
 %in one session. Leaving checkWeb empty allows for smart choosing of when
 %to download (once an hour)
 %altName proposes a TSid, rather than generating randomly
 
-
 if nargin<6
+   tsidPath='~/Dropbox/ml_scripts/';
+end
+   
+if nargin<7
     checkWeb=1;
     
     curdir=pwd;
     
     %for nick - edit if you want to keep this in a certain spot on your
     %computer
-    cd ~/Dropbox/ml_scripts
+    cd tsidPath
     
     
     d=dir('tsidCell.mat');
