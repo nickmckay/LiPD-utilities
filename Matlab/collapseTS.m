@@ -96,15 +96,16 @@ for i=1:length(udsn)
         if isfield(T,'paleoData_tableName')
             
             pdName=T.paleoData_tableName;
-                        TS(fts(f)).paleoData_paleoDataTableName=pdName;
-
+            TS(fts(f)).paleoData_paleoDataTableName=pdName;
+            
         elseif isfield(T,'paleoData_paleoDataTableName')
             pdName=T.paleoData_paleoDataTableName;
             
         else
             pdName='s1';
-            T.paleoData_tableName='s1';
-                        TS(fts(f)).paleoData_paleoDataTableName=pdName;
+            T.paleoData_paleoDataTableName='s1';
+            TS(fts(f)).paleoData_paleoDataTableName=pdName;
+            
         end
         
         
