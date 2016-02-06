@@ -16,7 +16,7 @@ if nargin<7
     
     %for nick - edit if you want to keep this in a certain spot on your
     %computer
-    cd tsidPath
+    cd(tsidPath)
     
     
     d=dir('tsidCell.mat');
