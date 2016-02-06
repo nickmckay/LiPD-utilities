@@ -207,11 +207,13 @@ topChunk(1:length(geoNames),7)=geoNames;
 for n=1:length(geoNames)
     topChunk{n,8}=TS(1).(geoNames{n});
 end
-
+%save topChunk.mat topChunk %TROUBLESHOOTING
 %funding fourth
 if ~isempty(fundNames)%
     topChunk(1:length(fundNames),10)=fundNames;
-    for n=1:length(geoNames)
+    for n=1:length(fundNames)
+%         fN=TS(1).(fundNames{n}); %TROUBLESHOOTING
+%         save fn.mat fN ; %TROUBLESHOOTING
         topChunk{n,11}=TS(1).(fundNames{n});
     end
 end
