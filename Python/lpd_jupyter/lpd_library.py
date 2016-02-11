@@ -48,7 +48,7 @@ class LiPD_Library(object):
         :param name: (str) Filename
         :return: None
         """
-        self.appendLipd(name + '.lpd')
+        self.appendLipd(name)
         return
 
     # ANALYSIS
@@ -60,19 +60,31 @@ class LiPD_Library(object):
         :return:
         """
         try:
-            self.master[name + '.lpd'].display_csv()
+            self.master[name].display_csv()
+        except KeyError:
+            print("Invalid Filename")
+        return
+
+    def showMetadata(self, name):
+        """
+        Display metadata from target LiPD file.
+        :param name: (str) Filename
+        :return:
+        """
+        try:
+            self.master[name].display_data()
         except KeyError:
             print("Invalid Filename")
         return
 
     def showLipd(self, name):
         """
-        Display data from target LiPD file.
+        Display metadata & CSV combined
         :param name: (str) Filename
         :return:
         """
         try:
-            self.master[name + '.lpd'].display_data()
+            self.master[name].display_data()
         except KeyError:
             print("Invalid Filename")
         return
@@ -93,7 +105,7 @@ class LiPD_Library(object):
         Overwrite LiPD files in OS with LiPD data in the current workspace.
         :return: None
         """
-        self.master[name + '.lpd'].save()
+        self.master[name].save()
         return
 
     def saveLipds(self):
@@ -110,9 +122,9 @@ class LiPD_Library(object):
         :param name: (str) Filename
         :return:
         """
-        self.master[name + '.lpd'].remove()
+        self.master[name].remove()
         try:
-            del self.master[name + '.lpd']
+            del self.master[name]
         except KeyError:
             print("Problem removing LiPD object.")
         return
