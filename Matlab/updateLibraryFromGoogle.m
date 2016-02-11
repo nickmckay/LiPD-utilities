@@ -1,4 +1,5 @@
 %update LiPD library from google
+%store MD5 sum?
 
 cd ~/Dropbox/LiPD/library/
 

@@ -264,7 +264,7 @@ metadataCell(1:size(topChunk,1),1:size(topChunk,2))=topChunk;
 metadataCell((size(topChunk,1)+2):end,1:size(botChunk,2))=botChunk;
 
 %make all the cell entries strings
-%TROUBLESHOOTING; save dum.mat metadataCell
+ save dum.mat metadataCell %troubleshooting
 metadataCell4Goog=stringifyCells(metadataCell);
 
 %now write this into the first worksheet

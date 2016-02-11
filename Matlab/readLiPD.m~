@@ -10,11 +10,8 @@ if isunix
 else
     cd([tempdir headerName '\data' ]);
 end
-%get tag manifest MD5
-tmd5=table2cell(readtable('../tagmanifest-md5.txt','readVariableNames',0,'delimiter',' '));
-tmd5=tmd5{3,1};
 
-%read in MD5 sums for individual files
+%read in MD5 sums
 md5=table2cell(readtable('../manifest-md5.txt','readVariableNames',0,'delimiter',' '));
 
 metaRow=find(~cellfun(@isempty,strfind(md5(:,3),'.json')));
@@ -78,7 +75,6 @@ end
 %%%%BEGIN GEO SECTION %%%%%%%%%%%%%%%
 %assign in metadata MD5
 I.metadataMD5=metaMD5;
-I.tagMD5=tmd5;
 
 %load in geo information
 I.geo.latitude=I.geo.geometry.coordinates(:,1);
@@ -327,13 +323,9 @@ for i=tomt
     NS.(genvarname(P.paleoData{i}.paleoDataTableName))=P.paleoData{i};
     NS.(genvarname(P.paleoData{i}.paleoDataTableName))=rmfield(NS.(genvarname(P.paleoData{i}.paleoDataTableName)),'columns');
     %add in MD5. PaleoData MD5
-    whichMD5=find(strcmp(P.paleoData{i}.paleoDataTableName,paleoMD5(:,1)));
-    if isempty(whichMD5) & size(paleoMD5,1)==1
-        whichMD5=1
-    end
-    if ~isempty(whichMD5)
-        NS.(genvarname(P.paleoData{i}.paleoDataTableName)).paleoDataMD5=paleoMD5{whichMD5,2};
-    end
+    whichMD5=strcmp(P.paleoData{i}.paleoDataTableName,paleoMD5(:,1)
+    
+    NS.(genvarname(P.paleoData{i}.paleoDataTableName)).paleoDataMD5=
 end
 P.paleoData=NS;
 %chron
@@ -346,14 +338,6 @@ if ~isnan(toct)
         end
         NS.(genvarname(P.chronData{i}.chronDataTableName))=P.chronData{i};
         NS.(genvarname(P.chronData{i}.chronDataTableName))=rmfield(NS.(genvarname(P.chronData{i}.chronDataTableName)),'columns');
-        %add in MD5. ChronData MD5
-        whichMD5c=find(strcmp(P.chronData{i}.chronDataTableName,chronMD5(:,1)));
-        if isempty(whichMD5c) & size(chronMD5,1)==1
-            whichMD5c=1
-        end
-        if ~isempty(whichMD5c)
-            NS.(genvarname(P.chronData{i}.chronDataTableName)).chronDataMD5=chronMD5{whichMD5c,2};
-        end
     end
     P.chronData=NS;
 end
