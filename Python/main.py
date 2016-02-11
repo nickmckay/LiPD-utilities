@@ -1,6 +1,6 @@
-from Parser.doi.main_doi import *
-from Parser.excel.main_excel import *
-from Parser.noaa.main_noaa import *
+from Python.doi.main_doi import *
+from Python.excel.main_excel import *
+from Python.noaa.main_noaa import *
 
 
 def main():

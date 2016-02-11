@@ -20,7 +20,7 @@ DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
 EMPTY = ['', ' ', None, 'na', 'nan']
 
 
-def main():
+def excel(directory):
 
     dir_root = DIRECTORY_PATH
     os.chdir(dir_root)

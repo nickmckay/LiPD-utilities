@@ -8,7 +8,7 @@ __author__ = 'Chris Heiser'
 DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
 
 
-def main():
+def noaa(directory):
     # Enter user-chosen directory path
     dir_root = DIRECTORY_PATH
     os.chdir(dir_root)

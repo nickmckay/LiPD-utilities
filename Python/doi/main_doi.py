@@ -18,7 +18,7 @@ problematic files.
 DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
 
 
-def main():
+def doi(directory):
     """
     Main function that controls the script. Take in directory containing the .lpd file(s). Loop for each file.
     :return: None
@@ -109,4 +109,4 @@ def process_lpd(name, dir_tmp):
 
 
 if __name__ == '__main__':
-    main()
+    doi()
