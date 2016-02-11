@@ -1,5 +1,7 @@
 # from tkinter import filedialog
 # import tkinter
+import csv
+
 import xlrd
 import logging
 
@@ -7,13 +9,6 @@ from Python.doi.doi_resolver import *
 from Python.modules.directory import *
 from Python.modules.zips import *
 from Python.modules.bag import *
-
-from collections import OrderedDict
-import csv
-import json
-import os
-import copy
-
 
 # GLOBALS
 EMPTY = ['', ' ', None, 'na', 'nan']

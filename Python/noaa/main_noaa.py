@@ -1,10 +1,9 @@
 from Python.modules.zips import *
+from Python.modules.jsons import *
 from Python.noaa.lpd_noaa import *
-import json
 
 __author__ = 'Chris Heiser'
 
-# GLOBALS
 
 def noaa(dir_root):
     """
@@ -21,7 +20,7 @@ def noaa(dir_root):
     # if ans == 1:
 
     # Find all needed files in current directory
-    f_list = list_files('.lpd')
+    f_list = list_files('lpd')
     print("Found " + str(len(f_list)) + " LiPD files")
 
     # Create the output folder
@@ -75,9 +74,8 @@ def process_lpd(name, dir_tmp):
     os.chdir(dir_data)
 
     # Open file and execute conversion script
-    with open(os.path.join(dir_data, name + '.jsonld'), 'r+') as jld_file:
-        jld_data = json.load(jld_file)
-        NOAA(dir_root, name, jld_data).main()
+    d = read_json_from_file(os.path.join(dir_data, name + '.jsonld'))
+    NOAA(dir_root, name, d).main()
 
     # except ValueError:
     #     txt_log(dir_root, 'quarantine.txt', name, "Invalid Unicode characters. Unable to load file.")
@@ -91,5 +89,3 @@ def process_lpd(name, dir_tmp):
 
     return
 
-if __name__ == '__main__':
-    main()

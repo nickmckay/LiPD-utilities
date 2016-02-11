@@ -1,30 +1,15 @@
-from Python.modules.directory import *
-import os
 import re
-import shutil
+
+from Python.modules.directory import *
+
 
 __author__ = 'chrisheiser1'
-
-"""
-Purpose:
-
-Changelog:
-Version 1.1 / 12.09.2015 / Chris
-Version 1.0 / ?? / Chris
-
-Input:
-Output:
-
-    - Fix discrepancy with Published_Date vs. Published_Date_Or_year. Same thing?
-    - Find out how to make better spacing in the chronology and data sections (have a fixed space of 5 characters?)
-
-"""
 
 # Pre-compiled Regexes
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
-# GLOBAL
+# GLOBALS
 # 13 is a list of keys to ignore when using create_blanks
 sections = {1: ['onlineResource', 'studyName', 'archive', 'parameterKeywords', 'originalSourceUrl'],
             2: ['date'],
@@ -59,6 +44,10 @@ ordering = {1: ['studyName', 'onlineResource', 'originalSourceUrl', 'archive', '
 
 
 class NOAA(object):
+    """
+    Creates a NOAA object that contains all the functions needed to write out a LiPD file as a NOAA text file.
+    :return: (txt) NOAA File
+    """
 
     def __init__(self, dir_root, name, root_dict):
         """

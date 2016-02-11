@@ -5,7 +5,7 @@ from Python.noaa.main_noaa import *
 
 def main():
     """
-    Simple commmand prompt. Use to run any of the subprograms.
+    Simple command prompt. Use to run any of the subprograms.
     No need to mess with all the subprogram files. Set the directory and choose which program to run.
     """
 
