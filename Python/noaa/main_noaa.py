@@ -6,9 +6,12 @@ __author__ = 'Chris Heiser'
 
 # GLOBALS
 
-def noaa(directory):
-    # Enter user-chosen directory path
-    dir_root = directory
+def noaa(dir_root):
+    """
+    Write out LiPD data as NOAA text files
+    :param dir_root: (str) Directory location of target files
+    :return:
+    """
     os.chdir(dir_root)
 
     # Run lpd_noaa or noaa_lpd ?
@@ -19,6 +22,7 @@ def noaa(directory):
 
     # Find all needed files in current directory
     f_list = list_files('.lpd')
+    print("Found " + str(len(f_list)) + " LiPD files")
 
     # Create the output folder
     if not os.path.exists(os.path.join(dir_root, 'noaa')):

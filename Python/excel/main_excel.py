@@ -19,9 +19,13 @@ import copy
 EMPTY = ['', ' ', None, 'na', 'nan']
 
 
-def excel(directory):
+def excel(dir_root):
+    """
+    Parse data from Excel spreadsheets into LiPD files.
+    :param dir_root: (str) Directory location of target files
+    :return:
+    """
 
-    dir_root = directory
     os.chdir(dir_root)
 
     # Ask user if they want to run the Chronology sheets or flatten the JSON files.
@@ -40,6 +44,7 @@ def excel(directory):
 
     # Compile list of excel files (both types)
     f_list = list_files('.xls') + list_files('.xlsx')
+    print("Found " + str(len(f_list)) + " Excel files")
 
     # Run once for each file
     print("Processing files: ")
