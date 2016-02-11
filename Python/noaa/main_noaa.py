@@ -5,12 +5,10 @@ import json
 __author__ = 'Chris Heiser'
 
 # GLOBALS
-DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
-
 
 def noaa(directory):
     # Enter user-chosen directory path
-    dir_root = DIRECTORY_PATH
+    dir_root = directory
     os.chdir(dir_root)
 
     # Run lpd_noaa or noaa_lpd ?

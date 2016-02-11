@@ -14,9 +14,6 @@ problematic files.
 
 """
 
-# GLOBALS
-DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
-
 
 def doi(directory):
     """
@@ -24,7 +21,7 @@ def doi(directory):
     :return: None
     """
     # Enter user-chosen directory path
-    dir_root = DIRECTORY_PATH
+    dir_root = directory
 
     # Find all .lpd files in current directory
     # dir: ? -> dir_root
