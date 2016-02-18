@@ -5,31 +5,19 @@ from Python.doi.doi_resolver import *
 
 __author__ = 'Chris Heiser'
 
-"""
-Basic Process:
-Take .lpd file(s) that have been bagged with Bagit, and compressed (zip). Uncompress and unbag,
-read in the DOI from the jsonld file, invoke DOI resolver script, retrieve doi.org info with given DOI,
-update jsonld file, Bag the files, and compress the Bag. Output a txt log file with names and errors of
-problematic files.
 
-"""
-
-# GLOBALS
-DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
-
-
-def doi(directory):
+def doi(dir_root):
     """
     Main function that controls the script. Take in directory containing the .lpd file(s). Loop for each file.
+    :param dir_root: (str) Directory location of target files
     :return: None
     """
-    # Enter user-chosen directory path
-    dir_root = DIRECTORY_PATH
 
     # Find all .lpd files in current directory
     # dir: ? -> dir_root
     os.chdir(dir_root)
-    f_list = list_files('.lpd')
+    f_list = list_files('lpd')
+    print("Found " + str(len(f_list)) + " LiPD files")
 
     for name_ext in f_list:
         print('processing: {}'.format(name_ext))
@@ -63,7 +51,7 @@ def doi(directory):
 
 def process_lpd(name, dir_tmp):
     """
-    Opens up a jsonld file, invokes doi_resolver, closes file, updates changelog, cleans directory, and makes new bag.
+    Opens up json file, invokes doi_resolver, closes file, updates changelog, cleans directory, and makes new bag.
     :param name: (str) Name of current .lpd file
     :param dir_tmp: (str) Path to tmp directory
     :return: none
@@ -72,29 +60,29 @@ def process_lpd(name, dir_tmp):
     dir_root = os.getcwd()
     dir_bag = os.path.join(dir_tmp, name)
     dir_data = os.path.join(dir_bag, 'data')
+    jld_data = {}
+    valid = True
 
     # Navigate down to jLD file
     # dir : dir_root -> dir_data
     os.chdir(dir_data)
 
-    # Open jld file and read in the contents
-    with open(os.path.join(dir_data, name + '.jsonld'), 'r') as jld_file:
-        jld_data = json.load(jld_file)
+    # Open jld file and read in the contents. Execute DOI Resolver.
+    with open(os.path.join(dir_data, name + '.jsonld'), 'r') as f:
+        try:
+            jld_data = json.load(f)
+        except ValueError:
+            valid = False
+            txt_log(dir_root,  name,'quarantine.txt', "Invalid characters. Unable to load file.")
 
-    # Create DOIResolver object and run
-    jld_data = DOIResolver(dir_root, name, jld_data).main()
+    if valid:
+        # Overwrite data with new data
+        jld_data = DOIResolver(dir_root, name, jld_data).main()
+        # Open the jld file and overwrite the contents with the new data.
+        write_json_to_file(os.path.join(dir_data, name + '.jsonld'), jld_data)
 
-    # Open the jld file again, and overwrite the contents with the new data.
-    with open(os.path.join(dir_data, name + '.jsonld'), 'w+') as jld_file:
-        json.dump(jld_data, jld_file, indent=2, sort_keys=True)
-
-    # except ValueError:
-    #     txt_log(dir_root, 'quarantine.txt', name, "Invalid Unicode characters. Unable to load file.")
-
-    # jld_file.close()
-
-    # Open changelog. timestamp it. Prompt user for short description of changes. Close and save
-    update_changelog()
+        # Open changelog. timestamp it. Prompt user for short description of changes. Close and save
+        update_changelog()
 
     # Delete old bag files, and move files to bag root for re-bagging
     # dir : dir_data -> dir_bag
@@ -107,6 +95,3 @@ def process_lpd(name, dir_tmp):
 
     return
 
-
-if __name__ == '__main__':
-    doi()

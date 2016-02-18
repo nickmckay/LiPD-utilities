@@ -23,4 +23,12 @@ vignettes/*.pdf
 
 *.ipynb
 
+<<<<<<< HEAD
 Python/main.py
+=======
+*.pyc
+>>>>>>> origin/master
+
+*.pyc
+
+*.py

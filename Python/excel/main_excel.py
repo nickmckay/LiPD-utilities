@@ -1,5 +1,7 @@
 # from tkinter import filedialog
 # import tkinter
+import csv
+
 import xlrd
 import logging
 
@@ -8,21 +10,17 @@ from Python.modules.directory import *
 from Python.modules.zips import *
 from Python.modules.bag import *
 
-from collections import OrderedDict
-import csv
-import json
-import os
-import copy
-
-
 # GLOBALS
-DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
 EMPTY = ['', ' ', None, 'na', 'nan']
 
 
-def excel(directory):
+def excel(dir_root):
+    """
+    Parse data from Excel spreadsheets into LiPD files.
+    :param dir_root: (str) Directory location of target files
+    :return:
+    """
 
-    dir_root = DIRECTORY_PATH
     os.chdir(dir_root)
 
     # Ask user if they want to run the Chronology sheets or flatten the JSON files.
@@ -41,6 +39,7 @@ def excel(directory):
 
     # Compile list of excel files (both types)
     f_list = list_files('.xls') + list_files('.xlsx')
+    print("Found " + str(len(f_list)) + " Excel files")
 
     # Run once for each file
     print("Processing files: ")

@@ -1,28 +1,24 @@
 from collections import OrderedDict
-import json
 import requests
 import re
 import urllib.error
+
 from Python.modules.loggers import *
+from Python.modules.jsons import *
 
-__author__ = 'Chris Heiser, Austin McDowell'
-"""
-PURPOSE: Runs as a subprocess to the main parser. Use DOI id(s) to pull updated publication
-info from doi.org and overwrite file data.
 
-CHANGELOG
-Version 1.2 / 12.06.2015 / Chris
-Version 1.1 / 07.05.2015 / Chris
-Version 1.0 / 06.09.2015 / Austin
+__author__ = 'Chris Heiser'
 
-Input:  Original publication dictionary
-Output: Updated publication dictionary (success), original publication dictionary (fail)
+EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?']
 
-"""
-
-EMPTY = ['', ' ']
 
 class DOIResolver(object):
+    """
+    Use DOI id(s) to pull updated publication info from doi.org and overwrite file data.
+
+    Input:  Original publication dictionary
+    Output: Updated publication dictionary (success), original publication dictionary (fail)
+    """
 
     def __init__(self, dir_root, name, root_dict):
         """
@@ -56,8 +52,8 @@ class DOIResolver(object):
                 # Quarantine the flagged file and log it
                 txt_log(self.dir_root, self.name, "quarantine.txt", "Publication #" + str(idx) + ": DOI not provided")
                 self.root_dict['pub'][idx]['pubDataUrl'] = 'Manually Entered'
-            self.remove_empties(idx)
-        return self.root_dict
+            # self.remove_empties(idx)
+        return remove_empty_fields(self.root_dict)
 
     @staticmethod
     def clean(doi_string):
@@ -195,9 +191,9 @@ class DOIResolver(object):
     def get_data(self, doi_id, idx):
         """
         Resolve DOI and compile all attributes into one dictionary
-        :param pub_dict: (dict) Original publication dictionary
         :param doi_id: (str)
-        :return: (dict) Update publication dictionary
+        :param idx: (int) Publication index
+        :return: (dict) Updated publication dictionary
         """
 
         tmp_dict = self.root_dict['pub'][0].copy()
@@ -228,7 +224,7 @@ class DOIResolver(object):
         except urllib.error.URLError:
             txt_log(self.dir_root, self.name, "quarantine.txt", "Malformed DOI: " + doi_id)
         except ValueError:
-            txt_log(self.dir_root, self.name, "quarantine.txt", "Bad HTTP Response: " + doi_id)
+            txt_log(self.dir_root, self.name, "quarantine.txt", "Bad HTTP Response / HTML Code: " + doi_id)
 
         return
 

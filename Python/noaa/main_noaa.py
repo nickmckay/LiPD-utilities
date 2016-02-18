@@ -1,16 +1,16 @@
 from Python.modules.zips import *
+from Python.modules.jsons import *
 from Python.noaa.lpd_noaa import *
-import json
 
 __author__ = 'Chris Heiser'
 
-# GLOBALS
-DIRECTORY_PATH = 'SET_DIRECTORY_PATH_HERE'
 
-
-def noaa(directory):
-    # Enter user-chosen directory path
-    dir_root = DIRECTORY_PATH
+def noaa(dir_root):
+    """
+    Write out LiPD data as NOAA text files
+    :param dir_root: (str) Directory location of target files
+    :return:
+    """
     os.chdir(dir_root)
 
     # Run lpd_noaa or noaa_lpd ?
@@ -20,7 +20,8 @@ def noaa(directory):
     # if ans == 1:
 
     # Find all needed files in current directory
-    f_list = list_files('.lpd')
+    f_list = list_files('lpd')
+    print("Found " + str(len(f_list)) + " LiPD files")
 
     # Create the output folder
     if not os.path.exists(os.path.join(dir_root, 'noaa')):
@@ -73,9 +74,8 @@ def process_lpd(name, dir_tmp):
     os.chdir(dir_data)
 
     # Open file and execute conversion script
-    with open(os.path.join(dir_data, name + '.jsonld'), 'r+') as jld_file:
-        jld_data = json.load(jld_file)
-        NOAA(dir_root, name, jld_data).main()
+    d = read_json_from_file(os.path.join(dir_data, name + '.jsonld'))
+    NOAA(dir_root, name, d).main()
 
     # except ValueError:
     #     txt_log(dir_root, 'quarantine.txt', name, "Invalid Unicode characters. Unable to load file.")
@@ -89,5 +89,3 @@ def process_lpd(name, dir_tmp):
 
     return
 
-if __name__ == '__main__':
-    main()
