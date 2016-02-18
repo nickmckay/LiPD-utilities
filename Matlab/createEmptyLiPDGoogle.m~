@@ -1,9 +1,0 @@
-function L=createEmptyLiPDGoogle(dataSetName)
-%creates a blank LiPD google file
-E=readLiPD('Empty.lpd');
-
-
-
-E.dataSetName=dataSetName;
-L=createLiPDGoogleFile(E,1);
-end

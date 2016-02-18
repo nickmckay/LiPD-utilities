@@ -43,7 +43,7 @@ if ~isempty(dd)
 end
 
 %if there's a chronology, grab that too
-if isstruct(GTSC)
+if ~isnan(GTSC)
 GTSC=getLiPDGoogleChronData(GTSC);
 
 %collapse the chron TS
@@ -54,11 +54,6 @@ cnames=fieldnames(CD);
 
 if length(cnames)>1
     error('there shouldnt be multiple dataset Names within one dataset')
-end
-
-%assign the chron structure. 
-chronData=CD.chronData;
-
 end
 %new structure
 %start with the old one
@@ -103,13 +98,6 @@ for g=1:length(gnames)
        [NTS.(gnames{g})]=N{:};
     end
 end
-
-if isstruct(GTSC)
-    for tl=1:length(NTS)
-        NTS(tl).chronData=chronData;
-    end
-end
-
 
 L=collapseTS(NTS,1);
 

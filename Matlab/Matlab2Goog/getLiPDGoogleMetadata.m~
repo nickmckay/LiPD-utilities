@@ -52,20 +52,20 @@ for c=toFindc
         end
         r=r+1;
     end
+end
+
+if isChron
+ r=2;
     
-    if isChron
-        r=2;
-        
-        while 1
-            value=metadata{r,c};
-            if isempty(value)
-                break
-            end
-            for ts=1:nTSC
-                GTSC(ts).(value)=convertCellStringToNumeric(metadata(r,c+1));
-            end
-            r=r+1;
+    while 1
+        value=metadata{r,c};
+        if isempty(value)
+            break
         end
+        for ts=1:nTSC
+            GTSC(ts).(value)=convertCellStringToNumeric(metadata(r,c+1));
+        end
+        r=r+1;
     end
 end
 
@@ -86,9 +86,9 @@ if isChron
     for c=1:size(metadata,2)
         value=metadata{cds+1,c};
         if ~isempty(value)
-            
-            toPop=metadata((cds+2):cde,c);
-            [GTSC.(value)]=toPop{:};
+        
+        toPop=metadata((cds+2):cde,c);
+        [GTSC.(value)]=toPop{:};
         end
     end
 end

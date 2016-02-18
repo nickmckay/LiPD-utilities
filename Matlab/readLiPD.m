@@ -93,14 +93,15 @@ if size(I.geo.geometry.coordinates,2)>2
 end
 
 %bring property fields up a level
-propFields=fieldnames(I.geo.properties);
-for pf=1:length(propFields)
-    I.geo.(propFields{pf})=I.geo.properties.(propFields{pf});
-end
+if isfield(I.geo,'properties')
+    propFields=fieldnames(I.geo.properties);
+    for pf=1:length(propFields)
+        I.geo.(propFields{pf})=I.geo.properties.(propFields{pf});
+    end
 
 %remove properties and coordiantes structures
 I.geo=rmfield(I.geo,{'properties','geometry'});
-
+end
 %%%%%%%END GEO SECTION %%%%%%%%%
 
 %%%%%%%BEGIN PUB SECTION%%%%%%%%%%%
@@ -247,7 +248,7 @@ if ~isnan(toct) %if there are chron tables, load em in
         [dirname cT.filename];
         if ~verLessThan('matlab','8.2')
             %use readtable! Requires matlab year >= 13b
-            pdTable=table2cell(readtable([dirname cT.filename],'ReadVariableNames',0),'TreatAsEmpty','NA');
+            pdTable=table2cell(readtable([dirname cT.filename],'ReadVariableNames',0),'TreatAsEmpty',{'NA','NaN'});
         else
             try
                 pdTable=csvread([dirname cT.filename]);
@@ -279,7 +280,6 @@ if ~isnan(toct) %if there are chron tables, load em in
                 end
             end
         end
-        
         %check for same number of columns
         if length(cT.columns)~=size(pdTable,2)
             'WARNING - METADATA and DATA disagree on number of columns!!!!'
@@ -292,7 +292,7 @@ if ~isnan(toct) %if there are chron tables, load em in
         for j=1:ncol
             
             if iscell(pdTable)
-                cT.columns{j}.values=pdTable{:,j};
+                cT.columns{j}.values=pdTable(:,j);
                 if iscell(cT.columns{j}.values);
                     try  cT.columns{j}.values=cell2num(cT.columns{j}.values);
                     catch DO3
@@ -305,6 +305,7 @@ if ~isnan(toct) %if there are chron tables, load em in
             else
                 cT.columns{j}.values=pdTable(:,j);
             end
+            cT.columns{j}.values;
         end
         I.chronData{i}=cT;
     end
@@ -329,7 +330,7 @@ for i=tomt
     %add in MD5. PaleoData MD5
     whichMD5=find(strcmp(P.paleoData{i}.paleoDataTableName,paleoMD5(:,1)));
     if isempty(whichMD5) & size(paleoMD5,1)==1
-        whichMD5=1
+        whichMD5=1;
     end
     if ~isempty(whichMD5)
         NS.(genvarname(P.paleoData{i}.paleoDataTableName)).paleoDataMD5=paleoMD5{whichMD5,2};

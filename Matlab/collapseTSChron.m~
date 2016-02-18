@@ -1,4 +1,4 @@
-function Dnew=collapseTS(TS,yearTS)
+function Dnew=collapseTSChron(TS,yearTS)
 %tries to convert a LiPD Timeseries object back into a LiPD Hierarchical
 %object
 %TS is the TS structure
@@ -30,17 +30,7 @@ for i=1:length(udsn)
         %or depth
         di=find(strncmpi('depth',fT,5));
         yai=union(yai,di);
-        
-        %or chronData
-        ci=find(strcmpi('chronData',fT));
-        yai=union(yai,ci);
 
-        %if there is a chronData, write it right in
-        if ~isempty(ci)
-            Dnew.(matlab.lang.makeValidName(udsn{i})).chronData=T.chronData; 
-        end
-        
-        %now create the base level index
         b=setdiff(b,yai);
         
         for bi=1:length(b)

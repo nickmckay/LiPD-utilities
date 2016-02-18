@@ -260,11 +260,11 @@ torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','geo
 f=fieldnames(CTS);
 pid=f(find(~cellfun(@isempty,(strfind(f,'identifier')))&strncmpi('pub',f,3)));
 if ~isempty(pid)%remove any pub identifiers, if there are any
-    CTS=rmfield(CTS,pid);
+    CTS=rmfield(TS,pid);
 end
 for i=1:length(torem)
-    if isfield(CTS,torem{i})
-        CTS=rmfield(CTS,torem{i});
+    if isfield(TS,torem{i})
+        CTS=rmfield(TS,torem{i});
     end
 end
 cfnames =fieldnames(CTS);
