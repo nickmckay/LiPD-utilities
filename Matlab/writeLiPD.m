@@ -142,7 +142,7 @@ for m=1:length(mnames)
                 if size(DT.(colnames{c}).values,1)==1
                     DT.(colnames{c}).values=DT.(colnames{c}).values';
                 end
-                DT.(colnames{c}).parameter=colnames{c};
+                DT.(colnames{c}).variableName=colnames{c};
                 cN=cN+1;
                 DT.(colnames{c}).number=cN;
                 if exist('outTable')
@@ -215,7 +215,7 @@ if isfield(LiPDStruct,'chronData')
                 if ~isfield(DT.(colnames{c}),'values')
                     warnings=[warnings {warning('No values field in structure, this shouldn''t be')}];
                 else
-                    DT.(colnames{c}).parameter=colnames{c};
+                    DT.(colnames{c}).variableName=colnames{c};
                     cN=cN+1;
                     DT.(colnames{c}).number=cN;
                     if exist('outTable')

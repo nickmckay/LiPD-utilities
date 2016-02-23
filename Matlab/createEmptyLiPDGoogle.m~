@@ -45,7 +45,7 @@ end
 if nCDT>1
     for i=2:nPDT
     E.chronData.(['chron' num2str(i)])= E.chronData.data;
-    E.chronData.(['chron' num2str(i)]).chronDataTableName= ['chron' num2str(i)];
+    E.chronData.(['chron' num2str(i)]).chronDataTableName= ['data' num2str(i)];
 
     end
 end

@@ -1,0 +1,89 @@
+{"@context" : "context.jsonld",
+	"chronData": [
+		{
+			"chronDataTableName": "chronology",
+			"chronTableName": "chronology",
+			"filename": "Empty.chronology.ChronTable.csv",
+			"columns": [
+				{
+					"variableName": "year",
+					"description": "",
+					"units": "",
+					"measurementMethod": "",
+					"notes": "",
+					"number": 1
+				},
+				{
+					"variableName": "dummy2",
+					"description": "",
+					"units": "",
+					"measurementMethod": "",
+					"notes": "",
+					"number": 2
+				}
+			]
+		}
+	],
+	"dataSetName": "Empty",
+	"archiveType": "TBD",
+	"pub": [
+		{
+			"identifier": [
+				{
+					"type": "doi",
+					"id": "Empty",
+					"url": "http://dx.doi.org/Empty"
+				}
+			]
+		}
+	],
+	"geo": {
+		"type": "Feature",
+		"geometry": {
+			"coordinates": [0,0,0]
+		}
+	},
+	"paleoData": [
+		{
+			"paleoDataTableName": "data",
+			"columns": [
+				{
+					"dataType": "N ",
+					"description": "''",
+					"detail": "''",
+					"measurementMethod": "''",
+					"notes": "",
+					"proxy": "",
+					"units": "",
+					"variableName": "year",
+					"number": 1
+				},
+				{
+					"dataType": "N ",
+					"description": "''",
+					"detail": "''",
+					"measurementMethod": "''",
+					"notes": "",
+					"proxy": "",
+					"units": "",
+					"variableName": "dummy2",
+					"climateInterpretation": {
+						"climateVariable": "",
+						"climateVariableDetail": "",
+						"seasonality": "",
+						"interpDir": "",
+						"basis": ""
+					},
+					"calibration": {
+						"equation": "",
+						"reference": "",
+						"uncertainty": "",
+						"uncertaintyType": ""
+					},
+					"number": 2
+				}
+			],
+			"filename": "Empty.data.PaleoData.csv"
+		}
+	]
+}

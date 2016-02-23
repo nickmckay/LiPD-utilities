@@ -350,7 +350,7 @@ if ~isnan(toct)
         %add in MD5. ChronData MD5
         whichMD5c=find(strcmp(P.chronData{i}.chronDataTableName,chronMD5(:,1)));
         if isempty(whichMD5c) & size(chronMD5,1)==1
-            whichMD5c=1
+            whichMD5c=1;
         end
         if ~isempty(whichMD5c)
             NS.(genvarname(P.chronData{i}.chronDataTableName)).chronDataMD5=chronMD5{whichMD5c,2};
