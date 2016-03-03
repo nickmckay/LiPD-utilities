@@ -2,6 +2,7 @@ import os
 import tempfile
 import shutil
 import ntpath
+import time
 
 __author__ = 'Chris Heiser'
 
@@ -61,3 +62,26 @@ def dir_cleanup(dir_bag, dir_data):
     shutil.rmtree(dir_data)
 
     return
+
+
+def check_file_age(filename, days):
+    """
+    Check if the target file has an older creation date than X amount of time.
+    i.e. One day: 60*60*24
+    :param filename: (str) Target filename
+    :param days: (int) Limit in number of days
+    :return: (bool) True - older than X time, False - not older than X time
+    """
+    # Multiply days given by time for one day.
+    t = days * 60 * 60 * 24
+    now = time.time()
+    specified_time = now - t
+    try:
+        if os.path.getctime(filename) < specified_time:
+            # File found and out of date
+            return True
+        # File found, and not out of date
+        return False
+    except FileNotFoundError:
+        # File not found. Need to download it.
+        return True

@@ -9,8 +9,6 @@ from Python.modules.jsons import *
 
 __author__ = 'Chris Heiser'
 
-EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?']
-
 
 class DOIResolver(object):
     """
@@ -224,7 +222,7 @@ class DOIResolver(object):
         except urllib.error.URLError:
             txt_log(self.dir_root, self.name, "quarantine.txt", "Malformed DOI: " + doi_id)
         except ValueError:
-            txt_log(self.dir_root, self.name, "quarantine.txt", "Bad HTTP Response / HTML Code: " + doi_id)
+            txt_log(self.dir_root, self.name, "quarantine.txt", "Cannot resolve DOIs from this publisher: " + doi_id)
 
         return
 
