@@ -32,3 +32,5 @@ Python/main.py
 *.pyc
 
 *.py
+
+*.pyc
