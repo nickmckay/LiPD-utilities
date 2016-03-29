@@ -1,0 +1,19 @@
+#documentation
+recursive-include docs *.rst
+recursive-include docs *.py
+recursive-include docs/_build/html *
+
+#packages
+recursive-include lipd/pkg_resources *
+
+#example files
+recursive-include lipd/examples *
+
+#misc
+include LICENSE
+include README.md
+include MODULES
+include INSTALL
+include REQUIREMENTS
+
+

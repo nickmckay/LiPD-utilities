@@ -1,0 +1,35 @@
+These requirements are automatically installed with the LiPD package. This list is strictly educational and you do not
+ need to know how to use these modules.
+
+- Bagit
+https://libraryofcongress.github.io/bagit-python/
+Tool for archiving data.
+
+- BeautifulSoup4
+http://www.crummy.com/software/BeautifulSoup/
+Library for pulling data from HTML and XML files.
+
+- Demjson
+https://pypi.python.org/pypi/demjson/2.2.4
+Encode and decode json data.
+
+- google-api-python-client
+https://developers.google.com/api-client-library/python/
+Retrieve and download data from Google Drive hosted documents.
+
+- Jupyter
+http://jupyter.org
+Web application for interactive data science and data scientific computing.
+
+- Pillow
+https://python-pillow.org
+A fork of the Python Imaging Library.
+
+- Virtualenv
+https://pypi.python.org/pypi/virtualenv
+Create isolated Python environments. A great way to install and work with different versions of Python, or to ensure
+that different modules are not affecting each other.
+
+- xlrd
+http://www.python-excel.org
+Extract data from Microsoft Excel spreadsheets for conversion and manipulation.

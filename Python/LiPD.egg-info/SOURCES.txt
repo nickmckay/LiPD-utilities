@@ -1,7 +1,0 @@
-setup.py
-LiPD.egg-info/PKG-INFO
-LiPD.egg-info/SOURCES.txt
-LiPD.egg-info/dependency_links.txt
-LiPD.egg-info/requires.txt
-LiPD.egg-info/top_level.txt
-packages/__init__.py
