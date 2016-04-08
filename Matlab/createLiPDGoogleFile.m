@@ -171,10 +171,15 @@ geoNames=f(find(strncmpi('geo_',f,4)));
 pubNames=f(find(strncmpi('pub',f,3)));
 fundNames=f(find(strncmpi('fund',f,4)));
 % paleoDataNames=f(find(strncmpi('paleoData_',f,10)));
-paleoDatai=(find(strncmpi('paleoData_',f,10)));
+% paleoDatai=(find(strncmpi('paleoData_',f,10)));
+% 
+% cii=(find(strncmpi('climateInterpretation_',f,22)));
+% cali=(find(strncmpi('calibration_',f,12)));
 
-cii=(find(strncmpi('climateInterpretation_',f,22)));
-cali=(find(strncmpi('calibration_',f,12)));
+%instead can we grab everything with _ except chron?
+underscoreI=find(~cellfun(@isempty,(strfind(f,'_'))));
+chronDatai=(find(strncmpi('chronData_',f,10)));
+
 
 %create top chunk, includes, base, pub and geo metadata
 %how big to make it?
@@ -237,8 +242,12 @@ di=find(strcmp('paleoData_description',f));
 %make units fourth
 ui=find(strcmp('paleoData_units',f));
 
+geoi=(find(strncmpi('geo_',f,4)));
 
-pdCi=[tsi; vni; di; ui;  setdiff(paleoDatai,[tsi vni di ui]); cii; cali];
+pubi=(find(strncmpi('pub',f,3)));
+fundi=(find(strncmpi('fund',f,4)));
+
+pdCi=[tsi; vni; di; ui;  setdiff(underscoreI,[tsi vni di ui chronDatai' pubi' geoi' fundi']')];
 midChunk=cell(length(TS),length(pdCi));
 
 for p=1:length(pdCi)
@@ -277,7 +286,6 @@ for cp = 1:length(pdi)
 end
 f=fieldnames(CTS);
 
-chronDatai=(find(strncmpi('chronData_',f,10)));
 
 %now make chron data chunk
 tsi=find(strcmp('chronData_TSid',f));

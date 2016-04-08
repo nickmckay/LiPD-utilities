@@ -5,9 +5,9 @@ function Dnew=collapseTS(TS,yearTS)
 %yearTS is an optional flag to tripped if your TS includes entries for
 %year/age/etc
 
- if nargin<2
-     yearTS=0;
- end
+if nargin<2
+    yearTS=0;
+end
 
 %create a LiPD object for every unique dataSetName
 udsn=unique({TS.dataSetName}');
@@ -34,10 +34,10 @@ for i=1:length(udsn)
         %or chronData
         ci=find(strcmpi('chronData',fT));
         yai=union(yai,ci);
-
+        
         %if there is a chronData, write it right in
         if ~isempty(ci)
-            Dnew.(matlab.lang.makeValidName(udsn{i})).chronData=T.chronData; 
+            Dnew.(matlab.lang.makeValidName(udsn{i})).chronData=T.chronData;
         end
         
         %now create the base level index
@@ -58,9 +58,9 @@ for i=1:length(udsn)
                     fundNum=1;
                 end
                 try
-                Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=T.(fT{fun(fin)});
+                    Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=T.(fT{fun(fin)});
                 catch DO
-                                    Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=char(T.(fT{fun(fin)}));
+                    Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=char(T.(fT{fun(fin)}));
                 end
             end
         end
@@ -74,9 +74,9 @@ for i=1:length(udsn)
         for pin=1:length(p)
             pubVarName=fT{p(pin)};
             pubNum=str2num(pubVarName(4:(strfind(pubVarName,'_')-1)));
-             if isempty(pubNum)
-                    pubNum=1;
-                end
+            if isempty(pubNum)
+                pubNum=1;
+            end
             Dnew.(matlab.lang.makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
                 T.(fT{p(pin)});
         end
@@ -140,7 +140,7 @@ for i=1:length(udsn)
         %assign in paleoData Table Name
         
         Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).paleoDataTableName=pdName;
-           
+        
         
         %ignore paleodata name from pd
         pd=setdiff(pd,find(strcmp(fT,'paleoData_paleoDataTableName')));
@@ -154,15 +154,15 @@ for i=1:length(udsn)
         
         %get variablename name
         variableName=matlab.lang.makeValidName(T.paleoData_variableName);
-       
+        
         %see if that name has been used already
         alreadyNames=fieldnames(Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName));
         %iterate through numbers until it's unique
         aNi=1;
         origName=variableName;
         while any(strcmp(variableName,alreadyNames))
-           variableName=[origName num2str(aNi)];
-           aNi=aNi+1;
+            variableName=[origName num2str(aNi)];
+            aNi=aNi+1;
         end
         
         
@@ -210,8 +210,24 @@ for i=1:length(udsn)
                     ageFlag=1;
                 end
             end
+            %add depth as column
+            depthFlag=0;
+            if any(strcmp('depth',fT))
+                %don't add age if it's a different length than the data
+                if length(T.depth) == length(T.paleoData_values)
+                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).depth.values=T.depth;
+                    if isfield(T,'depthUnits')
+                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).depth.units=T.depthUnits;
+                    end
+                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).depth.description='depth';
+                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).depth.variableName='depth';
+                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).depth.dataType='float';
+                    depthFlag=1;
+                end
+            end
             if ~ageFlag && ~yearFlag
-                error('no age or year data. The linearity (and existence) of time are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors')
+                
+                error([matlab.lang.makeValidName(udsn{i}) ': no age or year data. The linearity (and existence) of time are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors'])
             end
         end
         %check for climate interpretation
@@ -235,6 +251,63 @@ for i=1:length(udsn)
                 %add in parameter
                 Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
                     T.(fT{cai(cain)});
+            end
+        end
+        
+        %check for modernSystem
+        if any(strncmp('modernSystem_',fT,13))
+            cai=find(strncmp('modernSystem_',fT,13));
+            for cain=1:length(cai)
+                caiVarName=fT{cai(cain)};
+                
+                %add in parameter
+                Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).modernSystem.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                    T.(fT{cai(cain)});
+            end
+        end
+        
+        
+        %check for proxySystemModel
+        if any(strncmp('proxySystemModel_',fT,17))
+            cai=find(strncmp('proxySystemModel_',fT,17));
+            for cain=1:length(cai)
+                caiVarName=fT{cai(cain)};
+                
+                %add in parameter
+                Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).proxySystemModel.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                    T.(fT{cai(cain)});
+            end
+        end
+        
+        %check for isotope interpretation
+        if any(strncmp('isotopeInterpretation_',fT,22))
+            iii=find(strncmp('isotopeInterpretation_',fT,22));
+            for iiin=1:length(iii)
+                iiiVarName=fT{iii(iiin)};
+                iiname = iiiVarName(min(strfind(iiiVarName,'_'))+1:end);
+                %if there's no more underscores
+                if isempty(strfind(iiname,'_'))
+                    %add in parameter
+                    Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).isotopeInterpretation.(iiname)=...
+                        T.(fT{iii(iiin)});
+                else %then it's an independentVariable cell.
+                    if f==1
+                        Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).isotopeInterpretation.independentVariable=cell(1,1); %assign cell
+                    end
+                    iv=find(strncmp('isotopeInterpretation_independentVariable',fT,41));
+                    for ivin=1:length(iv)
+                        iVarName=fT{iv(ivin)};
+                        ivNum=str2num(iVarName(42:(max(strfind(iVarName,'_'))-1)));
+                        if isempty(ivNum)
+                            ivNum=1;
+                        end
+                        Dnew.(matlab.lang.makeValidName(udsn{i})).paleoData.(pdName).(variableName).isotopeInterpretation.independentVariable{ivNum}.(iVarName(max(strfind(iVarName,'_'))+1:end))=...
+                            T.(fT{iv(ivin)});
+                    end
+                    
+                    
+                end
+                
             end
         end
         

@@ -55,7 +55,7 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                     end
                 end
             end
-            %special case for fudning
+            %special case for funding
         elseif strcmp(ppnames{pp},'funding')
             for pl=1:length( D.(dnames{d}).funding)
                 if isstruct(D.(dnames{d}).funding{pl})
@@ -224,7 +224,17 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
 
                                             for l6 = 1:length(l6names)
                                                 l6name=l6names{l6};
+                                                if ~iscell(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}))
                                                 TS(1,ts).([l5name '_' l6name])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6});
+                                                else
+                                                   %append a number and loop through cell
+                                                   for iiii = 1:length(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}));
+                                                       l7names = fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii});
+                                                       for l7 = 1:length(l7names)
+                                                       TS(1,ts).([l5name '_' l6name num2str(iiii) '_' l7names{l7}])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii}.(l7names{l7});
+                                                       end
+                                                   end
+                                                end
                                             end
                                             else %not a structure, write out the data
                                                 TS(1,ts).(['paleoData_' l5name])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5});
