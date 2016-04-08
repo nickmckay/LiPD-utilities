@@ -1,0 +1,93 @@
+INSTALL INSTRUCTIONS
+----
+
+LiPD needs a few things before it can work properly. The correct version of Python for running the package, PIP to make
+the LiPD package installation simple, and the LiPD package itself. Follow these steps in order if you are not sure
+you system meets the requirements.
+
+
+
+PYTHON
+=========
+
+https://www.python.org/downloads/
+
+LiPD has been developed and tested on Python 3.4.1. You're welcome to download this specific version from the python
+archives, but the most current version of Python 3 that is greater than 3.4.1 should work as well. Use the link to
+download Python and follow their instructions.
+
+
+
+PIP
+=========
+
+https://pip.pypa.io/en/stable/installing/
+
+PIP has recently started being included with newer versions of Python 3. That's good news! That means that this step
+is even easier for you. You do not need to install PIP, but it is recommended that you upgrade it to the most recent
+version.
+
+On Linux and OS X, open the Terminal application and type:
+
+    pip install -U pip
+
+On Windows, open the Command Prompt application and type:
+
+    python -m pip install -U pip
+
+
+
+LIPD
+=========
+
+https://pypi.python.org/pypi/LiPD
+
+There are two ways to install LiPD. The fastest and easiest is through the "pip" command. If you have trouble, or
+prefer to do a manual install, that is also an option.
+
+
+
+Install via pip:
+
+    1. Open your command line application and type:
+
+            pip install LiPD
+
+    That's it! LiPD is installed and you're done.
+
+
+
+Manual install:
+
+    * This guide assumes that the source code will be downloaded to your system's default "Downloads" folder.
+
+    1. Download the source code:
+
+        https://github.com/nickmckay/LiPD-utilities/archive/master.zip
+
+    2. Unzip the source code file
+
+    3. Open your command line application and navigate to the source folder:
+
+        cd Downloads/LiPD-utilities-master/Python
+
+    4. Run the setup file:
+
+        python3 setup.py install
+
+        * If you have permissions errors, you may need to run "sudo python3 setup.py install".
+        * Some systems come pre-installed with Python 2.7 as the default. Using the "python" command will use
+        Python 2.7, which we do not want. Therefore, it is important to use "python3".
+
+    Done! The setup file will install everything you need and you're ready to start working. If the source code is
+    not located in the Downloads folder and you need help using Terminal, use this link as a guide for step 3.
+    (http://guides.macrumors.com/Terminal)
+
+
+
+
+
+
+
+
+

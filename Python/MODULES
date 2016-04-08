@@ -1,0 +1,65 @@
+MODULES
+
+There are many pieces that make the LiPD package work. Here are the individual modules within the package and a
+short description about each of them. These modules work in the background and do not need to be called
+
+
+Doi
+========
+
+Updates LiPD files to the most recent information from the doi.org database.
+
+
+Excel
+========
+
+Uses data from Microsoft Excel spreadsheets to create LiPD files.
+
+
+Helpers
+========
+
+bag
+> Functions related to the Bagit module.
+
+csvs
+> Imports, exports and modifies CSV data.
+
+directory
+> Navigates OS directories and creates temporary directories.
+
+google
+> Maps coordinates and retrieves Google Drive data.
+
+jsons
+> Imports, exports, and modifies JSON data.
+
+loggers
+> Logs errors and modifies changelogs to track file history.
+
+MapFrame
+> Creates OS GUI windows for Map images.
+
+ts
+> Extracts to and exports from a TimeSeries.
+
+zips
+> Zips and unzips LiPD files.
+
+
+LiPD
+========
+
+Expands LiPD files and puts them into a library suitable for scientific computing.
+
+
+NOAA
+========
+
+Converts NOAA formatted text files into LiPD files, and vice versa.
+
+
+TimeSeries
+========
+
+Uses LiPD data to create a TimeSeries for scientific computing.
