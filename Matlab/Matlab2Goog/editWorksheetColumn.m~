@@ -11,7 +11,7 @@ import java.net.*;
 import java.lang.*;
 com.mathworks.mlwidgets.html.HTMLPrefs.setProxySettings
 
-MAXITER=20;
+MAXITER=10;
 success=false;
 
 safeguard=0;

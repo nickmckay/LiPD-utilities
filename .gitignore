@@ -16,6 +16,9 @@ vignettes/*.pdf
 #matlab temporary files
 .m~
 
+#google token files
+google_token*.mat
+
 .idea/*
 
 *.pyc

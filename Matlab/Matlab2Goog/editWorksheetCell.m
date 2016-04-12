@@ -5,7 +5,7 @@ import java.net.*;
 import java.lang.*;
 com.mathworks.mlwidgets.html.HTMLPrefs.setProxySettings
 
-MAXITER=10;
+MAXITER=20;
 success=false;
 
 getURLStringList=['https://spreadsheets.google.com/feeds/cells/' spreadSheetKey '/' workSheetKey '/private/full/R' num2str(rowNumber) 'C' num2str(columnNumber)];
