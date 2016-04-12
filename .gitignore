@@ -20,21 +20,6 @@ vignettes/*.pdf
 
 *.pyc
 
-
-*.ipynb
-
-<<<<<<< HEAD
-Python/main.py
-=======
-*.pyc
->>>>>>> origin/master
-
-*.pyc
-
-*.py
-
-*.pyc
-
 # Ignore the Package build and misc data
 setup.cfg
 .eggs
