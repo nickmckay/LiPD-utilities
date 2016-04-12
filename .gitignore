@@ -43,3 +43,7 @@ dist
 build
 LiPD.egg-info
 Python/dist/LiPD-0.1.0-py3.4.egg
+
+Python/.spyderworkspace
+
+Python/lipd/files/examples/*

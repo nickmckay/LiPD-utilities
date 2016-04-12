@@ -5,9 +5,11 @@ recursive-include docs/_build/html *
 
 #packages
 recursive-include lipd/pkg_resources *
+include lipd/pkg_resources/noaa/noaa-blank.txt
+include lipd/pkg_resources/helpers/client_secret.json
 
 #example files
-recursive-include lipd/examples *
+recursive-include lipd/files *
 
 #misc
 include LICENSE
