@@ -32,12 +32,12 @@ class PostInstall(install):
         shutil.copy(os.path.join(src_nb, 'Welcome LiPD - Quickstart.ipynb'), dst_nb)
 
         # Open the install folder so the user can see the documentation and instructions
-        os.system('open .')
+        # os.system('open .')
         install.run(self)
 
 
 here = path.abspath(path.dirname(__file__))
-version = '0.1.1.11'
+version = '0.1.1.12'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':

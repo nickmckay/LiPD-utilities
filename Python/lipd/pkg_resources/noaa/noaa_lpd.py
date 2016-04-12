@@ -1,44 +1,21 @@
 from collections import OrderedDict
 import os
 import csv
-import re
 import copy
 
-from ..helpers.jsons import write_json_to_file, EMPTY
+from ..helpers.jsons import *
 from ..helpers.bag import *
-from ..helpers.zips import *
+from ..helpers.alternates import *
+from ..helpers.regexes import *
+from ..helpers.blanks import *
 
-
-# GLOBALS
-
-# List of items that we don't want to output
-IGNORE_KEYS = ['earliest_year', 'most_recent_year', 'note']
-IGNORE_VAR_LINES = ['have no #', 'variables', 'lines begin with #', 'double marker', 'line variables format',
-                    'line format', 'c or n for character or numeric', 'preceded by', "filename"]
-IGNORE_DATA_LINES = ['have no #', 'tab-delimited text', 'age ensembles archived']
-IGNORE_BLANKS = ['\n', '', ' ', '# ', '#']
-# RE_BLANKS = re.compile(r'(#\s*(.)*)', re.S)
-RE_VAR = re.compile(r'#{2}(\w)+')
-RE_VAR_SPLIT = re.compile(r'(\w+)(\s+)([\w\W\s]+)')
-
-# Missing value name appears as many variations. Try to account for all of them
-MISSING_VAL_ALTS = ['missing value', 'missing values', 'missingvalue', 'missingvalues', 'missing_values',
-                    'missing variables', 'missing_variables', 'missingvariables']
-
-# Lists for what keys go in specific dictionary blocks
-SITE_INFO = {'lat': ['northernmostlatitude', 'northernmost latitude', 'northernmost_latitude',
-                     'southernmostlatitude', 'southernmost latitude', 'southernmost_latitude'],
-             'lon': ['easternmostlongitude', 'easternmost longitude', 'easternmost_longitude',
-                     'westernmostlongitude', 'westernmost longitude', 'westernmost_longitude'],
-             'properties': ['location', 'country', 'elevation', 'site_name', 'region'],
-             }
-FUNDING_LIST = ['funding_agency_name', 'grant']
 
 class NOAA_LPD(object):
 
     def __init__(self, dir_root, dir_tmp, name):
         self.dir_root = dir_root
         self.dir_tmp = dir_tmp
+        self.dir_bag = os.path.join(dir_tmp, name)
         self.name = name
         self.name_txt = name + '.txt'
         self.name_lpd = name + '.lpd'
@@ -51,21 +28,19 @@ class NOAA_LPD(object):
         """
         # Run the file through the parser
         # Sets self.metadata, Creates CSVs in dir_tmp
-        self.__parse()
         os.chdir(self.dir_tmp)
+        os.mkdir(self.name)
+        os.chdir(self.dir_root)
+        self.__parse()
+        os.chdir(self.dir_bag)
 
         # Dump Metadata JSON to dir_tmp
         write_json_to_file(self.name + '.json', self.metadata)
 
         # Create a bagit bag
-        new_bag = create_bag(self.dir_tmp)
-        open_bag(self.dir_tmp)
+        new_bag = create_bag(self.dir_bag)
+        open_bag(self.dir_bag)
         new_bag.save(manifests=True)
-
-        # Zip the bag
-        os.chdir(self.dir_root)
-        re_zip(self.dir_tmp, self.name, self.name_lpd)
-        os.rename(self.name_lpd + '.zip', self.name_lpd)
 
         return
 
@@ -82,6 +57,7 @@ class NOAA_LPD(object):
         # Strings
         last_insert = None
         missing_str = ''
+        data_filename = ''
 
         # Counters
         grant_id = 0
@@ -182,13 +158,13 @@ class NOAA_LPD(object):
                     else:
                         line = self.__str_cleanup(line)
                         key, value = self.__slice_key_val(line)
-                        if key.lower() in SITE_INFO['lat']:
+                        if key.lower() in NOAA_SITE_INFO['lat']:
                             lat.append(self.__convert_num(value))
 
-                        elif key.lower() in SITE_INFO['lon']:
+                        elif key.lower() in NOAA_SITE_INFO['lon']:
                             lon.append(self.__convert_num(value))
 
-                        elif key.lower() in SITE_INFO['properties']:
+                        elif key.lower() in NOAA_SITE_INFO['properties']:
                             if key.lower() == 'elevation':
                                 val, unit = self.__split_name_unit(value)
                                 geo_properties['elevation'] = {'value': self.__convert_num(val), 'unit': unit}
@@ -212,8 +188,8 @@ class NOAA_LPD(object):
 
                         # Open CSV for writing
                         chron_filename = self.name + '-chronology.csv'
-                        csv_path = os.path.join(self.dir_tmp, chron_filename)
-                        chron_csv = open(csv_path, 'w', newline='')
+                        csv_path = os.path.join(self.dir_bag, chron_filename)
+                        chron_csv = open(csv_path, 'w+', newline='')
                         cw = csv.writer(chron_csv)
 
                         # Split the line into a list of variables
@@ -248,10 +224,10 @@ class NOAA_LPD(object):
                     # End of the section. Turn marker off
                     if "------" in line:
                         variables_on = False
-                    for item in IGNORE_VAR_LINES:
+                    for item in NOAA_VAR_LINES:
                         if item.lower() in line.lower():
                             process_line = False
-                    for item in IGNORE_BLANKS:
+                    for item in NOAA_EMPTY:
                         if item == line:
                             process_line = False
                     m = re.match(RE_VAR, line)
@@ -267,7 +243,10 @@ class NOAA_LPD(object):
                         data_col_dict = self.__create_var_col(cleaned_line, data_col_ct)
 
                         # Keep a list of all variable names
-                        data_var_names.append(data_col_dict['parameter'])
+                        try:
+                            data_var_names.append(data_col_dict['parameter'])
+                        except KeyError:
+                            data_var_names.append('')
 
                         # Add the column dictionary into a final dictionary
                         data_col_list.append(data_col_dict)
@@ -280,13 +259,13 @@ class NOAA_LPD(object):
                     # Do not process lines that are blank, template lines, or missing value
                     process_line = True
 
-                    for item in IGNORE_DATA_LINES:
+                    for item in NOAA_DATA_LINES:
                         if item in line:
                             process_line = False
-                    for item in IGNORE_BLANKS:
+                    for item in NOAA_EMPTY:
                         if item == line:
                             process_line = False
-                    for item in MISSING_VAL_ALTS:
+                    for item in ALTS_MV:
                         if item in line.lower():
                             process_line = False
                             line = self.__str_cleanup(line)
@@ -310,17 +289,22 @@ class NOAA_LPD(object):
 
                                 # Open CSV for writing
                                 data_filename = self.name + '-data.csv'
-                                csv_path = os.path.join(self.dir_tmp, data_filename)
-                                data_csv = open(csv_path, 'w', newline='')
+                                csv_path = os.path.join(self.dir_bag, data_filename)
+                                data_csv = open(csv_path, 'w+', newline='')
                                 dw = csv.writer(data_csv)
 
                 # METADATA
                 else:
                     # Line Continuation: Sometimes there are items that span a few lines.
                     # If this happens, we want to combine them all properly into one entry.
-                    if '#' not in line and line not in IGNORE_BLANKS and last_insert is not None:
-                        old_val = last_insert[old_key]
-                        last_insert[old_key] = old_val + line
+                    if '#' not in line and line not in NOAA_EMPTY and old_val:
+                        try:
+                            if old_key in ('funding', 'agency'):
+                                temp_funding[old_key] = old_val + line
+                            else:
+                                    final_dict[old_key] = old_val + line
+                        except KeyError:
+                            pass
 
                     # No Line Continuation: This is the start or a new entry
                     else:
@@ -355,7 +339,7 @@ class NOAA_LPD(object):
                             else:
 
                                 # Ignore any entries that are specified in the skip list
-                                if lkey not in IGNORE_KEYS:
+                                if lkey not in NOAA_KEYS:
 
                                     if lkey == 'core_length':
                                         val, unit = self.__split_name_unit(value)
@@ -380,11 +364,10 @@ class NOAA_LPD(object):
 
                                     else:
                                         final_dict[self.__camel_case(key)] = value
-                                        last_insert = final_dict
 
                                     # Keep track of old key in case we have a line continuation
                                     old_key = key
-
+                                    old_val = value.rstrip()
                         # Ignore any errors from NoneTypes that are returned from slice_key_val
                         except TypeError:
                             pass
@@ -393,7 +376,7 @@ class NOAA_LPD(object):
         try:
             data_csv.close()
         except NameError:
-            print("Couldn't close Data CSV")
+            print("Couldn't close Data CSV. Invalid formatting of variables/data sections in NOAA txt file")
 
         # Piece together measurements block
         data_dict_upper['filename'] = data_filename
@@ -419,7 +402,7 @@ class NOAA_LPD(object):
             data_dict_lower[k] = v
 
         # Set final_dict to self.
-        self.metadata = final_dict
+        self.metadata = remove_empty_fields(final_dict)
 
         return
 
@@ -471,7 +454,7 @@ class NOAA_LPD(object):
         if '#' in line:
             line = line.replace("#", "")
             line = line.lstrip()
-        if line not in IGNORE_BLANKS and line not in EMPTY:
+        if line not in NOAA_EMPTY and line not in EMPTY:
 
             m = re.match(RE_VAR_SPLIT, line)
             if m:
@@ -481,7 +464,7 @@ class NOAA_LPD(object):
                 for index, string in enumerate(combine):
                     combine[index] = string.lstrip().rstrip()
                 for i, s in enumerate(combine):
-                    if not s or s in IGNORE_BLANKS:
+                    if not s or s in NOAA_EMPTY:
                         del combine[i]
         return combine
 

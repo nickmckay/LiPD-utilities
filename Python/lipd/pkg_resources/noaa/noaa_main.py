@@ -12,6 +12,7 @@ def noaa():
     Convert between NOAA and LiPD file formats.
     :return:
     """
+    dir_root = os.getcwd()
     # Run lpd_noaa or noaa_lpd ?
     print("Which conversion?\n1. LPD to NOAA\n2. NOAA to LPD\n")
     mode = input("Option: ")
@@ -45,12 +46,13 @@ def noaa():
         # Process file
         if mode == '1':
             unzip(name_ext, dir_tmp)
-            _process_lpd(name, dir_tmp)
+            _process_lpd(name, dir_tmp, dir_root)
 
         elif mode == '2':
-            _process_noaa(name, dir_tmp)
+            _process_noaa(name, dir_tmp, dir_root)
 
         # Delete tmp folder and all contents
+        os.chdir(dir_root)
         shutil.rmtree(dir_tmp)
 
     print("Process Complete")
@@ -58,28 +60,27 @@ def noaa():
     return
 
 
-def _process_noaa(name, dir_tmp):
+def _process_noaa(name, dir_tmp, dir_root):
     """
     Convert NOAA format to LiPD format
     :param name: (str) Name of file, no extension
     :param dir_tmp: (str) Path to tmp directory
     :return: none
     """
-    dir_root = os.getcwd()
     NOAA_LPD(dir_root, dir_tmp, name).main()
-
+    os.chdir(dir_root)
+    re_zip(dir_tmp, name, name + ".lpd")
+    os.rename(name + ".lpd" + '.zip', name + ".lpd")
     return
 
 
-def _process_lpd(name, dir_tmp):
+def _process_lpd(name, dir_tmp, dir_root):
     """
     Convert a LiPD format to NOAA format
     :param name: (str) Name of file, no extension
     :param dir_tmp: (str) Path to tmp directory
     :return: none
     """
-
-    dir_root = os.getcwd()
     dir_bag = os.path.join(dir_tmp, name)
     dir_data = os.path.join(dir_bag, 'data')
 
@@ -93,10 +94,6 @@ def _process_lpd(name, dir_tmp):
 
     # except ValueError:
     #     txt_log(dir_root, 'quarantine.txt', name, "Invalid Unicode characters. Unable to load file.")
-
-    # Move back to root for next loop
-    # Directory Change: dir_data -> dir_root
-    os.chdir(dir_root)
 
     return
 

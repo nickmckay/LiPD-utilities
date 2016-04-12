@@ -23,7 +23,8 @@ def read_csv_to_columns(filename):
                     except ValueError:
                         d[idx].append(col)
                     except KeyError:
-                        print("KeyError")
+                        pass
+                        # print("ERROR: CSV KeyError")
     except FileNotFoundError:
         print('CSV FileNotFound: ' + filename)
     return d

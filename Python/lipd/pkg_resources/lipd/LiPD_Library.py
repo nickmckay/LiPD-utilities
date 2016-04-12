@@ -49,19 +49,20 @@ class LiPD_Library(object):
         :return:
         """
         # Confirm that a CWD is set first.
-        if self.dir_root == '':
+        if not self.dir_root:
             print("Current Working Directory has not been set.")
             return
         os.chdir(self.dir_root)
         # Get a list of all lpd files
-        file_list = list_files('lpd')
+        file_list = list_files('.lpd')
         # Loop: Append each file to Library
-        try:
-            for name_ext in file_list:
+        print("Found: {} LiPD file(s)".format(len(file_list)))
+        for name_ext in file_list:
+            try:
                 self.__append_lipd(name_ext)
-            print("Loaded {0} LiPD file(s)".format(len(file_list)))
-        except:
-            print("Error loading files")
+                print("processing: {}".format(name_ext))
+            except:
+                print("ERROR: {}".format(name_ext))
 
         return
 
@@ -119,12 +120,15 @@ class LiPD_Library(object):
         :param filename: (str) Map the specified LiPD files. (none) Map all files in LiPD_Library.
         :return: (img) Google map with location markers
         """
-        # No input given. Map all LiPDs
-        if not filename:
-            self.map_all()
-        # One or more records given. Map them.
-        else:
-            self.map_some(filename)
+        try:
+            # No input given. Map all LiPDs
+            if not filename:
+                self.map_all()
+            # One or more records given. Map them.
+            else:
+                self.map_some(filename)
+        except KeyError:
+            print("ERROR: Unable to find record(s)")
         return
 
     def map_some(self, files):

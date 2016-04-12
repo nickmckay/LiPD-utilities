@@ -4,13 +4,7 @@ GLOBAL LIST OF EMPTIES AND IGNORED TERMS
 """
 
 # GENERAL
-GEN_EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?', "'", "''"]
-
-# EXCEL
-EXCEL_EMPTY = ['', ' ', None, 'na', 'nan']
-
-# TimeSeries Convert
-EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?']
+EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?', "'", "''"]
 
 # NOAA
 NOAA_EMPTY = ['\n', '', '#\n', '# \n', ' ']

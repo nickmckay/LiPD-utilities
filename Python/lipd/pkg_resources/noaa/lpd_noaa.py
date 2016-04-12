@@ -1,43 +1,8 @@
-import re
 import os
 import shutil
 
-# Pre-compiled Regexes
-first_cap_re = re.compile('(.)([A-Z][a-z]+)')
-all_cap_re = re.compile('([a-z0-9])([A-Z])')
-
-# GLOBALS
-# 13 is a list of keys to ignore when using create_blanks
-SECTIONS = {1: ['onlineResource', 'studyName', 'archive', 'parameterKeywords', 'originalSourceUrl'],
-            2: ['date'],
-            3: ['studyName'],
-            4: ['investigators'],
-            5: ['description'],
-            6: ['pub'],
-            7: ['funding', 'agency', 'grant'],
-            8: ['geo'],
-            9: ['collectionName', 'earliestYear', 'mostRecentYear', 'timeUnit', 'coreLength', 'notes'],
-            10: ['speciesName', 'commonName', 'treeSpeciesCode'],
-            11: ['chronology'],
-            12: ['paleoData'],
-            13: ['funding', 'type', 'bbox', 'geo']}
-
-# The order of the items in the list is the order that we want to write them to the file.
-# 11 is the order for writing each column in the variables section
-ORDERING = {1: ['studyName', 'onlineResource', 'originalSourceUrl', 'archive', 'parameterKeywords'],
-            2: ['date'],
-            3: ['studyName'],
-            4: ['investigators'],
-            5: ['description'],
-            6: ['authors', 'publishedDateOrYear', 'publishedTitle', 'journalName', 'volume', 'edition', 'issue',
-                'pages', 'doi', 'onlineResource', 'fullCitation', 'abstract', 'identifier'],
-            7: ['agency', 'grant'],
-            8: ['siteName', 'location', 'country', 'northernmostLatitude', 'southernmostLatitude',
-                'easternmostLongitude', 'westernmostLongitude', 'elevation'],
-            9: ['collectionName', 'earliestYear', 'mostRecentYear', 'timeUnit', 'coreLength', 'notes'],
-            10: ['speciesName', 'commonName'],
-            11: ['parameter', 'description', 'material', 'error', 'units', 'seasonality', 'archive', 'detail',
-                 'method', 'dataType']}
+from ..helpers.alternates import *
+from ..helpers.regexes import *
 
 
 class LPD_NOAA(object):
@@ -184,8 +149,8 @@ class LPD_NOAA(object):
         :param d: (dict) Section of steps_dict
         :return: none
         """
-        for key in ORDERING[section_num]:
-            if key not in d and key not in SECTIONS[13]:
+        for key in NOAA_ORDERING[section_num]:
+            if key not in d and key not in NOAA_SECTIONS[13]:
                 # Key not in our dict. Create the blank entry.
                 d[key] = ''
         return
@@ -313,7 +278,7 @@ class LPD_NOAA(object):
         """
         self.__create_blanks(section_num, d)
         noaa_txt.write('# ' + header + ' \n')
-        for entry in ORDERING[section_num]:
+        for entry in NOAA_ORDERING[section_num]:
             if entry == 'coreLength':
                 val, unit = self.__get_corelength(d[entry])
                 noaa_txt.write('#   ' + self.__underscore(entry) + ': ' + str(val) + ' ' + str(unit) + '\n')
@@ -450,7 +415,7 @@ class LPD_NOAA(object):
             \n# Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components ( 9 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or Numeric data)\n#\n')
         for col in table['columns']:
             # Write one line for each column. One line has all metadata for one column.
-            for entry in ORDERING[11]:
+            for entry in NOAA_ORDERING[11]:
                 # ---FIX--------FIX--------FIX--------FIX--------FIX-----
                 # May need a better way of handling this in the future. Need a strict list for this section.
                 try:
@@ -480,14 +445,17 @@ class LPD_NOAA(object):
         d_tmp = {}
 
         # Properties
-        for k, v in d['properties'].items():
-            if k == 'elevation':
-                d_tmp['elevation'] = str(v['value']) + ' ' + str(v['unit'])
-            else:
-                d_tmp[k] = v
+        try:
+            for k, v in d['properties'].items():
+                if k == 'elevation':
+                    d_tmp['elevation'] = str(v['value']) + ' ' + str(v['unit'])
+                else:
+                    d_tmp[k] = v
+            # Geometry
+            d_tmp = self.__coordinates(d['geometry']['coordinates'], d_tmp)
 
-        # Geometry
-        d_tmp = self.__coordinates(d['geometry']['coordinates'], d_tmp)
+        except KeyError:
+            d_tmp = {}
 
         return d_tmp
 
@@ -503,30 +471,30 @@ class LPD_NOAA(object):
         # If the key isn't in any list, stash it in number 13 for now
         number = 13
 
-        if key in SECTIONS[1]:
+        if key in NOAA_SECTIONS[1]:
             # StudyName only triggers once, append to section 3 also
             if key == 'studyName':
                 self.steps_dict[3][key] = value
             number = 1
-        elif key in SECTIONS[2]:
+        elif key in NOAA_SECTIONS[2]:
             number = 2
-        elif key in SECTIONS[4]:
+        elif key in NOAA_SECTIONS[4]:
             number = 4
-        elif key in SECTIONS[5]:
+        elif key in NOAA_SECTIONS[5]:
             number = 5
-        elif key in SECTIONS[6]:
+        elif key in NOAA_SECTIONS[6]:
             number = 6
-        elif key in SECTIONS[7]:
+        elif key in NOAA_SECTIONS[7]:
             number = 7
-        elif key in SECTIONS[8]:
+        elif key in NOAA_SECTIONS[8]:
             number = 8
-        elif key in SECTIONS[9]:
+        elif key in NOAA_SECTIONS[9]:
             number = 9
-        elif key in SECTIONS[10]:
+        elif key in NOAA_SECTIONS[10]:
             number = 10
-        elif key in SECTIONS[11]:
+        elif key in NOAA_SECTIONS[11]:
             number = 11
-        elif key in SECTIONS[12]:
+        elif key in NOAA_SECTIONS[12]:
             number = 12
         self.steps_dict[number][key] = value
 

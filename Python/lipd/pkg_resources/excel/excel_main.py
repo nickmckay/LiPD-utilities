@@ -39,15 +39,14 @@ def excel():
     print("Found " + str(len(f_list)) + " Excel files")
 
     # Run once for each file
-    print("Processing files: ")
     for name_ext in f_list:
 
         # Filename without extension
         name = os.path.splitext(name_ext)[0]
-        print(name)
+        name_lpd = name + '.lpd'
+        print("processing: {}".format(name_ext))
 
         # Create a temporary folder and set paths
-        dir_output = os.path.join(dir_root, 'lpd')
         dir_tmp = create_tmp_dir()
         dir_bag = os.path.join(dir_tmp, name)
         dir_data = os.path.join(dir_bag, 'data')
@@ -141,18 +140,13 @@ def excel():
             # dir: dir_tmp -> dir_root
             os.chdir(dir_root)
 
-            # Go to output folder. Create if doesn't exist.
-            if not os.path.exists(dir_output):
-                os.mkdir(dir_output)
-            os.chdir(dir_output)
-
             # Check if same lpd file exists. If so, delete so new one can be made
-            if os.path.isfile(name_ext):
-                os.remove(name_ext)
+            if os.path.isfile(name_lpd):
+                os.remove(name_lpd)
 
             # Zip dir_bag. Creates in dir_root directory
-            re_zip(dir_tmp, name, name_ext)
-            os.rename(name_ext + '.zip', name + '.lpd')
+            re_zip(dir_tmp, name, name_lpd)
+            os.rename(name_lpd + '.zip', name_lpd)
 
         except Exception as e:
             # There was a problem opening a file with XLRD
@@ -166,6 +160,7 @@ def excel():
         shutil.rmtree(dir_tmp)
 
     txt_log_end(dir_root, 'quarantine.txt')
+    print("Process Complete")
     return
 
 

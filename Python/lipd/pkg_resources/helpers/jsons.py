@@ -14,6 +14,7 @@ def write_json_to_file(filename, json_data):
     :param json_data: (dict) JSON data
     :return: None
     """
+    json_data = remove_empty_fields(json_data)
     # Use demjson to maintain unicode characters in output
     json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
     # Write json to file

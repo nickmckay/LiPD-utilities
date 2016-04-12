@@ -1,5 +1,4 @@
 import csv
-import os
 
 from ..helpers.directory import check_file_age
 from ..helpers.google import get_google_csv

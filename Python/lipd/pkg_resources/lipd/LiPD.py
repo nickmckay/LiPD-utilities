@@ -3,6 +3,7 @@ from ..helpers.directory import *
 from ..helpers.bag import *
 from ..helpers.csvs import *
 from ..helpers.jsons import *
+from ..helpers.lipd_lint import *
 
 
 class LiPD(object):

@@ -31,7 +31,7 @@ def doi():
 
         # Unbag and check resolved flag. Don't run if flag exists
         if resolved_flag(open_bag(os.path.join(dir_tmp, name))):
-            print("DOI previously resolved. Next file...")
+            # print("DOI previously resolved. Next file...")
             shutil.rmtree(dir_tmp)
 
         # Process file if flag does not exist
@@ -45,7 +45,7 @@ def doi():
             os.rename(name_ext + '.zip', name_ext)
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
-    print("NOTE: Quarantine.txt contains a list of errors that may have occurred during processing.")
+    # print("NOTE: Quarantine.txt contains a list of errors that may have occurred during processing.")
     print("Process Complete")
 
     return

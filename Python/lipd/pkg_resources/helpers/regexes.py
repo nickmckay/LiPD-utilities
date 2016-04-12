@@ -14,7 +14,8 @@ all_cap_re = re.compile('([a-z0-9])([A-Z])')
 RE_VAR = re.compile(r'#{2}(\w)+')
 RE_VAR_SPLIT = re.compile(r'(\w+)(\s+)([\w\W\s]+)')
 
-# TimeSeries Convert
+
+# TIMESERIES Convert
 re_misc_fetch = re.compile(r'(geo_(\w+)|climateInterpretation_(\w+)|calibration_(\w+)|paleoData_(\w+))')
 re_pub_fetch = re.compile(r'pub1_(citation|year|DOI|author|publisher|title|type|volume|issue|journal|link|pubDataUrl|abstract|pages)')
 
