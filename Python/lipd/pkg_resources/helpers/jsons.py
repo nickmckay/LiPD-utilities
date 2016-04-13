@@ -10,7 +10,7 @@ EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?', "'", "''"]
 def write_json_to_file(filename, json_data):
     """
     Write all JSON in python dictionary to a new json file.
-    :param filename: (str) Target File (name + .json)
+    :param filename: (str) Target File (name + .jsonld)
     :param json_data: (dict) JSON data
     :return: None
     """

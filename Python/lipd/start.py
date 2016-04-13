@@ -89,13 +89,17 @@ def extractTimeSeries():
     Create a TimeSeries using the current files in LiPD_Library.
     :return: (obj) TimeSeries_Library
     """
-    # Loop over the LiPD objects in the LiPD_Library
-    for k, v in lipd_lib.get_master().items():
-        # Get metadata from this LiPD object. Convert it. Pass TSO metadata to the TS_Library.
-        ts_lib.loadTsos(v.get_name_ext(), convert.ts_extract_main(v.get_master()))
-
+    d = {}
+    try:
+        # Loop over the LiPD objects in the LiPD_Library
+        for k, v in lipd_lib.get_master().items():
+            # Get metadata from this LiPD object. Convert it. Pass TSO metadata to the TS_Library.
+            # ts_lib.loadTsos(v.get_name_ext(), convert.ts_extract_main(v.get_master()))
+            d.update(convert.ts_extract_main(v.get_master()))
+    except KeyError:
+        print("ERROR: Unable to extractTimeSeries")
     print("Process Complete")
-    return
+    return d
 
 
 def exportTimeSeries():

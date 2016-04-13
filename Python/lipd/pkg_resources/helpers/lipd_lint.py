@@ -1,4 +1,5 @@
 import csv
+import copy
 
 from ..helpers.directory import check_file_age
 from ..helpers.google import get_google_csv
@@ -11,9 +12,9 @@ def lipd_lint(d):
     :return: (dict) Modified metadata
     """
     # Retrieve valid terms
-    full, quick, sections = _fetch_lipdnames()
+    full, sections = _fetch_lipdnames()
     # Validate the metadata
-    metadata = _verify_sections(full, quick, d, sections)
+    metadata = _verify_sections(full, d, sections)
 
     return metadata
 
@@ -23,12 +24,10 @@ def _fetch_lipdnames():
     Call down a current version of terms spreadsheet from google. Convert to a structure better
     for comparisons.
     :return: (full_list) Complete terms dictionary. Keys: Valid term, Values: Synonyms
-    :return: (quick_list) List of valid terms
     """
     section = ''
     sections = ['@context']
     full_list = {}
-    quick_list = []
 
     # Check if it's been longer than one day since updating the csv file.
     # If so, go fetch the file from google in case it's been updated since.
@@ -65,29 +64,28 @@ def _fetch_lipdnames():
                             # Add items to the lists
                             if section not in full_list:
                                 full_list[section] = []
-                            quick_list.append(line[0])
                             full_list[section].append(line + permutations)
-
 
     except FileNotFoundError:
         print("CSV FileNotFound: lipdnames")
 
-    return full_list, quick_list, sections
+    return full_list, sections
 
 
-def _verify_sections(full, quick, d, sections):
+def _verify_sections(full, d, sections):
     """
     Verify terms by section (in case of overlapping terms)
     :param full: (dict) Complete dictionary of terms
-    :param quick: (list) Complete list of valid terms only
     :param d: (dict) Unmodified metadata
     :param sections: (list) Names of sections
     :return: (dict) Modified metadata
     """
     metadata = {}
+    quick = create_quick(full)
+
     for k, v in d.items():
         # Item is in root
-        if isinstance(v, str) and k != '@context' and k not in quick:
+        if isinstance(v, str) and k != '@context' and k not in quick['root']:
             # Invalid key. Get valid
             metadata[k] = _iter_root(full, 'root', k)
 
@@ -145,19 +143,47 @@ def _iter_section(full, quick, section, d1):
 
         # Can't mod dict in-place. Track which keys need to be switched.
         for name in list(d1.keys()):
-            if name not in quick:
-                # Not valid term. Start looking for valid.
+            if name not in quick[section]:
+                # Invalid term. Start looking for valid.
                 for line in full[section]:
                     # Check each line to see where its match is.
                     if name in line:
                         # Found a match. Keep the valid term.
                         switch[name] = line[0]
+                        break
             if name not in switch:
-                # Not in switch means valid term wasn't found, or is already valid. Keep as-is
+                # Valid term not found, or was already valid. Keep as-is
                 switch[name] = name
 
         for k, v in d1.items():
-            # Intermediate case: Call again. Set returned data in tmp under new valid term.
-            tmp[switch[k]] = _iter_section(full, quick, section, v)
+            if k in ('calibration', 'climateInterpretation'):
+                # Nested case paleoData: Switch from paleoData to different section
+                tmp[switch[k]] = _iter_section(full, quick, k, v)
+            else:
+                # Intermediate case: Call again. Set returned data in tmp under new valid term.
+                tmp[switch[k]] = _iter_section(full, quick, section, v)
         d1 = tmp
     return d1
+
+
+def create_quick(d):
+    """
+    Create a dict of lists of valid names for each section
+    :param d: (dict) Full term dictionary
+    :return: (dict) All valid terms separated by section
+    """
+    quick = {}
+    try:
+        for section_name, l in d.items():
+            section_quick = []
+            for ll in l:
+                try:
+                    section_quick.append(ll[0])
+                except KeyError:
+                    pass
+            quick[section_name] = copy.deepcopy(section_quick)
+    except KeyError:
+        pass
+
+    return quick
+
