@@ -1,35 +1,17 @@
 from copy import deepcopy
-import re
 import csv
 
 from ..helpers.google import get_google_csv
 from ..helpers.directory import check_file_age
-
-# LiPD to TIME SERIES
-
-# GLOBALS
-EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?']
-
-re_misc_fetch = re.compile(r'(geo_(\w+)|climateInterpretation_(\w+)|calibration_(\w+)|paleoData_(\w+))')
-re_pub_fetch = re.compile(r'pub1_(citation|year|DOI|author|publisher|title|type|volume|issue|journal|link|pubDataUrl|abstract|pages)')
-
-re_pub_valid = re.compile(r'pub(\d)_(citation|year|DOI|author|publisher|title|type|volume|issue|journal|link|pubDataUrl|abstract|pages)')
-re_fund_valid = re.compile(r'funding(\d)_(grant|agency)')
-
-re_pub_invalid = re.compile(r'pub_(\w+)|pub(\d)_(\w+)|pub(\d)(\w+)|pub(\w+)')
-re_fund_invalid = re.compile(r'agency|grant|funding_agency|funding_grant')
-re_geo_invalid = re.compile(r'geo(\w+)|geo_(\w+)')
-re_paleo_invalid = re.compile(r'paleodata(\w+)|paleodata_(\w+)|measurement(\w+)|measurement_(\w+)')
-re_calib_invalid = re.compile(r'calibration(\w+)|calibration_(\w+)')
-re_clim_invalid = re.compile(r'climateinterpretation(\w+)|climateinterpretation_(\w+)')
-
-re_pub_nh = re.compile(r'pub(\d)_(\w+)')
-re_pub_cc = re.compile(r'pub(\w+)')
-re_pub_h = re.compile(r'pub_(\w+)')
-re_pub_n = re.compile(r'pub(\d)(\w+)')
+from ..helpers.regexes import *
+from ..helpers.blanks import *
 
 
 class Convert(object):
+    """
+    LiPD to TIME SERIES
+    TIME SERIES to LiPD
+    """
 
     def __init__(self):
 
@@ -207,15 +189,22 @@ class Convert(object):
         Extract all data from a PaleoData dictionary.
         :param d: (dict) PaleoData dictionary
         """
-        # For each table in paleoData
-        for k, v in d['paleoData'].items():
-            # Get root items for this table
-            self.__ts_extract_paleo_table_root(v)
-            # Start creating TSOs with dictionary copies.
-            for i, e in v['columns'].items():
-                # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
-                col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
-                self.ts_tsos[d['dataSetName'] + '_' + k + '_' + i] = col
+        try:
+            # For each table in paleoData
+            for k, v in d['paleoData'].items():
+                # Get root items for this table
+                self.__ts_extract_paleo_table_root(v)
+                # Start creating TSOs with dictionary copies.
+                for i, e in v['columns'].items():
+                    # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
+                    col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
+                    try:
+                        self.ts_tsos[d['dataSetName'] + '_' + k + '_' + i] = col
+                    except KeyError:
+                        self.ts_tsos['dataset' + '_' + k + '_' + i] = col
+
+        except KeyError:
+            pass
         return
 
     def __ts_extract_paleo_table_root(self, d):
