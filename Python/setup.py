@@ -23,10 +23,13 @@ class PostInstall(install):
             os.mkdir(dst_ex)
 
         # Copy example files (don't overwrite directory)
-        f = os.listdir(src_ex)
+        f = [x for x in os.listdir(src_ex) if not (x.startswith('.'))]
         for file in f:
-            if os.path.isfile(file):
-                shutil.copy(file, src_ex)
+            print(file)
+            if file == 'quickstart_functions.py':
+                shutil.copy(os.path.join(src_ex, file), dst_ex)
+            elif os.path.isfile(os.path.join(src_ex, file)):
+                shutil.copy(os.path.join(src_ex, file), dst_nb)
 
         # Copy / Overwrite Quickstart notebook
         shutil.copy(os.path.join(src_nb, 'Welcome LiPD - Quickstart.ipynb'), dst_nb)
@@ -37,7 +40,7 @@ class PostInstall(install):
 
 
 here = path.abspath(path.dirname(__file__))
-version = '0.1.1.12'
+version = '0.1.1.17'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -102,6 +105,8 @@ setup(
         "virtualenv"
     ],
     include_package_data=True,
-    package_data={'noaa': ['*.txt'], 'helpers': ['*.json']},
+    package_data={'noaa': ['*.txt'],
+                  'helpers': ['*.json']
+                  },
 )
 
