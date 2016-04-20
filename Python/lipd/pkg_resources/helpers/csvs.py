@@ -1,6 +1,27 @@
 import csv
 
 
+def add_csv_to_json(d):
+    """
+    Using the given metadata dictionary, retrieve CSV data from CSV files, and insert the CSV
+    values into their respective metadata columns. Checks for both paleoData and chronData tables.
+    :param dict d: Metadata
+    :return dict: Modified original dictionary (dict) CSV tables - column - column data
+    """
+    d2 = {}
+    for key in ["paleoData", "chronData"]:
+        if key in d:
+            # Loop through each table in paleoData
+            for table_name, table_content in d[key].items():
+                # Create CSV entry into dictionary that contains all columns.
+                d2[table_content['filename']] = read_csv_to_columns(table_content['filename'])
+                # Start putting CSV data into corresponding JSON metadata columns under 'values' key.
+                for col_name, col_content in table_content['columns'].items():
+                    col_content['values'] = d2[table_content['filename']][col_content['number']-1]
+
+    return d, d2
+
+
 def read_csv_to_columns(filename):
     """
     Opens the target CSV file and creates a dictionary with one list for each CSV column.
@@ -47,20 +68,3 @@ def write_csv_to_file(filename, d):
             w.writerow(row)
     return
 
-
-def add_csv_to_json(d):
-    """
-    Using the given paleoData dictionary from the JSON metadata, retrieve CSV data from CSV files, and insert the CSV
-    data columns to their respective JSON paleoData table columns.
-    :param d: (dict) PaleoData dictionary
-    :return: (dict) Modified original dictionary (dict) CSV column data
-    """
-    d2 = {}
-    # Loop through each table in paleoData
-    for table_name, table_content in d.items():
-        # Create CSV entry into dictionary that contains all columns.
-        d2[table_content['filename']] = read_csv_to_columns(table_content['filename'])
-        # Start putting CSV data into corresponding JSON metadata columns under 'values' key.
-        for col_name, col_content in table_content['columns'].items():
-            col_content['values'] = d2[table_content['filename']][col_content['number']-1]
-    return d, d2

@@ -56,7 +56,7 @@ def _fetch_lipdnames():
                             sections.append(section)
                         else:
                             # Create and add name permutations
-                            if section != 'root':
+                            if section not in ('root', 'chronology'):
                                 for name in line:
                                     permutations.append(section + "_" + name)
                                     permutations.append(section + name)
@@ -88,7 +88,8 @@ def _verify_sections(full, d, sections):
         if isinstance(v, str) and k != '@context' and k not in quick['root']:
             # Invalid key. Get valid
             metadata[k] = _iter_root(full, 'root', k)
-
+        elif k in ('chronData', 'chronTable'):
+            metadata[k] = v
         # Item is a section
         elif isinstance(v, list) or isinstance(v, dict) and k in sections:
             # Invalid key. Get valid

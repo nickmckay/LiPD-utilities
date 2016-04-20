@@ -4,7 +4,8 @@ from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi
 from .pkg_resources.excel.excel_main import excel
 from .pkg_resources.noaa.noaa_main import noaa
-
+from .pkg_resources.helpers.alternates import comparisons
+from .pkg_resources.helpers.ts import translate_expression, get_matches
 
 def setDir():
     """
@@ -51,6 +52,7 @@ def showCsv(filename):
     print("Process Complete")
     return
 
+
 def showMetadata(filename):
     """
     Display the contents of the specified LiPD file. (Must be previously loaded into the workspace)
@@ -60,6 +62,7 @@ def showMetadata(filename):
     lipd_lib.showMetadata(filename)
     print("Process Complete")
     return
+
 
 def showLipds():
     """
@@ -79,6 +82,32 @@ def showMap(filename):
     lipd_lib.showMap(filename)
     print("Process Complete")
     return
+
+
+def getMetadata(filename):
+    """
+
+    :param filename:
+    :param parameter:
+    :return:
+    """
+    d = {}
+    try:
+        d = lipd_lib.getMetadata(filename)
+    except KeyError:
+        print("ERROR: Unable to find record")
+
+    return d
+
+
+def getCsv(filename):
+    d = {}
+    try:
+        d = lipd_lib.getCsv(filename)
+    except KeyError:
+        print("ERROR: Unable to find record")
+
+    return d
 
 
 # ANALYSIS - TIME SERIES
@@ -136,6 +165,66 @@ def showTsos():
     print("Process Complete")
     return
 
+
+def find(expression, ts):
+    """
+    Find the names of the TimeSeries that match some criteria (expression)
+    :return:
+    """
+    names = []
+    expr_lst = translate_expression(expression)
+    if expr_lst:
+        names = get_matches(expr_lst, ts)
+    print("Process Complete")
+    return names
+
+
+def check_ts(parameter, names, ts):
+    for i in names:
+        try:
+            print(ts[i][parameter])
+        except KeyError:
+            print("ERROR: Key doesn't exist")
+    return
+
+
+def TS(names, ts):
+    """
+    Create a new TS dictionary using
+    index = find(logical expression)
+    newTS = TS(index)
+
+    :param expression:
+    :return:
+    """
+    d = {}
+    for name in names:
+        try:
+            d[name] = ts[name]
+        except KeyError:
+            print("ERROR: Record not in TimeSeries")
+    print("Process Complete")
+    return d
+
+
+def get_numpy(ts):
+    """
+    Get all values from a TimeSeries
+    :param ts: (dict) Time Series
+    :return: (list of lists)
+    """
+    tmp = []
+    try:
+        for k,v in ts.items():
+            try:
+                tmp.append(v['paleoData_values'])
+            except KeyError:
+                pass
+    except AttributeError:
+        print("ERROR: Invalid TimeSeries")
+
+    print("Process Complete")
+    return tmp
 
 # CLOSING
 

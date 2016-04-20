@@ -80,6 +80,20 @@ class LiPD_Library(object):
             print("LiPD not found")
         return
 
+    def getCsv(self, name):
+        """
+
+        :param name:
+        :return:
+        """
+        d = {}
+        try:
+            d = self.master[name].get_csv()
+        except KeyError:
+            pass
+
+        return d
+
     def showMetadata(self, name):
         """
         Display data from target LiPD file.
@@ -89,8 +103,22 @@ class LiPD_Library(object):
         try:
             self.master[name].display_json()
         except KeyError:
-            print("LiPD not found")
+            pass
         return
+
+    def getMetadata(self, name):
+        """
+
+        :param name:
+        :return:
+        """
+        d = {}
+        try:
+            d = self.master[name].get_metadata()
+        except KeyError:
+            pass
+
+        return d
 
     def showLipdMaster(self, name):
         """

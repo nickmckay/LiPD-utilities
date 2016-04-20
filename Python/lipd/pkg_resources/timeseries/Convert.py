@@ -194,17 +194,47 @@ class Convert(object):
             for k, v in d['paleoData'].items():
                 # Get root items for this table
                 self.__ts_extract_paleo_table_root(v)
+                # Add age, depth, and year columns to ts_root if available
+                self.__ts_extract_special(v)
+
                 # Start creating TSOs with dictionary copies.
                 for i, e in v['columns'].items():
-                    # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
-                    col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
-                    try:
-                        self.ts_tsos[d['dataSetName'] + '_' + k + '_' + i] = col
-                    except KeyError:
-                        self.ts_tsos['dataset' + '_' + k + '_' + i] = col
+                    if not any(x in i for x in ('age', 'depth', 'year')):
+                        # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
+                        col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
+                        try:
+                            self.ts_tsos[d['dataSetName'] + '_' + k + '_' + i] = col
+                        except KeyError:
+                            self.ts_tsos['dataset' + '_' + k + '_' + i] = col
 
         except KeyError:
             pass
+        return
+
+    def __ts_extract_special(self, d):
+        """
+        Extract year, age, and depth column. Add to self.ts_root
+        :param dict d: Column data
+        :return:
+        """
+        # Add age, year, and depth columns to ts_root where possible
+        for i, e in d['columns'].items():
+            if any(x in i for x in ('age', 'depth', 'year')):
+                s = ''
+                # Some keys have units hanging on them (i.e. 'year_ad', 'depth_cm'). We don't want units on the keys
+                if 'year' in i:
+                    s = 'year'
+                elif 'age' in i:
+                    s = 'age'
+                elif 'depth' in i:
+                    s = 'depth'
+                if s:
+                    try:
+                        self.ts_root[s] = e['values']
+                        self.ts_root[s + 'Units'] = e['units']
+                    except KeyError:
+                        # Values key was not found.
+                        pass
         return
 
     def __ts_extract_paleo_table_root(self, d):
@@ -619,10 +649,11 @@ class Convert(object):
                 valid = self.__iter_ts(None, invalid)
 
         except IndexError:
-            print("Get TSName: Something went wrong")
+            print("ERROR: TSName indexerror")
 
         if not valid:
-            print("TSName: Couldn't find a match: " + invalid)
+            print("ERROR: TSName unable to find match: " + invalid)
+            return invalid
 
         return valid
 
@@ -646,7 +677,7 @@ class Convert(object):
                     if invalid in key.lower():
                         valid = line[0]
                         break
-        # If the entire TSNames dict is passed through (i.e. final effort, all categories have failed so far)
+        # Entire TSNames dict is passed through (i.e. final effort, all categories have failed so far)
         else:
             for k, v in self.full_list.items():
                 for line in v:

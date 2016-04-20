@@ -33,3 +33,7 @@ re_pub_nh = re.compile(r'pub(\d)_(\w+)')
 re_pub_cc = re.compile(r'pub(\w+)')
 re_pub_h = re.compile(r'pub_(\w+)')
 re_pub_n = re.compile(r'pub(\d)(\w+)')
+
+# START
+
+re_filter_expr = re.compile(r"((\w+_?)\s*(is|in|greater than|equals|equal|less than|<=|==|>=|=|>|<){1}[\"\s\']*([\"\w\d]+|-?\d+.?\d*)[\"\s&\']*)")

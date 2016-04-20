@@ -47,7 +47,7 @@ class LiPD(object):
 
         # Import CSV into data_master, and set csv data to self.
         os.chdir(self.dir_tmp_bag_data)
-        self.data_master['paleoData'], self.data_csv = add_csv_to_json(self.data_master['paleoData'])
+        self.data_master, self.data_csv = add_csv_to_json(self.data_master)
 
         os.chdir(self.dir_root)
 
@@ -82,6 +82,20 @@ class LiPD(object):
         :return: (dict) Metadata + CSV data
         """
         return self.data_master
+
+    def get_metadata(self):
+        """
+
+        :return:
+        """
+        return self.data_master
+
+    def get_csv(self):
+        """
+
+        :return:
+        """
+        return self.data_csv
 
     # CLOSING
 

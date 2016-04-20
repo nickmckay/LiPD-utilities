@@ -10,7 +10,7 @@ EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?', "'", "''"]
 def write_json_to_file(filename, json_data):
     """
     Write all JSON in python dictionary to a new json file.
-    :param filename: (str) Target File (name + .jsonld)
+    :param filename: (str) Target File (name + .json)
     :param json_data: (dict) JSON data
     :return: None
     """
@@ -152,39 +152,37 @@ def remove_empty_doi(d):
 def old_to_new_structure(d):
     """
     Restructure JSON to the new format. Table and columns referenced by name, not index. (dictionaries)
-    :param d:(dict) JSON metadata
-    :return: (dict) JSON metadata
+    :param dict d: Metadata
+    :return dict: Modified Metadata
     """
-    # PaleoData dict
-    tmp_p = {}
+    table_names = {"paleoData": "paleoDataTableName", "chronData": "chronDataTableName"}
+    for key in ["paleoData", "chronData"]:
+        if key in d:
+            tmp = {}
+            for table in d[key]:
+                # All tables, all columns, table name
+                tmp_t = {}
+                tmp_c = {}
+                t_name = table[table_names[key]]
 
-    for table in d['paleoData']:
-        # All tables, all columns, table name
-        tmp_t = {}
-        tmp_c = {}
-        t_name = table['paleoDataTableName']
+                # Restructure columns into tmp_c
+                for col in table['columns']:
+                    c_name = col['variableName']
+                    tmp_c[c_name] = col
 
-        # paleoDataTableName and variableName are current
-        # tableName and parameter are deprecated
+                # Move table strings into tmp_t
+                for k, v in table.items():
+                    if isinstance(v, str):
+                        tmp_t[k] = v
 
-        # Restructure columns into tmp_c
-        for col in table['columns']:
-            c_name = col['variableName']
-            tmp_c[c_name] = col
+                # Move new column structure to table
+                tmp_t['columns'] = copy.deepcopy(tmp_c)
 
-        # Move table strings into tmp_t
-        for k, v in table.items():
-            if isinstance(v, str):
-                tmp_t[k] = v
+                # Move table into tmp_p
+                tmp[t_name] = copy.deepcopy(tmp_t)
 
-        # Move new column structure to table
-        tmp_t['columns'] = copy.deepcopy(tmp_c)
-
-        # Move table into tmp_p
-        tmp_p[t_name] = copy.deepcopy(tmp_t)
-
-    # Overwrite original paleoData dictionary with new dictionary
-    d['paleoData'] = tmp_p
+            # Overwrite original paleoData dictionary with new dictionary
+            d[key] = copy.deepcopy(tmp)
     return d
 
 
