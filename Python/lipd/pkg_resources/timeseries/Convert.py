@@ -1,5 +1,7 @@
+import copy as cp
 from copy import deepcopy
 import csv
+import pandas as pd
 
 from ..helpers.google import get_google_csv
 from ..helpers.directory import check_file_age
@@ -17,6 +19,7 @@ class Convert(object):
 
         # LiPD to TS (One file at a time)
         self.ts_root = {}  # Root metadata for current LiPD.
+        self.ts_chron = {}  # Chron data if available
         self.ts_tsos = {}  # Individual columns. One entry represents one TSO (to be created later)
 
         # TS to LiPD (Batch Process)
@@ -56,6 +59,9 @@ class Convert(object):
                 self.__ts_extract_geo(v)
             elif k == 'pub':
                 self.__ts_extract_pub(v)
+            elif k == 'chronData':
+                self.ts_root[k] = cp.deepcopy(v)
+                self.__ts_extract_chron(v)
 
         # Create tso dictionaries for each individual column (build on root data)
         self.__ts_extract_paleo(d)
@@ -184,6 +190,24 @@ class Convert(object):
             self.ts_root['pub' + str(idx+1) + '_author'] = auth[:-1]
         return
 
+    def __ts_extract_chron(self, d):
+        """
+        Extract chron data and values and make a pandas Series object. Add to ts_root
+        :param dict d: Metadata dictionary
+        :return dict:
+        """
+        # TODO make a pandas data frame out of the chron variables and values.
+        s = {}
+        try:
+            for table_name, table_data in d.items():
+                for col, col_data in table_data["columns"].items():
+                    s[col] = pd.Series(col_data["values"])
+        except KeyError:
+            pass
+
+        self.ts_root['chronData_df'] = pd.DataFrame(s)
+        return
+
     def __ts_extract_paleo(self, d):
         """
         Extract all data from a PaleoData dictionary.
@@ -220,14 +244,11 @@ class Convert(object):
         # Add age, year, and depth columns to ts_root where possible
         for i, e in d['columns'].items():
             if any(x in i for x in ('age', 'depth', 'year')):
-                s = ''
                 # Some keys have units hanging on them (i.e. 'year_ad', 'depth_cm'). We don't want units on the keys
-                if 'year' in i:
-                    s = 'year'
-                elif 'age' in i:
-                    s = 'age'
-                elif 'depth' in i:
-                    s = 'depth'
+                if re_pandas_x_und.match(i):
+                    s = i.split('_')[0]
+                else:
+                    s = i
                 if s:
                     try:
                         self.ts_root[s] = e['values']
@@ -567,18 +588,18 @@ class Convert(object):
         """
         Turn a bad tsname into a valid one.
         * Note: Index[0] for each TSName is the most current, valid entry. Index[1:] are synonyms
-        :param invalid: (str) Invalid tsname
+        :param invalid_l: (str) Invalid tsname
         :return: (str) valid tsname
         """
         valid = ''
-        invalid = invalid.lower()
+        invalid_l = invalid.lower()
         try:
             # PUB ENTRIES
-            if re_pub_invalid.match(invalid):
+            if re_pub_invalid.match(invalid_l):
 
                 # Case 1: pub1_year (number and hyphen)
-                if re_pub_nh.match(invalid):
-                    s_invalid = invalid.split('_', 1)
+                if re_pub_nh.match(invalid_l):
+                    s_invalid = invalid_l.split('_', 1)
                     # Check which list the key word is in
                     for line in self.full_list['pub']:
                         for key in line:
@@ -589,8 +610,8 @@ class Convert(object):
                                 valid = ''.join([s_invalid[0], '_', v[1]])
 
                 # Case 2: pub_year (hyphen)
-                elif re_pub_h.match(invalid):
-                    s_invalid = invalid.split('_', 1)
+                elif re_pub_h.match(invalid_l):
+                    s_invalid = invalid_l.split('_', 1)
                     # The missing pub number is the main problem, but the keyword may or may not be correct. Check.
                     for line in self.full_list['pub']:
                         for key in line:
@@ -599,8 +620,8 @@ class Convert(object):
                                 valid = line[0]
 
                 # Case 3: pub1year (number)
-                elif re_pub_n.match(invalid):
-                    s_invalid = re_pub_n.match(invalid)
+                elif re_pub_n.match(invalid_l):
+                    s_invalid = re_pub_n.match(invalid_l)
                     for line in self.full_list['pub']:
                         for key in line:
                             if s_invalid.group(2) in key.lower():
@@ -608,45 +629,45 @@ class Convert(object):
                                 valid = ''.join(['pub', s_invalid.group(0), v[1]])
 
                 # Case 4: pubYear (camelcase)
-                elif re_pub_cc.match(invalid):
-                    valid = self.__iter_ts('pub', invalid)
+                elif re_pub_cc.match(invalid_l):
+                    valid = self.__iter_ts('pub', invalid_l)
 
             # FUNDING
-            elif re_fund_invalid.match(invalid):
-                if "grant" in invalid:
+            elif re_fund_invalid.match(invalid_l):
+                if "grant" in invalid_l:
                     valid = 'funding1_grant'
-                elif "agency" in invalid:
+                elif "agency" in invalid_l:
                     valid = "funding1_agency"
 
             # GEO
-            elif re_geo_invalid.match(invalid):
-                valid = self.__iter_ts('geo', invalid)
+            elif re_geo_invalid.match(invalid_l):
+                valid = self.__iter_ts('geo', invalid_l)
 
             # PALEODATA
-            elif re_paleo_invalid.match(invalid):
-                g1 = re_paleo_invalid.match(invalid).group(1)
+            elif re_paleo_invalid.match(invalid_l):
+                g1 = re_paleo_invalid.match(invalid_l).group(1)
                 valid = self.__iter_ts('paleoData', g1)
 
             # CALIBRATION
-            elif re_calib_invalid.match(invalid):
-                g1 = re_calib_invalid.match(invalid).group(1)
+            elif re_calib_invalid.match(invalid_l):
+                g1 = re_calib_invalid.match(invalid_l).group(1)
                 valid = self.__iter_ts('calibration', g1)
 
             # CLIMATE INTERPRETATION
-            elif re_clim_invalid.match(invalid):
-                g1 = re_clim_invalid.match(invalid).group(1)
+            elif re_clim_invalid.match(invalid_l):
+                g1 = re_clim_invalid.match(invalid_l).group(1)
                 if 'climate' in g1:
                     g1 = re.sub('climate', '', g1)
                 valid = self.__iter_ts('climateInterpretation', g1)
 
             else:
                 # ROOT
-                valid = self.__iter_ts('root', invalid)
+                valid = self.__iter_ts('root', invalid_l)
 
             # LAST CHANCE:
             # Specific case that isn't a typical format, or no match. Go through all possible entries.
             if not valid:
-                valid = self.__iter_ts(None, invalid)
+                valid = self.__iter_ts(None, invalid_l)
 
         except IndexError:
             print("ERROR: TSName indexerror")

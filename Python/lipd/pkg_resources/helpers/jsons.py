@@ -52,6 +52,7 @@ def remove_csv_from_json(d):
     :param d: (dict) JSON data - old structure
     :return: (dict) Metadata dictionary without CSV values
     """
+    # TODO update to work with chronology also
     # Loop through each table in paleoData
     for table, table_content in d['paleoData'].items():
         for column, column_content in table_content['columns'].items():
@@ -70,6 +71,7 @@ def get_csv_from_json(d):
     :param d: (dict) JSON with CSV values
     :return: (dict) CSV values. (i.e. { CSVFilename1: { Column1: [Values], Column2: [Values] }, CSVFilename2: ... }
     """
+    # TODO update to work with chronology also
     csv = {}
     try:
         for table, table_content in d['paleoData'].items():

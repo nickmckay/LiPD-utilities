@@ -6,6 +6,8 @@ from .pkg_resources.excel.excel_main import excel
 from .pkg_resources.noaa.noaa_main import noaa
 from .pkg_resources.helpers.alternates import comparisons
 from .pkg_resources.helpers.ts import translate_expression, get_matches
+from .pkg_resources.helpers.PDSlib import *
+
 
 def setDir():
     """
@@ -40,6 +42,39 @@ def loadLipds():
 
 
 # ANALYSIS - LIPD
+
+def lipd_to_df(filename):
+    """
+    Create Pandas DataFrame from LiPD file
+    :param filename:
+    :return:
+    """
+    try:
+        df_meta, df_data = lipd_lib.LiPD_to_df(filename)
+    except KeyError:
+        print("ERROR: Unable to find record")
+        df_meta, df_data = None
+    print("Process Complete")
+    return df_meta, df_data
+
+
+def ts_to_df(ts, filename):
+    """
+    Create Pandas DataFrame from TimeSeries object
+    :param ts:
+    :param filename:
+    :return:
+    """
+    df_meta = ''
+    df_data = ''
+    df_chron = "Chronology not available"
+    try:
+        df_meta, df_data, df_chron = TS_to_df(ts[filename])
+    except KeyError:
+        pass
+        print("ERROR: Unable to find record")
+    print("Process Complete")
+    return df_meta, df_data, df_chron
 
 
 def showCsv(filename):
@@ -156,13 +191,17 @@ def showTso(name):
     return
 
 
-def showTsos():
+def showTsos(dict_in):
     """
     Prints the names of all TimeSeries objects in the TimeSeries_Library
     :return:
     """
-    ts_lib.showTsos()
-    print("Process Complete")
+    try:
+        s = collections.OrderedDict(sorted(dict_in.items()))
+        for k, v in s.items():
+            print(k)
+    except AttributeError:
+        print("ERROR: Invalid TimeSeries")
     return
 
 

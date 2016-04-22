@@ -3,6 +3,7 @@ import string
 from .LiPD import LiPD
 from ..helpers.directory import *
 from ..helpers.google import *
+from ..helpers.PDSlib import *
 
 
 class LiPD_Library(object):
@@ -211,6 +212,10 @@ class LiPD_Library(object):
         # Map the list of markers
         get_static_google_map('multi-marker', markers=markers)
         return
+
+    def LiPD_to_df(self, filename):
+        df_meta, df_data = LiPD_to_df(self.master[filename].get_master())
+        return df_meta, df_data
 
     # CLOSING
 
