@@ -65,13 +65,12 @@ def ts_to_df(ts, filename):
     :param filename:
     :return:
     """
-    df_meta = ''
-    df_data = ''
-    df_chron = "Chronology not available"
+    df_meta = ""
+    df_data = ""
+    df_chron = ""
     try:
         df_meta, df_data, df_chron = TS_to_df(ts[filename])
     except KeyError:
-        pass
         print("ERROR: Unable to find record")
     print("Process Complete")
     return df_meta, df_data, df_chron
@@ -131,7 +130,7 @@ def getMetadata(filename):
         d = lipd_lib.getMetadata(filename)
     except KeyError:
         print("ERROR: Unable to find record")
-
+    print("Process Complete")
     return d
 
 
@@ -141,7 +140,7 @@ def getCsv(filename):
         d = lipd_lib.getCsv(filename)
     except KeyError:
         print("ERROR: Unable to find record")
-
+    print("Process Complete")
     return d
 
 
@@ -211,11 +210,13 @@ def find(expression, ts):
     :return:
     """
     names = []
+    filtered_ts = {}
     expr_lst = translate_expression(expression)
     if expr_lst:
         names = get_matches(expr_lst, ts)
+        filtered_ts = TS(names, ts)
     print("Process Complete")
-    return names
+    return names, filtered_ts
 
 
 def check_ts(parameter, names, ts):
@@ -241,8 +242,7 @@ def TS(names, ts):
         try:
             d[name] = ts[name]
         except KeyError:
-            print("ERROR: Record not in TimeSeries")
-    print("Process Complete")
+            pass
     return d
 
 

@@ -82,7 +82,7 @@ def TS_to_df(dict_in):
     try:
         df_chron = dict_in["chronData_df"]
     except KeyError:
-        df_chron = pd.DataFrame()
+        df_chron = "Chronology not available"
 
     return df_meta, df_data, df_chron
 

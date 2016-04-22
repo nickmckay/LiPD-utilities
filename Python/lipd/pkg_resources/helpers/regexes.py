@@ -35,7 +35,8 @@ re_pub_h = re.compile(r'pub_(\w+)')
 re_pub_n = re.compile(r'pub(\d)(\w+)')
 
 # START
-re_filter_expr = re.compile(r"((\w+_?)\s*(is|in|greater than|equals|equal|less than|<=|==|>=|=|>|<){1}[\"\s\']*([\"\w\d]+|-?\d+.?\d*)[\"\s&\']*)")
+# re_filter_expr = re.compile(r"((\w+_?)\s*(is|in|greater than|equals|equal|less than|<=|==|>=|=|>|<){1}[\"\s\']*([\"\w\d]+|-?\d+.?\d*)[\"\s&\']*)")
+re_filter_expr = re.compile(r"((\w+_?)\s*(is|in|greater than|equals|equal|less than|<=|==|>=|=|>|<){1}[\"\s\']*([\"\s\w\d]+|-?\d+.?\d*)[\"\s&\']*)")
 
 # PANDAS
 re_pandas_x_num = re.compile(r"(year\d?|age\d?|depth\d?)\b")

@@ -3,6 +3,10 @@
 GLOBAL LIST OF ALTERNATES AND SYNONYMS
 """
 
+# FILTER
+comparisons = {"==": "=", "is": "=", "greater than": ">", "equals": "=", "equal": "=", "less than": "<"}
+
+
 # Missing value name appears as many variations. Try to account for all of them
 ALTS_MV = ['missing value', 'missing values', 'missingvalue', 'missingvalues', 'missing_values',
                     'missing variables', 'missing_variables', 'missingvariables']
