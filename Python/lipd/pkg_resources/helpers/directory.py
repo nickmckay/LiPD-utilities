@@ -4,7 +4,7 @@ import shutil
 import ntpath
 import time
 import tkinter
-from tkinter import filedialog
+#from tkinter import filedialog
 
 
 def file_from_path(path):
@@ -87,19 +87,19 @@ def check_file_age(filename, days):
         return True
 
 
-def browse_dialog():
-    """
-    Open up a GUI browse dialog window and let to user pick a target directory.
-    :return str: Target directory path
-    """
-
-    root = tkinter.Tk()
-    root.withdraw()
-    root.update()
-    path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
-    root.destroy()
-
-    return path
+#def browse_dialog():
+#    """
+#    Open up a GUI browse dialog window and let to user pick a target directory.
+#    :return str: Target directory path
+#    """
+#
+#    root = tkinter.Tk()
+#    root.withdraw()
+#    root.update()
+#    path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
+#    root.destroy()
+#
+#    return path
 
 
 def set_source():
@@ -118,9 +118,9 @@ def set_source():
         if option == '1':
             # Retrieve data from the online URL
             path = input("Enter the URL: ")
-        elif option == '2':
-            # Open up the GUI browse dialog
-            path = browse_dialog()
+#        elif option == '2':
+#            # Open up the GUI browse dialog
+#            path = browse_dialog()
             # Set the path to the local files in CLI and lipd_lib
         elif option == '3':
             # Set the path to the system downloads folder.

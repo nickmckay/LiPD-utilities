@@ -40,7 +40,7 @@ class PostInstall(install):
 
 
 here = path.abspath(path.dirname(__file__))
-version = '0.1.1.17'
+version = '0.1.1.19'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -95,14 +95,16 @@ setup(
     install_requires=[
         "bagit>=1.5.4",
         "beautifulsoup4>=4.4.1",
+        "bokeh>=0.11.1",
         "demjson>=2.2.4",
         "matplotlib>=1.4.2",
         "xlrd>=0.9.3",
         "Pillow>=3.1.1",
         "jupyter>=1.0.0",
+        "pandas>=0.18.0",
         "requests>=2.9.1",
         "google-api-python-client>=1.4.2",
-        "virtualenv"
+        "virtualenv>=15.0.1"
     ],
     include_package_data=True,
     package_data={'noaa': ['*.txt'],

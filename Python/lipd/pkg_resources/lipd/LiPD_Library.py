@@ -60,8 +60,8 @@ class LiPD_Library(object):
         print("Found: {} LiPD file(s)".format(len(file_list)))
         for name_ext in file_list:
             try:
-                self.__append_lipd(name_ext)
                 print("processing: {}".format(name_ext))
+                self.__append_lipd(name_ext)
             except:
                 print("ERROR: {}".format(name_ext))
 
