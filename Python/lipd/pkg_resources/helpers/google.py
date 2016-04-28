@@ -1,15 +1,9 @@
-import io
-import os
 import urllib.request
+import urllib.parse
+import urllib.error
 
-import httplib2
-import oauth2client
-from apiclient import discovery
-from oauth2client import client
-from oauth2client import tools
-
+import io
 from .MapFrame import *
-
 
 # GLOBALS
 APPLICATION_NAME = 'lipd'
@@ -29,55 +23,11 @@ def get_google_csv(file_id, filename):
     # Download link format
     link_csv = 'https://docs.google.com/spreadsheet/ccc?key=' + file_id + '&output=csv&pref=2'
 
-    # Get authorization and credentials
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-
-    # A service object represents one google drive account
-    service = discovery.build('drive', 'v3', http=http)
-
-    # print("downloading {0}".format(file_id))
-    resp, content = service._http.request(link_csv)
-    if resp.status == 200:
-        # Regex the filename from the response object string
-        if not filename:
-            for i in resp['content-disposition'].split(';'):
-                if 'filename=' in i:
-                    try:
-                        filename = re.findall(r'"([^"]*)"', i)[0]
-                    except IndexError:
-                        filename = file_id + '.csv'
-                        print("No filename to use. Using File ID.")
-
-        with open(filename, 'wb+') as f:
-            f.write(content)
-    else:
-        print('Error downloading: {0}'.format(file_id))
+    try:
+        urllib.request.urlretrieve(link_csv, filename)
+    except Exception:
+        print("Error retrieving {}".format(filename))
     return filename
-
-
-def get_credentials():
-    """
-    Gets valid user credentials from storage.
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
-
-    :return: Credentials, the obtained credential.
-    """
-    home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, '.credentials')
-    if not os.path.exists(credential_dir):
-        os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   CLIENT_SECRET_FILE)
-
-    store = oauth2client.file.Storage(credential_path)
-    credentials = store.get()
-    if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
-        flow.user_agent = APPLICATION_NAME
-        print('Storing credentials to ' + credential_path)
-    return credentials
 
 
 def get_static_google_map(filename_wo_ext, center=None, zoom=None, imgsize=(640,640), imgformat="jpeg",

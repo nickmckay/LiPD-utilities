@@ -23,7 +23,7 @@ def _dotnotation_for_nested_dictionary(d, key, dots):
     :return:
     """
     if key == 'chronData':
-        # Not interested in expanding chronData. Keep it as a chunk.
+        # Not interested in expanding chronData in dot notation. Keep it as a chunk.
         dots[key] = d
     elif isinstance(d, dict):
 
@@ -50,8 +50,11 @@ def LiPD_to_df(dict_in):
     dict_in_dotted = collections.OrderedDict(sorted(dict_in_dotted.items()))
     df_meta = pd.DataFrame(list(dict_in_dotted.items()), columns=["Key", "Value"])
     df_data = pd.DataFrame(_get_lipd_cols(dict_in))
-
-    return df_meta, df_data
+    try:
+        df_chron = pd.DataFrame(_get_chron_cols(dict_in))
+    except KeyError:
+        df_chron = "Chronology not available"
+    return df_meta, df_data, df_chron
 
 
 def TS_to_df(dict_in):
@@ -121,3 +124,18 @@ def _get_lipd_cols(dict_in):
     return d
 
 
+def _get_chron_cols(dict_in):
+    """
+    Grab the variableName and values data from each chronData table in the LiPD metadata
+    : param dict dict_in: LiPD metadata dictionary
+    : return dict: Dictionary of { variableName: [ValuesArray] }
+    """
+    d = {}
+    try:
+        for table, table_data in dict_in['chronData'].items():
+            for var, arr in table_data["columns"].items():
+                d[var] = pd.Series(arr["values"])
+    except KeyError:
+        pass
+
+    return d

@@ -7,6 +7,7 @@ from .pkg_resources.noaa.noaa_main import noaa
 from .pkg_resources.helpers.alternates import comparisons
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.PDSlib import *
+from .pkg_resources.helpers.directory import set_source
 
 
 def setDir():
@@ -50,12 +51,12 @@ def lipd_to_df(filename):
     :return:
     """
     try:
-        df_meta, df_data = lipd_lib.LiPD_to_df(filename)
+        df_meta, df_data, df_chron = lipd_lib.LiPD_to_df(filename)
     except KeyError:
         print("ERROR: Unable to find record")
-        df_meta, df_data = None
+        df_meta, df_data, df_chron = None
     print("Process Complete")
-    return df_meta, df_data
+    return df_meta, df_data, df_chron
 
 
 def ts_to_df(ts, filename):
@@ -317,11 +318,12 @@ def quit():
     return True
 
 
-def set_source():
+def _set_source():
     """
     User sets the path to LiPD source. Local or online.
     :return: (str) Path
     """
+    global path
     _path = ''
     invalid = True
     count = 0
@@ -352,8 +354,9 @@ def set_source():
                 print("Invalid option. Try again.")
         if _path:
             invalid = False
-    lipd_lib.setDir(_path)
 
+    path = _path
+    lipd_lib.setDir(_path)
     return _path
 
 
@@ -362,5 +365,5 @@ lipd_lib = LiPD_Library()
 ts_lib = TimeSeries_Library()
 convert = Convert()
 path = ''
-set_source()
+_set_source()
 

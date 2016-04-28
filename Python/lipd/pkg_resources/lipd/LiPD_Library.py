@@ -214,8 +214,8 @@ class LiPD_Library(object):
         return
 
     def LiPD_to_df(self, filename):
-        df_meta, df_data = LiPD_to_df(self.master[filename].get_master())
-        return df_meta, df_data
+        df_meta, df_data, df_chron = LiPD_to_df(self.master[filename].get_master())
+        return df_meta, df_data, df_chron
 
     # CLOSING
 
