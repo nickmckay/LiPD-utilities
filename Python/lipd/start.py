@@ -17,9 +17,10 @@ def setDir():
     :param path: (str) Directory path
     """
     global path
-    path = set_source()
-    lipd_lib.setDir(path)
-    return path
+    _path = set_source()
+    lipd_lib.setDir(_path)
+    path = _path
+    return
 
 
 def loadLipd(filename):
@@ -318,52 +319,10 @@ def quit():
     return True
 
 
-def _set_source():
-    """
-    User sets the path to LiPD source. Local or online.
-    :return: (str) Path
-    """
-    global path
-    _path = ''
-    invalid = True
-    count = 0
-    while invalid:
-        print("Where are your files stored?\n1. Online URL\n2. Browse Computer\n3. "
-              "Downloads folder\n4. Notebooks folder\n")
-        option = input("Option: ")
-        if option == '1':
-            # Retrieve data from the online URL
-            _path = input("Enter the URL: ")
-        elif option == '2':
-            # Open up the GUI browse dialog
-            _path = browse_dialog()
-            # Set the path to the local files in CLI and lipd_lib
-        elif option == '3':
-            # Set the path to the system downloads folder.
-            _path = os.path.expanduser('~/Downloads')
-        elif option == '4':
-            # Set path to the Notebook folder
-            _path = os.path.expanduser('~/LiPD_Notebooks')
-        else:
-            # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
-            if count == 2:
-                print("Defaulting to Downloads Folder.")
-                _path = os.path.expanduser('~/Downloads')
-            else:
-                count += 1
-                print("Invalid option. Try again.")
-        if _path:
-            invalid = False
-
-    path = _path
-    lipd_lib.setDir(_path)
-    return _path
-
-
 # GLOBALS
 lipd_lib = LiPD_Library()
 ts_lib = TimeSeries_Library()
 convert = Convert()
 path = ''
-_set_source()
+setDir()
 

@@ -4,7 +4,7 @@ import shutil
 import ntpath
 import time
 import tkinter
-#from tkinter import filedialog
+from tkinter import filedialog
 
 
 def file_from_path(path):
@@ -87,19 +87,17 @@ def check_file_age(filename, days):
         return True
 
 
-#def browse_dialog():
-#    """
-#    Open up a GUI browse dialog window and let to user pick a target directory.
-#    :return str: Target directory path
-#    """
-#
-#    root = tkinter.Tk()
-#    root.withdraw()
-#    root.update()
-#    path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
-#    root.destroy()
-#
-#    return path
+def browse_dialog():
+    """
+    Open up a GUI browse dialog window and let to user pick a target directory.
+    :return str: Target directory path
+    """
+    root = tkinter.Tk()
+    root.withdraw()
+    root.update()
+    path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
+    root.destroy()
+    return path
 
 
 def set_source():
@@ -107,33 +105,35 @@ def set_source():
     User sets the path to LiPD source. Local or online.
     :return: (str) Path
     """
-    path = None
+    _path = ''
     invalid = True
     count = 0
-    print("Where are your files stored? Choose an option by number:\n1. Online URL\n2. Local Computer\n3. "
-      "Downloads "
-      "Folder\n")
     while invalid:
+        print("Where are your files stored?\n1. Online URL\n2. Browse Computer\n3. "
+              "Downloads folder\n4. Notebooks folder\n")
         option = input("Option: ")
         if option == '1':
             # Retrieve data from the online URL
-            path = input("Enter the URL: ")
-#        elif option == '2':
-#            # Open up the GUI browse dialog
-#            path = browse_dialog()
+            _path = input("Enter the URL: ")
+        elif option == '2':
+            # Open up the GUI browse dialog
+            _path = browse_dialog()
             # Set the path to the local files in CLI and lipd_lib
         elif option == '3':
             # Set the path to the system downloads folder.
-            path = os.path.expanduser('~/Downloads')
+            _path = os.path.expanduser('~/Downloads')
+        elif option == '4':
+            # Set path to the Notebook folder
+            _path = os.path.expanduser('~/LiPD_Notebooks')
         else:
             # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
             if count == 2:
                 print("Defaulting to Downloads Folder.")
-                path = os.path.expanduser('~/Downloads')
+                _path = os.path.expanduser('~/Downloads')
             else:
                 count += 1
                 print("Invalid option. Try again.")
-        if path:
+        if _path:
             invalid = False
-    print(path)
-    return path
+
+    return _path
