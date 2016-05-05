@@ -2,6 +2,7 @@ function L=updateLiPDGoogleFile(L)
 %updates the google version of LiPD file that already exists
 % % % deal with authorization on google
 checkGoogleTokens;
+L = authorCell2BibtexAuthorString(L);
 
 
 %check to see if L already has a google file
@@ -369,3 +370,5 @@ if rewrite>0
 else %don't rewrite
     display([L.dataSetName ': MD5 tags match - not updating spreadsheet'])
 end    %save updated LipD file?
+
+L =  BibtexAuthorString2Cell(L);

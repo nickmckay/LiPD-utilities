@@ -118,7 +118,7 @@ if isstruct(GTSC)
     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
         %make sure there are names
         if ~isfield(GTSC,'chronData_chronDataTableName')
-            error('the chron metadata must include at least chronDataTableName or googWorksheetKey')
+            error([GTS.dataSetName ': the chron metadata must include at least chronDataTableName or googWorksheetKey'])
         end
         cdtNames = {GTSC.chronData_chronDataTableName}';
         ie = find(cellfun(@isempty,cdgwk)); %identify which are missing keys
@@ -201,4 +201,4 @@ end
 
 L=collapseTS(GTS,1);
 
-
+L = BibtexAuthorString2Cell(L);

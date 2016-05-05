@@ -4,6 +4,9 @@ function L=createLiPDGoogleFile(L,overwrite)
 % % % deal with authorization on google
 checkGoogleTokens;
 
+%convert author cells to bibtex string
+L = authorCell2BibtexAuthorString(L);
+
 %overwrite will delete the old file
 if nargin<2
     overwrite=0;
@@ -271,6 +274,9 @@ pid=f(find(~cellfun(@isempty,(strfind(f,'identifier')))&strncmpi('pub',f,3)));
 if ~isempty(pid)%remove any pub identifiers, if there are any
     CTS=rmfield(CTS,pid);
 end
+
+
+
 for i=1:length(torem)
     if isfield(CTS,torem{i})
         CTS=rmfield(CTS,torem{i});
@@ -337,4 +343,7 @@ changeWorksheetNameAndSize(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey
 for m=1:ncol
     editWorksheetColumn(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,m,1:nrow,metadataCell4Goog(:,m),aTokenSpreadsheet);
 end
+
+L = BibtexAuthorString2Cell(L);
+
 

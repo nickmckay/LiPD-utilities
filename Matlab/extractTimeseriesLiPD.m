@@ -106,8 +106,10 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                     l5names=fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4names{l4}));
                                     for l5=1:length(l5names)
                                         if ~isstruct(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4names{l4}).(l5names{l5}))
-                                            TS(1,ts).([ppnames{pp} '_' l3names{l3} '_' l4names{l4} '_' l5names{l5}])=D.(dnames{d}).(ppnames{pp}).(l4names{l4}).(l5names{l5});
-                                        else
+                                            if isfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4names{l4}),l5names{l5})
+                                            TS(1,ts).([ppnames{pp} '_' l3names{l3} '_' l4names{l4} '_' l5names{l5}])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4names{l4}).(l5names{l5});
+                                            end
+                                            else
                                             'really, you have structures at L5?'
                                             
                                         end

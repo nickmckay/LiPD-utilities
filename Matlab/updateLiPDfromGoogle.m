@@ -113,4 +113,5 @@ end
 
 L=collapseTS(NTS,1);
 
+L = BibtexAuthorString2Cell(L);
    

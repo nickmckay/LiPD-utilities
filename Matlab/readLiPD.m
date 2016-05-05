@@ -1,4 +1,8 @@
 function [P,I]=readLiPD(lpdname)
+if nargin<1
+   [lpdfile, lpdpath] = uigetfile('.lpd'); 
+   lpdname = [lpdpath lpdfile];
+ end
 p=pwd;
 slashi=union(strfind(lpdname,'/'),strfind(lpdname,'\') );
 starti=max(union(0,slashi));
@@ -114,7 +118,9 @@ end
 for pp=1:length(I.pub)
     if isfield(I.pub{pp},'identifier')
         if strcmpi(I.pub{pp}.identifier{1,1}.type,'doi')
+            if isfield(I.pub{pp}.identifier{1,1},'id')
             I.pub{pp}.DOI=I.pub{pp}.identifier{1,1}.id;
+            end
         end
     end
     %deal with updated way to store authors (bibJSON standard)

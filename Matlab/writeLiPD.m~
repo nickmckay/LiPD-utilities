@@ -50,21 +50,10 @@ end
 
 %deal with strings
 if isfield(LiPDStruct.geo,'latitude')
-    if ischar(LiPDStruct.geo.latitude)
-        LiPDStruct.geo.latitude=str2num(LiPDStruct.geo.latitude);
-    end
+if ischar(LiPDStruct.geo.latitude)
+    LiPDStruct.geo.latitude=str2num(LiPDStruct.geo.latitude)
 end
-if isfield(LiPDStruct.geo,'longitude')
-    if ischar(LiPDStruct.geo.longitude)
-        LiPDStruct.geo.longitude=str2num(LiPDStruct.geo.longitude);
-    end
 end
-if isfield(LiPDStruct.geo,'elevation')
-    if ischar(LiPDStruct.geo.elevation)
-        LiPDStruct.geo.elevation=str2num(LiPDStruct.geo.elevation);
-    end
-end
-
 %write coordinates back into geometry
 if isfield(LiPDStruct.geo,'elevation')
     if isstruct(LiPDStruct.geo.elevation)
