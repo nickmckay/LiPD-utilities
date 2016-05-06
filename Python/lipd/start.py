@@ -8,6 +8,7 @@ from .pkg_resources.helpers.alternates import comparisons
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.PDSlib import *
 from .pkg_resources.helpers.directory import set_source
+from .pkg_resources.helpers.log_init import create_logger
 
 
 def setDir():
@@ -16,11 +17,11 @@ def setDir():
     (ex. /Path/to/files)
     :param path: (str) Directory path
     """
-    global path
-    _path = set_source()
-    lipd_lib.setDir(_path)
-    path = _path
-    return
+    path = set_source()
+    lipd_lib.setDir(path)
+    logger = create_logger(__name__)
+    logger.info("Set path: {}".format(path))
+    return path, logger
 
 
 def loadLipd(filename):
@@ -55,6 +56,7 @@ def lipd_to_df(filename):
         df_meta, df_data, df_chron = lipd_lib.LiPD_to_df(filename)
     except KeyError:
         print("ERROR: Unable to find record")
+        logger.warn("Unable to find record {}".format(filename))
         df_meta, df_data, df_chron = None
     print("Process Complete")
     return df_meta, df_data, df_chron
@@ -74,6 +76,7 @@ def ts_to_df(ts, filename):
         df_meta, df_data, df_chron = TS_to_df(ts[filename])
     except KeyError:
         print("ERROR: Unable to find record")
+        logger.WARN("Unable to find record {}".format(filename))
     print("Process Complete")
     return df_meta, df_data, df_chron
 
@@ -125,13 +128,14 @@ def getMetadata(filename):
 
     :param filename:
     :param parameter:
-    :return:
+    :return:s
     """
     d = {}
     try:
         d = lipd_lib.getMetadata(filename)
     except KeyError:
         print("ERROR: Unable to find record")
+        logger.warn("Unable to find record {}".format(filename))
     print("Process Complete")
     return d
 
@@ -142,6 +146,7 @@ def getCsv(filename):
         d = lipd_lib.getCsv(filename)
     except KeyError:
         print("ERROR: Unable to find record")
+        logger.warn("Unable to find record {}".format(filename))
     print("Process Complete")
     return d
 
@@ -163,6 +168,8 @@ def extractTimeSeries():
             d.update(convert.ts_extract_main(v.get_master()))
     except KeyError:
         print("ERROR: Unable to extractTimeSeries")
+        logger.debug("extractTimeSeries() failed")
+
     print("Process Complete")
     return d
 
@@ -176,7 +183,11 @@ def exportTimeSeries():
     for k, v in ts_lib.get_master().items():
         l.append({'name': v.get_lpd_name(), 'data': v.get_master()})
     # Send the TSOs list through to be converted. Then let the LiPD_Library load the metadata into itself.
-    lipd_lib.load_tsos(convert.lipd_extract_main(l))
+    try:
+        lipd_lib.load_tsos(convert.lipd_extract_main(l))
+    except Exception:
+        print("ERROR: Converting TSOs to LiPD")
+        logger.debug("exportTimeSeries() failed")
     print("Process Complete")
     return
 
@@ -235,7 +246,6 @@ def TS(names, ts):
     Create a new TS dictionary using
     index = find(logical expression)
     newTS = TS(index)
-
     :param expression:
     :return:
     """
@@ -263,7 +273,6 @@ def get_numpy(ts):
                 pass
     except AttributeError:
         print("ERROR: Invalid TimeSeries")
-
     print("Process Complete")
     return tmp
 
@@ -323,6 +332,4 @@ def quit():
 lipd_lib = LiPD_Library()
 ts_lib = TimeSeries_Library()
 convert = Convert()
-path = ''
-setDir()
-
+path, logger = setDir()

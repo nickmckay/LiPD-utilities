@@ -6,6 +6,11 @@ import time
 import tkinter
 from tkinter import filedialog
 
+from .log_init import create_logger
+
+
+logger_directory = create_logger(__name__)
+
 
 def file_from_path(path):
     """
@@ -31,10 +36,12 @@ def list_files(x):
     :param x: (str) File extension that we are interested in.
     :return: (list of str) File name(s) to be worked on
     """
+    logger_directory.info("enter list_files()")
     file_list = []
     for file in os.listdir():
-        if file.endswith(x):
+        if file.endswith(x) and not file.startswith(("$", "~")):
             file_list.append(file)
+    logger_directory.info("exit list_files()")
     return file_list
 
 
@@ -46,6 +53,7 @@ def dir_cleanup(dir_bag, dir_data):
     :param dir_data: (str) Path to Bag /data subdirectory
     :return: None
     """
+    logger_directory.info("enter dir_cleanup()")
     # dir : dir_data -> dir_bag
     os.chdir(dir_bag)
 
@@ -53,14 +61,14 @@ def dir_cleanup(dir_bag, dir_data):
     for file in os.listdir(dir_bag):
         if file.endswith('.txt'):
             os.remove(os.path.join(dir_bag, file))
-
+    logger_directory.info("deleted files in dir_bag")
     # Move dir_data files up to dir_bag
     for file in os.listdir(dir_data):
         shutil.move(os.path.join(dir_data, file), dir_bag)
-
+    logger_directory.info("moved dir_data contents to dir_bag")
     # Delete empty dir_data folder
     shutil.rmtree(dir_data)
-
+    logger_directory.info("exit dir_cleanup()")
     return
 
 
@@ -72,6 +80,7 @@ def check_file_age(filename, days):
     :param days: (int) Limit in number of days
     :return: (bool) True - older than X time, False - not older than X time
     """
+    logger_directory.info("enter check_file_age()")
     # Multiply days given by time for one day.
     t = days * 60 * 60 * 24
     now = time.time()
@@ -79,11 +88,17 @@ def check_file_age(filename, days):
     try:
         if os.path.getctime(filename) < specified_time:
             # File found and out of date
+            logger_directory.info("File out of date")
+            logger_directory.info("exiting check_file_age()")
             return True
         # File found, and not out of date
+        logger_directory.info("File found and current")
+        logger_directory.info("exiting check_file_age()")
         return False
     except FileNotFoundError:
         # File not found. Need to download it.
+        logger_directory.warn("File not found")
+        logger_directory.info("exiting check_file_age()")
         return True
 
 
@@ -92,11 +107,14 @@ def browse_dialog():
     Open up a GUI browse dialog window and let to user pick a target directory.
     :return str: Target directory path
     """
+    logger_directory.info("enter browse_dialog()")
     root = tkinter.Tk()
     root.withdraw()
     root.update()
     path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
+    logger_directory.info("chose path: {}".format(path))
     root.destroy()
+    logger_directory.info("exit browse_dialog()")
     return path
 
 
@@ -105,35 +123,42 @@ def set_source():
     User sets the path to LiPD source. Local or online.
     :return: (str) Path
     """
+    logger_directory.info("enter set_source()")
     _path = ''
     invalid = True
     count = 0
     while invalid:
-        print("Where are your files stored?\n1. Online URL\n2. Browse Computer\n3. "
+        print("Where are your files stored?\n1. Current Directory\n2. Browse Computer\n3. "
               "Downloads folder\n4. Notebooks folder\n")
         option = input("Option: ")
         if option == '1':
-            # Retrieve data from the online URL
-            _path = input("Enter the URL: ")
+            # Current directory
+            logger_directory.info("1: current")
+            _path = os.getcwd()
         elif option == '2':
             # Open up the GUI browse dialog
+            logger_directory.info("2: browse")
             _path = browse_dialog()
             # Set the path to the local files in CLI and lipd_lib
         elif option == '3':
             # Set the path to the system downloads folder.
+            logger_directory.info("3: downloads")
             _path = os.path.expanduser('~/Downloads')
         elif option == '4':
             # Set path to the Notebook folder
+            logger_directory.info("4: notebook ")
             _path = os.path.expanduser('~/LiPD_Notebooks')
         else:
             # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
             if count == 2:
-                print("Defaulting to Downloads Folder.")
+                logger_directory.warn("too many attempts")
+                print("Too many failed attempts. Defaulting to Downloads Folder.")
                 _path = os.path.expanduser('~/Downloads')
             else:
                 count += 1
+                logger_directory.warn("failed attempts: {}".format(count))
                 print("Invalid option. Try again.")
         if _path:
             invalid = False
-
+    logger_directory.info("exit set_source()")
     return _path

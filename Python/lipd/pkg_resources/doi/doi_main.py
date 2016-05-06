@@ -1,18 +1,21 @@
 from .doi_resolver import DOIResolver
 from ..helpers.bag import *
 from ..helpers.directory import *
-from ..helpers.zips import unzip, re_zip
-from ..helpers.jsons import json, write_json_to_file
-from ..helpers.loggers import txt_log, update_changelog
+from ..helpers.zips import *
+from ..helpers.jsons import *
+from ..helpers.loggers import *
+from ..helpers.log_init import create_logger
+
+
+logger_doi_main = create_logger(__name__)
 
 
 def doi():
     """
     Main function that controls the script. Take in directory containing the .lpd file(s). Loop for each file.
-    :param dir_root: (str) Directory location of target files
     :return: None
     """
-
+    logger_doi_main.info("enter doi_main()")
     # Find all .lpd files in current directory
     # dir: ? -> dir_root
     dir_root = os.getcwd()
@@ -45,9 +48,7 @@ def doi():
             os.rename(name_ext + '.zip', name_ext)
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
-    # print("NOTE: Quarantine.txt contains a list of errors that may have occurred during processing.")
-    print("Process Complete")
-
+    logger_doi_main.info("exit doi_main()")
     return
 
 
@@ -62,7 +63,6 @@ def process_lpd(name, dir_tmp):
     dir_root = os.getcwd()
     dir_bag = os.path.join(dir_tmp, name)
     dir_data = os.path.join(dir_bag, 'data')
-    jld_data = {}
     valid = True
 
     # Navigate down to jLD file
@@ -70,12 +70,7 @@ def process_lpd(name, dir_tmp):
     os.chdir(dir_data)
 
     # Open jld file and read in the contents. Execute DOI Resolver.
-    with open(os.path.join(dir_data, name + '.jsonld'), 'r') as f:
-        try:
-            jld_data = json.load(f)
-        except ValueError:
-            valid = False
-            txt_log(dir_root,  name,'quarantine.txt', "Invalid characters. Unable to load file.")
+    jld_data = read_json_from_file(os.path.join(dir_data, name + '.jsonld'))
 
     if valid:
         # Overwrite data with new data
@@ -89,11 +84,7 @@ def process_lpd(name, dir_tmp):
     # Delete old bag files, and move files to bag root for re-bagging
     # dir : dir_data -> dir_bag
     dir_cleanup(dir_bag, dir_data)
-
-    # Create a bag for the 3 files
-    new_bag = create_bag(dir_bag)
-    open_bag(dir_bag)
-    new_bag.save(manifests=True)
+    finish_bag(dir_bag)
 
     return
 

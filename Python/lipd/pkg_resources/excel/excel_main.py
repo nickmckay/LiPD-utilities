@@ -1,5 +1,4 @@
 import csv
-import logging
 
 import xlrd
 
@@ -7,9 +6,12 @@ from ..doi.doi_resolver import *
 from ..helpers.bag import *
 from ..helpers.directory import *
 from ..helpers.zips import *
+from ..helpers.blanks import *
+from ..helpers.loggers import *
+from ..helpers.log_init import create_logger
 
-# GLOBALS
-EMPTY = ['', ' ', None, 'na', 'nan']
+
+logger_excel = create_logger(__name__)
 
 
 def excel():
@@ -17,9 +19,7 @@ def excel():
     Parse data from Excel spreadsheets into LiPD files.
     :return:
     """
-
     dir_root = os.getcwd()
-
     # Ask user if they want to run the Chronology sheets or flatten the JSON files.
     # This is an all or nothing choice
     # need_response = True
@@ -34,9 +34,10 @@ def excel():
     chron_run = 'n'
     flat_run = 'n'
 
-    # Compile list of excel files (both types)
+    # Find excel files
     f_list = list_files('.xls') + list_files('.xlsx')
     print("Found " + str(len(f_list)) + " Excel files")
+    logger_excel.info("Found excel files")
 
     # Run once for each file
     for name_ext in f_list:
@@ -45,11 +46,13 @@ def excel():
         name = os.path.splitext(name_ext)[0]
         name_lpd = name + '.lpd'
         print("processing: {}".format(name_ext))
+        logger_excel.info("processing: {}".format(name_ext))
 
         # Create a temporary folder and set paths
         dir_tmp = create_tmp_dir()
         dir_bag = os.path.join(dir_tmp, name)
         dir_data = os.path.join(dir_bag, 'data')
+
         # Make folders in tmp
         os.mkdir(os.path.join(dir_bag))
         os.mkdir(os.path.join(dir_data))
@@ -58,11 +61,20 @@ def excel():
         chron_sheets = []
         chron_combine = []
         data_combine = []
-        finalDict = OrderedDict()
+        final_dict = OrderedDict()
+        logger_excel.info("Variables initialized")
 
         # Open excel workbook with filename
         try:
             workbook = xlrd.open_workbook(name_ext)
+            logger_excel.info("Opened XLRD workbook")
+
+        except Exception as e:
+            # There was a problem opening a file with XLRD
+            print("ERROR: Opening Workbook with XLRD. - {}".format(name))
+            logger_excel.debug("Failed to open Workbook with XLRD. - {} - {}".format(name, e))
+
+        if workbook:
             # Check what worksheets are available, so we know how to proceed.
             for sheet in workbook.sheet_names():
                 if 'Metadata' in sheet:
@@ -75,20 +87,23 @@ def excel():
             # METADATA WORKSHEETS
             # Parse Metadata sheet and add to output dictionary
             if metadata_str:
-                cells_down_metadata(workbook, metadata_str, 0, 0, finalDict)
+                logger_excel.info("Parsing metadata worksheets")
+                cells_down_metadata(workbook, metadata_str, 0, 0, final_dict)
 
             # DATA WORKSHEETS
             for sheet_str in data_sheets:
                 # Parse each Data sheet. Combine into one dictionary
+                logger_excel.info("Parsing data worksheets")
                 sheet_str = cells_down_datasheets(name, workbook, sheet_str, 2, 0)
                 data_combine.append(sheet_str)
 
             # Add data dictionary to output dictionary
-            finalDict['paleoData'] = data_combine
+            final_dict['paleoData'] = data_combine
 
             # CHRONOLOGY WORKSHEETS
             chron_dict = OrderedDict()
             if chron_run == 'y':
+                logger_excel.info("Parsing chronology worksheets")
                 for sheet_str in chron_sheets:
                     # Parse each chronology sheet. Combine into one dictionary
                     temp_sheet = workbook.sheet_by_name(sheet_str)
@@ -101,41 +116,46 @@ def excel():
                     chron_combine.append(chron_dict)
 
                 # Add chronology dictionary to output dictionary
-                finalDict['chronData'] = chron_combine
+                final_dict['chronData'] = chron_combine
 
             # OUTPUT
 
-            # Now that we have all our data (almost, need csv) switch to dir_data to create files.
+            # Create new files and dump data in dir_data
             os.chdir(dir_data)
 
             # CSV - DATA
             for sheet_str in data_sheets:
+                logger_excel.info("Output to CSV - Data: {}".format(sheet_str))
                 output_csv_datasheet(workbook, sheet_str, name)
             del data_sheets[:]
 
             # CSV - CHRONOLOGY
             if chron_run == 'y':
                 for sheet_str in chron_sheets:
+                    logger_excel.info("Output to CSV - Chronology: {}".format(sheet_str))
                     output_csv_chronology(workbook, sheet_str, name)
 
             # JSON-LD
             # Invoke DOI Resolver Class to update publisher data
-            finalDict = DOIResolver(dir_root, name, finalDict).main()
+            try:
+                logger_excel.info("Invoking DOI Resolver")
+                final_dict = DOIResolver(dir_root, name, final_dict).main()
+            except Exception as e:
+                print("ERROR: DOI Resolver failed - {}".format(name))
+                logger_excel.debug("DOI Resolver failed - {}, {}".format(name, e))
 
-            # Dump finalDict to a json file.
-            with open(os.path.join(dir_data, name + '.jsonld'), 'w+') as jld_file:
-                json.dump(finalDict, jld_file, indent=2, sort_keys=True)
+            # Dump final_dict to a json file.
+            write_json_to_file(name + '.jsonld', final_dict)
 
             # JSON FLATTEN code would go here.
 
             # Move files to bag root for re-bagging
             # dir : dir_data -> dir_bag
+            logger_excel.info("start cleanup")
             dir_cleanup(dir_bag, dir_data)
 
             # Create a bag for the 3 files
-            new_bag = create_bag(dir_bag)
-            open_bag(dir_bag)
-            new_bag.save(manifests=True)
+            finish_bag(dir_bag)
 
             # dir: dir_tmp -> dir_root
             os.chdir(dir_root)
@@ -145,13 +165,9 @@ def excel():
                 os.remove(name_lpd)
 
             # Zip dir_bag. Creates in dir_root directory
+            logger_excel.info("Re-zip and rename")
             re_zip(dir_tmp, name, name_lpd)
             os.rename(name_lpd + '.zip', name_lpd)
-
-        except Exception as e:
-            # There was a problem opening a file with XLRD
-            print("exception: " + str(e) + name)
-            logging.exception("main(): Error opening file. - " + name)
 
         # Move back to dir_root for next loop.
         os.chdir(dir_root)
@@ -159,7 +175,6 @@ def excel():
         # Cleanup and remove tmp directory
         shutil.rmtree(dir_tmp)
 
-    txt_log_end(dir_root, 'quarantine.txt')
     print("Process Complete")
     return
 
@@ -172,11 +187,13 @@ def output_csv_datasheet(workbook, sheet, name):
     :param name: (str)
     :return: (none)
     """
+    logger_excel.info("enter output_csv_datasheet()")
     temp_sheet = workbook.sheet_by_name(sheet)
 
     # Create CSV file and open
     file_csv = open(str(name) + '-' + str(sheet) + '.csv', 'w', newline='')
     w = csv.writer(file_csv)
+    logger_excel.info("Start parsing sheet")
 
     try:
         # Loop to find starting variable name
@@ -217,9 +234,11 @@ def output_csv_datasheet(workbook, sheet, name):
             current_row += 1
 
     except IndexError:
+        logger_excel.warn("IndexError while parsing")
         pass
 
     file_csv.close()
+    logger_excel.info("exit output_csv_datasheet()")
     return
 
 
@@ -231,11 +250,13 @@ def output_csv_chronology(workbook, sheet, name):
     :param name: (str)
     :return: (none)
     """
+    logger_excel.info("enter output_csv_chronology()")
     temp_sheet = workbook.sheet_by_name(sheet)
 
     # Create CSV file and open
     file_csv = open(str(name) + '-' + str(sheet) + '.csv', 'w', newline='')
     w = csv.writer(file_csv)
+    logger_excel.info("Start parsing sheet")
     try:
         total_vars = count_chron_variables(temp_sheet)
         row = traverse_to_chron_data(temp_sheet)
@@ -246,9 +267,10 @@ def output_csv_chronology(workbook, sheet, name):
             row += 1
 
     except IndexError:
-        logging.exception("IndexError: output_csv_chronology()")
+        logger_excel.info("IndexError while parsing")
 
     file_csv.close()
+    logger_excel.info("exit output_csv_chronology()")
     return
 
 
@@ -261,12 +283,14 @@ def geometry_linestring(lat, lon, elev):
     :param lon: (list) Longitude values
     :return: (dict)
     """
+    logger_excel.info("enter geometry_linestring()")
     d = OrderedDict()
     coordinates = []
     temp = [None, None]
 
     # Point type, Matching pairs.
     if lat[0] == lat[1] and lon[0] == lon[1]:
+        logger_excel.info("Matching pairs")
         lat.pop()
         lon.pop()
         d = geometry_point(lat, lon, elev)
@@ -282,6 +306,7 @@ def geometry_linestring(lat, lon, elev):
         # Create geometry block
         d['type'] = 'Linestring'
         d['coordinates'] = coordinates
+    logger_excel.info("exit geometry_linestring()")
     return d
 
 
@@ -292,14 +317,21 @@ def geometry_point(lat, lon, elev):
     :param lon: (list) Longitude values
     :return: (dict)
     """
+    logger_excel.info("enter geometry_point()")
     coordinates = []
     point_dict = OrderedDict()
     for idx, val in enumerate(lat):
-        coordinates.append(lat[idx])
-        coordinates.append(lon[idx])
+        try:
+            coordinates.append(lat[idx])
+            coordinates.append(lon[idx])
+        except IndexError as e:
+            print("ERROR: Geometry Point - IndexError Lat-Lon")
+            logger_excel.debug("IndexError Lat-Lon - {}, {}, {}".format(lat, lon, e))
+
     coordinates.append(elev)
     point_dict['type'] = 'Point'
     point_dict['coordinates'] = coordinates
+    logger_excel.info("exit geometry_point()")
     return point_dict
 
 
@@ -310,7 +342,7 @@ def compile_geometry(lat, lon, elev):
     :param lon: (list) Longitude values
     :return: (dict)
     """
-
+    logger_excel.info("enter compile_geometry()")
     while None in lat:
         lat.remove(None)
     while None in lon:
@@ -322,6 +354,7 @@ def compile_geometry(lat, lon, elev):
 
     # 4 coordinate values
     if len(lat) == 2 and len(lon) == 2:
+        logger_excel.info("4 coordinates")
         geo_dict = geometry_linestring(lat, lon, elev)
 
         # # 4 coordinate values
@@ -334,14 +367,15 @@ def compile_geometry(lat, lon, elev):
 
     # 2 coordinate values
     elif len(lat) == 1 and len(lon) == 1:
+        logger_excel.info("2 coordinates")
         geo_dict = geometry_point(lat, lon, elev)
 
     # Too many points, or no points
     else:
         geo_dict = {}
-        logging.exception("Error: compile_geometry()")
-        print("Compile Geometry Error")
-
+        logger_excel.warn("Too few/many coordinates, or mismatched coordinates: Lat({}), Lon({})".format(len(lat), len(lon)))
+        print("ERROR: Problem with geo coordinates")
+    logger_excel.info("exit compile_geometry()")
     return geo_dict
 
 
@@ -351,11 +385,13 @@ def compile_geo(d):
     :param d:
     :return:
     """
+    logger_excel.info("enter compile_geo()")
     # Should probably use some IndexError catching here.
     d2 = OrderedDict()
     d2['type'] = 'Feature'
     d2['geometry'] = compile_geometry([d['latMin'], d['latMax']], [d['lonMin'], d['lonMax']], d['elevation'])
     d2['properties'] = {'siteName': d['siteName']}
+    logger_excel.info("exit compile_geo()")
     return d2
 
 
@@ -365,10 +401,12 @@ def compile_authors(cell):
     :param cell: (str) Data from author cell
     :return: (list of dicts) Author names
     """
+    logger_excel.info("enter compile_authors()")
     author_lst = []
     s = cell.split(';')
     for w in s:
         author_lst.append(w.lstrip())
+    logger_excel.info("exit compile_authors()")
     return author_lst
 
 
@@ -402,6 +440,7 @@ def compile_fund(workbook, sheet, row, col):
     :param col: (int)
     :return: (list of dict) l
     """
+    logger_excel.info("compile_fund()")
     l = []
     temp_sheet = workbook.sheet_by_name(sheet)
     while col < temp_sheet.ncols:
@@ -417,9 +456,8 @@ def compile_fund(workbook, sheet, row, col):
                 else:
                     l.append({'agency': agency, 'grant': grant})
 
-        except IndexError:
-            # logging.exception("IndexError, compile_fund()")
-            pass
+        except IndexError as e:
+            logger_excel.debug("IndexError: Sheet:{} Row:{} Col:{}, {}".format(sheet, row, col, e))
 
     return l
 
@@ -447,8 +485,8 @@ def cell_occupied(temp_sheet, row, col):
     try:
         if temp_sheet.cell_value(row, col) != ("N/A" and " " and xlrd.empty_cell and ""):
             return True
-    except IndexError:
-        logging.exception("IndexError: cell_occupied()")
+    except IndexError as e:
+        logger_excel.debug("IndexError - Row:{} Col:{}, {}".format(row, col, e))
     return False
 
 
@@ -620,6 +658,7 @@ def replace_missing_vals(cell_entry, missing_val):
     :param missing_val: (str)
     :return: (str)
     """
+    logger_excel.info("replace_missing_vals()")
     if isinstance(cell_entry, str):
         missing_val_list = ['none', 'na', '', '-', 'n/a']
         if missing_val.lower() not in missing_val_list:
@@ -627,8 +666,8 @@ def replace_missing_vals(cell_entry, missing_val):
         try:
             if cell_entry.lower() in missing_val_list:
                 cell_entry = 'NaN'
-        except (TypeError, AttributeError):
-            logging.exception("TypeError/AttributeError: replace_missing_vals()")
+        except (TypeError, AttributeError) as e:
+            logger_excel.debug("TypeError/AttributeError - Target: {}, MV: {} , {}".format(cell_entry, missing_val, e))
     return cell_entry
 
 
@@ -638,6 +677,7 @@ def extract_units(string_in):
     :param string_in: (str)
     :return: (str)
     """
+    logger_excel.info("extract_units()")
     start = '('
     stop = ')'
     return string_in[string_in.index(start) + 1:string_in.index(stop)]
@@ -733,12 +773,17 @@ def traverse_missing_value(temp_sheet):
     :param temp_sheet: (obj)
     :return: (int or none) Only returns int if it finds a missing value
     """
+    logger_excel.info("traverse_missing_values()")
     # Traverse down to the "Missing Value" cell. This gets us near the data we want.
     for i in range(0, temp_sheet.nrows):
         # Loop down until you hit the "Missing Value" cell, and then move down one more row
-        if 'Missing' in temp_sheet.cell_value(i, 0):
-            missing_row_num = i
-            return missing_row_num
+        try:
+            cell = temp_sheet.cell_value(i, 0)
+            if 'Missing' in cell:
+                missing_row_num = i
+                return missing_row_num
+        except TypeError as e:
+            logger_excel.debug("TypeError - Target: {}, {}".format(cell, e))
     return
 
 
@@ -875,7 +920,7 @@ def cells_right_metadata(workbook, sheet, row, col):
     return cell_data
 
 
-def cells_down_metadata(workbook, sheet, row, col, finalDict):
+def cells_down_metadata(workbook, sheet, row, col, final_dict):
     """
     Traverse all cells in a column moving downward. Primarily created for the metadata sheet, but may use elsewhere.
     Check the cell title, and switch it to.
@@ -883,15 +928,16 @@ def cells_down_metadata(workbook, sheet, row, col, finalDict):
     :param sheet: (str)
     :param row: (int)
     :param col: (int)
-    :param finalDict: (dict)
+    :param final_dict: (dict)
     :return: none
     """
+    logger_excel.info("enter cells_down_metadata()")
     row_loop = 0
     pub_cases = ['id', 'year', 'author', 'journal', 'issue', 'volume', 'title', 'pages',
                  'reportNumber', 'abstract', 'alternateCitation']
     geo_cases = ['latMin', 'lonMin', 'lonMax', 'latMax', 'elevation', 'siteName', 'location']
 
-    # Temp Dictionaries
+    # Temp
     pub_qty = 0
     geo_temp = {}
     general_temp = {}
@@ -945,49 +991,50 @@ def cells_down_metadata(workbook, sheet, row, col, finalDict):
                         cell_data = cells_right_metadata(workbook, sheet, row, col)
                         general_temp = compile_temp(general_temp, title_json, cell_data)
 
-        except IndexError:
-            continue
+        except IndexError as e:
+            logger_excel.debug("IndexError: sheet: {}, row: {}, col: {}, {}".format(sheet, row, col, e))
         row += 1
         row_loop += 1
 
     # Compile the more complicated items
     geo = compile_geo(geo_temp)
 
+    logger_excel.info("compile metadata dictionary")
     # Insert into final dictionary
-    finalDict['@context'] = "context.jsonld"
-    finalDict['pub'] = pub_temp
-    finalDict['funding'] = funding_temp
-    finalDict['geo'] = geo
+    final_dict['@context'] = "context.jsonld"
+    final_dict['pub'] = pub_temp
+    final_dict['funding'] = funding_temp
+    final_dict['geo'] = geo
 
     # Add remaining general items
     for k, v in general_temp.items():
-        finalDict[k] = v
-
+        final_dict[k] = v
+    logger_excel.info("exit cells_down_metadata()")
     return
 
 
-def cells_right_datasheets(workbook, sheet, row, col, colListNum):
+def cells_right_datasheets(workbook, sheet, row, col, col_list_num):
     """
     Collect metadata for one column in the datasheet
     :param workbook: (obj)
     :param sheet: (str)
     :param row: (int)
     :param col: (int)
-    :param colListNum: (int)
+    :param col_list_num: (int)
     :return: (dict) Attributes Dictionary
     """
+    logger_excel.info("enter cells_right_datasheets()")
     temp_sheet = workbook.sheet_by_name(sheet)
-    empty = ["N/A", " ", xlrd.empty_cell, "", "NA"]
 
     # Iterate over all attributes, and add them to the column if they are not empty
-    attrDict = OrderedDict()
-    attrDict['number'] = colListNum
+    attr_dict = OrderedDict()
+    attr_dict['number'] = col_list_num
 
     # Get the data type for this column
-    attrDict['dataType'] = str(get_data_type(temp_sheet, colListNum))
+    attr_dict['dataType'] = str(get_data_type(temp_sheet, col_list_num))
 
     # Separate dict for climateInterp block
-    climInDict = {}
+    climate_int_dict = {}
 
     try:
         # Loop until we hit the right-side boundary
@@ -995,25 +1042,25 @@ def cells_right_datasheets(workbook, sheet, row, col, colListNum):
             cell = temp_sheet.cell_value(row, col)
 
             # If the cell contains any data, grab it
-            if cell not in empty and "Note:" not in cell:
+            if cell not in (EMPTY, xlrd.empty_cell) and "Note:" not in cell:
 
                 title_in = name_to_jsonld(temp_sheet.cell_value(1, col))
 
                 # Special case if we need to split the climate interpretation string into 3 parts
                 if title_in == 'climateInterpretation':
-                    if cell in empty:
-                        climInDict['parameter'] = ''
-                        climInDict['parameterDetail'] = ''
-                        climInDict['interpDirection'] = ''
+                    if cell in (EMPTY, xlrd.empty_cell):
+                        climate_int_dict['parameter'] = ''
+                        climate_int_dict['parameterDetail'] = ''
+                        climate_int_dict['interpDirection'] = ''
                     else:
                         cicSplit = cell.split('.')
-                        climInDict['climateParameter'] = cicSplit[0]
-                        climInDict['climateParameterDetail'] = cicSplit[1]
-                        climInDict['interpDirection'] = cicSplit[2]
+                        climate_int_dict['climateParameter'] = cicSplit[0]
+                        climate_int_dict['climateParameterDetail'] = cicSplit[1]
+                        climate_int_dict['interpDirection'] = cicSplit[2]
 
                 # Special case to add these two categories to climateInterpretation
                 elif title_in == 'seasonality' or title_in == 'basis':
-                    climInDict[title_in] = temp_sheet.cell_value(row, col)
+                    climate_int_dict[title_in] = temp_sheet.cell_value(row, col)
 
                 # If the key is null, then this is a not a cell we want to add
                 # We also don't want Data Type, because we manually check for the content data type later
@@ -1025,16 +1072,17 @@ def cells_right_datasheets(workbook, sheet, row, col, colListNum):
 
                 # Catch all other cases
                 else:
-                    attrDict[title_in] = cell
+                    attr_dict[title_in] = cell
             col += 1
 
-    except IndexError:
-        print("Cell Right datasheets index error")
+    except IndexError as e:
+        logger_excel.debug("IndexError - sheet: {}, row: {}, col:{}, {}".format(sheet, row, col, e))
 
     # Only add if there's data
-    if climInDict:
-        attrDict['climateInterpretation'] = climInDict
-    return attrDict
+    if climate_int_dict:
+        attr_dict['climateInterpretation'] = climate_int_dict
+    logger_excel.info("exit cells_right_datasheets()")
+    return attr_dict
 
 
 def cells_down_datasheets(filename, workbook, sheet, row, col):
@@ -1047,6 +1095,7 @@ def cells_down_datasheets(filename, workbook, sheet, row, col):
     :param col: (int)
     :return: (dict)
     """
+    logger_excel.info("cells_down_datasheets()")
     # Create a dictionary to hold each column as a separate entry
     paleoDataTableDict = OrderedDict()
 
@@ -1083,10 +1132,11 @@ def cells_down_datasheets(filename, workbook, sheet, row, col):
                     colListNum += 1
                 row += 1
 
-    except IndexError:
-        pass
+    except IndexError as e:
+        logger_excel.debug("IndexError - sheet: {}, row: {}, col:{}, {}".format(sheet, row, col, e))
 
     # Add all our data pieces for this column into a new entry in the Measurement Table Dictionary
+    logger_excel.info("compile paleoDataTableDict")
     paleoDataTableDict['paleoDataTableName'] = sheet
     paleoDataTableDict['filename'] = str(filename) + '-' + str(sheet) + ".csv"
     paleoDataTableDict['missingValue'] = 'NaN'
@@ -1098,6 +1148,7 @@ def cells_down_datasheets(filename, workbook, sheet, row, col):
 
     # Reset list back to null for next loop
     commentList = []
+    logger_excel.info("exit cells_down_datasheets()")
     return paleoDataTableDict
 
 # CHRONOLOGY HELPER METHODS

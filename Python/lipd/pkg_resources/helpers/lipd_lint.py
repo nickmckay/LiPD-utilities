@@ -35,7 +35,7 @@ def _fetch_lipdnames():
     if check_file_age('lipdnames.csv', 1):
         # Fetch sheet from google
         print("Fetching update for lipdnames.csv")
-        _id = '1ccPOueT5ZAm5Vmd3ys2hyVvtr9fz-lhfPvZfwweIB3k'
+        _id = '1tlTQiVRdVOj-ccygIQALq0OFKwI84fnVXKI-8Ir_1Ms'
         get_google_csv(_id, 'lipdnames.csv')
 
     try:
