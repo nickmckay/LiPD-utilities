@@ -1,0 +1,25 @@
+function L = authorCell2BibtexAuthorString(TS)
+%convert authors into bibTex "and" string...
+fnames = fieldnames(TS);
+auth=find(~cellfun(@isempty,(strfind(fnames,'author'))));
+if isempty(auth)
+   error('This TS file doesnt have a pub section') 
+end
+
+for a = 1:length(auth)
+    pubStruct = {TS.(fnames{auth(a)})}';
+nPub = length(pubstruct);
+for pa = 1:nPub
+    if isfield(L.pub{pa},'author')
+        if iscell(L.pub{pa}.author)
+            las = cell2str(L.pub{pa}.author);
+            las1 = strrep(las,''',''',' and ');
+            las2 = strrep(las1,'''','');
+            las3 = strrep(las2,'{','');
+            las4 = strrep(las3,'}','');
+            L.pub{pa}.author=las4;
+            
+        end
+    end
+end
+end

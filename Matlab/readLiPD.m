@@ -84,17 +84,39 @@ end
 I.metadataMD5=metaMD5;
 I.tagMD5=tmd5;
 
-%load in geo information
-I.geo.latitude=I.geo.geometry.coordinates(:,1);
-I.geo.meanLat=nanmean(I.geo.latitude);
-I.geo.longitude=I.geo.geometry.coordinates(:,2);
-I.geo.meanLon=nanmean(I.geo.longitude);
+if isfield(I.geo,'geometry')
+    
+    %load in geo information
+    if numel(I.geo.geometry.coordinates)<2
+        I.geo.latitude=NaN;
+        I.geo.meanLat=NaN;
+        I.geo.longitude=NaN;
+        I.geo.meanLon=NaN;
+    else
+        I.geo.latitude=I.geo.geometry.coordinates(:,1);
+        I.geo.meanLat=nanmean(I.geo.latitude);
+        I.geo.longitude=I.geo.geometry.coordinates(:,2);
+        I.geo.meanLon=nanmean(I.geo.longitude);
+    end
+    
+    %if theres elevation/depth, grab it too
+    if size(I.geo.geometry.coordinates,2)>2
+        I.geo.elevation= I.geo.geometry.coordinates(:,3);
+        I.geo.meanElev=mean(I.geo.elevation);
+    end
+    I.geo=rmfield(I.geo,'geometry');
 
-%if theres elevation/depth, grab it too
-if size(I.geo.geometry.coordinates,2)>2
-    I.geo.elevation= I.geo.geometry.coordinates(:,3);
-    I.geo.meanElev=mean(I.geo.elevation);
+else
+    I.geo.latitude=NaN;
+    I.geo.meanLat=NaN;
+    I.geo.longitude=NaN;
+    I.geo.meanLon=NaN;
+    
 end
+
+
+
+
 
 %bring property fields up a level
 if isfield(I.geo,'properties')
@@ -104,7 +126,7 @@ if isfield(I.geo,'properties')
     end
 
 %remove properties and coordiantes structures
-I.geo=rmfield(I.geo,{'properties','geometry'});
+I.geo=rmfield(I.geo,'properties');
 end
 %%%%%%%END GEO SECTION %%%%%%%%%
 

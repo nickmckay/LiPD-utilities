@@ -4,6 +4,7 @@ function D=validateLiPD(D)
 fnames=fieldnames(D);
 
 for d=1:length(fieldnames(D))
+    display(fnames{d})
     %standardize archive name
     if ~isfield(D.(fnames{d}),'archiveType')
                 D.(fnames{d}).archiveType='unknown';
