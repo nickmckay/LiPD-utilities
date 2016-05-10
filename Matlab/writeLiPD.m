@@ -158,7 +158,10 @@ for m=1:length(mnames)
                 if size(DT.(colnames{c}).values,1)==1
                     DT.(colnames{c}).values=DT.(colnames{c}).values';
                 end
-                DT.(colnames{c}).variableName=colnames{c};
+                if ~isfield(DT.(colnames{c}),'variableName')
+                    warning('No variable name, using structure name')
+                    DT.(colnames{c}).variableName=colnames{c};
+                end
                 cN=cN+1;
                 DT.(colnames{c}).number=cN;
                 if exist('outTable')
