@@ -5,20 +5,19 @@ import json
 import demjson
 
 from .blanks import *
-from .log_init import create_logger
+from .loggers import *
 
-
-logger_jsons = create_logger(__name__)
+logger_jsons = create_logger("jsons")
 
 
 def write_json_to_file(filename, json_data):
     """
     Write all JSON in python dictionary to a new json file.
-    :param filename: (str) Target File (name + .json)
-    :param json_data: (dict) JSON data
-    :return: None
+    :param str filename: Target json file
+    :param dict json_data: JSON data
+    :return None:
     """
-    logger_jsons.info("enter write_json_to_file()")
+    logger_jsons.info("enter write_json_to_file")
     json_data = remove_empty_fields(json_data)
     # Use demjson to maintain unicode characters in output
     json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
@@ -27,46 +26,46 @@ def write_json_to_file(filename, json_data):
         open(filename, "wb").write(json_bin)
         logger_jsons.info("Wrote data to json file")
     except FileNotFoundError as e:
-        print("ERROR: Writing json to file: {}".format(filename))
-        logger_jsons.debug("Failed to write to json file: {}, {}".format(filename, e))
-    logger_jsons.info("exit write_json_to_file()")
+        print("Error: Writing json to file: {}".format(filename))
+        logger_jsons.debug("write_json_to_file: FileNotFound: {}, {}".format(filename, e))
+    logger_jsons.info("exit write_json_to_file")
     return
 
 
 def read_json_from_file(filename):
     """
     Import the JSON data from target file.
-    :param filename: (str) Target Files
-    :return: (dict) JSON data
+    :param str filename: Target File
+    :return dict: JSON data
     """
-    logger_jsons.info("enter read_json_from_file()")
+    logger_jsons.info("enter read_json_from_file")
     d = {}
     try:
         # Open json file and read in the contents. Execute DOI Resolver?
         # with open(filename, 'r') as f:
             # Load json into dictionary
         d = demjson.decode_file(filename)
-        logger_jsons.info("Read data from json file")
+        logger_jsons.info("successful read from json file")
     except FileNotFoundError:
         try:
             d = demjson.decode_file(os.path.splitext(filename)[0] + '.json')
         except FileNotFoundError as e:
-            print("ERROR: Reading json from file: {}".format(filename))
-            logger_jsons.debug("Failed to read from JSON file: {}, {}".format(filename, e))
+            print("Error: Reading json from file: {}".format(filename))
+            logger_jsons.debug("read_json_from_file: FileNotFound: {}, {}".format(filename, e))
     d = remove_empty_fields(d)
-    logger_jsons.info("exit read_json_from_file()")
+    logger_jsons.info("exit read_json_from_file")
     return d
 
 
 def remove_csv_from_json(d):
     """
     Remove all CSV data 'values' entries from paleoData table in the JSON structure.
-    :param d: (dict) JSON data - old structure
-    :return: (dict) Metadata dictionary without CSV values
+    :param dict d: JSON data - old structure
+    :return dict: Metadata dictionary without CSV values
     """
     # TODO update to work with chronology also
     # Loop through each table in paleoData
-    logger_jsons.info("enter remove_csv_from_json()")
+    logger_jsons.info("enter remove_csv_from_json")
     try:
         for table, table_content in d['paleoData'].items():
             for column, column_content in table_content['columns'].items():
@@ -75,22 +74,22 @@ def remove_csv_from_json(d):
                     del column_content['values']
                 except KeyError as e:
                     # if the key doesn't exist, keep going
-                    logger_jsons.debug("Failed to delete values column from JSON, {}".format(e))
+                    logger_jsons.debug("remove_csv_from_json: KeyError: {}".format(e))
     except KeyError as e:
-        print("ERROR: Failed to remove csv from json")
-        logger_jsons.debug("No paleoData key in dictionary, {}".format(e))
-    logger_jsons.info("exit remove_csv_from_json()")
+        print("Error: Failed to remove csv from json")
+        logger_jsons.debug("remove_csv_from_json: KeyError: paleoData key not found: {}".format(e))
+    logger_jsons.info("exit remove_csv_from_json")
     return d
 
 
 def get_csv_from_json(d):
     """
     Get CSV values when mixed into json data. Pull out the CSV data and put it into a dictionary.
-    :param d: (dict) JSON with CSV values
-    :return: (dict) CSV values. (i.e. { CSVFilename1: { Column1: [Values], Column2: [Values] }, CSVFilename2: ... }
+    :param dict d: JSON with CSV values
+    :return dict: CSV values. (i.e. { CSVFilename1: { Column1: [Values], Column2: [Values] }, CSVFilename2: ... }
     """
     # TODO update to work with chronology also
-    logger_jsons.info("enter get_csv_from_json()")
+    logger_jsons.info("enter get_csv_from_json")
     csv = {}
     try:
         for table, table_content in d['paleoData'].items():
@@ -101,17 +100,17 @@ def get_csv_from_json(d):
                 # Set the "values" into csv dictionary in order of column "number"
                 csv[table_content['filename']][column_content['number']] = column_content['values']
     except KeyError as e:
-        print("ERROR: Getting CSV from JSON - No paleoData key")
-        logger_jsons.debug("No paleoData key in dictionary, {}".format(e))
-    logger_jsons.info("exit get_csv_from_json()")
+        print("Error: Getting CSV from JSON - No paleoData key")
+        logger_jsons.debug("get_csv_from_json: KeyError: paleoData key not found, {}".format(e))
+    logger_jsons.info("exit get_csv_from_json")
     return csv
 
 
 def remove_empty_fields(d):
     """
     Go through N number of nested data types and remove all empty entries. Recursion
-    :param d: (any) Dictionary, List, or String of data
-    :return: (any) Returns a same data type as original, but without empties.
+    :param any d: Dictionary, List, or String of data
+    :return any: Returns a same data type as original, but without empties.
     """
     # No logger here because the function is recursive.
     # Int types don't matter. Return as-is.
@@ -149,10 +148,10 @@ def remove_empty_fields(d):
 def remove_empty_doi(d):
     """
     If an "identifier" dictionary has no doi ID, then it has no use. Delete it.
-    :param d: (dict) JSON Metadata
-    :return: (dict) JSON Metadata
+    :param dict d: JSON Metadata
+    :return dict: JSON Metadata
     """
-    logger_jsons.info("enter remove_empty_doi()")
+    logger_jsons.info("enter remove_empty_doi")
     try:
         # Check each publication dictionary
         for pub in d['pub']:
@@ -165,10 +164,10 @@ def remove_empty_doi(d):
                 else:
                     # If there's an identifier section, with no DOI id
                     del pub['identifier']
-    except KeyError:
+    except KeyError as e:
         # What else could go wrong?
-        logger_jsons.warn("KeyError in publication")
-    logger_jsons.info("exit remove_empty_doi()")
+        logger_jsons.warn("remove_empty_doi: KeyError: publication key not found, {}".format(e))
+    logger_jsons.info("exit remove_empty_doi")
     return d
 
 
@@ -178,7 +177,7 @@ def old_to_new_structure(d):
     :param dict d: Metadata
     :return dict: Modified Metadata
     """
-    logger_jsons.info("enter old_to_new_structure()")
+    logger_jsons.info("enter old_to_new_structure")
     table_names = {"paleoData": "paleoDataTableName", "chronData": "chronDataTableName"}
     for key in ["paleoData", "chronData"]:
         if key in d:
@@ -194,8 +193,8 @@ def old_to_new_structure(d):
                     for col in table['columns']:
                         c_name = col['variableName']
                         tmp_c[c_name] = col
-                except KeyError:
-                    logger_jsons.warn("KeyError: columns")
+                except KeyError as e:
+                    logger_jsons.warn("old_to_new_structure: KeyError: columns, {}".format(e))
                 # Move table strings into tmp_t
                 for k, v in table.items():
                     if isinstance(v, str):
@@ -209,17 +208,17 @@ def old_to_new_structure(d):
 
             # Overwrite original paleoData dictionary with new dictionary
             d[key] = copy.deepcopy(tmp)
-    logger_jsons.info("exit old_to_new_structure()")
+    logger_jsons.info("exit old_to_new_structure")
     return d
 
 
 def new_to_old_structure(d):
     """
     Restructure JSON to the old format. Table and columns are indexed by numbers. (lists)
-    :param d:(dict) JSON metadata
-    :return: (dict) JSON metadata
+    :param dict d: JSON metadata
+    :return dict: JSON metadata
     """
-    logger_jsons.info("enter new_to_old_structure()")
+    logger_jsons.info("enter new_to_old_structure")
     tmp_p = []
     try:
         for k, v in d['paleoData'].items():
@@ -233,25 +232,25 @@ def new_to_old_structure(d):
             tmp_p.append(v)
         # Overwrite original paleoData dictionary with new dictionary
         d['paleoData'] = tmp_p
-    except KeyError:
-        print("ERROR: paleoData key not found")
-        logger_jsons.warn("No paleoData key")
-    logger_jsons.info("exit new_to_old_structure()")
+    except KeyError as e:
+        print("Error: paleoData key not found")
+        logger_jsons.warn("new_to_old_structure: KeyError: paleoData key not found, {}".format(e))
+    logger_jsons.info("exit new_to_old_structure")
     return d
 
 
 def split_csv_json(d):
     """
     Split JSON with CSV values into separate JSON and CSV dictionaries.
-    :param d: (dict) JSON metadata with CSV values in paleoData columns
-    :return: (dict) JSON only metadata (dict) CSV organized by filename->column
+    :param dict d: JSON metadata with CSV values in paleoData columns
+    :return dict dict: JSON only metadata, CSV organized by filename->column
     """
-    logger_jsons.info("enter split_csv_json()")
+    logger_jsons.info("enter split_csv_json")
     # First, get CSV values and organize.
     csv = get_csv_from_json(d)
     # Then remove CSV values, which gives us JSON only.
     j = remove_csv_from_json(d)
-    logger_jsons.info("exit split_csv_json()")
+    logger_jsons.info("exit split_csv_json")
     return j, csv
 
 

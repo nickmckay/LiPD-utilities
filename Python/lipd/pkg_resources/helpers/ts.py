@@ -1,11 +1,21 @@
+import operator
+
 from .regexes import re_filter_expr
 from .alternates import comparisons
+from .loggers import create_logger
 
-import operator
+logger_ts = create_logger("ts")
 
 
 def get_truth(inp, relate, cut):
-
+    """
+    Compare two items. Match a string operator to an operator function
+    :param str inp: Comparison item
+    :param str relate: Comparison operator
+    :param any cut: Comparison item
+    :return bool: Comparison truth
+    """
+    logger_ts.info("enter get_truth")
     ops = {'>': operator.gt,
            '<': operator.lt,
            '>=': operator.ge,
@@ -14,31 +24,40 @@ def get_truth(inp, relate, cut):
            }
     try:
         truth = ops[relate](inp, cut)
-    except KeyError:
+    except KeyError as e:
         truth = False
+        logger_ts.warn("get_truth: KeyError: Invalid operator input: {}, {}".format(relate, e))
+    logger_ts.info("exit get_truth")
     return truth
 
 
 def parse_str(string):
+    """
+    Attempt to cleanup string or convert to number value.
+    :param str string:
+    :return float or str:
+    """
     try:
         string = float(string)
     except ValueError:
         try:
             string = string.rstrip()
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            logger_ts.warn("parse_str: AttributeError: String not number or word, {}, {}".format(string, e))
     return string
 
 
 def translate_expression(expression):
     """
     Check if the expression is valid, then check turn it into an expression that can be used for filtering.
-    :return: (list of lists) One or more matches. Each list has 3 strings.
+    :return list of lists: One or more matches. Each list has 3 strings.
     """
+    logger_ts.info("enter translate_expression")
     m = re_filter_expr.findall(expression)
     matches = []
     if m:
         for i in m:
+            logger_ts.info("parse match: {}".format(i))
             tmp = list(i[1:])
             if tmp[1] in comparisons:
                 tmp[1] = comparisons[tmp[1]]
@@ -46,14 +65,22 @@ def translate_expression(expression):
             tmp[2] = parse_str(tmp[2])
             matches.append(tmp)
     else:
-        print("Invalid expression")
+        logger_ts.warn("translate_expression: invalid expression: {}".format(expression))
+        print("Invalid input expression")
+    logger_ts.info("exit translate_expression")
     return matches
 
 
 def get_matches(expr_lst, ts):
+    """
+    Get a list of TimeSeries objects that match the given expression.
+    :param list expr_lst: Expression
+    :param dict ts: TimeSeries
+    :return list names: Matched TimeSeries objects
+    """
+    logger_ts.info("enter get_matches")
     names = []
     match = False
-    # TODO this is not properly checking multiple argument expressions.
     try:
         for ts_name, ts_data in ts.items():
             for expr in expr_lst:
@@ -71,19 +98,25 @@ def get_matches(expr_lst, ts):
                         # If one comparison is false, then it can't possibly be a match
                         match = False
                         break
-                except KeyError:
+                except KeyError as e:
+                    logger_ts.warn("get_matches: KeyError: getting value from TimeSeries object, {}, {}".format(expr, e))
+                    match = False
+                except IndexError as e:
+                    logger_ts.warn("get_matches: IndexError: getting value from TimeSeries object, {}, {}".format(expr, e))
                     match = False
             if match:
                 names.append(ts_name)
     except AttributeError as e:
-        print("ERROR: {}".format(e))
+        logger_ts.debug("get_matches: AttributeError: invalid timeseries, {},  {}".format(type(ts), e))
+        print("Error: Invalid TimeSeries")
+    logger_ts.info("exit get_matches")
     return names
 
 
 def extractTimeSeries(lipd_library, timeseries_library, convert):
     """
     Create a TimeSeries using the current files in LiPD_Library.
-    :return: (obj) TimeSeries_Library
+    :return obj: TimeSeries_Library
     """
     # Loop over the LiPD objects in the LiPD_Library
     for k, v in lipd_library.get_master().items():

@@ -4,6 +4,10 @@ from ..helpers.bag import *
 from ..helpers.csvs import *
 from ..helpers.jsons import *
 from ..helpers.lipd_lint import *
+from ..helpers.loggers import create_logger
+
+
+logger_lipd = create_logger('LiPD')
 
 
 class LiPD(object):
@@ -22,6 +26,7 @@ class LiPD(object):
         self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}
         self.data_json = {}  # JSON metadata without CSV values
         self.data_master = {}  # JSON metadata with CSV values
+        logger_lipd.info("LiPD: object created: {}".format(self.name))
 
     # LOADING
 
@@ -50,7 +55,7 @@ class LiPD(object):
         self.data_master, self.data_csv = add_csv_to_json(self.data_master)
 
         os.chdir(self.dir_root)
-
+        logger_lipd.info("LiPD: object loaded: {}".format(self.name))
         return
 
     # ANALYSIS

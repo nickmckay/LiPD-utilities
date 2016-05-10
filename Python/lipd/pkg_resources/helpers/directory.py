@@ -6,17 +6,17 @@ import time
 import tkinter
 from tkinter import filedialog
 
-from .log_init import create_logger
+from .loggers import create_logger
 
 
-logger_directory = create_logger(__name__)
+logger_directory = create_logger('directory')
 
 
 def file_from_path(path):
     """
     Extract the file name from a given file path.
-    :param path: (str) File path
-    :return: (str) File name with extension
+    :param str path: File path
+    :return str: File name with extension
     """
     head, tail = ntpath.split(path)
     return head, tail or ntpath.basename(head)
@@ -25,23 +25,25 @@ def file_from_path(path):
 def create_tmp_dir():
     """
     Creates tmp directory in OS temp space.
-    :return: (str) Path to tmp directory
+    :return str: Path to tmp directory
     """
-    return tempfile.mkdtemp()
+    t = tempfile.mkdtemp()
+    logger_directory.info("temp directory: {}".format(t))
+    return t
 
 
 def list_files(x):
     """
     Lists file(s) in given path of the X type.
-    :param x: (str) File extension that we are interested in.
-    :return: (list of str) File name(s) to be worked on
+    :param str x: File extension that we are interested in.
+    :return list of str: File name(s) to be worked on
     """
-    logger_directory.info("enter list_files()")
+    logger_directory.info("enter list_files")
     file_list = []
     for file in os.listdir():
-        if file.endswith(x) and not file.startswith(("$", "~")):
+        if file.endswith(x) and not file.startswith(("$", "~", ".")):
             file_list.append(file)
-    logger_directory.info("exit list_files()")
+    logger_directory.info("exit list_files")
     return file_list
 
 
@@ -49,11 +51,11 @@ def dir_cleanup(dir_bag, dir_data):
     """
     Moves JSON and csv files to bag root, then deletes all the metadata bag files. We'll be creating a new bag with
     the data files, so we don't need the other text files and such.
-    :param dir_bag: (str) Path to root of Bag
-    :param dir_data: (str) Path to Bag /data subdirectory
-    :return: None
+    :param str dir_bag: Path to root of Bag
+    :param str dir_data: Path to Bag /data subdirectory
+    :return None:
     """
-    logger_directory.info("enter dir_cleanup()")
+    logger_directory.info("enter dir_cleanup")
     # dir : dir_data -> dir_bag
     os.chdir(dir_bag)
 
@@ -68,7 +70,7 @@ def dir_cleanup(dir_bag, dir_data):
     logger_directory.info("moved dir_data contents to dir_bag")
     # Delete empty dir_data folder
     shutil.rmtree(dir_data)
-    logger_directory.info("exit dir_cleanup()")
+    logger_directory.info("exit dir_cleanup")
     return
 
 
@@ -76,11 +78,11 @@ def check_file_age(filename, days):
     """
     Check if the target file has an older creation date than X amount of time.
     i.e. One day: 60*60*24
-    :param filename: (str) Target filename
-    :param days: (int) Limit in number of days
-    :return: (bool) True - older than X time, False - not older than X time
+    :param str filename: Target filename
+    :param int days: Limit in number of days
+    :return bool: True - older than X time, False - not older than X time
     """
-    logger_directory.info("enter check_file_age()")
+    logger_directory.info("enter check_file_age")
     # Multiply days given by time for one day.
     t = days * 60 * 60 * 24
     now = time.time()
@@ -88,16 +90,16 @@ def check_file_age(filename, days):
     try:
         if os.path.getctime(filename) < specified_time:
             # File found and out of date
-            logger_directory.info("File out of date")
+            logger_directory.info("{} not up-to-date".format(filename))
             logger_directory.info("exiting check_file_age()")
             return True
         # File found, and not out of date
-        logger_directory.info("File found and current")
+        logger_directory.info("{} and up-to-date".format(filename))
         logger_directory.info("exiting check_file_age()")
         return False
     except FileNotFoundError:
         # File not found. Need to download it.
-        logger_directory.warn("File not found")
+        logger_directory.warn("{} not found in {}".format(filename, os.getcwd()))
         logger_directory.info("exiting check_file_age()")
         return True
 
@@ -107,23 +109,23 @@ def browse_dialog():
     Open up a GUI browse dialog window and let to user pick a target directory.
     :return str: Target directory path
     """
-    logger_directory.info("enter browse_dialog()")
+    logger_directory.info("enter browse_dialog")
     root = tkinter.Tk()
     root.withdraw()
     root.update()
     path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
     logger_directory.info("chose path: {}".format(path))
     root.destroy()
-    logger_directory.info("exit browse_dialog()")
+    logger_directory.info("exit browse_dialog")
     return path
 
 
 def set_source():
     """
     User sets the path to LiPD source. Local or online.
-    :return: (str) Path
+    :return str: Path
     """
-    logger_directory.info("enter set_source()")
+    logger_directory.info("enter set_source")
     _path = ''
     invalid = True
     count = 0
@@ -160,5 +162,5 @@ def set_source():
                 print("Invalid option. Try again.")
         if _path:
             invalid = False
-    logger_directory.info("exit set_source()")
+    logger_directory.info("exit set_source")
     return _path

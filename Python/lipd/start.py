@@ -8,18 +8,18 @@ from .pkg_resources.helpers.alternates import comparisons
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.PDSlib import *
 from .pkg_resources.helpers.directory import set_source
-from .pkg_resources.helpers.log_init import create_logger
+from .pkg_resources.helpers.loggers import create_logger
 
 
 def setDir():
     """
     Set the current working directory by providing a directory path.
     (ex. /Path/to/files)
-    :param path: (str) Directory path
+    :param str path: Directory path
     """
     path = set_source()
     lipd_lib.setDir(path)
-    logger = create_logger(__name__)
+    logger = create_logger("start")
     logger.info("Set path: {}".format(path))
     return path, logger
 
@@ -28,7 +28,7 @@ def loadLipd(filename):
     """
     Load a single LiPD file into the workspace. File must be located in the current working directory.
     (ex. loadLiPD NAm-ak000.lpd)
-    :param filename: (str) LiPD filename
+    :param str filename: LiPD filename
     """
     lipd_lib.loadLipd(filename)
     print("Process Complete")
@@ -49,14 +49,14 @@ def loadLipds():
 def lipd_to_df(filename):
     """
     Create Pandas DataFrame from LiPD file
-    :param filename:
-    :return:
+    :param str filename:
+    :return obj: Pandas data frames
     """
     try:
         df_meta, df_data, df_chron = lipd_lib.LiPD_to_df(filename)
     except KeyError:
-        print("ERROR: Unable to find record")
-        logger.warn("Unable to find record {}".format(filename))
+        print("Error: Unable to find LiPD file")
+        logger_start.warn("KeyError: Unable to find record {}".format(filename))
         df_meta, df_data, df_chron = None
     print("Process Complete")
     return df_meta, df_data, df_chron
@@ -65,8 +65,8 @@ def lipd_to_df(filename):
 def ts_to_df(ts, filename):
     """
     Create Pandas DataFrame from TimeSeries object
-    :param ts:
-    :param filename:
+    :param dict ts: TimeSeries
+    :param str filename:
     :return:
     """
     df_meta = ""
@@ -74,9 +74,9 @@ def ts_to_df(ts, filename):
     df_chron = ""
     try:
         df_meta, df_data, df_chron = TS_to_df(ts[filename])
-    except KeyError:
-        print("ERROR: Unable to find record")
-        logger.WARN("Unable to find record {}".format(filename))
+    except KeyError as e:
+        print("Error: LiPD file not found")
+        logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
     print("Process Complete")
     return df_meta, df_data, df_chron
 
@@ -84,8 +84,8 @@ def ts_to_df(ts, filename):
 def showCsv(filename):
     """
     Show CSV data for one LiPD
-    :param filename:
-    :return:
+    :param str filename:
+    :return None:
     """
     lipd_lib.showCsv(filename)
     print("Process Complete")
@@ -96,7 +96,7 @@ def showMetadata(filename):
     """
     Display the contents of the specified LiPD file. (Must be previously loaded into the workspace)
     (ex. displayLiPD NAm-ak000.lpd)
-    :param filename: (str) LiPD filename
+    :param str filename: LiPD filename
     """
     lipd_lib.showMetadata(filename)
     print("Process Complete")
@@ -106,6 +106,7 @@ def showMetadata(filename):
 def showLipds():
     """
     Prints the names of all LiPD files in the LiPD_Library
+    :return None:
     """
     lipd_lib.showLipds()
     print("Process Complete")
@@ -114,9 +115,9 @@ def showLipds():
 
 def showMap(filename):
     """
-
-    :param filename:
-    :return:
+    Show a map of one or more LiPD coordinate locations
+    :param str filename: String or list of LiPD files to map
+    :return None:
     """
     lipd_lib.showMap(filename)
     print("Process Complete")
@@ -125,28 +126,32 @@ def showMap(filename):
 
 def getMetadata(filename):
     """
-
-    :param filename:
-    :param parameter:
-    :return:s
+    Get metadata from LiPD file
+    :param str filename: LiPD filename
+    :return dict d: Metadata dictionary
     """
     d = {}
     try:
         d = lipd_lib.getMetadata(filename)
     except KeyError:
-        print("ERROR: Unable to find record")
-        logger.warn("Unable to find record {}".format(filename))
+        print("ERROR: Unable to find LiPD file")
+        logger_start.warn("KeyError: Unable to find record {}".format(filename))
     print("Process Complete")
     return d
 
 
 def getCsv(filename):
+    """
+    Get CSV from LiPD file
+    :param str filename: LiPD filename
+    :return dict d: CSV dictionary
+    """
     d = {}
     try:
         d = lipd_lib.getCsv(filename)
     except KeyError:
         print("ERROR: Unable to find record")
-        logger.warn("Unable to find record {}".format(filename))
+        logger_start.warn("Unable to find record {}".format(filename))
     print("Process Complete")
     return d
 
@@ -157,7 +162,7 @@ def getCsv(filename):
 def extractTimeSeries():
     """
     Create a TimeSeries using the current files in LiPD_Library.
-    :return: (obj) TimeSeries_Library
+    :return obj: TimeSeries_Library
     """
     d = {}
     try:
@@ -168,7 +173,7 @@ def extractTimeSeries():
             d.update(convert.ts_extract_main(v.get_master()))
     except KeyError:
         print("ERROR: Unable to extractTimeSeries")
-        logger.debug("extractTimeSeries() failed")
+        logger_start.debug("extractTimeSeries() failed")
 
     print("Process Complete")
     return d
@@ -187,7 +192,7 @@ def exportTimeSeries():
         lipd_lib.load_tsos(convert.lipd_extract_main(l))
     except Exception:
         print("ERROR: Converting TSOs to LiPD")
-        logger.debug("exportTimeSeries() failed")
+        logger_start.debug("exportTimeSeries() failed")
     print("Process Complete")
     return
 
@@ -195,8 +200,8 @@ def exportTimeSeries():
 def showTso(name):
     """
     Show contents of one TimeSeries object.
-    :param name:
-    :return:
+    :param str name: TimeSeries Object name
+    :return None:
     """
     ts_lib.showTso(name)
     print("Process Complete")
@@ -206,7 +211,7 @@ def showTso(name):
 def showTsos(dict_in):
     """
     Prints the names of all TimeSeries objects in the TimeSeries_Library
-    :return:
+    :return None:
     """
     try:
         s = collections.OrderedDict(sorted(dict_in.items()))
@@ -237,7 +242,7 @@ def check_ts(parameter, names, ts):
         try:
             print(ts[i][parameter])
         except KeyError:
-            print("ERROR: Key doesn't exist")
+            print("Error: TimeSeries object not found")
     return
 
 
@@ -246,23 +251,23 @@ def TS(names, ts):
     Create a new TS dictionary using
     index = find(logical expression)
     newTS = TS(index)
-    :param expression:
-    :return:
+    :param str expression:
+    :return dict:
     """
     d = {}
     for name in names:
         try:
             d[name] = ts[name]
-        except KeyError:
-            pass
+        except KeyError as e:
+            logger_start.warn("TS: KeyError: {} not in timeseries, {}".format(name, e))
     return d
 
 
 def get_numpy(ts):
     """
     Get all values from a TimeSeries
-    :param ts: (dict) Time Series
-    :return: (list of lists)
+    :param dict ts: Time Series
+    :return list of lists:
     """
     tmp = []
     try:
@@ -271,8 +276,8 @@ def get_numpy(ts):
                 tmp.append(v['paleoData_values'])
             except KeyError:
                 pass
-    except AttributeError:
-        print("ERROR: Invalid TimeSeries")
+    except AttributeError as e:
+        print("Error: Invalid TimeSeries")
     print("Process Complete")
     return tmp
 
@@ -283,7 +288,7 @@ def saveLipd(filename):
     """
     Saves changes made to the target LiPD file.
     (ex. saveLiPD NAm-ak000.lpd)
-    :param filename: (str) LiPD filename
+    :param str filename: LiPD filename
     """
     lipd_lib.saveLipd(filename)
     print("Process Complete")
@@ -302,7 +307,7 @@ def saveLipds():
 def removeLipd(filename):
     """
     Remove LiPD object from library
-    :return: None
+    :return None:
     """
     lipd_lib.removeLipd(filename)
     print("Process Complete")
@@ -312,7 +317,7 @@ def removeLipd(filename):
 def removeLipds():
     """
     Remove all LiPD objects from library.
-    :return: None
+    :return None:
     """
     lipd_lib.removeLipds()
     print("Process Complete")
@@ -332,4 +337,4 @@ def quit():
 lipd_lib = LiPD_Library()
 ts_lib = TimeSeries_Library()
 convert = Convert()
-path, logger = setDir()
+path, logger_start = setDir()

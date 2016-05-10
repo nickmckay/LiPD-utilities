@@ -1,13 +1,12 @@
 import datetime
 import logging
-import sys
-import os
+from logging.config import dictConfig
 
 
 def update_changelog():
     """
     Create or update the changelog txt file. Prompt for update description.
-    :return: none
+    :return None:
     """
     # description = input("Please enter a short description for this update:\n ")
     description = 'Placeholder for description here.'
@@ -19,43 +18,52 @@ def update_changelog():
     return
 
 
-def txt_log(dir_root, filename, quarantine_txt, info):
+def create_logger(name):
     """
-    Debug Log. Log names and error of problematic files to a txt file
-    :param dir_root: (str) Directory containing .lpd file(s)
-    :param quarantine_txt: (str) Name of the txt file to be written to
-    :param filename: (str) Name of the current .lpd file
-    :param info: (str) Error description
-    :return: None
+    Creates a logger with the below attributes.
+    :param str name: Name of the logger
+    :return obj: Logger
     """
-    org_dir = os.getcwd()
-    os.chdir(dir_root)
-    with open(quarantine_txt, 'a+') as f:
-        try:
-            # Write update line
-            f.write("File: " + filename + "\n" + "Error: " + info + "\n\n")
-        except KeyError:
-            print("Debug Log Error")
-    os.chdir(org_dir)
-    return
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'simple': {
+                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            },
+            'detailed': {
+                'format': '%(asctime)s %(module)-17s line:%(lineno)-4d '
+                          '%(levelname)-8s %(message)s'
+            },
+            'email': {
+                'format': 'Timestamp: %(asctime)s\nModule: %(module)s\n'
+                          'Line: %(lineno)d\nMessage: %(message)s'
+            },
+        },
+        'handlers': {
+            # 'stream': {
+            #     'level': 'DEBUG',
+            #     'class': 'logging.StreamHandler',
+            #     "formatter": "simple"
+            # },
+            "file": {
+                "level": "DEBUG",
+                "formatter": "simple",
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": "debug.log",
+                'mode': 'a',
+                'maxBytes': 10485760,
+                'backupCount': 3
+            }
+        },
+        'loggers': {
+            '': {
+                # "handlers": ["stream", "file"],
+                "handlers": ["file"],
+                "level": "DEBUG",
+                'propagate': True
+            }
+        }
+    })
+    return logging.getLogger(name)
 
-
-def txt_log_end(dir_root, quarantine_txt):
-    """
-    At the end of a batch, add a divider line and timestamp
-    Quarantine.txt file is a continually growing file.
-    :param dir_root: (str) Directory containing .lpd file(s)
-    :param quarantine_txt: (str) Name of the txt file to be written to
-    :return: None
-    """
-    org_dir = os.getcwd()
-    os.chdir(dir_root)
-    with open(quarantine_txt, 'a+') as f:
-        try:
-            # Write update line
-            f.write('Timestamp: {:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now()))
-            f.write("\n------------------------------------\n")
-        except KeyError:
-            print("Debug Log Error")
-    os.chdir(org_dir)
-    return

@@ -3,6 +3,10 @@ import csv
 from ..helpers.regexes import *
 from ..helpers.directory import check_file_age
 from ..helpers.google import get_google_csv
+from .loggers import create_logger
+
+
+logger_tslint = create_logger("ts_lint")
 
 # VALIDATING AND UPDATING TSNAMES
 
@@ -10,8 +14,8 @@ from ..helpers.google import get_google_csv
 def update_tsnames(metadata):
     """
     Updates the TS names for a given metadata dictionary
-    :param metadata: (dict) Metadata dictionary
-    :return: (dict) Updated metadata dictionary
+    :param dict metadata: Metadata dictionary
+    :return dict: Updated metadata dictionary
     """
     full, quick = _fetch_tsnames()
     metadata = _verify_tsnames(full, quick, metadata)
@@ -22,10 +26,11 @@ def _fetch_tsnames():
     """
     Call down a current version of the TSNames spreadsheet from google. Convert to a structure better
     for comparisons.
-    :return: (full_list) Complete TSName dictionary. Keys: Valid TSName, Values: Synonyms
-    :return: (quick_list) List of valid TSnames
+    :return dict: Complete TSName dictionary. Keys: Valid TSName, Values: Synonyms
+    :return list: List of valid TSnames
     """
-    full_list = {"root": [], "pub": [], "climateInterpretation": [], "calibration": [], "geo": [], "paleoData": []}
+    logger_tslint.info("enter fetch_tsnames")
+    full = {"root": [], "pub": [], "climateInterpretation": [], "calibration": [], "geo": [], "paleoData": []}
     quick_list = []
 
     # Check if it's been longer than one day since updating the TSNames.csv file.
@@ -37,6 +42,7 @@ def _fetch_tsnames():
         ts_id = '1C135kP-SRRGO331v9d8fqJfa3ydmkG2QQ5tiXEHj5us'
         get_google_csv(ts_id, 'tsnames.csv')
     try:
+        logger_tslint.info("opening tsnames.csv")
         # Start sorting the tsnames into an organized structure
         with open('tsnames.csv', 'r') as f:
             r = csv.reader(f, delimiter=',')
@@ -50,26 +56,30 @@ def _fetch_tsnames():
                         if "pub" in line[0] or "funding" in line[0]:
                             if re_pub_fetch.match(line[0]):
                                 quick_list.append(line[0])
-                                full_list['pub'].append(line)
+                                full['pub'].append(line)
                         elif re_misc_fetch.match(line[0]):
                             # Other Categories. Not special
                             quick_list.append(line[0])
                             cat, key = line[0].split('_')
-                            full_list[cat].append(line)
+                            full[cat].append(line)
                         else:
                             # Any of the root items
                             quick_list.append(line[0])
-                            full_list["root"].append(line)
-    except FileNotFoundError:
-        print("CSV FileNotFound: TSNames")
+                            full["root"].append(line)
+    except FileNotFoundError as e:
+        logger_tslint.debug("fetch_tsnames: FileNotFound: tsnames.csv, {}".format(e))
+        print("Failed to find TimeSeries lint file")
+    logger_tslint.info("exit fetch_tsnames")
+    return full, quick_list
 
-    return full_list, quick_list
 
-
-def _verify_tsnames(full_list, quick_list, d):
+def _verify_tsnames(full, quick_list, d):
     """
     Verify TSNames are current and valid. Compare to TSNames spreadsheet in Google Drive. Update where necessary.
+    :param dict full: Complete TSName dictionary. Keys: Valid TSName, Values: Synonyms
+    :param list quick_list: List of valid TSnames
     """
+    logger_tslint.info("enter verify_tsnames")
     # Temp to store incorrect keys
     bad_keys = []
     limbo = {}
@@ -84,25 +94,25 @@ def _verify_tsnames(full_list, quick_list, d):
     # Start to find replacements for empty entries in "limbo"
     for invalid in bad_keys:
         # Set incorrect name as key, and valid name as value.
-        limbo[invalid] = _get_valid_tsname(full_list, invalid)
+        limbo[invalid] = _get_valid_tsname(full, invalid)
 
     # Use limbo to start replacing entries in d
     for invalid, valid in limbo.items():
         try:
             # Add new item, and remove old item in one step
             d[valid] = d.pop(invalid)
-        except KeyError:
-            continue
-
+        except KeyError as e:
+            logger_tslint.warn("verify_tsnames: KeyError: valid: {}, invalid: {}, {}".format(invalid, valid, e))
+    logger_tslint.info("exit verify_tsnames")
     return d
 
 
-def _get_valid_tsname(full_list, invalid):
+def _get_valid_tsname(full, invalid):
     """
     Turn a bad tsname into a valid one.
     * Note: Index[0] for each TSName is the most current, valid entry. Index[1:] are synonyms
-    :param invalid: (str) Invalid tsname
-    :return: (str) valid tsname
+    :param str invalid: Invalid tsname
+    :return str: valid tsname
     """
     valid = ''
     invalid = invalid.lower()
@@ -114,7 +124,7 @@ def _get_valid_tsname(full_list, invalid):
             if re_pub_nh.match(invalid):
                 s_invalid = invalid.split('_', 1)
                 # Check which list the key word is in
-                for line in full_list['pub']:
+                for line in full['pub']:
                     for key in line:
                         if s_invalid[1] in key.lower():
                             # Get the keyword from the valid entry.
@@ -126,7 +136,7 @@ def _get_valid_tsname(full_list, invalid):
             elif re_pub_h.match(invalid):
                 s_invalid = invalid.split('_', 1)
                 # The missing pub number is the main problem, but the keyword may or may not be correct. Check.
-                for line in full_list['pub']:
+                for line in full['pub']:
                     for key in line:
                         if s_invalid[1] in key.lower():
                             # We're going to use the valid entry as-is, because that's what we need for this case.
@@ -135,7 +145,7 @@ def _get_valid_tsname(full_list, invalid):
             # Case 3: pub1year (number)
             elif re_pub_n.match(invalid):
                 s_invalid = re_pub_n.match(invalid)
-                for line in full_list['pub']:
+                for line in full['pub']:
                     for key in line:
                         if s_invalid.group(2) in key.lower():
                             v = line[0].split('_', 1)
@@ -143,7 +153,7 @@ def _get_valid_tsname(full_list, invalid):
 
             # Case 4: pubYear (camelcase)
             elif re_pub_cc.match(invalid):
-                valid = _iter_ts(full_list, 'pub', invalid)
+                valid = _iter_ts(full, 'pub', invalid)
 
         # FUNDING
         elif re_fund_invalid.match(invalid):
@@ -154,50 +164,50 @@ def _get_valid_tsname(full_list, invalid):
 
         # GEO
         elif re_geo_invalid.match(invalid):
-            valid = _iter_ts(full_list, 'geo', invalid)
+            valid = _iter_ts(full, 'geo', invalid)
 
         # PALEODATA
         elif re_paleo_invalid.match(invalid):
             g1 = re_paleo_invalid.match(invalid).group(1)
-            valid = _iter_ts(full_list, 'paleoData', g1)
+            valid = _iter_ts(full, 'paleoData', g1)
 
         # CALIBRATION
         elif re_calib_invalid.match(invalid):
             g1 = re_calib_invalid.match(invalid).group(1)
-            valid = _iter_ts(full_list, 'calibration', g1)
+            valid = _iter_ts(full, 'calibration', g1)
 
         # CLIMATE INTERPRETATION
         elif re_clim_invalid.match(invalid):
             g1 = re_clim_invalid.match(invalid).group(1)
             if 'climate' in g1:
                 g1 = re.sub('climate', '', g1)
-            valid = _iter_ts(full_list, 'climateInterpretation', g1)
+            valid = _iter_ts(full, 'climateInterpretation', g1)
 
         else:
             # ROOT
-            valid = _iter_ts(full_list, 'root', invalid)
+            valid = _iter_ts(full, 'root', invalid)
 
         # LAST CHANCE:
         # Specific case that isn't a typical format, or no match. Go through all possible entries.
         if not valid:
-            valid = _iter_ts(full_list, None, invalid)
+            valid = _iter_ts(full, None, invalid)
 
-    except IndexError:
-        print("ERROR TSName: Getting TS Name")
+    except IndexError as e:
+        logger_tslint.debug("get_valid_tsname: IndexError: getting ts name for {}, {}".format(invalid, e))
 
     if not valid:
-        print("ERROR TSName: No match: " + invalid)
+        logger_tslint.debug("get_valid_tsname: valid ts name not found for: {}".format(invalid))
         return invalid
 
     return valid
 
 
-def _iter_ts(full_list, category, invalid):
+def _iter_ts(full, category, invalid):
     """
     Match an invalid entry to one of the TSName synonyms.
-    :param category: (str) Name of category being searched
-    :param invalid: (str) Invalid tsname string
-    :return: (str) Valid tsname
+    :param str category: Name of category being searched
+    :param str invalid: Invalid tsname string
+    :return str: Valid tsname
     """
     valid = ''
 
@@ -207,14 +217,14 @@ def _iter_ts(full_list, category, invalid):
 
     # If one specific category is passed through
     if category:
-        for line in full_list[category]:
+        for line in full[category]:
             for key in line:
                 if invalid in key.lower():
                     valid = line[0]
                     break
     # If the entire TSNames dict is passed through (i.e. final effort, all categories have failed so far)
     else:
-        for k, v in full_list.items():
+        for k, v in full.items():
             for line in v:
                 for key in line:
                     if invalid in key.lower():

@@ -5,6 +5,10 @@ import urllib.error
 import io
 from .MapFrame import *
 
+from .loggers import *
+
+logger_google = create_logger("google")
+
 # GLOBALS
 APPLICATION_NAME = 'lipd'
 SCOPES = 'https://www.googleapis.com/auth/drive'
@@ -16,17 +20,19 @@ def get_google_csv(file_id, filename):
     Get a specific spreadsheet file from Google Drive using its FILE_ID.
     Write the spreadsheet on the local system as a CSV.
     TSNames ID: 1C135kP-SRRGO331v9d8fqJfa3ydmkG2QQ5tiXEHj5us
-    :param file_id: (str) Google File ID of target file
-    :param filename: (str) Optional: Override filename from google your specified filename
-    :return: (str) CSV Filename
+    :param str file_id: Google File ID of target file
+    :param str filename: (Optional) Override filename from google your specified filename
+    :return str: CSV Filename
     """
     # Download link format
     link_csv = 'https://docs.google.com/spreadsheet/ccc?key=' + file_id + '&output=csv&pref=2'
 
     try:
         urllib.request.urlretrieve(link_csv, filename)
-    except Exception:
+    except Exception as e:
+        logger_google.debug("get_google_csv: Error retrieving: {}, {}".format(filename, e))
         print("Error retrieving {}".format(filename))
+
     return filename
 
 
@@ -42,16 +48,16 @@ def get_static_google_map(filename_wo_ext, center=None, zoom=None, imgsize=(640,
     http://maps.google.com/maps/api/staticmap?center=Brooklyn+Bridge,New+York,NY&zoom=14&size=512x512&maptype=roadmap
     &markers=color:blue|label:S|40.702147,-74.015794&sensor=false
 
-    :param filename_wo_ext: (str) Filename without extension
-    :param center: (tuple of ints) Location to center the map frame
-    :param zoom: (int) Zoom amount from 0 (world) to 22 (streets)
-    :param imgsize: (tuple of ints) Map image size (max. 640x640)
-    :param imgformat: (str) Image format (jpg, bmp, png)
-    :param maptype: (str) Map Type (roadmap, satellite, hybrid, terrain)
-    :param markers: (list of str) Strings holding marker attributes
+    :param str filename_wo_ext: Filename without extension
+    :param tuple center: Location to center the map frame
+    :param int zoom: Zoom amount from 0 (world) to 22 (streets)
+    :param tuple imgsize: Map image size. Max size (640, 640)
+    :param str imgformat: Image format (jpg, bmp, png)
+    :param str maptype: Map Type (roadmap, satellite, hybrid, terrain)
+    :param list markers: Strings holding marker attributes
 
     """
-
+    logger_google.info("enter get_static_google_map")
     # Assemble the base URL. Append parameters separated by &
     request = "http://maps.google.com/maps/api/staticmap?"
 
@@ -93,12 +99,14 @@ def get_static_google_map(filename_wo_ext, center=None, zoom=None, imgsize=(640,
         # Show image in default image viewer
         pil_img.show()
         # Save as jpg
-        pil_img.save(filename_wo_ext+".jpg", "JPEG")
+        # pil_img.save(filename_wo_ext+".jpg", "JPEG")
         # m = Tk()
         # m.frame = MapFrame(m, pil_img, str(center))
         # m.mainloop()
 
     # if this cannot be read as image, it's probably an error from the server,
-    except IOError:
-        print("IOError:" + str(img_data.read()))  # print error (or it may return a image showing the error"
+    except IOError as e:
+        logger_google.debug("get_static_google_map: IOError: {}, {}".format(request, e))
+
+    logger_google.info("exit get_static_google_map")
 

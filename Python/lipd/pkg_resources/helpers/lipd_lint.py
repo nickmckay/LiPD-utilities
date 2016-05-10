@@ -3,19 +3,23 @@ import copy
 
 from ..helpers.directory import check_file_age
 from ..helpers.google import get_google_csv
+from ..helpers.loggers import *
+
+logger_lipd_lint = create_logger("lipd_lint")
 
 
 def lipd_lint(d):
     """
     Main lint function. Correct any invalid terms.
-    :param d: (dict) Unmodified metadata
-    :return: (dict) Modified metadata
+    :param dict d: Unmodified metadata
+    :return dict: Modified metadata
     """
+    logger_lipd_lint.info("enter lipd_lint")
     # Retrieve valid terms
     full, sections = _fetch_lipdnames()
     # Validate the metadata
     metadata = _verify_sections(full, d, sections)
-
+    logger_lipd_lint.info("exit lipd_lint")
     return metadata
 
 
@@ -23,23 +27,24 @@ def _fetch_lipdnames():
     """
     Call down a current version of terms spreadsheet from google. Convert to a structure better
     for comparisons.
-    :return: (full_list) Complete terms dictionary. Keys: Valid term, Values: Synonyms
+    :return dict: Complete terms dictionary. Keys: Valid term, Values: Synonyms
     """
     section = ''
     sections = ['@context']
-    full_list = {}
+    full = {}
 
     # Check if it's been longer than one day since updating the csv file.
     # If so, go fetch the file from google in case it's been updated since.
     # Or if file isn't found at all, download it also.
     if check_file_age('lipdnames.csv', 1):
         # Fetch sheet from google
-        print("Fetching update for lipdnames.csv")
+        logger_lipd_lint.info("fetching update for lipdnames.csv")
         _id = '1tlTQiVRdVOj-ccygIQALq0OFKwI84fnVXKI-8Ir_1Ms'
         get_google_csv(_id, 'lipdnames.csv')
 
     try:
-        # Start sorting the tsnames into an organized structure
+        # Start sorting the lint into an organized structure
+        logger_lipd_lint.info("organize lipdnames.csv")
         with open('lipdnames.csv', 'r') as f:
             r = csv.reader(f, delimiter=',')
             for idx, line in enumerate(r):
@@ -62,26 +67,28 @@ def _fetch_lipdnames():
                                     permutations.append(section + name)
 
                             # Add items to the lists
-                            if section not in full_list:
-                                full_list[section] = []
-                            full_list[section].append(line + permutations)
+                            if section not in full:
+                                full[section] = []
+                            full[section].append(line + permutations)
 
-    except FileNotFoundError:
-        print("CSV FileNotFound: lipdnames")
-
-    return full_list, sections
+    except FileNotFoundError as e:
+        print("CSV FileNotFound: lipdnames.csv")
+        logger_lipd_lint.debug("fetch_lipdnames: FileNotFound: lipdnames.csv, {}".format(e))
+    logger_lipd_lint.info("exit fetch_lipdnames")
+    return full, sections
 
 
 def _verify_sections(full, d, sections):
     """
     Verify terms by section (in case of overlapping terms)
-    :param full: (dict) Complete dictionary of terms
-    :param d: (dict) Unmodified metadata
-    :param sections: (list) Names of sections
-    :return: (dict) Modified metadata
+    :param dict full: Complete dictionary of terms
+    :param dict d: Unmodified metadata
+    :param list sections: Names of sections
+    :return dict: Modified metadata
     """
+    logger_lipd_lint.info("enter verify_sections")
     metadata = {}
-    quick = create_quick(full)
+    quick = _create_quick(full)
 
     for k, v in d.items():
         # Item is in root
@@ -97,16 +104,17 @@ def _verify_sections(full, d, sections):
         else:
             # Rogue key. Just keep it as-is
             metadata[k] = v
+    logger_lipd_lint.info("exit verify_sections")
     return metadata
 
 
 def _iter_root(full, section, key):
     """
     Single pass. Find valid key for root item.
-    :param full: (dict) Full list of valid keys and synonyms
-    :param section: (str) Name of current section
-    :param key: (str) Invalid key
-    :return: (str) Key, as-is or modified
+    :param dict full: Full list of valid keys and synonyms
+    :param str section: Name of current section
+    :param str key: Invalid key
+    :return str: Key, as-is or modified
     """
     try:
         for line in full[section]:
@@ -116,17 +124,18 @@ def _iter_root(full, section, key):
             else:
                 # No match found. Return original key
                 return key
-    except KeyError:
+    except KeyError as e:
+        logger_lipd_lint.warn("iter_root: KeyError: key: {}, {}".format(key, e))
         return key
 
 
 def _iter_section(full, quick, section, d1):
     """
     Multi-pass. Find valid keys for all items in one section.
-    :param full: (dict) Full list of valid keys and synonyms
-    :param section: (str) Name of current section
-    :param d1: (any) Unmodified data
-    :return: (any) Modified data
+    :param dict full: Full list of valid keys and synonyms
+    :param str section: Name of current section
+    :param any d1: Unmodified data
+    :return any: Modified data
     """
     tmp = {}
     switch = {}
@@ -167,24 +176,25 @@ def _iter_section(full, quick, section, d1):
     return d1
 
 
-def create_quick(d):
+def _create_quick(d):
     """
     Create a dict of lists of valid names for each section
-    :param d: (dict) Full term dictionary
-    :return: (dict) All valid terms separated by section
+    :param dict d: Full term dictionary
+    :return dict: All valid terms separated by section
     """
+    logger_lipd_lint.info("enter create_quick")
     quick = {}
     try:
-        for section_name, l in d.items():
+        for section_name, all_lists in d.items():
             section_quick = []
-            for ll in l:
+            for one_list in all_lists:
                 try:
-                    section_quick.append(ll[0])
-                except KeyError:
-                    pass
+                    section_quick.append(one_list[0])
+                except IndexError as e:
+                    logger_lipd_lint.debug("create_quick: IndexError at Idx 0: {}, {}".format(one_list, e))
             quick[section_name] = copy.deepcopy(section_quick)
-    except KeyError:
-        pass
-
+    except AttributeError as e:
+        logger_lipd_lint.debug("create_quick: AttributeError: Failed to create quick list, {}".format(e))
+    logger_lipd_lint.info("exit create_quick")
     return quick
 
