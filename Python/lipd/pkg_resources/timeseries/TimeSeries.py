@@ -1,4 +1,7 @@
 from ..helpers.jsons import *
+from ..helpers.loggers import create_logger
+
+logger_ts = create_logger('TimeSeries')
 
 
 class TimeSeries(object):
@@ -6,13 +9,14 @@ class TimeSeries(object):
         self.master = {}  # Master data. JSON metadata
         self.ts_name = ''  # TimeSeries Object name. <Dataset_table_column> format.
         self.lpd_name = ''  # LiPD filename. Original from LiPD object.
+        logger_ts.info("TimeSeries: object created")
 
     # LOADING
 
     def load(self, d):
         """
         Load TimeSeries metadata into object
-        :param d: (dict) TS Metadata
+        :param dict d: TS Metadata
         """
         self.master = d
         return
@@ -20,7 +24,7 @@ class TimeSeries(object):
     def set_ts_name(self, ts_name):
         """
         Set the filename to match LiPD filename counterpart
-        :param ts_name: (str) TimeSeries name. Dataset + table + column
+        :param str ts_name: TimeSeries name. Dataset + table + column
         """
         self.ts_name = ts_name
         return
@@ -28,7 +32,7 @@ class TimeSeries(object):
     def set_lpd_name(self, lpd_name):
         """
         Set the data set name for this TSO
-        :param lpd_name: (str) Name_ext from the LiPD object. Needed if converting back to LiPD.
+        :param str lpd_name: Name_ext from the LiPD object. Needed if converting back to LiPD.
         """
         self.lpd_name = lpd_name
         return
@@ -38,7 +42,7 @@ class TimeSeries(object):
     def get_master(self):
         """
         Retrieves the metadata from self.master
-        :return: (dict) Metadata
+        :return dict: Metadata
         """
         return self.master
 

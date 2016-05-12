@@ -1,4 +1,7 @@
 from .TimeSeries import TimeSeries
+from ..helpers.loggers import create_logger
+
+logger_ts_lib = create_logger('TimeSeries_Library')
 
 
 class TimeSeries_Library(object):
@@ -10,8 +13,9 @@ class TimeSeries_Library(object):
     def loadTso(self, name, d):
         """
         Load in a single TimeSeries Objects.
-        :param name: (str) TSO name
-        :param d: (dict) TSO metadata
+        :param str name: TSO name
+        :param dict d: TSO metadata
+        :return None:
         """
         t = TimeSeries()
         t.load(d)
@@ -21,8 +25,9 @@ class TimeSeries_Library(object):
     def loadTsos(self, name_ext, d):
         """
         Load in multiple TimeSeries Objects.
-        :param name_ext: (str) Need lpd filename in case we have to convert TSOs back to LiPDs.
-        :param d: (dict) All TSOs resulting from one LiPD file. K: TS names, V: TS metadata
+        :param str name_ext: Need lpd filename in case we have to convert TSOs back to LiPDs.
+        :param dict d: All TSOs resulting from one LiPD file. K: TS names, V: TS metadata
+        :return None:
         """
         # Create a TSO for each, and load into the TS_Library master
         for k, v in d.items():
@@ -38,19 +43,19 @@ class TimeSeries_Library(object):
     def showTso(self, name):
         """
         Show contents of one TSO object.
-        :param name:
-        :return:
+        :param str name:
+        :return None:
         """
         try:
             self.master[name].display_data()
-        except KeyError:
-            print("TimeSeries not found")
+        except KeyError as e:
+            print("TimeSeries object not found")
         return
 
     def showTsos(self):
         """
         Display all TimeSeries names in the TimeSeries_Library
-        :return:
+        :return None:
         """
         for name, tso in sorted(self.master.items()):
             print(name)
@@ -59,15 +64,15 @@ class TimeSeries_Library(object):
     def saveTso(self, tso):
         """
         Write data for one specified TSO to file.
-        :param tso: (obj)
-        :return:
+        :param obj tso:
+        :return None:
         """
         pass
 
     def saveTsos(self):
         """
         Write data from all TSOs to file.
-        :return:
+        :return None:
         """
         pass
 
@@ -78,7 +83,7 @@ class TimeSeries_Library(object):
     def get_master(self):
         """
         Get master list of TSO names and TSOs
-        :return: (dict) Master dictionary
+        :return dict: Master dictionary
         """
         return self.master
 

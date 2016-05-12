@@ -134,7 +134,7 @@ def getMetadata(filename):
     try:
         d = lipd_lib.getMetadata(filename)
     except KeyError:
-        print("ERROR: Unable to find LiPD file")
+        print("Error: Unable to find LiPD file")
         logger_start.warn("KeyError: Unable to find record {}".format(filename))
     print("Process Complete")
     return d
@@ -150,7 +150,7 @@ def getCsv(filename):
     try:
         d = lipd_lib.getCsv(filename)
     except KeyError:
-        print("ERROR: Unable to find record")
+        print("Error: Unable to find record")
         logger_start.warn("Unable to find record {}".format(filename))
     print("Process Complete")
     return d

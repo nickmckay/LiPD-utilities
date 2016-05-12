@@ -7,6 +7,7 @@ import requests
 from ..helpers.jsons import *
 from ..helpers.loggers import create_logger
 
+
 logger_doi_resolver = create_logger("doi_resolver")
 
 
@@ -22,7 +23,7 @@ class DOIResolver(object):
         """
         :param str dir_root: Path to dir containing all .lpd files
         :param str name: Name of current .lpd file
-        :param dict root_dict: Full dict loaded from jsonld file
+        :param dict: Full dict loaded from jsonld file
         """
         self.dir_root = dir_root
         self.name = name

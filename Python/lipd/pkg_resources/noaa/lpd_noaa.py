@@ -3,19 +3,22 @@ import shutil
 
 from ..helpers.alternates import *
 from ..helpers.regexes import *
+from ..helpers.loggers import create_logger
+
+logger_lpd_noaa = create_logger("lpd_noaa")
 
 
 class LPD_NOAA(object):
     """
     Creates a NOAA object that contains all the functions needed to write out a LiPD file as a NOAA text file.
-    :return: (txt) NOAA File
+    :return str: NOAA text file
     """
 
     def __init__(self, dir_root, name, root_dict):
         """
-        :param dir_root: (str) Path to dir containing all .lpd files
-        :param name: (str) Name of current .lpd file
-        :param root_dict: (dict) Full dict loaded from jsonld file
+        :param str dir_root: Path to dir containing all .lpd files
+        :param str name: Name of current .lpd file
+        :param dict root_dict: Full dict loaded from jsonld file
         """
         self.dir_root = dir_root
         self.name = name
@@ -27,30 +30,26 @@ class LPD_NOAA(object):
     def __csv_found(filename):
         """
         Check for CSV file. Make sure it exists before we try to open it.
-        :param filename: (str) Name of the file to open.
-        :return: none
+        :param str filename: Name of the file to open.
+        :return none:
         """
         found = False
-
         # Current Directory
-        # tmp/filename/data (access to jsonld, changelog, csv, etc)
-
+        # tmp/filename/data (access to jsonld, changelog, csv, etc
         try:
             # Attempt to open csv
             if open(filename):
                 found = True
-                # print("{0} - found {1} csv".format(filename, datatype))
-        except FileNotFoundError:
-            # print("{0} - no {1} csv".format(filename, datatype))
-            pass
+        except FileNotFoundError as e:
+            logger_lpd_noaa.debug("csv_found: FileNotFound: no csv/couldn't open file, {}".format(e))
         return found
 
     @staticmethod
     def __get_mv(d):
         """
         Get missing value from root of data table dictionary.
-        :param d: (dict) Data table
-        :return: (str) Missing value or empty str.
+        :param dict d: Data table
+        :return str: Missing value or empty str.
         """
         if 'missingValue' in d:
             return d['missingValue']
@@ -60,7 +59,7 @@ class LPD_NOAA(object):
     def __underscore(key):
         """
         Convert camelCase to underscore
-        :param key: (str) Key or title name
+        :param str key: Key or title name
         """
 
         # Special keys that need a specific key change
@@ -84,8 +83,8 @@ class LPD_NOAA(object):
     def __split_path(string):
         """
         Used in the path_context function. Split the full path into a list of steps
-        :param string: (str) Path string ("geo-elevation-height")
-        :return out: (list) Path as a list of strings. One entry per path step.(["geo", "elevation", "height"])
+        :param str string: Path string ("geo-elevation-height")
+        :return list out: Path as a list of strings. One entry per path step.(["geo", "elevation", "height"])
         """
         out = []
         position = string.find(':')
@@ -104,8 +103,8 @@ class LPD_NOAA(object):
     def __get_corelength(d):
         """
         Get the value and unit to write the Core Length line
-        :param d:
-        :return val, unit:(int) Value (str) Unit
+        :param dict d:
+        :return int str: Value, Unit
         """
         # If d is a string, it'll throw a type error
         if not isinstance(d, str):
@@ -121,19 +120,19 @@ class LPD_NOAA(object):
         return '', ''
 
     @staticmethod
-    def __get_identifier(d):
+    def __get_identifier(l):
         """
         Get DOI id and url from identifier dictionary.
-        :param d: (list) Identifier list. (Should only have one dictionary in it)
-        :return: (str) DOI id, (str) DOI url
+        :param list l: Identifier list. (Should only have one dictionary in it)
+        :return str str: DOI id, DOI url
         """
-        if not isinstance(d, str):
+        if not isinstance(l, str):
             try:
-                doi_id = d[0]['id']
+                doi_id = l[0]['id']
             except KeyError:
                 doi_id = ''
             try:
-                doi_url = d[0]['url']
+                doi_url = l[0]['url']
             except KeyError:
                 doi_url = ''
             return doi_id, doi_url
@@ -145,9 +144,9 @@ class LPD_NOAA(object):
         All keys need to be written to the output, with or without a value. Furthermore, only keys that have values
         exist at this point. We need to manually insert the other keys with a blank value. Loop through the global list
         to see what's missing in our dict.
-        :param section_num: (int) Retrieve data from global dict for this number.
-        :param d: (dict) Section of steps_dict
-        :return: none
+        :param int section_num: Retrieve data from global dict for this number.
+        :param dict d: Section of steps_dict
+        :return none:
         """
         for key in NOAA_ORDERING[section_num]:
             if key not in d and key not in NOAA_SECTIONS[13]:
@@ -157,24 +156,29 @@ class LPD_NOAA(object):
 
     @staticmethod
     def __get_filename(table):
+        """
+        Get filename from a data table
+        :param dict table:
+        :return str:
+        """
         try:
             filename = table['filename']
-        except KeyError:
+        except KeyError as e:
             filename = ''
+            logger_lpd_noaa.warning("get_filename: KeyError: Table missing filename, {}".format(e))
         return filename
 
     @staticmethod
     def __coordinates(l, d):
         """
         Reorganize coordinates based on how many values are available.
-        :param l: (list of float) Coordinate values
-        :param d: (dict) Location with cooresponding values
-        :return:
+        :param list of float l: Coordinate values
+        :param dict d: Location with corresponding values
+        :return dict:
         """
-
         length = len(l)
         locations = ['northernmostLatitude', 'easternmostLongitude', 'southernmostLatitude', 'westernmostLongitude']
-
+        logger_lpd_noaa.info("coordinates: {} coordinates found".format(length))
         if length == 0:
             for location in locations:
                 d[location] = ' '
@@ -183,64 +187,70 @@ class LPD_NOAA(object):
             d[locations[1]] = l[1]
             d[locations[2]] = l[0]
             d[locations[3]] = l[1]
-
         elif length == 4:
             for index, location in enumerate(locations):
                 d[locations[index]] = l[index]
-
         return d
 
     def main(self):
         """
         Load in the template file, and run through the parser
-        :return:
+        :return none:
         """
-
+        logger_lpd_noaa.info("enter main")
         # Starting Directory: dir_tmp/dir_bag/data/
-
         # NOAA files are organized in sections, but jld is not. Reorganize to match NOAA template.
         for k, v in self.root_dict.items():
             self.__reorganize(k, v)
-
         # Use data in steps_dict to write to
         self.__write_file()
-
+        logger_lpd_noaa.info("exit main")
         return
 
     def __write_file(self):
         """
         Open text file. Write one section at a time. Close text file. Move completed file to dir_root/noaa/
-        :return: none
+        :return none:
         """
+        logger_lpd_noaa.info("enter write_file")
+        noaa_txt = None
+        try:
+            noaa_txt = open(self.name_txt, "w+")
+            logger_lpd_noaa.info("opened output txt file")
+        except Exception as e:
+            logger_lpd_noaa.debug("write_file: Failed to open output txt file, {}".format(e))
 
-        noaa_txt = open(self.name_txt, "w+")
-        self.__write_top(noaa_txt, 1)
-        self.__write_generic(noaa_txt, 'Contribution_Date', 2, self.steps_dict[2])
-        self.__write_generic(noaa_txt, 'Title', 3, self.steps_dict[3])
-        self.__write_generic(noaa_txt, 'Investigators', 4, self.steps_dict[4])
-        self.__write_generic(noaa_txt, 'Description_Notes_and_Keywords', 5, self.steps_dict[5])
-        self.__write_pub(noaa_txt, self.steps_dict[6]['pub'])
-        self.__write_funding(noaa_txt, self.steps_dict[7])
-        self.__write_geo(noaa_txt, self.steps_dict[8])
-        self.__write_generic(noaa_txt, 'Data_Collection', 9, self.steps_dict[9])
-        self.__write_generic(noaa_txt, 'Species', 10, self.steps_dict[10])
-        # self.write_chron(noaa_txt, self.steps_dict[11])
+        if noaa_txt:
+            self.__write_top(noaa_txt, 1)
+            self.__write_generic(noaa_txt, 'Contribution_Date', 2, self.steps_dict[2])
+            self.__write_generic(noaa_txt, 'Title', 3, self.steps_dict[3])
+            self.__write_generic(noaa_txt, 'Investigators', 4, self.steps_dict[4])
+            self.__write_generic(noaa_txt, 'Description_Notes_and_Keywords', 5, self.steps_dict[5])
+            self.__write_pub(noaa_txt, self.steps_dict[6]['pub'])
+            self.__write_funding(noaa_txt, self.steps_dict[7])
+            self.__write_geo(noaa_txt, self.steps_dict[8])
+            self.__write_generic(noaa_txt, 'Data_Collection', 9, self.steps_dict[9])
+            self.__write_generic(noaa_txt, 'Species', 10, self.steps_dict[10])
+            # self.write_chron(noaa_txt, self.steps_dict[11])
 
         # Run once for each table. Keep variables and related data grouped
         for table in self.steps_dict[12]['paleoData']:
             self.__write_variables(noaa_txt, table)
             self.__write_numbers(noaa_txt, table)
         noaa_txt.close()
+        logger_lpd_noaa.info("closed output text file")
         shutil.copy(os.path.join(os.getcwd(), self.name_txt), self.dir_root)
+        logger_lpd_noaa.info("exit write_file")
         return
 
     def __write_top(self, noaa_txt, section_num):
         """
         Write the top section of the txt file.
-        :param noaa_txt: (obj) Output .txt file that is being written to.
-        :param section_num: (int) Section number
-        :return: none
+        :param obj noaa_txt: Output .txt file that is being written to.
+        :param int section_num: Section number
+        :return none:
         """
+        logger_lpd_noaa.info("writing section: {}".format("top"))
         self.__create_blanks(section_num, self.steps_dict[section_num])
         noaa_txt.write(
             '# ' + self.steps_dict[section_num]['studyName'] +
@@ -264,18 +274,19 @@ class LPD_NOAA(object):
             \n#\
             \n# Parameter_Keywords: ' + self.steps_dict[section_num]['parameterKeywords'] + '\
             \n#--------------------\n')
-
+        logger_lpd_noaa.info("exit write_top")
         return
 
     def __write_generic(self, noaa_txt, header, section_num, d):
         """
         Write a generic section to the .txt. This function is reused for multiple sections.
-        :param noaa_txt: (obj) Output .txt file that is being written to.
-        :param header: (str) Header title for this section
-        :param section_num: (int)
-        :param d: (dict) Section from steps_dict
-        :return: none
+        :param obj noaa_txt: Output .txt file that is being written to.
+        :param str header: Header title for this section
+        :param int section_num:
+        :param dict d: Section from steps_dict
+        :return none:
         """
+        logger_lpd_noaa.info("writing section: {}".format(header))
         self.__create_blanks(section_num, d)
         noaa_txt.write('# ' + header + ' \n')
         for entry in NOAA_ORDERING[section_num]:
@@ -294,32 +305,34 @@ class LPD_NOAA(object):
     def __write_pub(self, noaa_txt, pub_root):
         """
         Write pub section. There may be multiple, so write a generic section for each one.
-        :param noaa_txt: (obj) Output .txt file that is being written to.
-        :param pub_root: (list) One or more pub dictionaries.
-        :return: none
+        :param obj noaa_txt: Output .txt file that is being written to.
+        :param list pub_root: One or more pub dictionaries.
+        :return none:
         """
-        for pub in pub_root:
+        for idx, pub in enumerate(pub_root):
+            logger_lpd_noaa.info("publication: {}".format(idx))
             self.__write_generic(noaa_txt, 'Publication', 6, pub)
         return
 
     def __write_funding(self, noaa_txt, d):
         """
-
-        :param noaa_txt:
-        :param d:
-        :return:
+        Write funding section. There are likely multiple entries.
+        :param obj noaa_txt:
+        :param dict d:
+        :return none:
         """
         for key, fund_list in d.items():
-            for fund in fund_list:
+            for idx, fund in enumerate(fund_list):
+                logger_lpd_noaa.info("funding: {}".format(idx))
                 self.__write_generic(noaa_txt, 'Funding_Agency', 7, fund)
         return
 
     def __write_geo(self, noaa_txt, d):
         """
-
-        :param noaa_txt:
-        :param d:
-        :return:
+        Write geo section. Organize before writing to file.
+        :param obj noaa_txt:
+        :param dict d:
+        :return none:
         """
         for k, v in d.items():
             d = self.__reorganize_geo(v)
@@ -328,24 +341,23 @@ class LPD_NOAA(object):
 
     def __write_chron(self, noaa_txt, d):
         """
-
-        :param file_in:
-        :param noaa_txt:
-        :param d:
-        :return:
+        Write chronology section.
+        :param obj noaa_txt:
+        :param dict d:
+        :return none:
         """
+        logger_lpd_noaa.info("writing section: {}".format("chronology"))
         noaa_txt.write('# Chronology:\n#\n')
-
         if self.__csv_found('chron'):
             cols = d['chronology']['columns']
             # Write variables line from dict_in
             for index, col in enumerate(cols):
                 if index == 0:
-                    noaa_txt.write('#       ' + col['parameter'] + ' (' + col['units'] + ')  | ')
+                    noaa_txt.write('#       ' + col['variableName'] + ' (' + col['units'] + ')  | ')
                 elif index == len(cols)-1:
-                    noaa_txt.write(col['parameter'] + ' (' + col['units'] + ')\n')
+                    noaa_txt.write(col['variableName'] + ' (' + col['units'] + ')\n')
                 else:
-                    noaa_txt.write(col['parameter'] + ' (' + col['units'] + ')  | ')
+                    noaa_txt.write(col['variableName'] + ' (' + col['units'] + ')  | ')
             # Iter over CSV and write line for line
             with open(self.name + '-chronology.csv', 'r') as f:
                 for line in iter(f):
@@ -363,12 +375,13 @@ class LPD_NOAA(object):
     def __write_numbers(self, noaa_txt, table):
         """
         Read numeric data from csv and write to the bottom section of the txt file.
-        :param noaa_txt:(obj) Output text file
-        :param table: (dict) Paleodata dictionary
-        :return: none
+        :param obj noaa_txt: Output text file
+        :param dict table: Paleodata dictionary
+        :return none:
         """
-
+        logger_lpd_noaa.info("writing section: data, csv values from file")
         filename = self.__get_filename(table)
+        logger_lpd_noaa.info("processing csv file: {}".format(filename))
         mv = self.__get_mv(table)
         noaa_txt.write('# Data:\
         \n# Data lines follow (have no #)\
@@ -376,11 +389,12 @@ class LPD_NOAA(object):
         \n# Missing_Values: ' + mv + '\n#\n')
 
         if self.__csv_found(filename):
+            logger_lpd_noaa.info("found csv file: {}".format(filename))
             # Write variables line from dict_in
             count = len(table['columns'])
             for col in table['columns']:
                 try:
-                    param = col['parameter']
+                    param = col['variableName']
                 except KeyError:
                     param = 'N/A'
                 if count == 1:
@@ -391,6 +405,7 @@ class LPD_NOAA(object):
             noaa_txt.write('\n')
             # Iter over CSV and write line for line
             with open(filename, 'r') as f:
+                logger_lpd_noaa.info("opened csv file: {}".format(filename))
                 for line in iter(f):
                     line = line.split(',')
                     for index, value in enumerate(line):
@@ -404,47 +419,49 @@ class LPD_NOAA(object):
     def __write_variables(self, noaa_txt, table):
         """
         Retrieve variables from data table(s) and write to Variables section of txt file.
-        :param noaa_txt:(obj) Output text file
-        :param table: (dict) Paleodata dictionary
-        :return: none
+        :param obj noaa_txt: Output text file
+        :param dict table: Paleodata dictionary
+        :return none:
         """
+        logger_lpd_noaa.info("writing section: {}".format("Variables"))
         filename = self.__get_filename(table)
         noaa_txt.write('# Variables\n#\
             \n# Filename: ' + filename +
             '\n#\n# Data variables follow that are preceded by "##" in columns one and two.\
             \n# Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components ( 9 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or Numeric data)\n#\n')
-        for col in table['columns']:
-            # Write one line for each column. One line has all metadata for one column.
-            for entry in NOAA_ORDERING[11]:
-                # ---FIX--------FIX--------FIX--------FIX--------FIX-----
-                # May need a better way of handling this in the future. Need a strict list for this section.
-                try:
-                    if entry == 'parameter':
-                        # First entry: Double hash and tab
-                        noaa_txt.write('{:<20}'.format('##' + col[entry]))
-                    elif entry == 'dataType':
-                        # Last entry: No space or comma
-                        noaa_txt.write('{:<0}'.format(col[entry]))
-                    else:
-                        # Space and comma after middle entries
-                        noaa_txt.write('{:<3}'.format(col[entry] + ', '))
-                except KeyError:
-                    noaa_txt.write('{:<3}'.format(', '))
-            noaa_txt.write('\n')
+        try:
+            for col in table['columns']:
+                # Write one line for each column. One line has all metadata for one column.
+                for entry in NOAA_ORDERING[11]:
+                    # ---FIX--------FIX--------FIX--------FIX--------FIX-----
+                    # May need a better way of handling this in the future. Need a strict list for this section.
+                    try:
+                        if entry == 'variableName':
+                            # First entry: Double hash and tab
+                            noaa_txt.write('{:<20}'.format('##' + col[entry]))
+                        elif entry == 'dataType':
+                            # Last entry: No space or comma
+                            noaa_txt.write('{:<0}'.format(col[entry]))
+                        else:
+                            # Space and comma after middle entries
+                            noaa_txt.write('{:<3}'.format(col[entry] + ', '))
+                    except KeyError as e:
+                        noaa_txt.write('{:<3}'.format(', '))
+                        logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
+                noaa_txt.write('\n')
+        except KeyError as e:
+            logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
         noaa_txt.write('#\n#------------------\n')
         return
 
     def __reorganize_geo(self, d):
         """
         Concat geo value and units, and reorganize the rest
-        :param d:
-        :return:
+        :param dict d:
+        :return dict:
         """
-
-        # The new dict that will be returned
+        logger_lpd_noaa.info("enter reorganize_geo")
         d_tmp = {}
-
-        # Properties
         try:
             for k, v in d['properties'].items():
                 if k == 'elevation':
@@ -453,103 +470,69 @@ class LPD_NOAA(object):
                     d_tmp[k] = v
             # Geometry
             d_tmp = self.__coordinates(d['geometry']['coordinates'], d_tmp)
-
-        except KeyError:
+        except KeyError as e:
             d_tmp = {}
-
+            logger_lpd_noaa.debug("reorganize_geo: KeyError: improper format, {}".format(e))
         return d_tmp
 
     def __reorganize(self, key, value):
         """
-
-        :param dict_in:
-        :param key:
-        :param value:
-        :return:
+        Reorganize the keys into their proper section order for the NOAA output file
+        :param str key:
+        :param any value:
+        :return none:
         """
-
+        logger_lpd_noaa.info("enter reorganize")
         # If the key isn't in any list, stash it in number 13 for now
         number = 13
-
-        if key in NOAA_SECTIONS[1]:
-            # StudyName only triggers once, append to section 3 also
-            if key == 'studyName':
-                self.steps_dict[3][key] = value
-            number = 1
-        elif key in NOAA_SECTIONS[2]:
-            number = 2
-        elif key in NOAA_SECTIONS[4]:
-            number = 4
-        elif key in NOAA_SECTIONS[5]:
-            number = 5
-        elif key in NOAA_SECTIONS[6]:
-            number = 6
-        elif key in NOAA_SECTIONS[7]:
-            number = 7
-        elif key in NOAA_SECTIONS[8]:
-            number = 8
-        elif key in NOAA_SECTIONS[9]:
-            number = 9
-        elif key in NOAA_SECTIONS[10]:
-            number = 10
-        elif key in NOAA_SECTIONS[11]:
-            number = 11
-        elif key in NOAA_SECTIONS[12]:
-            number = 12
+        for k, v in NOAA_SECTIONS.items():
+            if key in v:
+                if key == 'studyName':
+                    self.steps_dict[3][key] = value
+                number = k
         self.steps_dict[number][key] = value
-
         return
 
-    def __path_context(self, flat_file):
-        """
-        Turns the flattened json list back in to a usable dictionary structure
-        :param flat_file:
-        :return:
-        """
+    # DEPRECATED
 
-        new_dict = {}
-
-        # Lists to recompile Values and Units
-        elev = []
-        core = []
-
-        # Print out each item in the list for debugging
-        for item in flat_file:
-            split_list = self.__split_path(item)
-            lst_len = len(split_list)
-            value = split_list[lst_len-1]
-
-            if 'Latitude' in split_list:
-                if 'Max' in split_list:
-                    new_dict['Northernmost_Latitude'] = value
-
-                elif 'Min' in split_list:
-                    new_dict['Southernmost_Latitude'] = value
-
-            elif 'Longitude' in split_list:
-                if 'Max' in split_list:
-                    new_dict['Easternmost_Longitude'] = value
-
-                elif 'Min' in split_list:
-                    new_dict['Westernmost_Longitude'] = value
-
-            elif 'Elevation' in split_list:
-                elev.append(value)
-
-            elif 'CoreLength' in split_list:
-                core.append(value)
-
-            else:
-                if len(split_list) > 2:
-                    key = lst_len - 2
-                    new_dict[split_list[key]] = value
-
-                else:
-                    new_dict[split_list[0]] = split_list[1]
-
-        if core:
-            new_dict['Core_Length'] = self.concat_units(core)
-        if elev:
-            new_dict['Elevation'] = self.concat_units(elev)
-
-        return new_dict
+    # def __path_context(self, flat_file):
+    #     """
+    #     Turns the flattened json list back in to a usable dictionary structure
+    #     :param list flat_file:
+    #     :return dict:
+    #     """
+    #     new_dict = {}
+    #     # Lists to recompile Values and Units
+    #     elev = []
+    #     core = []
+    #     # Print out each item in the list for debugging
+    #     for item in flat_file:
+    #         split_list = self.__split_path(item)
+    #         lst_len = len(split_list)
+    #         value = split_list[lst_len-1]
+    #         if 'Latitude' in split_list:
+    #             if 'Max' in split_list:
+    #                 new_dict['Northernmost_Latitude'] = value
+    #             elif 'Min' in split_list:
+    #                 new_dict['Southernmost_Latitude'] = value
+    #         elif 'Longitude' in split_list:
+    #             if 'Max' in split_list:
+    #                 new_dict['Easternmost_Longitude'] = value
+    #             elif 'Min' in split_list:
+    #                 new_dict['Westernmost_Longitude'] = value
+    #         elif 'Elevation' in split_list:
+    #             elev.append(value)
+    #
+    #         elif 'CoreLength' in split_list:
+    #             core.append(value)
+    #         else:
+    #             if len(split_list) > 2:
+    #                 key = lst_len - 2
+    #                 new_dict[split_list[key]] = value
+    #             else:
+    #                 new_dict[split_list[0]] = split_list[1]
+    #     if core:
+    #         new_dict['Core_Length'] = self.concat_units(core)
+    #     if elev:
+    #         new_dict['Elevation'] = self.concat_units(elev)
+    #     return new_dict

@@ -7,6 +7,9 @@ from ..helpers.google import get_google_csv
 from ..helpers.directory import check_file_age
 from ..helpers.regexes import *
 from ..helpers.blanks import *
+from ..helpers.loggers import create_logger
+
+logger_convert = create_logger('Convert')
 
 
 class Convert(object):
@@ -42,8 +45,9 @@ class Convert(object):
     def ts_extract_main(self, d):
         """
         Main function to initiate LiPD to TSOs conversion.
-        :param d: (dict) Metadata for one LiPD file
+        :param dict d: Metadata for one LiPD file
         """
+        logger_convert.info("enter ts_extract_main")
         # Reset these each run
         self.ts_root = {}
         self.ts_tsos = {}
@@ -69,14 +73,15 @@ class Convert(object):
         # Get TSNames and verify against TSOs in ts_tsos
         self.__fetch_tsnames()
         self.__verify_tsnames()
-
+        logger_convert.info("exit ts_extract_main")
         return self.ts_tsos
 
     def __ts_extract_funding(self, l):
         """
         Creates flat funding dictionary.
-        :param l: (list) Funding entries
+        :param list l: Funding entries
         """
+        logger_convert.info("enter ts_extract_funding")
         for idx, i in enumerate(l):
             for k, v in i.items():
                 self.ts_root['funding' + str(idx+1) + '_' + k] = v
@@ -85,8 +90,9 @@ class Convert(object):
     def __ts_extract_geo(self, d):
         """
         Extract geo data from input
-        :param d: (d) Geo dictionary
+        :param dict d: Geo
         """
+        logger_convert.info("enter ts_extract_geo")
         # May not need these if the key names are corrected in the future.
         x = ['geo_meanLat', 'geo_meanLon', 'geo_meanElev']
         # Iterate through geo dictionary
@@ -109,67 +115,67 @@ class Convert(object):
                         else:
                             # Set the value as a float into its entry.
                             self.ts_root[x[idx]] = float(p)
-
-                    except IndexError:
-                        continue
+                    except IndexError as e:
+                        logger_convert.warn("ts_extract_geo: IndexError: idx: {}, val: {}, {}".format(idx, p, e))
             # Case 2: Any value that is a string can be added as-is
             elif isinstance(v, str):
                 if k == 'meanElev':
                     try:
                         # Some data sets have meanElev listed under properties for some reason.
                         self.ts_root['geo_' + k] = float(v)
-                    except ValueError:
+                    except ValueError as e:
                         # If the value is a string, then we don't want it
-                        continue
+                        logger_convert.warn("ts_extract_geo: ValueError: meanElev is a string: {}, {}".format(v, e))
                 else:
                     self.ts_root['geo_' + k] = v
             # Case 3: Nested dictionary. Recursion
             elif isinstance(v, dict):
                 self.__ts_extract_geo(v)
-
         return
 
     def __ts_extract_pub(self, l):
         """
         Extract publication data from one or more publication entries.
-        :param l: (list) Publication list
+        :param list l: Publication
         """
+        logger_convert.info("enter ts_extract")
         # For each publication entry
         for idx, pub in enumerate(l):
+            logger_convert.info("processing publication #: {}".format(idx))
             # Get author data first, since that's the most ambiguously structured data.
             self.__ts_extract_authors(pub, idx)
-
             # Go through data of this publication
             for k, v in pub.items():
                 # Case 1: DOI ID. Don't need the rest of 'identifier' dict
                 if k == 'identifier':
                     try:
                         self.ts_root['pub' + str(idx+1) + '_DOI'] = v[0]['id']
-                    except KeyError:
-                        continue
+                    except KeyError as e:
+                        logger_convert.warn("ts_extract_pub: KeyError: no doi id: {}, {}".format(v, e))
                 # Case 2: All other string entries
                 else:
                     if k != 'authors' and k != 'author':
                         self.ts_root['pub' + str(idx+1) + '_' + k] = v
-
         return
 
     def __ts_extract_authors(self, pub, idx):
         """
         Create a concatenated string of author names. Separate names with semi-colons.
-        :param pub: (unknown type) Publication author structure is ambiguous
-        :param idx: (int) Index number of Pub
+        :param any pub: Publication author structure is ambiguous
+        :param int idx: Index number of Pub
         """
+        logger_convert.info("enter ts_extract_authors")
         try:
             # DOI Author data. We'd prefer to have this first.
             names = pub['author']
-        except KeyError:
+        except KeyError as e:
             try:
                 # Manually entered author data. This is second best.
                 names = pub['authors']
-            except KeyError:
+            except KeyError as e:
                 # Couldn't find any author data. Skip it altogether.
                 names = False
+                logger_convert.warn("ts_extract_authors: KeyError: could not find author data, {}".format(e))
 
         # If there is author data, find out what type it is
         if names:
@@ -196,23 +202,24 @@ class Convert(object):
         :param dict d: Metadata dictionary
         :return dict:
         """
+        logger_convert.info("enter ts_extract_chron")
         # TODO make a pandas data frame out of the chron variables and values.
         s = {}
         try:
             for table_name, table_data in d.items():
                 for col, col_data in table_data["columns"].items():
                     s[col] = pd.Series(col_data["values"])
-        except KeyError:
-            pass
-
+        except KeyError as e:
+            logger_convert.warn("ts_extract_chron: KeyError: missing columns/values, {}".format(e))
         self.ts_root['chronData_df'] = pd.DataFrame(s)
         return
 
     def __ts_extract_paleo(self, d):
         """
         Extract all data from a PaleoData dictionary.
-        :param d: (dict) PaleoData dictionary
+        :param dict d: PaleoData dictionary
         """
+        logger_convert.info("enter ts_extract_paleo")
         try:
             # For each table in paleoData
             for k, v in d['paleoData'].items():
@@ -220,7 +227,6 @@ class Convert(object):
                 self.__ts_extract_paleo_table_root(v)
                 # Add age, depth, and year columns to ts_root if available
                 self.__ts_extract_special(v)
-
                 # Start creating TSOs with dictionary copies.
                 for i, e in v['columns'].items():
                     if not any(x in i for x in ('age', 'depth', 'year')):
@@ -228,11 +234,11 @@ class Convert(object):
                         col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
                         try:
                             self.ts_tsos[d['dataSetName'] + '_' + k + '_' + i] = col
-                        except KeyError:
+                        except KeyError as e:
                             self.ts_tsos['dataset' + '_' + k + '_' + i] = col
-
-        except KeyError:
-            pass
+                            logger_convert.warn("ts_extract_paleo: KeyError: datasetname not found, {}".format(e))
+        except KeyError as e:
+            logger_convert.warn("ts_Extract_paleo: KeyError: paleoData/columns not found, {}".format(e))
         return
 
     def __ts_extract_special(self, d):
@@ -241,6 +247,7 @@ class Convert(object):
         :param dict d: Column data
         :return:
         """
+        logger_convert.info("enter ts_extract_special")
         # Add age, year, and depth columns to ts_root where possible
         for i, e in d['columns'].items():
             if any(x in i for x in ('age', 'depth', 'year')):
@@ -253,16 +260,17 @@ class Convert(object):
                     try:
                         self.ts_root[s] = e['values']
                         self.ts_root[s + 'Units'] = e['units']
-                    except KeyError:
+                    except KeyError as e:
                         # Values key was not found.
-                        pass
+                        logger_convert.warn("ts_extract_special: KeyError: values/units not found, {}".format(e))
         return
 
     def __ts_extract_paleo_table_root(self, d):
         """
         Extract data from the root level of a paleoData table.
-        :param d: (dict) One paleoData table
+        :param dict d: One paleoData table
         """
+        logger_convert.info("enter ts_extract_paleo_table_root")
         for k, v in d.items():
             if isinstance(v, str):
                 self.ts_root['paleoData_' + k] = v
@@ -271,10 +279,11 @@ class Convert(object):
     def __ts_extract_paleo_columns(self, d, tmp_tso):
         """
         Extract data from one paleoData column
-        :param d: (dict) Column dictionary
-        :param tmp_tso: (dict) TSO dictionary with only root items
-        :return: (dict) Finished TSO
+        :param dict d: Column dictionary
+        :param dict tmp_tso: TSO dictionary with only root items
+        :return dict: Finished TSO
         """
+        logger_convert.info("enter ts_extract_paleo_columns")
         for k, v in d.items():
             if k == 'climateInterpretation':
                 tmp_tso = self.__ts_extract_climate(v, tmp_tso)
@@ -289,10 +298,11 @@ class Convert(object):
     def __ts_extract_calibration(d, tmp_tso):
         """
         Get calibration info from column data.
-        :param d: (dict) Calibration dictionary
-        :param tmp_tso: (dict) Temp TSO dictionary
-        :return: (dict) tmp_tso with added calibration entries
+        :param dict d: Calibration dictionary
+        :param dict tmp_tso: Temp TSO dictionary
+        :return dict: tmp_tso with added calibration entries
         """
+        logger_convert.info("enter ts_extract_calibration")
         for k, v in d.items():
             tmp_tso['calibration_' + k] = v
         return tmp_tso
@@ -301,10 +311,11 @@ class Convert(object):
     def __ts_extract_climate(d, tmp_tso):
         """
         Get climate interpretation from column data.
-        :param d: (dict) Climate Interpretation dictionary
-        :param tmp_tso: (dict) Temp TSO dictionary
-        :return: (dict) tmp_tso with added climateInterpretation entries
+        :param dict d: Climate Interpretation dictionary
+        :param dict tmp_tso: Temp TSO dictionary
+        :return dict: tmp_tso with added climateInterpretation entries
         """
+        logger_convert.info("enter ts_extract_climate")
         for k, v in d.items():
             tmp_tso['climateInterpretation_' + k] = v
         return tmp_tso
@@ -314,9 +325,10 @@ class Convert(object):
     def lipd_extract_main(self, lipd_tsos):
         """
         Main function to initiate TimeSeries to LiPD conversion
-        :param lipd_tsos: (list of dict) List of all TSOs
+        :param list of dict lipd_tsos: List of all TSOs
         :return:
         """
+        logger_convert.info("enter lipd_extract_main")
         # Reset for each run
         self.lipd_tsos = lipd_tsos  # All TSO metadata dictionaries
         self.lipd_master = {}  # All lipds (in progress) by dataset name. Key: LiPD name, Val: JSON metadata
@@ -326,6 +338,7 @@ class Convert(object):
         for tso in self.lipd_tsos:
             # Set current keys
             self.dataset_ext = tso['name']
+            logger_convert.info("processing tso: {}".format(self.dataset_ext))
             self.lipd_curr_tso_data = tso['data']
             self.__lipd_set_current()
 
@@ -335,25 +348,28 @@ class Convert(object):
 
             # Extract PaleoData, Calibration, and Climate Interpretation
             self.__lipd_extract_paleo()
-
+        logger_convert.info("exit lipd_extract_main")
         return self.lipd_master
 
     def __lipd_set_current(self):
         """
         Set keys for current TSO file
         """
+        logger_convert.info("enter lipd_set_current")
         # Get key info
         try:
             self.table = self.lipd_curr_tso_data['paleoData_paleoDataTableName']
             self.variableName = self.lipd_curr_tso_data['paleoData_variableName']
-        except KeyError:
-            print("KeyError: Initial keys")
+        except KeyError as e:
+            print("Error: failed to convert {}".format(self.dataset_ext))
+            logger_convert.warn("lipd_set_current: KeyError: pd table/variable name not found, {}".format(e))
         return
 
     def __lipd_extract_roots(self):
         """
         Extract root from TimeSeries
         """
+        logger_convert.info("enter lipd_extract_roots")
         tmp_funding = {}
         tmp_pub = {}
         tmp_master = {'pub': [], 'geo': {'geometry': {'coordinates': []}, 'properties': {}}, 'funding': [],
@@ -399,7 +415,8 @@ class Convert(object):
                     if key == 'author' or key == 'authors':
                         try:
                             tmp_pub[number]['author'] = self.__lipd_extract_author(v)
-                        except KeyError:
+                        except KeyError as e:
+                            # Dictionary not created yet. Assign one first.
                             tmp_pub[number] = {}
                             tmp_pub[number]['author'] = self.__lipd_extract_author(v)
                     # DOI ID
@@ -407,6 +424,7 @@ class Convert(object):
                         try:
                             tmp_pub[number]['identifier'] = [{"id": v, "type": "doi", "url": "http://dx.doi.org/" + str(v)}]
                         except KeyError:
+                            # Dictionary not created yet. Assign one first.
                             tmp_pub[number] = {}
                             tmp_pub[number]['identifier'] = [{"id": v, "type": "doi", "url": "http://dx.doi.org/" + str(v)}]
                     # All others
@@ -414,6 +432,7 @@ class Convert(object):
                         try:
                             tmp_pub[number][key] = v
                         except KeyError:
+                            # Dictionary not created yet. Assign one first.
                             tmp_pub[number] = {}
                             tmp_pub[number][key] = v
                 else:
@@ -434,16 +453,17 @@ class Convert(object):
         # Create entry in object master, and set our new data to it.
         self.lipd_master[self.dataset_ext] = {}
         self.lipd_master[self.dataset_ext] = tmp_master
-
+        logger_convert.info("exit lipd_extract_roots")
         return
 
     @staticmethod
     def __lipd_extract_author(s):
         """
         Split author string back into organized dictionary
-        :param s: (str) Formatted names string "Last, F.; Last, F.; etc.."
-        :return: (list of dictionaries) One dictionary per author name
+        :param str s: Formatted names string "Last, F.; Last, F.; etc.."
+        :return list of dict: One dictionary per author name
         """
+        logger_convert.info("enter lipd_extract_author")
         l = []
         authors = s.split(';')
         for author in authors:
@@ -454,7 +474,7 @@ class Convert(object):
         """
         Create paleo table in master if it doesn't exist. Insert table root items
         """
-
+        logger_convert.info("enter lipd_extract_paleo_root")
         try:
             # If table doesn't exist yet, create it.
             if self.table not in self.lipd_master[self.dataset_ext]['paleoData']:
@@ -464,12 +484,12 @@ class Convert(object):
                     try:
                         # Now set the root table items in our new table
                         self.lipd_master[self.dataset_ext]['paleoData'][self.table][key] = self.lipd_curr_tso_data['paleoData_' + key]
-                    except KeyError:
+                    except KeyError as e:
                         # That's okay. Keep trying :)
-                        continue
-        except KeyError:
-            print("KeyError lipd_extract_paleo: Inserting table ")
-
+                        logger_convert.warn("lipd_extract_paleo_root: KeyError: {} not found in master, {}".format(key, e))
+        except KeyError as e:
+            print("Error: Failed to extract paleoData table from {}".format(self.dataset_ext))
+            logger_convert.warn("lipd_extract_paleo_root: KeyError: missing paleoData/{} in {}, {}".format(self.table, self.dataset_ext, e))
         return
 
     def __lipd_extract_paleo(self):
@@ -477,11 +497,10 @@ class Convert(object):
         Extract paleoData from tso
         :return: LiPD entry in self.lipd_master is updated
         """
+        logger_convert.info("enter lipd_extract_paleo")
         tmp_clim = {}
         tmp_cal = {}
-
         self.__lipd_extract_paleo_root()
-
         try:
             # Create the column entry in the table
             self.lipd_master[self.dataset_ext]['paleoData'][self.table]['columns'][self.variableName] = {}
@@ -495,9 +514,9 @@ class Convert(object):
                     tmp_cal[m[1]] = v
                 elif 'climateInterpretation' in m[0]:
                     tmp_clim[m[1]] = v
-
-        except KeyError:
-            print("KeyError lipd_extract_paleo: Inserting column data ")
+        except KeyError as e:
+            print("Error: Failed to extract column data from {}, {}".format(self.dataset_ext, self.variableName))
+            logger_convert.warn("lipd_extract_paleo: KeyError: {}, {}, {} ".format(self.dataset_ext, self.variableName, e))
 
         # If these sections had any items added to them, then add them to the column master.
         if tmp_clim:
@@ -512,20 +531,21 @@ class Convert(object):
         """
         Call down a current version of the TSNames spreadsheet from google. Convert to a structure better
         for comparisons.
-        :return: (self.full_list) Keys: Valid TSName, Values: TSName synonyms
-        :return: (self.quick_list) List of valid TSnames
+        :return dict: K: Valid TSName, V: TSName synonyms
+        :return list: List of valid TSnames
         """
-
+        logger_convert.info("enter fetch_tsnames")
         # Check if it's been longer than one day since updating the TSNames.csv file.
         # If so, go fetch the file from google in case it's been updated since.
         # Or if file isn't found at all, download it also.
         if check_file_age('tsnames.csv', 1):
             # Fetch TSNames sheet from google
-            print("Fetching update for TSNames.csv")
+            logger_convert.info("fetching update for tsnames.csv")
             ts_id = '1C135kP-SRRGO331v9d8fqJfa3ydmkG2QQ5tiXEHj5us'
             get_google_csv(ts_id, 'tsnames.csv')
         try:
             # Start sorting the tsnames into an organized structure
+            logger_convert.info("start sorting tsnames.csv")
             with open('tsnames.csv', 'r') as f:
                 r = csv.reader(f, delimiter=',')
                 for idx, line in enumerate(r):
@@ -549,8 +569,9 @@ class Convert(object):
                                 # Any of the root items
                                 self.quick_list.append(line[0])
                                 self.full_list["root"].append(line)
-        except FileNotFoundError:
-            print("CSV FileNotFound: TSNames")
+        except FileNotFoundError as e:
+            print("Error: Unable to find TimeSeries lint file")
+            logger_convert.debug("fetch_tsnames: FileNotFound: tsnames.csv, {}".format(e))
 
         return
 
@@ -558,6 +579,7 @@ class Convert(object):
         """
         Verify TSNames are current and valid. Compare to TSNames spreadsheet in Google Drive. Update where necessary.
         """
+        logger_convert.info("enter verify_tsnames")
         # Temp to store incorrect keys
         bad_keys = []
 
@@ -579,17 +601,16 @@ class Convert(object):
                 try:
                     # Add new item, and remove old item in one step
                     tso[valid] = tso.pop(invalid)
-                except KeyError:
-                    continue
-
+                except KeyError as e:
+                    logger_convert.debug("verify_tsnames: KeyError: add/drop: valid: {}, invalid: {}, {}".format(valid, invalid, e))
         return
 
     def __get_valid_tsname(self, invalid):
         """
         Turn a bad tsname into a valid one.
         * Note: Index[0] for each TSName is the most current, valid entry. Index[1:] are synonyms
-        :param invalid_l: (str) Invalid tsname
-        :return: (str) valid tsname
+        :param str invalid: Invalid tsname
+        :return str: valid tsname
         """
         valid = ''
         invalid_l = invalid.lower()
@@ -664,26 +685,26 @@ class Convert(object):
                 # ROOT
                 valid = self.__iter_ts('root', invalid_l)
 
-            # LAST CHANCE:
+            # Last chance
             # Specific case that isn't a typical format, or no match. Go through all possible entries.
             if not valid:
                 valid = self.__iter_ts(None, invalid_l)
 
-        except IndexError:
-            print("ERROR: TSName indexerror")
+        except IndexError as e:
+            logger_convert.debug("get_valid_tsname: IndexError: {}".format(e))
 
         if not valid:
-            print("ERROR: TSName unable to find match: " + invalid)
+            print("Error: Unable to find match for term: ".format(invalid))
+            logger_convert.warn("get_valid_tsname: Unable to find match for term: {}".format(invalid))
             return invalid
-
         return valid
 
     def __iter_ts(self, category, invalid):
         """
         Match an invalid entry to one of the TSName synonyms.
-        :param category: (str) Name of category being searched
-        :param invalid: (str) Invalid tsname string
-        :return: (str) Valid tsname
+        :param str category: Name of category being searched
+        :param str invalid: Invalid tsname string
+        :return str: Valid tsname
         """
         valid = ''
 

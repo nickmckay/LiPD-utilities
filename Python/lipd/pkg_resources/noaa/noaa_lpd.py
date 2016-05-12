@@ -8,6 +8,9 @@ from ..helpers.bag import *
 from ..helpers.alternates import *
 from ..helpers.regexes import *
 from ..helpers.blanks import *
+from ..helpers.loggers import create_logger
+
+logger_noaa_lpd = create_logger("noaa_lpd")
 
 
 class NOAA_LPD(object):
@@ -24,8 +27,9 @@ class NOAA_LPD(object):
     def main(self):
         """
         Convert a NOAA text file into a lipd file. CSV files will be created if chronology or data sections are available.
-        :return: (dict) Metadata Dictionary
+        :return dict: Metadata Dictionary
         """
+        logger_noaa_lpd.info("enter main")
         # Run the file through the parser
         # Sets self.metadata, Creates CSVs in dir_tmp
         os.chdir(self.dir_tmp)
@@ -38,22 +42,18 @@ class NOAA_LPD(object):
         write_json_to_file(self.name + '.jsonld', self.metadata)
 
         # Create a bagit bag
-        new_bag = create_bag(self.dir_bag)
-        open_bag(self.dir_bag)
-        new_bag.save(manifests=True)
-
+        finish_bag(self.dir_bag)
+        logger_noaa_lpd.info("exit main")
         return
 
     def __parse(self):
         """
-        Main parser
+        Parse
         Accept the text file. We'll open it, read it, and return a compiled dictionary to write to a json file
         May write a chronology CSV and a data CSV if those sections are available
-        :param file (str):
-        :param path (str):
-        :param filename (str):
         :return:
         """
+        logger_noaa_lpd.info("enter parse")
         # Strings
         last_insert = None
         missing_str = ''
@@ -101,24 +101,32 @@ class NOAA_LPD(object):
 
         # Open the text file in read mode. We'll read one line at a time until EOF
         with open(self.name_txt, 'r') as f:
+            logger_noaa_lpd.info("opened noaa file: {}".format(self.name_txt))
             for line in iter(f):
                 line_num += 1
 
                 # PUBLICATION
                 # There can be multiple publications. Create a dictionary for each one.
                 if publication_on:
-
                     # End of the section. Add the dictionary for this one publication to the overall list
                     if '-----' in line:
-                        temp_pub['abstract'] = ''.join(temp_abstract)
+                        temp_pub = self.__reorganize_doi(temp_pub)
                         pub.append(temp_pub.copy())
                         temp_abstract.clear()
                         temp_pub.clear()
-                        abstract_on = False
                         publication_on = False
-
+                        logger_noaa_lpd.info("end section: Publication")
                     elif abstract_on:
-                        temp_abstract.append(self.__str_cleanup(line))
+                        # End of abstract: possibly more variables after.
+                        if "#" in line:
+                            abstract_on = False
+                            temp_pub['abstract'] = ''.join(temp_abstract)
+                            logger_noaa_lpd.info("end section: Abstract")
+                            line = self.__str_cleanup(line)
+                            key, value = self.__slice_key_val(line)
+                            temp_pub[self.__camel_case(key)] = value
+                        else:
+                            temp_abstract.append(self.__str_cleanup(line))
 
                     # Add all info into the current publication dictionary
                     else:
@@ -126,10 +134,11 @@ class NOAA_LPD(object):
                         key, value = self.__slice_key_val(line)
                         temp_pub[self.__camel_case(key)] = value
                         if key == 'Abstract':
+                            logger_noaa_lpd.info("reading section: Abstract")
                             abstract_on = True
                             temp_abstract.append(value)
 
-                # DESCRIPTION
+                # DESCRIPTION AND NOTES
                 # Descriptions are often long paragraphs spanning multiple lines, but don't follow the key/value format
                 elif description_on:
 
@@ -138,6 +147,7 @@ class NOAA_LPD(object):
                         description_on = False
                         value = ''.join(temp_description)
                         final_dict['description'] = value
+                        logger_noaa_lpd.info("end section: Description_and_Notes")
 
                     # The first line in the section. Split into key, value
                     elif 'Description:' in line:
@@ -154,6 +164,7 @@ class NOAA_LPD(object):
 
                     if '-------' in line:
                         site_info_on = False
+                        logger_noaa_lpd.info("end section: Site_Information")
 
                     else:
                         line = self.__str_cleanup(line)
@@ -177,10 +188,11 @@ class NOAA_LPD(object):
                     # When reaching the end of the chron section, set the marker to off and close the CSV file
                     if '-------' in line:
                         chronology_on = False
-
                         # If nothing between the chronology start and the end barrier, then there won't be a CSV
                         if chron_start_line != line_num-1:
                             chron_csv.close()
+                            logger_noaa_lpd.info("parse: chronology: no data found in chronology section")
+                        logger_noaa_lpd.info("end section: Chronology")
 
                     # Special case for first line in chron section. Grab variables and open a new CSV file
                     elif chron_vars_start:
@@ -190,6 +202,7 @@ class NOAA_LPD(object):
                         chron_filename = self.name + '-chronology.csv'
                         csv_path = os.path.join(self.dir_bag, chron_filename)
                         chron_csv = open(csv_path, 'w+', newline='')
+                        logger_noaa_lpd.info("opened csv file: {}".format(chron_filename))
                         cw = csv.writer(chron_csv)
 
                         # Split the line into a list of variables
@@ -218,12 +231,11 @@ class NOAA_LPD(object):
                 # VARIABLES
                 # Variables are the only lines that have a double # in front
                 elif variables_on:
-
                     process_line = False
-
                     # End of the section. Turn marker off
                     if "------" in line:
                         variables_on = False
+                        logger_noaa_lpd.info("end section: Variables")
                     for item in NOAA_VAR_LINES:
                         if item.lower() in line.lower():
                             process_line = False
@@ -236,6 +248,7 @@ class NOAA_LPD(object):
 
                     # If the line isn't in the ignore list, then it's a variable line
                     if process_line:
+
                         # Split the line items, and cleanup
                         cleaned_line = self.__separate_data_vars(line)
 
@@ -244,10 +257,10 @@ class NOAA_LPD(object):
 
                         # Keep a list of all variable names
                         try:
-                            data_var_names.append(data_col_dict['parameter'])
+                            data_var_names.append(data_col_dict['variableName'])
                         except KeyError:
                             data_var_names.append('')
-
+                            logger_noaa_lpd.warn("parse: variables: KeyError: {} not found in {}, {}".format("variableName", "data_col_dict", e))
                         # Add the column dictionary into a final dictionary
                         data_col_list.append(data_col_dict)
                         data_col_ct += 1
@@ -255,10 +268,8 @@ class NOAA_LPD(object):
                 # DATA
                 # Missing Value, Create data columns, and output Data CSV
                 elif data_on:
-
                     # Do not process lines that are blank, template lines, or missing value
                     process_line = True
-
                     for item in NOAA_DATA_LINES:
                         if item in line:
                             process_line = False
@@ -274,23 +285,22 @@ class NOAA_LPD(object):
                     if process_line:
                         # Split the line at each space (There's one space between each data item)
                         values = line.split()
-
                         # Write all data values to CSV
                         if data_vals_on:
                             dw.writerow(values)
 
                         # Check for the line of variables
                         else:
-
                             var = self.__str_cleanup(values[0].lstrip())
                             # Check if a variable name is in the current line
                             if var.lower() == data_var_names[0].lower():
                                 data_vals_on = True
-
+                                logger_noaa_lpd.info("start section: Data_Values")
                                 # Open CSV for writing
                                 data_filename = self.name + '-data.csv'
                                 csv_path = os.path.join(self.dir_bag, data_filename)
                                 data_csv = open(csv_path, 'w+', newline='')
+                                logger_noaa_lpd.info("opened csv file: {}".format(data_filename))
                                 dw = csv.writer(data_csv)
 
                 # METADATA
@@ -298,13 +308,16 @@ class NOAA_LPD(object):
                     # Line Continuation: Sometimes there are items that span a few lines.
                     # If this happens, we want to combine them all properly into one entry.
                     if '#' not in line and line not in NOAA_EMPTY and old_val:
-                        try:
-                            if old_key in ('funding', 'agency'):
+                        if old_key in ('funding', 'agency'):
+                            try:
                                 temp_funding[old_key] = old_val + line
-                            else:
-                                    final_dict[old_key] = old_val + line
-                        except KeyError:
-                            pass
+                            except KeyError as e:
+                                logger_noaa_lpd.debug("parse: metadata: line continuation: {} not found in {}, {}".format(old_key, "temp_funding", e))
+                        else:
+                            try:
+                                final_dict[old_key] = old_val + line
+                            except KeyError as e:
+                                logger_noaa_lpd.debug("parse: metadata: line continuation: {} not found in {}, {}".format(old_key, "temp_funding", e))
 
                     # No Line Continuation: This is the start or a new entry
                     else:
@@ -319,34 +332,35 @@ class NOAA_LPD(object):
                             # If there is no value, then we are at a section header.
                             # Data often has a blank value, so that is a special check.
                             if value is None or lkey == 'data':
-
                                 # Turn on markers if we run into section headers
                                 if lkey == 'description_and_notes':
                                     description_on = True
+                                    logger_noaa_lpd.info("reading section: Description_and_Notes")
                                 elif lkey == 'publication':
                                     publication_on = True
+                                    logger_noaa_lpd.info("reading section: Publication")
                                 elif lkey == 'site_information':
                                     site_info_on = True
+                                    logger_noaa_lpd.info("reading section: Site_Information")
                                 elif lkey == 'chronology':
                                     chronology_on = True
+                                    logger_noaa_lpd.info("reading section: Chronology")
                                     chron_start_line = line_num
                                 elif lkey == 'variables':
                                     variables_on = True
+                                    logger_noaa_lpd.info("reading section: Variables")
                                 elif lkey == 'data':
                                     data_on = True
-
+                                    logger_noaa_lpd.info("reading section: Data")
                             # For all
                             else:
-
                                 # Ignore any entries that are specified in the skip list
                                 if lkey not in NOAA_KEYS:
-
                                     if lkey == 'core_length':
                                         val, unit = self.__split_name_unit(value)
                                         core_len['value'] = self.__convert_num(val)
                                         core_len['unit'] = unit
                                         last_insert = core_len
-
                                     # There can be multiple funding agencies and grants. Keep a list of dict entries
                                     elif lkey in FUNDING_LIST:
                                         if lkey == 'funding_agency_name':
@@ -356,29 +370,29 @@ class NOAA_LPD(object):
                                             grant_id += 1
                                             key = 'grant'
                                         temp_funding[key] = value
-
                                         # If both counters are matching, we are ready to add content to the funding list
                                         if grant_id == funding_id:
                                             funding.append(temp_funding.copy())
                                             temp_funding.clear()
-
                                     else:
                                         final_dict[self.__camel_case(key)] = value
-
                                     # Keep track of old key in case we have a line continuation
                                     old_key = key
                                     old_val = value.rstrip()
-                        # Ignore any errors from NoneTypes that are returned from slice_key_val
-                        except TypeError:
-                            pass
+                        except TypeError as e:
+                            logger_noaa_lpd.warn("parse: TypeError: none type received from slice_key_val, {}".format(e))
 
         # Wait to close the data CSV until we reached the end of the text file
         try:
             data_csv.close()
-        except NameError:
-            print("Couldn't close Data CSV. Invalid formatting of variables/data sections in NOAA txt file")
+            logger_noaa_lpd.info("end section: Data_Values")
+            logger_noaa_lpd.info("end section: Data")
+        except NameError as e:
+            print("Error: Invalid formatting in NOAA txt")
+            logger_noaa_lpd.debug("parse: NameError: failed to close csv, invalid formatting in NOAA txt file, {}".format(e))
 
         # Piece together measurements block
+        logger_noaa_lpd.info("compiling final paleoData")
         data_dict_upper['filename'] = data_filename
         data_dict_upper['paleoDataTableName'] = 'Data'
         data_dict_upper['missingValue'] = missing_str
@@ -386,76 +400,69 @@ class NOAA_LPD(object):
         data_tables.append(data_dict_upper)
 
         # Piece together geo block
+        logger_noaa_lpd.info("compiling final geo")
         geo = self.__create_coordinates(lat, lon)
         geo['properties'] = geo_properties
 
         # Piece together final dictionary
+        logger_noaa_lpd.info("compiling final master")
         final_dict['pub'] = pub
         final_dict['funding'] = funding
         final_dict['geo'] = geo
         final_dict['coreLength'] = core_len
         final_dict['chronology'] = chron_dict
         final_dict['paleoData'] = data_tables
+        logger_noaa_lpd.info("final dictionary compiled")
 
         # Insert the data dictionaries into the final dictionary
-        for k, v in vars_dict.items():
-            data_dict_lower[k] = v
+        # for k, v in vars_dict.items():
+        #     data_dict_lower[k] = v
 
         # Set final_dict to self.
+        logger_noaa_lpd.info("removing empty fields")
         self.metadata = remove_empty_fields(final_dict)
-
+        logger_noaa_lpd.info("exit parse")
         return
 
     @staticmethod
     def __create_var_col(l, col_count):
         """
         Receive split list from separate_data_vars, and turn it into a dictionary for that column
-        :param l (list):
-        :param col_count (int):
-        :return: (dict) d
+        :param list l:
+        :param int col_count:
+        :return dict:
         """
         # Format: what, material, error, units, seasonality, archive, detail, method,
         # C or N for Character or Numeric data, direction of relation to climate (positive or negative)
         d = OrderedDict()
         d['column'] = col_count
-        for index, item in enumerate(l):
-            if index == 0:
-                d['parameter'] = item
-            elif index == 1:
-                d['description'] = item
-            elif index == 2:
-                d['material'] = item
-            elif index == 3:
-                d['error'] = item
-            elif index == 4:
-                d['units'] = item
-            elif index == 5:
-                d['seasonality'] = item
-            elif index == 6:
-                d['archive'] = item
-            elif index == 7:
-                d['detail'] = item
-            elif index == 8:
-                d['method'] = item
-            elif index == 9:
-                d['dataType'] = item
-            elif index == 10:
-                d['direction'] = item
+        for idx, var_data in enumerate(l):
+            try:
+                var = NOAA_VAR_COLS[idx]
+                # These two cases are nested in the column, so treat them special
+                if var == "seasonality":
+                    d["climateInterpretation"] = {var: var_data}
+                elif var == "uncertainty":
+                    d["calibration"] = {var: var_data}
+                # All other cases are root items in the column, so add normally
+                else:
+                    d[var] = var_data
+            except IndexError as e:
+                logger_noaa_lpd.debug("create_var_col: IndexError: var: {}, {}".format(var_data, e))
         return d
 
     @staticmethod
     def __separate_data_vars(line):
         """
         For the variables section, clean up the line and return a list of each of the 10 items
-        :param line (str):
-        :return: (str)
+        :param str line:
+        :return str:
         """
         combine = []
         if '#' in line:
             line = line.replace("#", "")
             line = line.lstrip()
         if line not in NOAA_EMPTY and line not in EMPTY:
-
             m = re.match(RE_VAR_SPLIT, line)
             if m:
                 combine.append(m.group(1))
@@ -472,20 +479,21 @@ class NOAA_LPD(object):
     def __convert_num(number):
         """
         All path items are automatically strings. If you think it's an int or float, this attempts to convert it.
-        :param number (str):
-        :return: (float)
+        :param str number:
+        :return float or str:
         """
         try:
             return float(number)
-        except ValueError:
+        except ValueError as e:
+            logger_noaa_lpd.warn("convert_num: ValueError: {}".format(e))
             return number
 
     @staticmethod
     def __camel_case(word):
         """
         Convert underscore naming into camel case naming
-        :param word (str):
-        :return: (str)
+        :param str word:
+        :return str:
         """
         word = word.lower()
         if '_' in word:
@@ -503,23 +511,26 @@ class NOAA_LPD(object):
     def __name_unit_regex(word):
         """
         Split a name and unit that are bunched together (i.e. '250m')
-        :param word (str):
+        :param str word:
         :return:
         """
         r = re.findall(r'(\d+)(\w+?)', word)
-        value = r[0][0]
-        unit = r[0][1]
+        try:
+            value = r[0][0]
+            unit = r[0][1]
+        except IndexError as e:
+            logger_noaa_lpd.warn("name_unit_regex: IndexError: {}, {}".format(r, e))
         try:
             value = float(value)
-        except ValueError:
-            pass
+        except ValueError as e:
+            logger_noaa_lpd.warn("name_unit_regex: ValueError: val: {}, {}".format(value, e))
         return value, unit
 
     @staticmethod
     def __contains_digits(word):
         """
         Check if the string contains digits
-        :param word (str):
+        :param str word:
         :return:
         """
         return any(i.isdigit() for i in word)
@@ -527,8 +538,8 @@ class NOAA_LPD(object):
     def __split_name_unit(self, line):
         """
         Split a string that has value and unit as one.
-        :param line (str):
-        :return:
+        :param str line:
+        :return str str:
         """
         if line != '' or line != ' ':
             # If there are parenthesis, remove them
@@ -567,8 +578,8 @@ class NOAA_LPD(object):
     def __str_cleanup(line):
         """
         Remove the unnecessary characters in the line that we don't want
-        :param line (str):
-        :return: (str)
+        :param str line:
+        :return str:
         """
         line = line.rstrip()
         if '#' in line:
@@ -583,8 +594,8 @@ class NOAA_LPD(object):
     def __slice_key_val(line):
         """
         Get the key and value items from a line by looking for and lines that have a ":"
-        :param line (str):
-        :return: (str) Key, (str) Value
+        :param str line:
+        :return str str: Key, Value
         """
         position = line.find(":")
         # If value is -1, that means the item was not found in the string.
@@ -602,67 +613,74 @@ class NOAA_LPD(object):
         """
         GeoJSON standard:
         Use to determine 2-point or 4-point coordinates
-        :param lat (float):
-        :param lon (float):
-        :return: (dict)
+        :param list lat:
+        :param list lon:
+        :return dict:
         """
-
         # Sort lat an lon in numerical order
         lat.sort()
         lon.sort()
+        geo_dict = {}
         # 4 coordinate values
         if len(lat) == 2 and len(lon) == 2:
-            geo_dict = self.__geo_multipoint(lat, lon)
+            # Matching coordinate pairs. Not 4 unique values.
+            if lat[0] == lat[1] and lon[0] == lon[1]:
+                logger_noaa_lpd.info("coordinates found: {}".format("2"))
+                lat.pop()
+                lon.pop()
+                geo_dict = self.__geo_point(lat, lon)
+            # 4 unique coordinates
+            else:
+                logger_noaa_lpd.info("coordinates found: {}".format("4"))
+                geo_dict = self.__geo_multipoint(lat, lon)
         # 2 coordinate values
         elif len(lat) == 1 and len(lon) == 1:
+            logger_noaa_lpd.info("coordinates found: {}".format("2"))
             geo_dict = self.__geo_point(lat, lon)
+        # 0 coordinate values
+        elif not lat and not lon:
+            logger_noaa_lpd.info("coordinates found: {}".format("0"))
         else:
             geo_dict = {}
-            print("More than 4 coordinates")
+            logger_noaa_lpd.info("coordinates found: {}".format("too many"))
         return geo_dict
 
-    def __geo_multipoint(self, lat, lon):
+    @staticmethod
+    def __geo_multipoint(lat, lon):
         """
         GeoJSON standard:
         Create a geoJson MultiPoint-type dictionary
-        :param lat (float):
-        :param lon (float):
-        :return:
+        :param list lat:
+        :param list lon:
+        :return dict:
         """
+        logger_noaa_lpd.info("enter geo_multipoint")
         geo_dict = OrderedDict()
         geometry_dict = OrderedDict()
         coordinates = []
         # bbox = []
         temp = [None, None]
-
-        # if the value pairs are matching, then it's not a real MultiPoint type. Send to other method
-        if lat[0] == lat[1] and lon[0] == lon[1]:
-            lat.pop()
-            lon.pop()
-            geo_dict = self.__geo_point(lat, lon)
-
         # 4 unique values
-        else:
-            # # Creates bounding box
-            # for index, point in enumerate(lat):
-            #     bbox.append(lat[index])
-            #     bbox.append(lon[index])
+        # # Creates bounding box
+        # for index, point in enumerate(lat):
+        #     bbox.append(lat[index])
+        #     bbox.append(lon[index])
 
-            # Creates coordinates list
-            for i in lat:
-                temp[0] = i
-                for j in lon:
-                    temp[1] = j
-                    coordinates.append(copy.copy(temp))
+        # Creates coordinates list
+        for i in lat:
+            temp[0] = i
+            for j in lon:
+                temp[1] = j
+                coordinates.append(copy.copy(temp))
 
-            # Create geometry block
-            geometry_dict['type'] = 'Polygon'
-            geometry_dict['coordinates'] = coordinates
+        # Create geometry block
+        geometry_dict['type'] = 'Polygon'
+        geometry_dict['coordinates'] = coordinates
 
-            # Create geo block
-            geo_dict['type'] = 'Featured'
-            # geo_dict['bbox'] = bbox
-            geo_dict['geometry'] = geometry_dict
+        # Create geo block
+        geo_dict['type'] = 'Feature'
+        # geo_dict['bbox'] = bbox
+        geo_dict['geometry'] = geometry_dict
 
         return geo_dict
 
@@ -671,10 +689,11 @@ class NOAA_LPD(object):
         """
         GeoJSON standard:
         Create a geoJson Point-type dictionary
-        :param lat:
-        :param lon:
-        :return:
+        :param list lat:
+        :param list lon:
+        :return dict:
         """
+        logger_noaa_lpd.info("enter geo_point")
         coordinates = []
         geo_dict = OrderedDict()
         geometry_dict = OrderedDict()
@@ -687,3 +706,44 @@ class NOAA_LPD(object):
         geo_dict['geometry'] = geometry_dict
         return geo_dict
 
+    @staticmethod
+    def __reorganize_doi(temp_pub):
+        """
+        Create a valid bib json entry for the DOI information.
+        :param dict temp_pub:
+        :return dict:
+        """
+        doi_out = ''
+        rm = ["doiId", "doi", "doiUrl"]
+        # Check if both entries exist
+        if "doi" and "doiId" in temp_pub:
+            if temp_pub["doi"] == temp_pub["doiId"]:
+                # If the entries are the same, then pick one to use
+                doi_out = temp_pub["doi"]
+            else:
+                # If entries are not the same, check if it matches the regex pattern.
+                if DOI.match(temp_pub["doiId"]):
+                    doi_out = temp_pub["doiId"]
+                # If it doesnt match the regex, just use the "doi" entry as-is
+                else:
+                    doi_out = temp_pub["doi"]
+        # Check if "doi" entry exists
+        elif "doi" in temp_pub:
+            doi_out = temp_pub["doi"]
+        # Check if "doiId" entry exists
+        elif "doiId" in temp_pub:
+            doi_out = temp_pub["doiId"]
+
+        # Log if the DOI is invalid or not.
+        if not DOI.match(doi_out):
+            logger_noaa_lpd.info("reorganize_doi: invalid doi input from NOAA file")
+        # Add identifier block to publication dictionary
+        temp_pub["identifier"] = [{"type": "doi", "id": doi_out}]
+        # Remove the other DOI entries
+        for k in rm:
+            try:
+                del temp_pub[k]
+            except KeyError:
+                # If there's a KeyError, don't worry about it. It's likely that only one of these keys will be present.
+                pass
+        return temp_pub
