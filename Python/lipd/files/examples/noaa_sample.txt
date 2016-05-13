@@ -10,64 +10,64 @@
 # If there is no publication information, please cite Investigators, Title, and Online_Resource and date accessed.            
 # Online_Resource:             
 #            
-# Original_Source_URL:             
+# Original_Source_URL: example_url         
 #            
 # Description/Documentation lines begin with #            
 # Data lines have no #            
 #            
-# Archive:             
+# Archive: exampleArchive            
 #            
-# Parameter_Keywords:             
+# Parameter_Keywords: example_keywords       
 #--------------------
 # Contribution_Date 
-#   Date: 
+#   Date: 2010
 #------------------
 # Title 
-#   Study_Name: 
+#   Study_Name: example_study_name
 #------------------
 # Investigators 
-#   Investigators: 
+#   Investigators: LastName, F.
 #------------------
 # Description_Notes_and_Keywords 
-#   Description: 
+#   Description: example_description
 #------------------
 # Publication 
 #   Authors: Sundqvist, H.S., Holmgren, K., Fohlmeister, J., Zhang, Q., Bar-Matthews, M., Sp\u00f6tl, C., K\u00f6rnich, H.
-#   Published_Date_Or_Year: 
-#   Published_Title: 
-#   Journal_Name: 
-#   Volume: 
-#   Edition: 
-#   Issue: 
-#   Pages: 
-#   DOI: 
-#   Online_Resource: 
-#   Full_Citation: 
-#   Abstract: 
+#   Published_Date_Or_Year: 2011
+#   Published_Title: example_title
+#   Journal_Name: example_journal
+#   Volume: 5
+#   Edition: 2
+#   Issue: 1
+#   Pages: 1033
+#   DOI: 10.1038/srep01767
+#   Online_Resource: example_resource
+#   Full_Citation: example_citation
+#   Abstract: example_abstract
 #   DOI_id: 10.1038/srep01767
 #   DOI_url: http://dx.doi.org/10.1038/srep01767
 #------------------
 # Site_Information 
-#   Site_Name: 
-#   Location: 
-#   Country: 
+#   Site_Name: example_site_name
+#   Location: example_location
+#   Country: example_country
 #   Northernmost_Latitude: -24
 #   Southernmost_Latitude: -24
 #   Easternmost_Longitude: 29.18
 #   Westernmost_Longitude: 29.18
-#   Elevation: 
+#   Elevation: 100m
 #------------------
 # Data_Collection 
 #   Collection_Name: ColdAir2013T7temp
-#   Earliest_Year: 
-#   Most_Recent_Year: 
-#   Time_Unit: 
-#   Core_Length:  
-#   Notes: 
+#   Earliest_Year: 0
+#   Most_Recent_Year: 0
+#   Time_Unit: yr
+#   Core_Length: 0 centimeters
+#   Notes: example_notes
 #------------------
 # Species 
-#   Species_Name: 
-#   Common_Name: 
+#   Species_Name: example_species_name
+#   Common_Name: example_common_name
 #------------------
 # Variables
 #            
@@ -76,9 +76,9 @@
 # Data variables follow that are preceded by "##" in columns one and two.            
 # Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components ( 9 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or Numeric data)
 #
-##temperature       inferred temperature, ,  ,  degC, ,  ,  top of sample; signal believed to primarily reflect temperature, but influence of other factors cannot be excluded., ,  N 
-##year              Year AD, ,  ,  AD, ,  ,  ,  ,  float
-##SE                error on temp reconstruction, ,  ,  degC, ,  ,  ,  ,  ,  
+##temperature       inferred temperature, ex_material,  ex_error, degC, ex_seasonality, ex_archive, top of sample; signal believed to primarily reflect temperature but influence of other factors cannot be excluded., ex_method, N 
+##year              Year AD, ex_material, ex_error, AD, ex_seasonality, ex_archive, ex_detail, ex_method, N
+##SE                error on temp reconstruction, ex_material, ex_error, degC, ex_seasonality, ex_archive, ex_detail, ex_method, ex_data_type
 #
 #------------------
 # Data:        

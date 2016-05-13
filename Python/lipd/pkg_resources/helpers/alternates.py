@@ -141,6 +141,29 @@ NOAA_ORDERING = {
          'dataType']
 }
 
+UNITS = {
+    "meters": "m",
+    "meter": "m",
+    "centimeters": "cm",
+    "centimeter": "cm",
+    "feet": "ft",
+    "foot": "ft",
+    "millimeter": "mm",
+    "millimeters": "mm"
+}
+
+NOAA_IGNORE_KEYS = [
+    "originalSourceUrl",
+    "commonName",
+    "parameterKeywords",
+    "speciesName",
+    "timeUnit",
+    "collectionName",
+    "earliestYear",
+    "mostRecentYear",
+    "coreLength"
+]
+
 ALTS_JSONLD = {
         "metadata": "metadata",
         "chronology": "chronology",

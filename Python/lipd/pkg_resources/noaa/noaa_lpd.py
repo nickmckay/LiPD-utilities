@@ -79,6 +79,7 @@ class NOAA_LPD(object):
         # Lists
         lat = []
         lon = []
+        elev = []
         pub = []
         funding = []
         temp_abstract = []
@@ -178,7 +179,7 @@ class NOAA_LPD(object):
                         elif key.lower() in NOAA_SITE_INFO['properties']:
                             if key.lower() == 'elevation':
                                 val, unit = self.__split_name_unit(value)
-                                geo_properties['elevation'] = {'value': self.__convert_num(val), 'unit': unit}
+                                elev.append(val)
                             else:
                                 geo_properties[self.__camel_case(key)] = value
 
@@ -401,7 +402,7 @@ class NOAA_LPD(object):
 
         # Piece together geo block
         logger_noaa_lpd.info("compiling final geo")
-        geo = self.__create_coordinates(lat, lon)
+        geo = self.__create_coordinates(lat, lon, elev)
         geo['properties'] = geo_properties
 
         # Piece together final dictionary
@@ -412,15 +413,17 @@ class NOAA_LPD(object):
         final_dict['coreLength'] = core_len
         final_dict['chronology'] = chron_dict
         final_dict['paleoData'] = data_tables
+        self.metadata = final_dict
         logger_noaa_lpd.info("final dictionary compiled")
 
-        # Insert the data dictionaries into the final dictionary
-        # for k, v in vars_dict.items():
-        #     data_dict_lower[k] = v
-
-        # Set final_dict to self.
+        # Start cleaning up the metadata
         logger_noaa_lpd.info("removing empty fields")
-        self.metadata = remove_empty_fields(final_dict)
+        self.metadata = remove_empty_fields(self.metadata)
+        logger_noaa_lpd.info("removing empty doi")
+        self.metadata = remove_empty_doi(self.metadata)
+        logger_noaa_lpd.info("removing irrelevant keys")
+        self.__remove_irr_fields()
+
         logger_noaa_lpd.info("exit parse")
         return
 
@@ -512,18 +515,27 @@ class NOAA_LPD(object):
         """
         Split a name and unit that are bunched together (i.e. '250m')
         :param str word:
-        :return:
+        :return str str:
         """
-        r = re.findall(r'(\d+)(\w+?)', word)
+        value = ""
+        unit = ""
+        r = re.findall(re_name_unit, word)
         try:
             value = r[0][0]
-            unit = r[0][1]
         except IndexError as e:
-            logger_noaa_lpd.warn("name_unit_regex: IndexError: {}, {}".format(r, e))
+            logger_noaa_lpd.warn("name_unit_regex: IndexError: value: {}, {}, {}".format(word, r, e))
         try:
-            value = float(value)
-        except ValueError as e:
-            logger_noaa_lpd.warn("name_unit_regex: ValueError: val: {}, {}".format(value, e))
+            unit = r[0][1]
+            # Replace unit with correct synonym.
+            if unit.lower() in UNITS:
+                unit = UNITS[unit]
+        except IndexError as e:
+            logger_noaa_lpd.warn("name_unit_regex: IndexError: unit: {}, {}, {}".format(word, r, e))
+        if value:
+            try:
+                value = float(value)
+            except ValueError as e:
+                logger_noaa_lpd.warn("name_unit_regex: ValueError: val: {}, {}".format(value, e))
         return value, unit
 
     @staticmethod
@@ -545,7 +557,7 @@ class NOAA_LPD(object):
             # If there are parenthesis, remove them
             line = line.replace('(', '').replace(')', '')
             # When value and units are a range (i.e. '100 m - 200 m').
-            if ' to ' in line or ' - ' in line:
+            if ' to ' in line or '-' in line:
                 line = line.replace('to', '').replace('-', '')
                 val_list = [int(s) for s in line.split() if s.isdigit()]
                 unit_list = [s for s in line.split() if not s.isdigit()]
@@ -560,18 +572,7 @@ class NOAA_LPD(object):
                 value = str(val_list[0]) + ' to ' + str(val_list[1])
                 unit = unit_list[0]
             else:
-                # Normal case. Value and unit separated by a space.
-                if ' ' in line:
-                    line = line.split()
-                    value = line[0]
-                    unit = ' '.join(line[1:])
-                # No Value. Line only contains a unit.
-                elif not self.__contains_digits(line):
-                    value = 'n/a'
-                    unit = line
-                # Value and unit bunched together ('100m'). Use regex to identify groups.
-                else:
-                    value, unit = self.__name_unit_regex(line)
+                value, unit = self.__name_unit_regex(line)
             return value, unit
 
     @staticmethod
@@ -609,7 +610,7 @@ class NOAA_LPD(object):
             value = None
             return key, value
 
-    def __create_coordinates(self, lat, lon):
+    def __create_coordinates(self, lat, lon, elev):
         """
         GeoJSON standard:
         Use to determine 2-point or 4-point coordinates
@@ -628,15 +629,15 @@ class NOAA_LPD(object):
                 logger_noaa_lpd.info("coordinates found: {}".format("2"))
                 lat.pop()
                 lon.pop()
-                geo_dict = self.__geo_point(lat, lon)
+                geo_dict = self.__geo_point(lat, lon, elev)
             # 4 unique coordinates
             else:
                 logger_noaa_lpd.info("coordinates found: {}".format("4"))
-                geo_dict = self.__geo_multipoint(lat, lon)
+                geo_dict = self.__geo_multipoint(lat, lon, elev)
         # 2 coordinate values
         elif len(lat) == 1 and len(lon) == 1:
             logger_noaa_lpd.info("coordinates found: {}".format("2"))
-            geo_dict = self.__geo_point(lat, lon)
+            geo_dict = self.__geo_point(lat, lon, elev)
         # 0 coordinate values
         elif not lat and not lon:
             logger_noaa_lpd.info("coordinates found: {}".format("0"))
@@ -646,7 +647,7 @@ class NOAA_LPD(object):
         return geo_dict
 
     @staticmethod
-    def __geo_multipoint(lat, lon):
+    def __geo_multipoint(lat, lon, elev):
         """
         GeoJSON standard:
         Create a geoJson MultiPoint-type dictionary
@@ -672,11 +673,11 @@ class NOAA_LPD(object):
             for j in lon:
                 temp[1] = j
                 coordinates.append(copy.copy(temp))
-
+        if elev:
+            coordinates = coordinates + elev
         # Create geometry block
         geometry_dict['type'] = 'Polygon'
         geometry_dict['coordinates'] = coordinates
-
         # Create geo block
         geo_dict['type'] = 'Feature'
         # geo_dict['bbox'] = bbox
@@ -685,7 +686,7 @@ class NOAA_LPD(object):
         return geo_dict
 
     @staticmethod
-    def __geo_point(lat, lon):
+    def __geo_point(lat, lon, elev):
         """
         GeoJSON standard:
         Create a geoJson Point-type dictionary
@@ -700,6 +701,8 @@ class NOAA_LPD(object):
         for index, point in enumerate(lat):
             coordinates.append(lat[index])
             coordinates.append(lon[index])
+        if elev:
+            coordinates = coordinates + elev
         geometry_dict['type'] = 'Point'
         geometry_dict['coordinates'] = coordinates
         geo_dict['type'] = 'Feature'
@@ -747,3 +750,16 @@ class NOAA_LPD(object):
                 # If there's a KeyError, don't worry about it. It's likely that only one of these keys will be present.
                 pass
         return temp_pub
+
+    def __remove_irr_fields(self):
+        """
+        Remove NOAA keys that don't have a place in the LiPD schema
+        :return:
+        """
+        for key in NOAA_IGNORE_KEYS:
+            try:
+                del self.metadata[key]
+            except KeyError:
+                # Key wasn't found. That's okay. No need for handling
+                pass
+        return

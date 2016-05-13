@@ -190,6 +190,8 @@ class LPD_NOAA(object):
         elif length == 4:
             for index, location in enumerate(locations):
                 d[locations[index]] = l[index]
+        else:
+            logger_lpd_noaa.info("coordinates: Too many coordinates given")
         return d
 
     def main(self):
