@@ -11,9 +11,10 @@ DOI = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*/(?:(?!["&\'<>,])\S)+)\b')
 # Convert camelCase to underscore
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
-RE_VAR = re.compile(r'#{2}(\w)+')
-RE_VAR_SPLIT = re.compile(r'(\w+)(\s+)([\w\W\s]+)')
-re_name_unit = re.compile(r'(\d+)?\s*[(]?\s*(\w+)?\s*[)]?')
+RE_VAR = re.compile(r'#{2}\s*(\S+)(?:\s+)([\w\W\s]+)')
+RE_VAR_SPLIT = re.compile(r'(\S+)(?:\s+)([\w\W\s]+)')
+re_name_unit = re.compile(r'([\-]?\d+)?\s*[(]?\s*(\w+)?\s*[)]?')
+re_name_unit_range = re.compile(r'([\-]?\d+)[\s\(]*(?!to)(\w+)*')
 
 # TIMESERIES Convert
 re_misc_fetch = re.compile(r'(geo_(\w+)|climateInterpretation_(\w+)|calibration_(\w+)|paleoData_(\w+))')

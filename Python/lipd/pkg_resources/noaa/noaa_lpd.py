@@ -259,9 +259,9 @@ class NOAA_LPD(object):
                         # Keep a list of all variable names
                         try:
                             data_var_names.append(data_col_dict['variableName'])
-                        except KeyError:
+                        except KeyError as e:
                             data_var_names.append('')
-                            logger_noaa_lpd.warn("parse: variables: KeyError: {} not found in {}, {}".format("variableName", "data_col_dict", e))
+                            logger_noaa_lpd.warn("parse: variables: KeyError: {} not found in {}".format("variableName", "data_col_dict"))
                         # Add the column dictionary into a final dictionary
                         data_col_list.append(data_col_dict)
                         data_col_ct += 1
@@ -468,8 +468,9 @@ class NOAA_LPD(object):
         if line not in NOAA_EMPTY and line not in EMPTY:
             m = re.match(RE_VAR_SPLIT, line)
             if m:
+                print(m.groups())
                 combine.append(m.group(1))
-                attr = m.group(3).split(',')
+                attr = m.group(2).split(',')
                 combine += attr
                 for index, string in enumerate(combine):
                     combine[index] = string.lstrip().rstrip()
@@ -553,24 +554,28 @@ class NOAA_LPD(object):
         :param str line:
         :return str str:
         """
+        vals = []
+        unit = ''
         if line != '' or line != ' ':
             # If there are parenthesis, remove them
             line = line.replace('(', '').replace(')', '')
             # When value and units are a range (i.e. '100 m - 200 m').
-            if ' to ' in line or '-' in line:
-                line = line.replace('to', '').replace('-', '')
-                val_list = [int(s) for s in line.split() if s.isdigit()]
-                unit_list = [s for s in line.split() if not s.isdigit()]
-                # For items that did not split properly. Need regex split.
-                for item in unit_list:
-                    if self.__contains_digits(item):
-                        unit_list = []
-                        i, v = self.__name_unit_regex(item)
-                        val_list.append(i)
-                        unit_list.append(v)
+            if re.match(re_name_unit_range, line):
+                m = re.findall(re_name_unit_range, line)
+                if m:
+                    for group in m:
+                        for item in group:
+                            try:
+                                val = float(item)
+                                vals.append(val)
+                            except ValueError:
+                                if item:
+                                    unit = item
                 # Piece the number range back together.
-                value = str(val_list[0]) + ' to ' + str(val_list[1])
-                unit = unit_list[0]
+                if len(vals) == 1:
+                    value = vals[0]
+                else:
+                    value = str(vals[0]) + ' to ' + str(vals[1])
             else:
                 value, unit = self.__name_unit_regex(line)
             return value, unit
