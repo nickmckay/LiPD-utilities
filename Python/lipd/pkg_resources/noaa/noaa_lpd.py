@@ -284,7 +284,7 @@ class NOAA_LPD(object):
                             key, missing_str = self.__slice_key_val(line)
 
                     if process_line:
-                        # Split the line at each space (There's one space between each data item)
+                        # Split the line at each space (There SHOULD one space between each variable. Not always true)
                         values = line.split()
                         # Write all data values to CSV
                         if data_vals_on:
@@ -294,7 +294,7 @@ class NOAA_LPD(object):
                         else:
                             var = self.__str_cleanup(values[0].lstrip())
                             # Check if a variable name is in the current line
-                            if var.lower() == data_var_names[0].lower():
+                            if var.lower() in line.lower():
                                 data_vals_on = True
                                 logger_noaa_lpd.info("start section: Data_Values")
                                 # Open CSV for writing
@@ -389,7 +389,7 @@ class NOAA_LPD(object):
             logger_noaa_lpd.info("end section: Data_Values")
             logger_noaa_lpd.info("end section: Data")
         except NameError as e:
-            print("Error: Invalid formatting in NOAA txt")
+            print("Error: NOAA text file is contains format errors. Unable to process.")
             logger_noaa_lpd.debug("parse: NameError: failed to close csv, invalid formatting in NOAA txt file, {}".format(e))
 
         # Piece together measurements block
@@ -468,7 +468,6 @@ class NOAA_LPD(object):
         if line not in NOAA_EMPTY and line not in EMPTY:
             m = re.match(RE_VAR_SPLIT, line)
             if m:
-                print(m.groups())
                 combine.append(m.group(1))
                 attr = m.group(2).split(',')
                 combine += attr
