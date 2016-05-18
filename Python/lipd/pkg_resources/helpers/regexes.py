@@ -5,7 +5,7 @@ GLOBAL LIST OF REGEXES
 """
 
 # DOI
-DOI = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*/(?:(?!["&\'<>,])\S)+)\b')
+DOI = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'<>,])\S)+)\b')
 
 # NOAA
 # Convert camelCase to underscore

@@ -1,7 +1,7 @@
 from collections import OrderedDict
-import os
+# import os
 import csv
-import copy
+# import copy
 
 from ..helpers.jsons import *
 from ..helpers.bag import *
@@ -14,7 +14,6 @@ logger_noaa_lpd = create_logger("noaa_lpd")
 
 
 class NOAA_LPD(object):
-
     def __init__(self, dir_root, dir_tmp, name):
         self.dir_root = dir_root
         self.dir_tmp = dir_tmp
@@ -26,7 +25,8 @@ class NOAA_LPD(object):
 
     def main(self):
         """
-        Convert a NOAA text file into a lipd file. CSV files will be created if chronology or data sections are available.
+        Convert a NOAA text file into a lipd file.
+        CSV files will be created if chronology or data sections are available.
         :return dict: Metadata Dictionary
         """
         logger_noaa_lpd.info("enter main")
@@ -55,7 +55,7 @@ class NOAA_LPD(object):
         """
         logger_noaa_lpd.info("enter parse")
         # Strings
-        last_insert = None
+        # last_insert = None
         missing_str = ''
         data_filename = ''
 
@@ -92,12 +92,12 @@ class NOAA_LPD(object):
         # All dictionaries needed to create JSON structure
         temp_funding = OrderedDict()
         temp_pub = OrderedDict()
-        vars_dict = OrderedDict()
+        # vars_dict = OrderedDict()
         core_len = OrderedDict()
         geo_properties = OrderedDict()
         chron_dict = OrderedDict()
         data_dict_upper = OrderedDict()
-        data_dict_lower = OrderedDict()
+        # data_dict_lower = OrderedDict()
         final_dict = OrderedDict()
 
         # Open the text file in read mode. We'll read one line at a time until EOF
@@ -189,11 +189,21 @@ class NOAA_LPD(object):
                     # When reaching the end of the chron section, set the marker to off and close the CSV file
                     if '-------' in line:
                         chronology_on = False
-                        # If nothing between the chronology start and the end barrier, then there won't be a CSV
-                        if chron_start_line != line_num-1:
-                            chron_csv.close()
-                            logger_noaa_lpd.info("parse: chronology: no data found in chronology section")
-                        logger_noaa_lpd.info("end section: Chronology")
+                        try:
+                            # If nothing between the chronology start and the end barrier, then there won't be a CSV
+                            if chron_start_line != line_num - 1:
+                                try:
+                                    chron_csv.close()
+                                    logger_noaa_lpd.info("parse: chronology: no data found in chronology section")
+                                except NameError:
+                                    logger_noaa_lpd.debug(
+                                        "parse: chronology_on: NameError: chron_csv ref before assignment, {}".format(
+                                            self.name_txt))
+                            logger_noaa_lpd.info("end section: Chronology")
+                        except NameError:
+                            logger_noaa_lpd.debug(
+                                "parse: chronology_on: NameError: chron_start_line ref before assignment, {}".format(
+                                    self.name_txt))
 
                     # Special case for first line in chron section. Grab variables and open a new CSV file
                     elif chron_vars_start:
@@ -227,7 +237,12 @@ class NOAA_LPD(object):
                     # Split the line of data values, then write to CSV file
                     else:
                         values = line.split()
-                        cw.writerow(values)
+                        try:
+                            cw.writerow(values)
+                        except NameError:
+                            logger_noaa_lpd.debug(
+                                "parse: chronology_on: NameError: csv writer ref before assignment, {}".format(
+                                    self.name_txt))
 
                 # VARIABLES
                 # Variables are the only lines that have a double # in front
@@ -261,7 +276,8 @@ class NOAA_LPD(object):
                             data_var_names.append(data_col_dict['variableName'])
                         except KeyError as e:
                             data_var_names.append('')
-                            logger_noaa_lpd.warn("parse: variables: KeyError: {} not found in {}".format("variableName", "data_col_dict"))
+                            logger_noaa_lpd.warn("parse: variables: "
+                                                 "KeyError: {} not found in {}".format("variableName", "data_col_dict"))
                         # Add the column dictionary into a final dictionary
                         data_col_list.append(data_col_dict)
                         data_col_ct += 1
@@ -288,7 +304,12 @@ class NOAA_LPD(object):
                         values = line.split()
                         # Write all data values to CSV
                         if data_vals_on:
-                            dw.writerow(values)
+                            try:
+                                dw.writerow(values)
+                            except NameError:
+                                logger_noaa_lpd.debug(
+                                    "parse: data_on: NameError: csv writer ref before assignment, {}".format(
+                                        self.name_txt))
 
                         # Check for the line of variables
                         else:
@@ -313,12 +334,18 @@ class NOAA_LPD(object):
                             try:
                                 temp_funding[old_key] = old_val + line
                             except KeyError as e:
-                                logger_noaa_lpd.debug("parse: metadata: line continuation: {} not found in {}, {}".format(old_key, "temp_funding", e))
+                                logger_noaa_lpd.debug(
+                                    "parse: metadata: line continuation: {} not found in {}, {}".format(old_key,
+                                                                                                        "temp_funding",
+                                                                                                        e))
                         else:
                             try:
                                 final_dict[old_key] = old_val + line
                             except KeyError as e:
-                                logger_noaa_lpd.debug("parse: metadata: line continuation: {} not found in {}, {}".format(old_key, "temp_funding", e))
+                                logger_noaa_lpd.debug(
+                                    "parse: metadata: line continuation: {} not found in {}, {}".format(old_key,
+                                                                                                        "temp_funding",
+                                                                                                        e))
 
                     # No Line Continuation: This is the start or a new entry
                     else:
@@ -356,14 +383,14 @@ class NOAA_LPD(object):
                             # For all
                             else:
                                 # Ignore any entries that are specified in the skip list
-                                if lkey not in NOAA_KEYS:
-                                    if lkey == 'core_length':
-                                        val, unit = self.__split_name_unit(value)
-                                        core_len['value'] = self.__convert_num(val)
-                                        core_len['unit'] = unit
-                                        last_insert = core_len
+                                if lkey not in NOAA_IGNORE_KEYS:
+                                    # if lkey == 'core_length':
+                                    #     val, unit = self.__split_name_unit(value)
+                                    #     core_len['value'] = self.__convert_num(val)
+                                    #     core_len['unit'] = unit
+                                    #     last_insert = core_len
                                     # There can be multiple funding agencies and grants. Keep a list of dict entries
-                                    elif lkey in FUNDING_LIST:
+                                    if lkey in FUNDING_LIST:
                                         if lkey == 'funding_agency_name':
                                             funding_id += 1
                                             key = 'agency'
@@ -381,7 +408,8 @@ class NOAA_LPD(object):
                                     old_key = key
                                     old_val = value.rstrip()
                         except TypeError as e:
-                            logger_noaa_lpd.warn("parse: TypeError: none type received from slice_key_val, {}".format(e))
+                            logger_noaa_lpd.warn(
+                                "parse: TypeError: none type received from slice_key_val, {}".format(e))
 
         # Wait to close the data CSV until we reached the end of the text file
         try:
@@ -390,7 +418,8 @@ class NOAA_LPD(object):
             logger_noaa_lpd.info("end section: Data")
         except NameError as e:
             print("Error: NOAA text file is contains format errors. Unable to process.")
-            logger_noaa_lpd.debug("parse: NameError: failed to close csv, invalid formatting in NOAA txt file, {}".format(e))
+            logger_noaa_lpd.debug(
+                "parse: NameError: failed to close csv, invalid formatting in NOAA txt file, {}".format(e))
 
         # Piece together measurements block
         logger_noaa_lpd.info("compiling final paleoData")
@@ -606,7 +635,7 @@ class NOAA_LPD(object):
         # If value is -1, that means the item was not found in the string.
         if position != -1:
             key = line[:position]
-            value = line[position+1:]
+            value = line[position + 1:]
             value = value.lstrip()
             return key, value
         else:
@@ -717,35 +746,47 @@ class NOAA_LPD(object):
     def __reorganize_doi(temp_pub):
         """
         Create a valid bib json entry for the DOI information.
+        Often there is a doi_id and doi_url entry, but check and compare all 3 fields just in case
         :param dict temp_pub:
         :return dict:
         """
-        doi_out = ''
+        doi_out = ""
+        doi_list = []
         rm = ["doiId", "doi", "doiUrl"]
         # Check if both entries exist
         if "doi" and "doiId" in temp_pub:
             if temp_pub["doi"] == temp_pub["doiId"]:
                 # If the entries are the same, then pick one to use
-                doi_out = temp_pub["doi"]
+                doi_out = temp_pub["doiId"]
             else:
                 # If entries are not the same, check if it matches the regex pattern.
-                if DOI.match(temp_pub["doiId"]):
+                if DOI.findall(temp_pub["doiId"]):
                     doi_out = temp_pub["doiId"]
                 # If it doesnt match the regex, just use the "doi" entry as-is
                 else:
                     doi_out = temp_pub["doi"]
-        # Check if "doi" entry exists
-        elif "doi" in temp_pub:
-            doi_out = temp_pub["doi"]
-        # Check if "doiId" entry exists
+        # Check if "doiId" entry exists. Most common entry.
         elif "doiId" in temp_pub:
             doi_out = temp_pub["doiId"]
+        # Check if "doi" entry exists. Fallback.
+        elif "doi" in temp_pub:
+            doi_out = temp_pub["doi"]
+        # It's unlikely that ONLY the doi_url exists, but check if no doi found so far
+        elif "doiUrl" in temp_pub:
+            doi_out = temp_pub["doiUrl"]
 
         # Log if the DOI is invalid or not.
         if not DOI.match(doi_out):
             logger_noaa_lpd.info("reorganize_doi: invalid doi input from NOAA file")
+
+        # Get a list of all DOIs found in the string
+        matches = re.findall(DOI, doi_out)
+        logger_noaa_lpd.info("reorganize_dois: found {} dois: {}".format(len(matches), doi_out))
+
         # Add identifier block to publication dictionary
-        temp_pub["identifier"] = [{"type": "doi", "id": doi_out}]
+        for doi in matches:
+            doi_list.append({"type": "doi", "id": doi})
+
         # Remove the other DOI entries
         for k in rm:
             try:
@@ -753,6 +794,8 @@ class NOAA_LPD(object):
             except KeyError:
                 # If there's a KeyError, don't worry about it. It's likely that only one of these keys will be present.
                 pass
+
+        temp_pub["identifier"] = doi_list
         return temp_pub
 
     def __remove_irr_fields(self):
