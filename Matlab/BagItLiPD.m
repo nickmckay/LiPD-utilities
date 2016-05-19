@@ -2,7 +2,7 @@ folders=dir;
 folders={folders(find(cell2mat({folders.isdir}))).name}';
 folders=folders(find(~strcmp('.',cellfun(@unique,folders,'UniformOutput',0))));
 
-for i=1:length(folders)
+for i=i:length(folders)
     cd([folders{i}])
     if length(dir('data'))==0 %see if it's already been bagged
         cd ..
