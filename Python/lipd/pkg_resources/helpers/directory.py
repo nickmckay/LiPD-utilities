@@ -99,7 +99,7 @@ def check_file_age(filename, days):
         return False
     except FileNotFoundError:
         # File not found. Need to download it.
-        logger_directory.warn("{} not found in {}".format(filename, os.getcwd()))
+        logger_directory.info("{} not found in {}".format(filename, os.getcwd()))
         logger_directory.info("exiting check_file_age()")
         return True
 

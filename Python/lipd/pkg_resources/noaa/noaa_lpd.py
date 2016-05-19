@@ -273,8 +273,9 @@ class NOAA_LPD(object):
 
                         # Keep a list of all variable names
                         try:
+                            # Use this list later to cross check with the variable line in the Data section
                             data_var_names.append(data_col_dict['variableName'])
-                        except KeyError as e:
+                        except KeyError:
                             data_var_names.append('')
                             logger_noaa_lpd.warn("parse: variables: "
                                                  "KeyError: {} not found in {}".format("variableName", "data_col_dict"))
@@ -467,7 +468,7 @@ class NOAA_LPD(object):
         # Format: what, material, error, units, seasonality, archive, detail, method,
         # C or N for Character or Numeric data, direction of relation to climate (positive or negative)
         d = OrderedDict()
-        d['column'] = col_count
+        d['number'] = col_count
         for idx, var_data in enumerate(l):
             try:
                 var = NOAA_VAR_COLS[idx]
