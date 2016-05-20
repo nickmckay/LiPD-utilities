@@ -41,7 +41,7 @@ class LPD_NOAA(object):
             if open(filename):
                 found = True
         except FileNotFoundError as e:
-            logger_lpd_noaa.debug("csv_found: FileNotFound: no csv/couldn't open file, {}".format(e))
+            logger_lpd_noaa.debug("csv_found: FileNotFound: no csv file, {}".format(e))
         return found
 
     @staticmethod
@@ -61,7 +61,6 @@ class LPD_NOAA(object):
         Convert camelCase to underscore
         :param str key: Key or title name
         """
-
         # Special keys that need a specific key change
         if key == 'doi':
             key_o = 'DOI'
@@ -179,19 +178,27 @@ class LPD_NOAA(object):
         length = len(l)
         locations = ['northernmostLatitude', 'easternmostLongitude', 'southernmostLatitude', 'westernmostLongitude']
         logger_lpd_noaa.info("coordinates: {} coordinates found".format(length))
-        if length == 0:
+
+        # Odd number of coordinates. Elevation value exists
+        if len(l) % 2 == 1:
+            # Store the elevation, which is always the last value in the list
+            d["elevation"] = l.pop()
+
+        # Start compiling the lat lon coordinates
+        if len(l) == 0:
             for location in locations:
                 d[location] = ' '
-        elif length == 2:
+        elif len(l) == 2:
             d[locations[0]] = l[0]
             d[locations[1]] = l[1]
             d[locations[2]] = l[0]
             d[locations[3]] = l[1]
-        elif length == 4:
+        elif len(l) == 4:
             for index, location in enumerate(locations):
                 d[locations[index]] = l[index]
         else:
-            logger_lpd_noaa.info("coordinates: Too many coordinates given")
+            logger_lpd_noaa.info("coordinates: too many coordinates given")
+
         return d
 
     def main(self):
@@ -218,9 +225,9 @@ class LPD_NOAA(object):
         noaa_txt = None
         try:
             noaa_txt = open(self.name_txt, "w+")
-            logger_lpd_noaa.info("opened output txt file")
+            logger_lpd_noaa.info("write_file: opened output txt file")
         except Exception as e:
-            logger_lpd_noaa.debug("write_file: Failed to open output txt file, {}".format(e))
+            logger_lpd_noaa.debug("write_file: failed to open output txt file, {}".format(e))
 
         if noaa_txt:
             self.__write_top(noaa_txt, 1)
@@ -228,11 +235,12 @@ class LPD_NOAA(object):
             self.__write_generic(noaa_txt, 'Title', 3, self.steps_dict[3])
             self.__write_generic(noaa_txt, 'Investigators', 4, self.steps_dict[4])
             self.__write_generic(noaa_txt, 'Description_Notes_and_Keywords', 5, self.steps_dict[5])
-            self.__write_pub(noaa_txt, self.steps_dict[6]['pub'])
+            self.__write_pub(noaa_txt)
             self.__write_funding(noaa_txt, self.steps_dict[7])
             self.__write_geo(noaa_txt, self.steps_dict[8])
             self.__write_generic(noaa_txt, 'Data_Collection', 9, self.steps_dict[9])
             self.__write_generic(noaa_txt, 'Species', 10, self.steps_dict[10])
+            #todo uncomment this when chronology structure is sorted out
             # self.write_chron(noaa_txt, self.steps_dict[11])
 
         # Run once for each table. Keep variables and related data grouped
@@ -304,16 +312,21 @@ class LPD_NOAA(object):
         noaa_txt.write('#------------------\n')
         return
 
-    def __write_pub(self, noaa_txt, pub_root):
+    def __write_pub(self, noaa_txt):
         """
         Write pub section. There may be multiple, so write a generic section for each one.
         :param obj noaa_txt: Output .txt file that is being written to.
-        :param list pub_root: One or more pub dictionaries.
         :return none:
         """
-        for idx, pub in enumerate(pub_root):
-            logger_lpd_noaa.info("publication: {}".format(idx))
-            self.__write_generic(noaa_txt, 'Publication', 6, pub)
+        try:
+            for idx, pub in enumerate(self.steps_dict[6]["pub"]):
+                logger_lpd_noaa.info("publication: {}".format(idx))
+                self.__write_generic(noaa_txt, 'Publication', 6, pub)
+        except KeyError:
+            logger_lpd_noaa.info("write_pub: KeyError: pub section not found")
+        except TypeError:
+            logger_lpd_noaa.debug("write_pub: TypeError: pub not a list type")
+
         return
 
     def __write_funding(self, noaa_txt, d):
@@ -336,6 +349,7 @@ class LPD_NOAA(object):
         :param dict d:
         :return none:
         """
+        #todo figure out why geo coordinates are not being written to file
         for k, v in d.items():
             d = self.__reorganize_geo(v)
         self.__write_generic(noaa_txt, 'Site_Information', 8, d)
@@ -348,6 +362,8 @@ class LPD_NOAA(object):
         :param dict d:
         :return none:
         """
+        # ChronData is a list of dictionaries
+        #todo conform this to the new chronology structure. Only use the chronMeasurementData section
         logger_lpd_noaa.info("writing section: {}".format("chronology"))
         noaa_txt.write('# Chronology:\n#\n')
         if self.__csv_found('chron'):
@@ -440,13 +456,13 @@ class LPD_NOAA(object):
                     try:
                         if entry == 'variableName':
                             # First entry: Double hash and tab
-                            noaa_txt.write('{:<20}'.format('##' + col[entry]))
+                            noaa_txt.write('{:<20}'.format('##' + str(col[entry])))
                         elif entry == 'dataType':
                             # Last entry: No space or comma
-                            noaa_txt.write('{:<0}'.format(col[entry]))
+                            noaa_txt.write('{:<0}'.format(str(col[entry])))
                         else:
                             # Space and comma after middle entries
-                            noaa_txt.write('{:<3}'.format(col[entry] + ', '))
+                            noaa_txt.write('{:<3}'.format(str(col[entry]) + ', '))
                     except KeyError as e:
                         noaa_txt.write('{:<3}'.format(', '))
                         logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
@@ -466,10 +482,7 @@ class LPD_NOAA(object):
         d_tmp = {}
         try:
             for k, v in d['properties'].items():
-                if k == 'elevation':
-                    d_tmp['elevation'] = str(v['value']) + ' ' + str(v['unit'])
-                else:
-                    d_tmp[k] = v
+                d_tmp[k] = v
             # Geometry
             d_tmp = self.__coordinates(d['geometry']['coordinates'], d_tmp)
         except KeyError as e:
