@@ -5,16 +5,18 @@ GLOBAL LIST OF REGEXES
 """
 
 # DOI
-DOI = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'<>,])\S)+)\b')
+re_doi = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'<>,])\S)+)\b')
 
 # NOAA
 # Convert camelCase to underscore
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
-RE_VAR = re.compile(r'#{2}\s*(\S+)(?:\s+)([\w\W\s]+)')
-RE_VAR_SPLIT = re.compile(r'(\S+)(?:\s+)([\w\W\s]+)')
+re_var = re.compile(r'#{2}\s*(\S+)(?:\s+)([\w\W\s]+)')
+re_var_split = re.compile(r'(\S+)(?:\s+)([\w\W\s]+)')
 re_name_unit = re.compile(r'([\-]?\d+)?\s*[(]?\s*(\w+)?\s*[)]?')
 re_name_unit_range = re.compile(r'([\-]?\d+)[\s\(]*(?!to)(\w+)*')
+re_chron_var_header = re.compile(r"(\w+\S+)[\s]{0,2}((?:\()?(\w+)?(?:\)))?")
+# re_chron_var_desc = re.compile(r"(\w+\S*)\s+(.*)")
 
 # TIMESERIES Convert
 re_misc_fetch = re.compile(r'(geo_(\w+)|climateInterpretation_(\w+)|calibration_(\w+)|paleoData_(\w+))')

@@ -14,6 +14,7 @@ logger_noaa_lpd = create_logger("noaa_lpd")
 
 
 class NOAA_LPD(object):
+
     def __init__(self, dir_root, dir_tmp, name):
         self.dir_root = dir_root
         self.dir_tmp = dir_tmp
@@ -54,8 +55,8 @@ class NOAA_LPD(object):
         :return:
         """
         logger_noaa_lpd.info("enter parse")
+
         # Strings
-        # last_insert = None
         missing_str = ''
         data_filename = ''
 
@@ -71,7 +72,7 @@ class NOAA_LPD(object):
         abstract_on = False
         site_info_on = False
         chronology_on = False
-        chron_vars_start = True
+        chron_vals_on = False
         variables_on = False
         data_vals_on = False
         data_on = False
@@ -92,13 +93,13 @@ class NOAA_LPD(object):
         # All dictionaries needed to create JSON structure
         temp_funding = OrderedDict()
         temp_pub = OrderedDict()
-        # vars_dict = OrderedDict()
         core_len = OrderedDict()
         geo_properties = OrderedDict()
         chron_dict = OrderedDict()
         data_dict_upper = OrderedDict()
-        # data_dict_lower = OrderedDict()
         final_dict = OrderedDict()
+        chron_var_desc = {}
+        chron_var_header = {}
 
         # Open the text file in read mode. We'll read one line at a time until EOF
         with open(self.name_txt, 'r') as f:
@@ -185,10 +186,20 @@ class NOAA_LPD(object):
 
                 # CHRONOLOGY
                 elif chronology_on:
+                    """
+                    HOW IT WORKS:
+                    Chronology will be started at "Chronology:" section header
+                    Every line starting with a "#" will be ignored
+                    The first line without a "#" is considered the variable header line. Variable names are parsed.
+                    Each following line will be considered column data and sorted accordingly.
+                    Once the "-----" barrier is reached, we exit the chronology section.
+                    """
 
                     # When reaching the end of the chron section, set the marker to off and close the CSV file
                     if '-------' in line:
+                        # Turn off markers to exit section
                         chronology_on = False
+                        chron_vals_on = False
                         try:
                             # If nothing between the chronology start and the end barrier, then there won't be a CSV
                             if chron_start_line != line_num - 1:
@@ -205,37 +216,8 @@ class NOAA_LPD(object):
                                 "parse: chronology_on: NameError: chron_start_line ref before assignment, {}".format(
                                     self.name_txt))
 
-                    # Special case for first line in chron section. Grab variables and open a new CSV file
-                    elif chron_vars_start:
-                        chron_vars_start = False
-
-                        # Open CSV for writing
-                        chron_filename = self.name + '-chronology.csv'
-                        csv_path = os.path.join(self.dir_bag, chron_filename)
-                        chron_csv = open(csv_path, 'w+', newline='')
-                        logger_noaa_lpd.info("opened csv file: {}".format(chron_filename))
-                        cw = csv.writer(chron_csv)
-
-                        # Split the line into a list of variables
-                        chron_col_ct = 1
-                        line = line.lstrip()
-                        variables = line.split('|')
-
-                        # Create a dictionary of info for each column
-                        for index, var in enumerate(variables):
-                            temp_dict = OrderedDict()
-                            temp_dict['column'] = chron_col_ct
-                            name, unit = self.__split_name_unit(var.replace('\n', '').lstrip().rstrip())
-                            temp_dict['parameter'] = name
-                            temp_dict['units'] = unit
-                            chron_col_list.append(temp_dict)
-                            chron_col_ct += 1
-                        chron_dict['filename'] = chron_filename
-                        chron_dict['chronTableName'] = 'Chronology'
-                        chron_dict['columns'] = chron_col_list
-
-                    # Split the line of data values, then write to CSV file
-                    else:
+                    # Data values line. Split, then write to CSV file
+                    elif chron_vals_on:
                         values = line.split()
                         try:
                             cw.writerow(values)
@@ -243,6 +225,30 @@ class NOAA_LPD(object):
                             logger_noaa_lpd.debug(
                                 "parse: chronology_on: NameError: csv writer ref before assignment, {}".format(
                                     self.name_txt))
+
+                    else:
+                        try:
+                            # Chron variable headers line
+                            if line and line[0] != "#":
+                                chron_filename = self.name + '-chronology.csv'
+                                # Organize the var header into a dictionary
+                                variables = self.__reorganize_chron_header(line)
+
+                                # Create a dictionary of info for each column
+                                chron_col_list = self.__create_chron_cols(variables)
+                                chron_dict['filename'] = chron_filename
+                                chron_dict['chronTableName'] = 'Chronology'
+                                chron_dict['columns'] = chron_col_list
+
+                                # Open CSV for writing
+                                csv_path = os.path.join(self.dir_bag, chron_filename)
+                                chron_csv = open(csv_path, 'w+', newline='')
+                                logger_noaa_lpd.info("opened csv file: {}".format(chron_filename))
+                                cw = csv.writer(chron_csv)
+                                # Turn the marker on to start processing the values columns
+                                chron_vals_on = True
+                        except IndexError:
+                            logger_noaa_lpd.debug("parse: chronology: IndexError when attempting chron var header")
 
                 # VARIABLES
                 # Variables are the only lines that have a double # in front
@@ -258,7 +264,7 @@ class NOAA_LPD(object):
                     for item in NOAA_EMPTY:
                         if item == line:
                             process_line = False
-                    m = re.match(RE_VAR, line)
+                    m = re.match(re_var, line)
                     if m:
                         process_line = True
 
@@ -360,7 +366,7 @@ class NOAA_LPD(object):
 
                             # If there is no value, then we are at a section header.
                             # Data often has a blank value, so that is a special check.
-                            if value is None or lkey == 'data':
+                            if not value or lkey == 'data':
                                 # Turn on markers if we run into section headers
                                 if lkey == 'description_and_notes':
                                     description_on = True
@@ -441,7 +447,7 @@ class NOAA_LPD(object):
         final_dict['funding'] = funding
         final_dict['geo'] = geo
         final_dict['coreLength'] = core_len
-        final_dict['chronology'] = chron_dict
+        final_dict['chronData'] = [{"chronMeasurementTable": chron_dict}]
         final_dict['paleoData'] = data_tables
         self.metadata = final_dict
         logger_noaa_lpd.info("final dictionary compiled")
@@ -496,7 +502,7 @@ class NOAA_LPD(object):
             line = line.replace("#", "")
             line = line.lstrip()
         if line not in NOAA_EMPTY and line not in EMPTY:
-            m = re.match(RE_VAR_SPLIT, line)
+            m = re.match(re_var_split, line)
             if m:
                 combine.append(m.group(1))
                 attr = m.group(2).split(',')
@@ -761,7 +767,7 @@ class NOAA_LPD(object):
                 doi_out = temp_pub["doiId"]
             else:
                 # If entries are not the same, check if it matches the regex pattern.
-                if DOI.findall(temp_pub["doiId"]):
+                if re_doi.findall(temp_pub["doiId"]):
                     doi_out = temp_pub["doiId"]
                 # If it doesnt match the regex, just use the "doi" entry as-is
                 else:
@@ -777,11 +783,11 @@ class NOAA_LPD(object):
             doi_out = temp_pub["doiUrl"]
 
         # Log if the DOI is invalid or not.
-        if not DOI.match(doi_out):
+        if not re_doi.match(doi_out):
             logger_noaa_lpd.info("reorganize_doi: invalid doi input from NOAA file")
 
         # Get a list of all DOIs found in the string
-        matches = re.findall(DOI, doi_out)
+        matches = re.findall(re_doi, doi_out)
         logger_noaa_lpd.info("reorganize_dois: found {} dois: {}".format(len(matches), doi_out))
 
         # Add identifier block to publication dictionary
@@ -811,3 +817,87 @@ class NOAA_LPD(object):
                 # Key wasn't found. That's okay. No need for handling
                 pass
         return
+
+
+
+    @staticmethod
+    def __create_chron_cols(metadata):
+        """
+        Use to collected chron metadata to create the chron columns
+        :param dict metadata: key: variable, val: unit (optional)
+        :return list: list of one dict per column
+        """
+        chron_col_list = []
+        chron_col_ct = 1
+        for variableName, unit in metadata.items():
+            temp_dict = OrderedDict()
+            temp_dict['column'] = chron_col_ct
+            temp_dict['variableName'] = variableName
+            temp_dict['unit'] = unit
+            # temp_dict["description"] = data["description"]
+            chron_col_list.append(copy.deepcopy(temp_dict))
+            chron_col_ct += 1
+
+        return chron_col_list
+
+
+    @staticmethod
+    def __reorganize_chron_header(line):
+        """
+        Reorganize the list of variables. If there are units given, log them.
+        :param str line:
+        :return dict: key: variable, val: units (optional)
+        """
+        d = {}
+        l = line.split()
+        for entry in l:
+            if "(" in entry:
+                # Extract units and set the output.
+                s = entry.split("(")
+                d[s[0]] = s[1].replace(")", "")
+            else:
+                # No units found. Set placeholder
+                d[entry] = ""
+        return d
+
+    # @staticmethod
+    # def __combine_chron_metadata(chron_var_desc, chron_var_header):
+    #     """
+    #     Combine the dictionaries of chron descriptions, variables, and units metadata into one master.
+    #     :param dict chron_var_desc:
+    #     :param dict chron_var_header:
+    #     :return dict: combined chron metadata
+    #     """
+    #     for data in chron_var_header:
+    #         if data["variableName"] in chron_var_desc:
+    #             try:
+    #                 data["description"] = chron_var_desc[data["variableName"]]
+    #             except KeyError:
+    #                 logger_noaa_lpd.debug("combine_chron_metadata: KeyError: {}".format(data["variableName"]))
+    #         else:
+    #             data["description"] = ""
+    #     return chron_var_header
+
+    # @staticmethod
+    # def __reorganize_chron_var_header(regex_list):
+    #     """
+    #     Reorganize the data from the chronology variable header line. (The one right before the data values)
+    #     :param list regex_list: List of tuple matches
+    #     :return dict: column metadata
+    #     """
+    #     d = {}
+    #     for match in regex_list:
+    #         tmp = {}
+    #         try:
+    #             # Variable name is in the first position
+    #             tmp["variableName"] = match[0]
+    #             # If there is a string at index 2, units were given
+    #             if match[2]:
+    #                 tmp["unit"] = match[2]
+    #             else:
+    #                 # Put in a placeholder. It'll make things more uniform, and will be removed later anyway.
+    #                 tmp["unit"] = ""
+    #             d[match[0]] = tmp
+    #         except IndexError:
+    #             logger_noaa_lpd.info("reorganize_chron_var_header: IndexError: {}".format(match))
+    #     return d
