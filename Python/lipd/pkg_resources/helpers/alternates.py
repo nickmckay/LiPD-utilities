@@ -13,6 +13,15 @@ comparisons = {
     "less than": "<"
 }
 
+# EXCEL
+EXCEL_GEO = [
+    "latMax",
+    "latMin",
+    "lonMax",
+    "lonMin",
+    "elevation"
+]
+
 
 # Missing value name appears as many variations. Try to account for all of them
 ALTS_MV = [
@@ -85,7 +94,7 @@ NOAA_SECTIONS = {
     10: ['speciesName', 'commonName', 'treeSpeciesCode'],
     11: ['chronology'],
     12: ['paleoData'],
-    13: ['funding', 'type', 'bbox', 'geo']
+    13: []
 }
 
 # The order of the items in the list is the order that we want to write them to the file.
@@ -141,6 +150,10 @@ NOAA_ORDERING = {
          'dataType']
 }
 
+NOAA_ROOT_KEYS = [
+    "pu"
+]
+
 UNITS = {
     "meters": "m",
     "meter": "m",
@@ -154,60 +167,77 @@ UNITS = {
 
 NOAA_IGNORE_KEYS = [
     "originalSourceUrl",
+    "original_source_url",
     "commonName",
+    "common_name",
     "parameterKeywords",
+    "parameter_keywords",
     "speciesName",
+    "species_name",
     "timeUnit",
+    "time_unit",
     "collectionName",
+    "collection_name",
     "earliestYear",
+    "earliest_year",
     "mostRecentYear",
-    "coreLength"
+    "most_recent_year",
+    "coreLength",
+    "core_length",
+    "note"
+]
+
+NOAA_DOI_KEYS = [
+    "DOI",
+    "DOI_url",
+    "DOI_id"
 ]
 
 ALTS_JSONLD = {
-        "metadata": "metadata",
-        "chronology": "chronology",
-        "data (qc)": "dataQC",
-        "data(qc)": "dataQC",
-        "data (original)": "dataOriginal",
-        "data(original)": "dataOriginal",
-        "data": "data",
-        "proxyList": "proxy",
-        "proxy": "proxy",
-        "about": "about",
-        "study title": "studyName",
-        "investigators": "investigators",
-        "authors": "author",
-        "publication title": "title",
-        "journal": "journal",
-        "year": "year",
-        "volume": "volume",
-        "issue": "issue",
-        "pages": "pages",
-        "dataUrl": "dataUrl",
-        "link": "link",
-        "report number": "reportNumber",
-        "doi": "id",
-        "abstract": "abstract",
-        "alternate citation": "alternateCitation",
-        "site name": "siteName",
-        "northernmost latitude": "latMax",
-        "southernmost latitude": "latMin",
-        "easternmost longitude": "lonMax",
-        "westernmost longitude": "lonMin",
-        "short_name": "variableName",
-        "what": "description",
-        "material": "measurementMaterial",
-        "error": "error",
-        "units": "units",
-        "seasonality": "seasonality",
-        "archive": "archive",
-        "detail": "detail",
-        "method": "method",
-        "data_type": "dataType",
-        "basis of climate relation": "basis",
-        "climate_interpretation_code": "climateInterpretation",
-        "climate_intepretation_code": "climateInterpretation",
-        "notes": "notes",
-        "comments": "notes"
+    "metadata": "metadata",
+    "chronology": "chronology",
+    "data (qc)": "dataQC",
+    "data(qc)": "dataQC",
+    "data (original)": "dataOriginal",
+    "data(original)": "dataOriginal",
+    "data": "data",
+    "proxyList": "proxy",
+    "proxy": "proxy",
+    "about": "about",
+    "study title": "studyName",
+    "investigators": "investigators",
+    "authors": "author",
+    "publication title": "title",
+    "journal": "journal",
+    "year": "year",
+    "volume": "volume",
+    "issue": "issue",
+    "pages": "pages",
+    "dataUrl": "dataUrl",
+    "link": "link",
+    "report number": "reportNumber",
+    "doi": "id",
+    "abstract": "abstract",
+    "alternate citation": "alternateCitation",
+    "site name": "siteName",
+    "northernmost latitude": "latMax",
+    "southernmost latitude": "latMin",
+    "easternmost longitude": "lonMax",
+    "westernmost longitude": "lonMin",
+    "elevation": "elevation",
+    "short_name": "variableName",
+    "what": "description",
+    "material": "measurementMaterial",
+    "error": "error",
+    "units": "units",
+    "seasonality": "seasonality",
+    "archive": "archive",
+    "detail": "detail",
+    "method": "method",
+    "data_type": "dataType",
+    "basis of climate relation": "basis",
+    "climate_interpretation_code": "climateInterpretation",
+    "climate_intepretation_code": "climateInterpretation",
+    "notes": "notes",
+    "comments": "notes"
 }

@@ -10,6 +10,7 @@ from ..helpers.blanks import *
 from ..helpers.loggers import *
 from ..helpers.alternates import *
 
+
 logger_excel = create_logger('excel_main')
 
 
@@ -283,7 +284,7 @@ def geometry_linestring(lat, lon, elev):
     logger_excel.info("enter geometry_linestring")
     d = OrderedDict()
     coordinates = []
-    temp = [None, None]
+    temp = ["", ""]
 
     # Point type, Matching pairs.
     if lat[0] == lat[1] and lon[0] == lon[1]:
@@ -300,7 +301,9 @@ def geometry_linestring(lat, lon, elev):
             for j in lon:
                 temp[1] = j
                 coordinates.append(copy.copy(temp))
-
+        if elev:
+            for i in coordinates:
+                i.append(elev)
         # Create geometry block
         d['type'] = 'Linestring'
         d['coordinates'] = coordinates
@@ -338,17 +341,12 @@ def compile_geometry(lat, lon, elev):
     Take in lists of lat and lon coordinates, and determine what geometry to create
     :param list lat: Latitude values
     :param list lon: Longitude values
+    :param float elev: Elevation value
     :return dict:
     """
     logger_excel.info("enter compile_geometry")
-    while None in lat:
-        lat.remove(None)
-    while None in lon:
-        lon.remove(None)
-
-    # Sort lat an lon in numerical order
-    lat.sort()
-    lon.sort()
+    lat = _remove_geo_placeholders(lat)
+    lon = _remove_geo_placeholders(lon)
 
     # 4 coordinate values
     if len(lat) == 2 and len(lon) == 2:
@@ -386,10 +384,12 @@ def compile_geo(d):
     logger_excel.info("enter compile_geo")
     d2 = OrderedDict()
     d2['type'] = 'Feature'
-    try:
-        d2['geometry'] = compile_geometry([d['latMin'], d['latMax']], [d['lonMin'], d['lonMax']], d['elevation'])
-    except KeyError as e:
-        logger_excel.warn("compile_geo: KeyError: {}".format(e))
+    # If the necessary keys are missing, put in placeholders so there's no KeyErrors.
+    for key in EXCEL_GEO:
+        if key not in d:
+            d[key] = ""
+    # Compile the geometry based on the info available.
+    d2['geometry'] = compile_geometry([d['latMin'], d['latMax']], [d['lonMin'], d['lonMax']], d['elevation'])
     try:
         d2['properties'] = {'siteName': d['siteName']}
     except KeyError as e:
@@ -1188,6 +1188,19 @@ def blind_data_capture(temp_sheet):
         chronology[key] = row_list
 
     return chronology
+
+
+def _remove_geo_placeholders(l):
+    """
+    Remove placeholders from coordinate lists and sort
+    :param list l: Lat or long list
+    :return list: Modified list
+    """
+    for i in l:
+        if not i:
+            l.remove(i)
+    l.sort()
+    return l
 
 
 if __name__ == '__main__':
