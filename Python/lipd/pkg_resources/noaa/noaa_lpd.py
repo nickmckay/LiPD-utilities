@@ -1,7 +1,5 @@
 from collections import OrderedDict
-# import os
 import csv
-# import copy
 
 from ..helpers.jsons import *
 from ..helpers.bag import *
@@ -85,7 +83,6 @@ class NOAA_LPD(object):
         funding = []
         temp_abstract = []
         temp_description = []
-        chron_col_list = []
         data_var_names = []
         data_col_list = []
         data_tables = []
@@ -98,8 +95,6 @@ class NOAA_LPD(object):
         chron_dict = OrderedDict()
         data_dict_upper = OrderedDict()
         final_dict = OrderedDict()
-        chron_var_desc = {}
-        chron_var_header = {}
 
         # Open the text file in read mode. We'll read one line at a time until EOF
         with open(self.name_txt, 'r') as f:
@@ -134,11 +129,15 @@ class NOAA_LPD(object):
                     else:
                         line = self.__str_cleanup(line)
                         key, value = self.__slice_key_val(line)
-                        temp_pub[self.__camel_case(key)] = value
-                        if key == 'Abstract':
-                            logger_noaa_lpd.info("reading section: Abstract")
-                            abstract_on = True
-                            temp_abstract.append(value)
+                        if key in ("Author", "Authors"):
+                            temp_pub["author"] = self.__reorganize_authors(value)
+                        else:
+                            temp_pub[self.__camel_case(key)] = value
+                            if key == 'Abstract':
+                                logger_noaa_lpd.info("reading section: Abstract")
+                                abstract_on = True
+                                temp_abstract.append(value)
+
 
                 # DESCRIPTION AND NOTES
                 # Descriptions are often long paragraphs spanning multiple lines, but don't follow the key/value format
@@ -210,11 +209,16 @@ class NOAA_LPD(object):
                                     logger_noaa_lpd.debug(
                                         "parse: chronology_on: NameError: chron_csv ref before assignment, {}".format(
                                             self.name_txt))
+                                    print(
+                                        "Chronology section is incorrectly formatted. "
+                                        "Section data will not be converted")
+
                             logger_noaa_lpd.info("end section: Chronology")
                         except NameError:
                             logger_noaa_lpd.debug(
                                 "parse: chronology_on: NameError: chron_start_line ref before assignment, {}".format(
                                     self.name_txt))
+                            print("Chronology section is incorrectly formatted. Section data will not be converted")
 
                     # Data values line. Split, then write to CSV file
                     elif chron_vals_on:
@@ -225,6 +229,7 @@ class NOAA_LPD(object):
                             logger_noaa_lpd.debug(
                                 "parse: chronology_on: NameError: csv writer ref before assignment, {}".format(
                                     self.name_txt))
+                            print("Chronology section is incorrectly formatted. Section data will not be converted")
 
                     else:
                         try:
@@ -859,6 +864,23 @@ class NOAA_LPD(object):
                 # No units found. Set placeholder
                 d[entry] = ""
         return d
+
+    @staticmethod
+    def __reorganize_authors(authors):
+        """
+        Separate the string of authors and put it into a BibJSON compliant list
+        :param str authors:
+        :return list: List of dictionaries of author names.
+        """
+        # String SHOULD be semi-colon separated names.
+        l = []
+        s = authors.split(";")
+        for author in s:
+            try:
+                l.append({"name": author.strip()})
+            except AttributeError:
+                logger_noaa_lpd.warning("reorganize_authors: AttributeError: authors incorrectly formatted")
+        return l
 
     # @staticmethod
     # def __combine_chron_metadata(chron_var_desc, chron_var_header):

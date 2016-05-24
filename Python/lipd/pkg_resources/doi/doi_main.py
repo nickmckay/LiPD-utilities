@@ -3,7 +3,7 @@ from ..helpers.bag import *
 from ..helpers.directory import *
 from ..helpers.zips import *
 from ..helpers.jsons import *
-from ..helpers.loggers import *
+from ..helpers.loggers import create_logger
 
 logger_doi_main = create_logger("doi_main")
 
@@ -21,9 +21,6 @@ def doi():
     print("Found {0} {1} file(s)".format(str(len(f_list)), 'LiPD'))
     force = prompt_force()
     for name_ext in f_list:
-        print('processing: {}'.format(name_ext))
-        logger_doi_main.info("processing: {}".format(name_ext))
-
         # .lpd name w/o extension
         name = os.path.splitext(name_ext)[0]
 
@@ -35,10 +32,14 @@ def doi():
         if not force:
             # Unbag and check resolved flag. Don't run if flag exists.
             if resolved_flag(open_bag(os.path.join(dir_tmp, name))):
+                print('skipping: {}'.format(name_ext))
+                logger_doi_main.info("skipping: {}".format(name_ext))
                 shutil.rmtree(dir_tmp)
 
         # Process file if flag does not exist or force.
         else:
+            print('processing: {}'.format(name_ext))
+            logger_doi_main.info("processing: {}".format(name_ext))
             # dir: dir_root -> dir_tmp
             process_lpd(name, dir_tmp)
             # dir: dir_tmp -> dir_root
@@ -49,6 +50,7 @@ def doi():
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
     logger_doi_main.info("exit doi_main")
+    print("Process Complete")
     return
 
 
@@ -115,6 +117,9 @@ def prompt_force():
             print("invalid response")
             logger_doi_main.warn("invalid response: {}, {}".format(f, e))
         count += 1
-    logger_doi_main("force update: {}".format(force))
+    logger_doi_main.info("force update: {}".format(force))
     logger_doi_main.info("exit prompt_force")
     return force
+
+if __name__ == '__main__':
+    doi()
