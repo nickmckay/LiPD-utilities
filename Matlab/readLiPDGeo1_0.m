@@ -11,9 +11,9 @@ if isfield(I.geo,'geometry')
         I.geo.longitude=NaN;
         I.geo.meanLon=NaN;
     else
-        I.geo.latitude=I.geo.geometry.coordinates(:,1);
+        I.geo.latitude=I.geo.geometry.coordinates(:,2);
         I.geo.meanLat=nanmean(I.geo.latitude);
-        I.geo.longitude=I.geo.geometry.coordinates(:,2);
+        I.geo.longitude=I.geo.geometry.coordinates(:,1);
         I.geo.meanLon=nanmean(I.geo.longitude);
     end
     

@@ -5,6 +5,7 @@ for dd=1:length(LiPDStruct.pub)
         if iscell(LiPDStruct.pub{dd}.DOI)
             LiPDStruct.pub{dd}.DOI=LiPDStruct.pub{dd}.DOI{1};
         end
+        
         doistring=strtrim(LiPDStruct.pub{dd}.DOI);
         dh=strfind(doistring,'doi:');
         if ~isempty(dh)                

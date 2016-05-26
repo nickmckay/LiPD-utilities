@@ -48,7 +48,9 @@ for c=toFindc
             break
         end
         for ts=1:nTS
+            if isempty(strfind(value,'_DOI'))
             GTS(ts).(value)=convertCellStringToNumeric(metadata(r,c+1));
+            end
         end
         r=r+1;
     end

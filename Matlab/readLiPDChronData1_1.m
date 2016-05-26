@@ -3,11 +3,11 @@ function C=readLiPDChronData1_1(I,dirname)
 
 toct=NaN;
 if isfield(I,'chronData')
+    C=I.chronData;
     toct=1:length(I.chronData);
 end
 
 
-C=I.chronData;
 
 if ~isnan(toct) %if there are chron tables, load em in
     for i = toct; %go through each chronology

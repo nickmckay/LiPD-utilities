@@ -263,6 +263,7 @@ end
 if isfield(TS,'paleoData_tableName')
 TS=rmfield(TS,'paleoData_tableName');
 end
+TS=structord(TS);
 
 
 
