@@ -4,7 +4,7 @@ GLOBAL LIST OF ALTERNATES AND SYNONYMS
 """
 
 # FILTER
-comparisons = {
+COMPARISONS = {
     "==": "=",
     "is": "=",
     "greater than": ">",
@@ -61,20 +61,6 @@ NOAA_SITE_INFO = {
     ],
 }
 
-NOAA_VAR_COLS = [
-    "variableName",
-    "description",
-    "measurementMaterial",
-    "uncertainty",
-    "units",
-    "seasonality",
-    "archive",
-    "detail",
-    "measurementMethod",
-    "dataType",
-    "interpDirection"
-]
-
 FUNDING_LIST = [
     'funding_agency_name',
     'grant'
@@ -92,7 +78,7 @@ NOAA_SECTIONS = {
     8: ['geo'],
     9: ['collectionName', 'earliestYear', 'mostRecentYear', 'timeUnit', 'coreLength', 'notes'],
     10: ['speciesName', 'commonName', 'treeSpeciesCode'],
-    11: ['chronology'],
+    11: ['chronData'],
     12: ['paleoData'],
     13: []
 }
@@ -117,11 +103,12 @@ NOAA_ORDERING = {
         'edition',
         'issue',
         'pages',
+        "reportNumber",
         'doi',
         'onlineResource',
         'fullCitation',
-        'abstract',
-        'identifier'],
+        'abstract'
+        ],
     7: ['agency', 'grant'],
     8: ['siteName',
         'location',
@@ -138,21 +125,18 @@ NOAA_ORDERING = {
         'coreLength',
         'notes'],
     10: ['speciesName', 'commonName'],
-    11: ['variableName',
-         'description',
-         'measurementMaterial',
-         'uncertainty',
-         'units',
-         'seasonality',
-         'archive',
-         'detail',
-         'method',
-         'dataType']
+    11: ["variableName",
+         "variableType",
+         "measurementMaterial",
+         "uncertainty",
+         "units",
+         "seasonality",
+         "archive",
+         "detail",
+         "measurementMethod",
+         "dataType"
+         ]
 }
-
-NOAA_ROOT_KEYS = [
-    "pu"
-]
 
 UNITS = {
     "meters": "m",
@@ -165,6 +149,7 @@ UNITS = {
     "millimeters": "mm"
 }
 
+# These keys do not have a corresponding match in the LiPD schema. Do not include them.
 NOAA_IGNORE_KEYS = [
     "originalSourceUrl",
     "original_source_url",
@@ -193,7 +178,8 @@ NOAA_DOI_KEYS = [
     "DOI_id"
 ]
 
-ALTS_JSONLD = {
+# Excel metadata keys. Left side: Excel keys, Right Side: LiPD keys
+EXCEL_KEYS = {
     "metadata": "metadata",
     "chronology": "chronology",
     "data (qc)": "dataQC",

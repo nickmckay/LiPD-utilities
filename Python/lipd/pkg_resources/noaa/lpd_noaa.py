@@ -25,6 +25,7 @@ class LPD_NOAA(object):
         self.root_dict = root_dict
         self.steps_dict = {1:{},2:{},3:{},4:{},5:{},6:{},7:{},8:{},9:{},10:{},11:{},12:{},13:{}}
         self.name_txt = name + '.txt'
+        self.noaa_txt = None
 
     @staticmethod
     def __csv_found(filename):
@@ -119,23 +120,20 @@ class LPD_NOAA(object):
         return '', ''
 
     @staticmethod
-    def __get_identifier(l):
+    def __get_identifier(d):
         """
         Get DOI id and url from identifier dictionary.
-        :param list l: Identifier list. (Should only have one dictionary in it)
-        :return str str: DOI id, DOI url
+        :param dict d: Pub metadata.
+        :return str str: DOI id
         """
-        if not isinstance(l, str):
+        doi_id = ""
+        for pub in d["identifier"]:
             try:
-                doi_id = l[0]['id']
+                doi_id += pub['id']
             except KeyError:
-                doi_id = ''
-            try:
-                doi_url = l[0]['url']
-            except KeyError:
-                doi_url = ''
-            return doi_id, doi_url
-        return '', ''
+                # Don't care if it fails. It will return an empty string or what's been found so far.
+                pass
+        return doi_id
 
     @staticmethod
     def __create_blanks(section_num, d):
@@ -150,7 +148,7 @@ class LPD_NOAA(object):
         for key in NOAA_ORDERING[section_num]:
             if key not in d and key not in NOAA_SECTIONS[13]:
                 # Key not in our dict. Create the blank entry.
-                d[key] = ''
+                d[key] = ""
         return
 
     @staticmethod
@@ -163,7 +161,7 @@ class LPD_NOAA(object):
         try:
             filename = table['filename']
         except KeyError as e:
-            filename = ''
+            filename = ""
             logger_lpd_noaa.warning("get_filename: KeyError: Table missing filename, {}".format(e))
         return filename
 
@@ -222,75 +220,62 @@ class LPD_NOAA(object):
         :return none:
         """
         logger_lpd_noaa.info("enter write_file")
-        noaa_txt = None
         try:
-            noaa_txt = open(self.name_txt, "w+")
+            self.noaa_txt = open(self.name_txt, "w+")
             logger_lpd_noaa.info("write_file: opened output txt file")
         except Exception as e:
             logger_lpd_noaa.debug("write_file: failed to open output txt file, {}".format(e))
+            return
 
-        if noaa_txt:
-            self.__write_top(noaa_txt, 1)
-            self.__write_generic(noaa_txt, 'Contribution_Date', 2, self.steps_dict[2])
-            self.__write_generic(noaa_txt, 'Title', 3, self.steps_dict[3])
-            self.__write_generic(noaa_txt, 'Investigators', 4, self.steps_dict[4])
-            self.__write_generic(noaa_txt, 'Description_Notes_and_Keywords', 5, self.steps_dict[5])
-            self.__write_pub(noaa_txt)
-            self.__write_funding(noaa_txt, self.steps_dict[7])
-            self.__write_geo(noaa_txt, self.steps_dict[8])
-            self.__write_generic(noaa_txt, 'Data_Collection', 9, self.steps_dict[9])
-            self.__write_generic(noaa_txt, 'Species', 10, self.steps_dict[10])
-            #todo uncomment this when chronology structure is sorted out
-            # self.write_chron(noaa_txt, self.steps_dict[11])
+        self.__write_top(1)
+        self.__write_generic('Contribution_Date', 2, self.steps_dict[2])
+        self.__write_generic('Title', 3, self.steps_dict[3])
+        self.__write_generic('Investigators', 4, self.steps_dict[4])
+        self.__write_generic('Description_Notes_and_Keywords', 5, self.steps_dict[5])
+        self.__write_pub()
+        self.__write_funding(self.steps_dict[7])
+        self.__write_geo(self.steps_dict[8])
+        self.__write_generic('Data_Collection', 9, self.steps_dict[9])
+        self.__write_generic('Species', 10, self.steps_dict[10])
+        self.__write_chron(self.steps_dict[11])
+        # todo why is there a blank line written after chronology is done?
 
         # Run once for each table. Keep variables and related data grouped
         for table in self.steps_dict[12]['paleoData']:
-            self.__write_variables(noaa_txt, table)
-            self.__write_numbers(noaa_txt, table)
-        noaa_txt.close()
+            self.__write_divider()
+            self.__write_variables(table)
+            self.__write_divider()
+            self.__write_paleo(table)
+        self.noaa_txt.close()
         logger_lpd_noaa.info("closed output text file")
         shutil.copy(os.path.join(os.getcwd(), self.name_txt), self.dir_root)
         logger_lpd_noaa.info("exit write_file")
         return
 
-    def __write_top(self, noaa_txt, section_num):
+    def __write_top(self, section_num):
         """
         Write the top section of the txt file.
-        :param obj noaa_txt: Output .txt file that is being written to.
         :param int section_num: Section number
         :return none:
         """
         logger_lpd_noaa.info("writing section: {}".format("top"))
         self.__create_blanks(section_num, self.steps_dict[section_num])
-        noaa_txt.write(
-            '# ' + self.steps_dict[section_num]['studyName'] +
-            '\n#-----------------------------------------------------------------------\
-            \n#                World Data Service for Paleoclimatology, Boulder\
-            \n#                                  and\
-            \n#                     NOAA Paleoclimatology Program\
-            \n#             National Centers for Environmental Information (NCEI)\
-            \n#-----------------------------------------------------------------------\
-            \n# Template Version 2.0\
-            \n# NOTE: Please cite Publication, and Online_Resource and date accessed when using these data.\
-            \n# If there is no publication information, please cite Investigators, Title, and Online_Resource and date accessed.\
-            \n# Online_Resource: ' + self.steps_dict[section_num]['onlineResource'] + '\
-            \n#\
-            \n# Original_Source_URL: ' + self.steps_dict[section_num]['originalSourceUrl'] + '\
-            \n#\
-            \n# Description/Documentation lines begin with #\
-            \n# Data lines have no #\
-            \n#\
-            \n# Archive: ' + self.steps_dict[section_num]['archive'] + '\
-            \n#\
-            \n# Parameter_Keywords: ' + self.steps_dict[section_num]['parameterKeywords'] + '\
-            \n#--------------------\n')
+
+        # Start writing the top section line by line
+        self.noaa_txt.write("# {}".format(self.steps_dict[section_num]['studyName']))
+        self.__write_template_top()
+        self.__write_k_v("Online_Resource", self.steps_dict[section_num]['onlineResource'], True, True, True, False)
+        self.__write_k_v("Original_Source_URL", self.steps_dict[section_num]['originalSourceUrl'], tab=False)
+        self.noaa_txt.write("\n# Description/Documentation lines begin with #\n# Data lines have no #\n#")
+        self.__write_k_v("Archive", self.steps_dict[section_num]['archive'], tab=False)
+        # self.__write_k_v("Parameter_Keywords", self.steps_dict[section_num]['parameterKeywords'])
+        self.__write_divider()
         logger_lpd_noaa.info("exit write_top")
         return
 
-    def __write_generic(self, noaa_txt, header, section_num, d):
+    def __write_generic(self, header, section_num, d):
         """
         Write a generic section to the .txt. This function is reused for multiple sections.
-        :param obj noaa_txt: Output .txt file that is being written to.
         :param str header: Header title for this section
         :param int section_num:
         :param dict d: Section from steps_dict
@@ -298,30 +283,29 @@ class LPD_NOAA(object):
         """
         logger_lpd_noaa.info("writing section: {}".format(header))
         self.__create_blanks(section_num, d)
-        noaa_txt.write('# ' + header + ' \n')
-        for entry in NOAA_ORDERING[section_num]:
-            if entry == 'coreLength':
-                val, unit = self.__get_corelength(d[entry])
-                noaa_txt.write('#   ' + self.__underscore(entry) + ': ' + str(val) + ' ' + str(unit) + '\n')
-            elif entry == 'identifier':
-                doi_id, doi_url = self.__get_identifier(d[entry])
-                noaa_txt.write('#   DOI_id: ' + doi_id + '\n')
-                noaa_txt.write('#   DOI_url: ' + doi_url + '\n')
-            else:
-                noaa_txt.write('#   ' + self.__underscore(entry) + ': ' + str(d[entry]) + '\n')
-        noaa_txt.write('#------------------\n')
+        self.__write_header_name(header)
+        for key in NOAA_ORDERING[section_num]:
+            val = d[key]
+            # If the key is either of these, then the value needs to be processed before writing.
+            if key == 'coreLength':
+                value, unit = self.__get_corelength(val)
+                val = str(value) + " " + str(unit)
+            elif key == "doi":
+                val = self.__get_identifier(d)
+            # Write the output line
+            self.__write_k_v(str(self.__underscore(key)), val)
+        self.__write_divider()
         return
 
-    def __write_pub(self, noaa_txt):
+    def __write_pub(self):
         """
         Write pub section. There may be multiple, so write a generic section for each one.
-        :param obj noaa_txt: Output .txt file that is being written to.
         :return none:
         """
         try:
             for idx, pub in enumerate(self.steps_dict[6]["pub"]):
                 logger_lpd_noaa.info("publication: {}".format(idx))
-                self.__write_generic(noaa_txt, 'Publication', 6, pub)
+                self.__write_generic('Publication', 6, pub)
         except KeyError:
             logger_lpd_noaa.info("write_pub: KeyError: pub section not found")
         except TypeError:
@@ -329,71 +313,85 @@ class LPD_NOAA(object):
 
         return
 
-    def __write_funding(self, noaa_txt, d):
+    def __write_funding(self, d):
         """
         Write funding section. There are likely multiple entries.
-        :param obj noaa_txt:
         :param dict d:
         :return none:
         """
         for key, fund_list in d.items():
             for idx, fund in enumerate(fund_list):
                 logger_lpd_noaa.info("funding: {}".format(idx))
-                self.__write_generic(noaa_txt, 'Funding_Agency', 7, fund)
+                self.__write_generic('Funding_Agency', 7, fund)
         return
 
-    def __write_geo(self, noaa_txt, d):
+    def __write_geo(self, d):
         """
         Write geo section. Organize before writing to file.
-        :param obj noaa_txt:
         :param dict d:
         :return none:
         """
-        #todo figure out why geo coordinates are not being written to file
         for k, v in d.items():
             d = self.__reorganize_geo(v)
-        self.__write_generic(noaa_txt, 'Site_Information', 8, d)
+        self.__write_generic('Site_Information', 8, d)
         return
 
-    def __write_chron(self, noaa_txt, d):
+    def __write_chron(self, d):
         """
         Write chronology section.
-        :param obj noaa_txt:
         :param dict d:
         :return none:
         """
         # ChronData is a list of dictionaries
-        #todo conform this to the new chronology structure. Only use the chronMeasurementData section
         logger_lpd_noaa.info("writing section: {}".format("chronology"))
-        noaa_txt.write('# Chronology:\n#\n')
-        if self.__csv_found('chron'):
-            cols = d['chronology']['columns']
-            # Write variables line from dict_in
-            for index, col in enumerate(cols):
-                if index == 0:
-                    noaa_txt.write('#       ' + col['variableName'] + ' (' + col['units'] + ')  | ')
-                elif index == len(cols)-1:
-                    noaa_txt.write(col['variableName'] + ' (' + col['units'] + ')\n')
-                else:
-                    noaa_txt.write(col['variableName'] + ' (' + col['units'] + ')  | ')
-            # Iter over CSV and write line for line
-            with open(self.name + '-chronology.csv', 'r') as f:
-                for line in iter(f):
-                    line = line.split(',')
-                    for index, value in enumerate(line):
-                        if index == 0:
-                            noaa_txt.write('#          ' + str(value) + '              ')
-                        elif index == len(line) - 1:
-                            noaa_txt.write(str(value))
+        try:
+            # Loop for one or more chronologies
+            for chron in d["chronData"]:
+                try:
+                    table = chron["chronMeasurementTable"]
+                except KeyError:
+                    logger_lpd_noaa.warn("write_chron: KeyError: missing chronMeasurementTable, ()".format(self.name))
+                    break
+                # Get the csv filename from the current table
+                filename = self.__get_filename(table)
+                self.noaa_txt.write('# Chronology:\n#\n')
+                if self.__csv_found(filename):
+                    logger_lpd_noaa.info("found csv file: {}".format(filename))
+                    try:
+                        cols = table["columns"]
+                    except KeyError:
+                        logger_lpd_noaa.warn("write_chron: KeyError: missing chron columns, {}".format(filename))
+                    # Loop for each column in the table
+                    for idx, col in enumerate(cols):
+                        try:
+                            units = "({})".format(str(col["units"]))
+                        except KeyError:
+                            # No units are okay. No handling.
+                            units = ""
+                        if idx == 0:
+                            self.noaa_txt.write('#\t{} {}\t\t'.format(col['variableName'], units))
+                        elif idx == len(cols)-1:
+                            self.noaa_txt.write('{} {}\n'.format(col['variableName'], units))
                         else:
-                            noaa_txt.write(str(value) + '                 ')
-        noaa_txt.write('#------------------\n')
+                            self.noaa_txt.write("{} {}\t\t".format(col['variableName'], units))
+                    # Write each line from the csv file
+                    with open(filename, 'r') as f:
+                        for line in iter(f):
+                            line = line.split(',')
+                            for idx, value in enumerate(line):
+                                if idx == 0:
+                                    self.noaa_txt.write('#\t{}\t\t'.format(str(value)))
+                                elif idx == len(line) - 1:
+                                    self.noaa_txt.write(str(value))
+                                else:
+                                    self.noaa_txt.write("{}\t\t".format(str(value)))
+        except KeyError:
+            logger_lpd_noaa.info("write_chron: KeyError: missing chronData key")
         return
 
-    def __write_numbers(self, noaa_txt, table):
+    def __write_paleo(self, table):
         """
         Read numeric data from csv and write to the bottom section of the txt file.
-        :param obj noaa_txt: Output text file
         :param dict table: Paleodata dictionary
         :return none:
         """
@@ -401,11 +399,7 @@ class LPD_NOAA(object):
         filename = self.__get_filename(table)
         logger_lpd_noaa.info("processing csv file: {}".format(filename))
         mv = self.__get_mv(table)
-        noaa_txt.write('# Data:\
-        \n# Data lines follow (have no #)\
-        \n# Data line format - tab-delimited text, variable short name as header)\
-        \n# Missing_Values: ' + mv + '\n#\n')
-
+        self.__write_template_paleo(mv)
         if self.__csv_found(filename):
             logger_lpd_noaa.info("found csv file: {}".format(filename))
             # Write variables line from dict_in
@@ -416,11 +410,11 @@ class LPD_NOAA(object):
                 except KeyError:
                     param = 'N/A'
                 if count == 1:
-                    noaa_txt.write("{:<0}".format(param))
+                    self.noaa_txt.write("{:<0}".format(param))
                 else:
-                    noaa_txt.write("{:<15}".format(param))
+                    self.noaa_txt.write("{:<15}".format(param))
                     count -= 1
-            noaa_txt.write('\n')
+            self.noaa_txt.write('\n')
             # Iter over CSV and write line for line
             with open(filename, 'r') as f:
                 logger_lpd_noaa.info("opened csv file: {}".format(filename))
@@ -428,48 +422,57 @@ class LPD_NOAA(object):
                     line = line.split(',')
                     for index, value in enumerate(line):
                         if index == len(line) - 1:
-                            noaa_txt.write("{:<0}".format(str(value)))
+                            self.noaa_txt.write("{:<0}".format(str(value)))
                         else:
-                            noaa_txt.write("{:<15.10}".format(str(value)))
-        noaa_txt.write('\n#\n#------------------\n')
+                            self.noaa_txt.write("{:<15.10}".format(str(value)))
         return
 
-    def __write_variables(self, noaa_txt, table):
+    def __write_variables(self, table):
         """
         Retrieve variables from data table(s) and write to Variables section of txt file.
-        :param obj noaa_txt: Output text file
         :param dict table: Paleodata dictionary
         :return none:
         """
         logger_lpd_noaa.info("writing section: {}".format("Variables"))
-        filename = self.__get_filename(table)
-        noaa_txt.write('# Variables\n#\
-            \n# Filename: ' + filename +
-            '\n#\n# Data variables follow that are preceded by "##" in columns one and two.\
-            \n# Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components ( 9 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or Numeric data)\n#\n')
+
+        # Write the template lines first
+        self.__write_template_variable(self.__get_filename(table))
+
+        # Start going through columns and writing out data
         try:
             for col in table['columns']:
                 # Write one line for each column. One line has all metadata for one column.
                 for entry in NOAA_ORDERING[11]:
-                    # ---FIX--------FIX--------FIX--------FIX--------FIX-----
                     # May need a better way of handling this in the future. Need a strict list for this section.
                     try:
                         if entry == 'variableName':
                             # First entry: Double hash and tab
-                            noaa_txt.write('{:<20}'.format('##' + str(col[entry])))
+                            self.noaa_txt.write('{:<20}'.format('##' + str(col[entry])))
                         elif entry == 'dataType':
                             # Last entry: No space or comma
-                            noaa_txt.write('{:<0}'.format(str(col[entry])))
+                            self.noaa_txt.write('{:<0}'.format(str(col[entry])))
                         else:
-                            # Space and comma after middle entries
-                            noaa_txt.write('{:<3}'.format(str(col[entry]) + ', '))
+                            # This is for any entry that is not first or last in the line ordering
+                            # Account for nested entries.
+                            if entry == "uncertainty":
+                                try:
+                                    e = str(col["calibration"][entry])
+                                except KeyError:
+                                    e = ""
+                            elif entry == "seasonality":
+                                try:
+                                    e = str(col["climateInterpretation"][entry])
+                                except KeyError:
+                                    e = ""
+                            else:
+                                e = str(col[entry])
+                            self.noaa_txt.write('{:<0}'.format(e + ','))
                     except KeyError as e:
-                        noaa_txt.write('{:<3}'.format(', '))
+                        self.noaa_txt.write('{:<0}'.format(','))
                         logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
-                noaa_txt.write('\n')
+                self.noaa_txt.write('\n#')
         except KeyError as e:
             logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
-        noaa_txt.write('#\n#------------------\n')
         return
 
     def __reorganize_geo(self, d):
@@ -501,53 +504,105 @@ class LPD_NOAA(object):
         # If the key isn't in any list, stash it in number 13 for now
         number = 13
         for k, v in NOAA_SECTIONS.items():
-            if key in v:
-                if key == 'studyName':
-                    self.steps_dict[3][key] = value
-                number = k
-        self.steps_dict[number][key] = value
+            if key == "studyName":
+                self.steps_dict[1][key] = value
+                self.steps_dict[3][key] = value
+            else:
+                if key in v:
+                    number = k
+                self.steps_dict[number][key] = value
         return
 
-    # DEPRECATED
+    def __write_template_top(self):
+        """
+        Write the template info for top section
+        :return none:
+        """
+        self.noaa_txt.write(
+            "\n#-----------------------------------------------------------------------\
+            \n#                World Data Service for Paleoclimatology, Boulder\
+            \n#                                  and\
+            \n#                     NOAA Paleoclimatology Program\
+            \n#             National Centers for Environmental Information (NCEI)\
+            \n#-----------------------------------------------------------------------\
+            \n# Template Version 2.0\
+            \n# NOTE: Please cite Publication, Online_Resource and date accessed when using these data.\
+            \n# If there is no publication information, please cite Investigators, Title, and Online_Resource "
+            "and date accessed."
+            )
+        return
 
-    # def __path_context(self, flat_file):
-    #     """
-    #     Turns the flattened json list back in to a usable dictionary structure
-    #     :param list flat_file:
-    #     :return dict:
-    #     """
-    #     new_dict = {}
-    #     # Lists to recompile Values and Units
-    #     elev = []
-    #     core = []
-    #     # Print out each item in the list for debugging
-    #     for item in flat_file:
-    #         split_list = self.__split_path(item)
-    #         lst_len = len(split_list)
-    #         value = split_list[lst_len-1]
-    #         if 'Latitude' in split_list:
-    #             if 'Max' in split_list:
-    #                 new_dict['Northernmost_Latitude'] = value
-    #             elif 'Min' in split_list:
-    #                 new_dict['Southernmost_Latitude'] = value
-    #         elif 'Longitude' in split_list:
-    #             if 'Max' in split_list:
-    #                 new_dict['Easternmost_Longitude'] = value
-    #             elif 'Min' in split_list:
-    #                 new_dict['Westernmost_Longitude'] = value
-    #         elif 'Elevation' in split_list:
-    #             elev.append(value)
-    #
-    #         elif 'CoreLength' in split_list:
-    #             core.append(value)
-    #         else:
-    #             if len(split_list) > 2:
-    #                 key = lst_len - 2
-    #                 new_dict[split_list[key]] = value
-    #             else:
-    #                 new_dict[split_list[0]] = split_list[1]
-    #     if core:
-    #         new_dict['Core_Length'] = self.concat_units(core)
-    #     if elev:
-    #         new_dict['Elevation'] = self.concat_units(elev)
-    #     return new_dict
+    def __write_template_variable(self, filename):
+        """
+        Write the template info for the variable section
+        :param str filename:
+        :return none:
+        """
+        self.noaa_txt.write('# Variables\n#\
+        \n# Filename: {}\
+        \n#\n# Data variables follow that are preceded by "##" in columns one and two.\
+        \n# Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components '
+        '( 9 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or '
+        'Numeric data)\n#\n'.format(filename))
+        return
+
+    def __write_template_paleo(self, mv):
+        """
+        Write the template info for the paleo section
+        :param str mv: Missing Value
+        :return none:
+        """
+        self.noaa_txt.write('# Data:\
+        \n# Data lines follow (have no #)\
+        \n# Data line format - tab-delimited text, variable short name as header)\
+        \n# Missing_Values: {}\n#\n'.format(mv))
+        return
+
+    def __write_k_v(self, k, v, top=False, bot=False, multi=False, tab=True):
+        """
+        Write a key value pair to the output file. If v is a list, write multiple lines.
+        :param k: Key
+        :param v: Value
+        :param bool top: Write preceding empty line
+        :param bool bot: Write following empty line
+        :param bool multi: v is a list
+        :return none:
+        """
+        if top:
+            self.noaa_txt.write("\n#")
+        if multi:
+            for item in v:
+                if tab:
+                    self.noaa_txt.write("\n#     {}: {}".format(str(k), str(item)))
+                else:
+                    self.noaa_txt.write("\n# {}: {}".format(str(k), str(item)))
+        else:
+            if tab:
+                self.noaa_txt.write("\n#     {}: {}".format(str(k), str(v)))
+            else:
+                self.noaa_txt.write("\n# {}: {}".format(str(k), str(v)))
+        if bot:
+            self.noaa_txt.write("\n#")
+        return
+
+    def __write_header_name(self, name):
+        """
+        Write the title line for the section
+        :return none:
+        """
+        self.noaa_txt.write("# {}".format(name))
+        return
+
+    def __write_divider(self, top=False, bot=False):
+        """
+        Write a divider line
+        :return none:
+        """
+        if top:
+            self.noaa_txt.write("\n#")
+        self.noaa_txt.write("\n#------------------\n")
+        if bot:
+            self.noaa_txt.write("\n#")
+        return
+
+
