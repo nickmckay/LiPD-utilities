@@ -95,7 +95,7 @@ NOAA_ORDERING = {
     3: ['studyName'],
     4: ['investigators'],
     5: ['description'],
-    6: ['authors',
+    6: ['author',
         'publishedDateOrYear',
         'publishedTitle',
         'journalName',

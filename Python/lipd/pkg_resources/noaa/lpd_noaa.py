@@ -238,7 +238,6 @@ class LPD_NOAA(object):
         self.__write_generic('Data_Collection', 9, self.steps_dict[9])
         self.__write_generic('Species', 10, self.steps_dict[10])
         self.__write_chron(self.steps_dict[11])
-        # todo why is there a blank line written after chronology is done?
 
         # Run once for each table. Keep variables and related data grouped
         for table in self.steps_dict[12]['paleoData']:
@@ -286,14 +285,21 @@ class LPD_NOAA(object):
         self.__write_header_name(header)
         for key in NOAA_ORDERING[section_num]:
             val = d[key]
-            # If the key is either of these, then the value needs to be processed before writing.
+            # NOAA writes value and units on one line. Build the string here.
             if key == 'coreLength':
                 value, unit = self.__get_corelength(val)
                 val = str(value) + " " + str(unit)
+            # DOI  id is nested in "identifier" block. Retrieve it.
             elif key == "doi":
                 val = self.__get_identifier(d)
+            elif key in ("author", "authors"):
+                val = self.__reorganize_authors(d)
+                key = "authors"
             # Write the output line
             self.__write_k_v(str(self.__underscore(key)), val)
+        # Don't write a divider if there isn't a Chron section after species. It'll make a double.
+        if header == "Species" and not self.steps_dict[11]:
+            return
         self.__write_divider()
         return
 
@@ -368,23 +374,21 @@ class LPD_NOAA(object):
                         except KeyError:
                             # No units are okay. No handling.
                             units = ""
-                        if idx == 0:
-                            self.noaa_txt.write('#\t{} {}\t\t'.format(col['variableName'], units))
-                        elif idx == len(cols)-1:
-                            self.noaa_txt.write('{} {}\n'.format(col['variableName'], units))
+                        if idx == len(cols)-1:
+                            self.noaa_txt.write("{:<0}".format(col['variableName'], units))
                         else:
-                            self.noaa_txt.write("{} {}\t\t".format(col['variableName'], units))
+                            self.noaa_txt.write("{:<15}".format(col['variableName'], units))
+                    self.noaa_txt.write("\n")
                     # Write each line from the csv file
                     with open(filename, 'r') as f:
                         for line in iter(f):
                             line = line.split(',')
                             for idx, value in enumerate(line):
-                                if idx == 0:
-                                    self.noaa_txt.write('#\t{}\t\t'.format(str(value)))
-                                elif idx == len(line) - 1:
-                                    self.noaa_txt.write(str(value))
+                                if idx == len(line) - 1:
+                                    self.noaa_txt.write("{:<0}".format(str(value)))
                                 else:
-                                    self.noaa_txt.write("{}\t\t".format(str(value)))
+                                    self.noaa_txt.write("{:<15.10}".format(str(value)))
+            self.noaa_txt.write("#")
         except KeyError:
             logger_lpd_noaa.info("write_chron: KeyError: missing chronData key")
         return
@@ -420,8 +424,8 @@ class LPD_NOAA(object):
                 logger_lpd_noaa.info("opened csv file: {}".format(filename))
                 for line in iter(f):
                     line = line.split(',')
-                    for index, value in enumerate(line):
-                        if index == len(line) - 1:
+                    for idx, value in enumerate(line):
+                        if idx == len(line) - 1:
                             self.noaa_txt.write("{:<0}".format(str(value)))
                         else:
                             self.noaa_txt.write("{:<15.10}".format(str(value)))
@@ -469,7 +473,7 @@ class LPD_NOAA(object):
                             self.noaa_txt.write('{:<0}'.format(e + ','))
                     except KeyError as e:
                         self.noaa_txt.write('{:<0}'.format(','))
-                        logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
+                        logger_lpd_noaa.info("write_variables: KeyError: missing {}".format(e))
                 self.noaa_txt.write('\n#')
         except KeyError as e:
             logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
@@ -605,4 +609,31 @@ class LPD_NOAA(object):
             self.noaa_txt.write("\n#")
         return
 
-
+    @staticmethod
+    def __reorganize_authors(d):
+        """
+        Create a combined string of authors from the pub list of authors
+        :param dict d: Publication metadata
+        :return:
+        """
+        s = ""
+        # "author" is the correct key, but check for "authors" just in case.
+        if "author" in d:
+            key = "author"
+        elif "authors" in d:
+            key = "authors"
+        try:
+            l = d[key]
+        except KeyError:
+            logger_lpd_noaa.debug("reorganize_authors: KeyError: missing author keys")
+            return s
+        if l:
+            for idx, author in enumerate(l):
+                try:
+                    if idx == len(l)-1:
+                        s += "{}".format(author["name"])
+                    else:
+                        s += "{}; ".format(author["name"])
+                except KeyError:
+                    logger_lpd_noaa.debug("reorganize_authors: KeyError: missing 'name'")
+        return s
