@@ -4,7 +4,7 @@ from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi
 from .pkg_resources.excel.excel_main import excel
 from .pkg_resources.noaa.noaa_main import noaa
-from .pkg_resources.helpers.alternates import comparisons
+from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.PDSlib import *
 from .pkg_resources.helpers.directory import set_source

@@ -1,7 +1,7 @@
 import operator
 
 from .regexes import re_filter_expr
-from .alternates import comparisons
+from .alternates import COMPARISONS
 from .loggers import create_logger
 
 logger_ts = create_logger("ts")
