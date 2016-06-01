@@ -1,4 +1,4 @@
-function LiPDStruct = writeLiPDChronData1_0_1(LiPDStruct,goodOutName,writeCalAges,pdlev)
+function LiPDStruct = writeLiPDChronData1_1(LiPDStruct,goodOutName,writeCalAges,pdlev)
 if nargin<3
     writeCalAges=0;
 end

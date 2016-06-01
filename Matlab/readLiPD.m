@@ -1,4 +1,4 @@
-function [P,I]=readLiPD(lpdname)
+function [P,I,C]=readLiPD(lpdname)
 
 %ui selection
 if nargin<1
@@ -119,8 +119,9 @@ I=rmfieldsoft(I,torem);
 %%%%%COMBINE TO CREATE FINAL
 P=I;
 P.paleoData=PD;
-if isstruct(C)
-P.chronData=C;
+
+if iscell(C)
+    P.chronData=C;
 end
 
 cd(p)
