@@ -31,7 +31,7 @@ warnings={};
 goodOutName=regexprep(LiPDStruct.dataSetName,'[^a-zA-Z0-9-.]','');
 display(goodOutName)
 %goodOutName(ismember(goodOutName,'!,;:/\|*~.')) = [];
-%goodOutName=matlab.lang.makeValidName(goodOutName);
+%goodOutName=makeValidName(goodOutName);
 
 if ~isdir([outdir goodOutName])
     mkdir([outdir goodOutName])

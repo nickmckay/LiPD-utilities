@@ -61,6 +61,12 @@ function cT=readLiPDTable(cT,dirname)
                         
                     end
                 end
+                %don't allow conversion to table of char
+                if ischar(cT.columns{j}.values)
+                    cT.columns{j}.values=pdTable(:,cT.columns{j}.number);
+                end
+                
+                
             else
                 cT.columns{j}.values=pdTable(:,j);
             end

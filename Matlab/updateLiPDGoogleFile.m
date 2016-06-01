@@ -63,7 +63,7 @@ if rewrite>0
             
             
             %
-            changeWorksheetNameAndSize(L.googleSpreadSheetKey,P.googWorkSheetKey,nRow,nCol,['paleoData-' pdNames{pd}],aTokenSpreadsheet);
+            changeWorksheetNameAndSize(L.googleSpreadSheetKey,P.googleWorkSheetKey,nRow,nCol,['paleoData-' pdNames{pd}],aTokenSpreadsheet);
             
             
             %go through the columns and populate the cells
@@ -71,7 +71,7 @@ if rewrite>0
                 %check for TSid
                 if ~isfield(P.(colNames{c}),'TSid')
                     %create one - check against master list
-                    P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googWorkSheetKey);
+                    P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googleWorkSheetKey);
                 end
                 
                 if ~iscell(P.(colNames{c}).values)
@@ -85,7 +85,7 @@ if rewrite>0
                 else
                     colNum=c;
                 end
-                editWorksheetColumn(L.googleSpreadSheetKey,P.googWorkSheetKey,colNum,1:nRow,colData,aTokenSpreadsheet);
+                editWorksheetColumn(L.googleSpreadSheetKey,P.googleWorkSheetKey,colNum,1:nRow,colData,aTokenSpreadsheet);
             end
             L.paleoData.(pdNames{pd})=P;
             
@@ -106,7 +106,7 @@ if rewrite>0
                 
                 
                 %
-                changeWorksheetNameAndSize(L.googleSpreadSheetKey,P.googWorkSheetKey,nRow,nCol,['chronData-' pdNames{pd}],aTokenSpreadsheet);
+                changeWorksheetNameAndSize(L.googleSpreadSheetKey,P.googleWorkSheetKey,nRow,nCol,['chronData-' pdNames{pd}],aTokenSpreadsheet);
                 
                 
                 %go through the columns and populate the cells
@@ -114,7 +114,7 @@ if rewrite>0
                     %check for TSid
                     if ~isfield(P.(colNames{c}),'TSid')
                         %create one - check against master list
-                        P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googWorkSheetKey);
+                        P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googleWorkSheetKey);
                     end
                     
                     if ~iscell(P.(colNames{c}).values)
@@ -128,7 +128,7 @@ if rewrite>0
                     else
                         colNum=c;
                     end
-                    editWorksheetColumn(L.googleSpreadSheetKey,P.googWorkSheetKey,colNum,1:nRow,colData,aTokenSpreadsheet);
+                    editWorksheetColumn(L.googleSpreadSheetKey,P.googleWorkSheetKey,colNum,1:nRow,colData,aTokenSpreadsheet);
                 end
                 L.chronData.(pdNames{pd})=P;%write it back into the main structure
             end
@@ -156,14 +156,14 @@ if rewrite>0
             newWS=createWorksheet(L.googleSpreadSheetKey,nRow,nCol,['paleoData-' pdNames{pd}],aTokenSpreadsheet);
             display(['created new worksheet ' newWS.worksheetKey])
             
-            P.googWorkSheetKey=newWS.worksheetKey;
+            P.googleWorkSheetKey=newWS.worksheetKey;
             
             %go through the columns and populate the cells
             for c=1:nCol
                 %check for TSid
                 if ~isfield(P.(colNames{c}),'TSid')
                     %create one - check against master list
-                    P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googWorkSheetKey);
+                    P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googleWorkSheetKey);
                 end
                 
                 if ~iscell(P.(colNames{c}).values)
@@ -183,7 +183,7 @@ if rewrite>0
             
         end
         
-        ['L key-' L.paleoData.(pdNames{pd}).googWorkSheetKey]
+        ['L key-' L.paleoData.(pdNames{pd}).googleWorkSheetKey]
         
         %chronData
         %if there's chrondata, write that too.
@@ -201,7 +201,7 @@ if rewrite>0
                 display('creating new worksheet')
                 newWS=createWorksheet(L.googleSpreadSheetKey,nRow,nCol,['chronData-' pdNames{pd}],aTokenSpreadsheet);
                 display(['created new worksheet ' newWS.worksheetKey])
-                P.googWorkSheetKey=newWS.worksheetKey;
+                P.googleWorkSheetKey=newWS.worksheetKey;
                 
                 
                 %go through the columns and populate the cells

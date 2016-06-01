@@ -12,6 +12,6 @@ for l=1:length(lpds)
     if ~isfield(L,'dataSetName')
         L.dataSetName = lpds(l).name(1:end-4);
     end
-    D.(matlab.lang.makeValidName(L.dataSetName))=L;
+    D.(makeValidName(L.dataSetName))=L;
 end
 

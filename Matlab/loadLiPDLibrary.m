@@ -7,7 +7,7 @@ clear D
 for i=1:length(l)
     name=l{i};
 
-   D.(matlab.lang.makeValidName(   name(1:(end-4))))=readLiPD(name);
+   D.(makeValidName(   name(1:(end-4))))=readLiPD(name);
 
 end
 %%

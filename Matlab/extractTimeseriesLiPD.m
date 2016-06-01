@@ -13,7 +13,7 @@ end
 %is it a database, or a LiPD Hierarchical object?
 if isfield(D,'dataSetName')
     %then make it a database
-    D=struct(matlab.lang.makeValidName(D.dataSetName),D);
+    D=struct(makeValidName(D.dataSetName),D);
 end
 dnames=fieldnames(D);
 %start at database level

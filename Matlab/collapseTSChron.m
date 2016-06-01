@@ -32,13 +32,13 @@ for i=1:length(udsn)
 %         b=setdiff(b,yai);
 %         
 %         for bi=1:length(b)
-%             Dnew.(matlab.lang.makeValidName(udsn{i})).(fT{b(bi)})=T.(fT{b(bi)});
+%             Dnew.(makeValidName(udsn{i})).(fT{b(bi)})=T.(fT{b(bi)});
 %         end
 %         
 %         %funding
 %         fun=find(strncmp('funding',fT,7));
 %         if numel(fun)>0
-%             Dnew.(matlab.lang.makeValidName(udsn{i})).funding=cell(1,1); %assign cell to funding
+%             Dnew.(makeValidName(udsn{i})).funding=cell(1,1); %assign cell to funding
 %             for fin=1:length(fun)
 %                 funVarName=fT{fun(fin)};
 %                 fundNum=str2num(funVarName(8:(strfind(funVarName,'_')-1)));
@@ -46,9 +46,9 @@ for i=1:length(udsn)
 %                     fundNum=1;
 %                 end
 %                 try
-%                 Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=T.(fT{fun(fin)});
+%                 Dnew.(makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=T.(fT{fun(fin)});
 %                 catch DO
-%                                     Dnew.(matlab.lang.makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=char(T.(fT{fun(fin)}));
+%                                     Dnew.(makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=char(T.(fT{fun(fin)}));
 %                 end
 %             end
 %         end
@@ -56,7 +56,7 @@ for i=1:length(udsn)
 %         
 %         %pub
 %         if f==1
-%             Dnew.(matlab.lang.makeValidName(udsn{i})).pub=cell(1,1); %assign cell to pub
+%             Dnew.(makeValidName(udsn{i})).pub=cell(1,1); %assign cell to pub
 %         end
 %         p=find(strncmp('pub',fT,3));
 %         for pin=1:length(p)
@@ -65,20 +65,20 @@ for i=1:length(udsn)
 %              if isempty(pubNum)
 %                     pubNum=1;
 %                 end
-%             Dnew.(matlab.lang.makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
+%             Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
 %                 T.(fT{p(pin)});
 %         end
 %         
 %         %geo
 %         if f==1
-%             Dnew.(matlab.lang.makeValidName(udsn{i})).geo=struct; %assign geo to structure
+%             Dnew.(makeValidName(udsn{i})).geo=struct; %assign geo to structure
 %         end
 %         g=find(strncmp('geo_',fT,4));
 %         
 %         for gin=1:length(g)
 %             geoVarName=fT{g(gin)};
 %             
-%             Dnew.(matlab.lang.makeValidName(udsn{i})).geo.(geoVarName(strfind(geoVarName,'_')+1:end))=...
+%             Dnew.(makeValidName(udsn{i})).geo.(geoVarName(strfind(geoVarName,'_')+1:end))=...
 %                 T.(fT{g(gin)});
 %         end
 %         
@@ -86,7 +86,7 @@ for i=1:length(udsn)
         
         %chronData
         if f==1
-            Dnew.(matlab.lang.makeValidName(udsn{i})).chronData=struct; %assign chronData to structure
+            Dnew.(makeValidName(udsn{i})).chronData=struct; %assign chronData to structure
         end
         pd=find(strncmp('chronData_',fT,10));
         
@@ -127,7 +127,7 @@ for i=1:length(udsn)
         
         %assign in chronData Table Name
         
-        Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).chronDataTableName=pdName;
+        Dnew.(makeValidName(udsn{i})).chronData.(pdName).chronDataTableName=pdName;
            
         
         %ignore chrondata name from pd
@@ -135,16 +135,16 @@ for i=1:length(udsn)
         
         %also handle the google worksheet key differently
         if any(strcmp('chronData_googWorkSheetKey',fT))
-            Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).googWorkSheetKey=T.chronData_googWorkSheetKey;
+            Dnew.(makeValidName(udsn{i})).chronData.(pdName).googWorkSheetKey=T.chronData_googWorkSheetKey;
             pd=setdiff(pd,find(strcmp(fT,'chronData_googWorkSheetKey')));
         end
         
         
         %get variablename name
-        variableName=matlab.lang.makeValidName(T.chronData_variableName);
+        variableName=makeValidName(T.chronData_variableName);
        
         %see if that name has been used already
-        alreadyNames=fieldnames(Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName));
+        alreadyNames=fieldnames(Dnew.(makeValidName(udsn{i})).chronData.(pdName));
         %iterate through numbers until it's unique
         aNi=1;
         origName=variableName;
@@ -162,7 +162,7 @@ for i=1:length(udsn)
             pdVarName=fT{pd(pdin)};
             
             %add in parameter
-            Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
+            Dnew.(makeValidName(udsn{i})).chronData.(pdName).(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
                 T.(fT{pd(pdin)});
             
             
@@ -177,11 +177,11 @@ for i=1:length(udsn)
             yearFlag=0;
             if any(strcmp('year',fT))
                 if length(T.year) == length(T.chronData_values)
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).year.values=T.year;
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).year.units='AD';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).year.description='Year AD';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).year.variableName='year';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).year.dataType='float';
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).year.values=T.year;
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).year.units='AD';
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).year.description='Year AD';
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).year.variableName='year';
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).year.dataType='float';
                     yearFlag=1;
                 end
             end
@@ -190,11 +190,11 @@ for i=1:length(udsn)
             if any(strcmp('age',fT))
                 %don't add age if it's a different length than the data
                 if length(T.age) == length(T.chronData_values)
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).age.values=T.age;
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).age.units='BP';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).age.description='Years before present (1950) BP';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).age.variableName='age';
-                    Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).age.dataType='float';
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).age.values=T.age;
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).age.units='BP';
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).age.description='Years before present (1950) BP';
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).age.variableName='age';
+                    Dnew.(makeValidName(udsn{i})).chronData.(pdName).age.dataType='float';
                     ageFlag=1;
                 end
             end
@@ -209,7 +209,7 @@ for i=1:length(udsn)
                 ciVarName=fT{ci(cin)};
                 
                 %add in parameter
-                Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).(variableName).climateInterpretation.(ciVarName(strfind(ciVarName,'_')+1:end))=...
+                Dnew.(makeValidName(udsn{i})).chronData.(pdName).(variableName).climateInterpretation.(ciVarName(strfind(ciVarName,'_')+1:end))=...
                     T.(fT{ci(cin)});
             end
         end
@@ -221,7 +221,7 @@ for i=1:length(udsn)
                 caiVarName=fT{cai(cain)};
                 
                 %add in parameter
-                Dnew.(matlab.lang.makeValidName(udsn{i})).chronData.(pdName).(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                Dnew.(makeValidName(udsn{i})).chronData.(pdName).(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
                     T.(fT{cai(cain)});
             end
         end

@@ -10,9 +10,9 @@ tomt=1:length(I.paleoData);
 for i =tomt;
     I.paleoData{i}=processLiPDColumns(readLiPDTable(I.paleoData{i},dirname));
     if i==1
-        P.(matlab.lang.makeValidName(I.paleoData{i}.paleoDataTableName))=I.paleoData{i};
+        P.(makeValidName(I.paleoData{i}.paleoDataTableName))=I.paleoData{i};
     else
-        P.(matlab.lang.makeUniqueStrings(I.paleoData{i}.paleoDataTableName,fieldnames(P)))=I.paleoData{i};
+        P.(makeUniqueStrings(I.paleoData{i}.paleoDataTableName,fieldnames(P)))=I.paleoData{i};
     end
 end
 
