@@ -2,7 +2,7 @@ function [newName] = makeValidName(name, protected)
 
 
 
-if verLessThan('matlab','R2014a')
+if verLessThan('matlab','8.3')
     if nargin<2
         newName = genvarname(name);
     else
