@@ -37,6 +37,7 @@ if isfield(I,'LiPDVersion')
 else
     vers = 1.0;
 end
+I.LiPDVersion = vers;
 %load in version information
 assignSubcomponentVersions;
 
@@ -120,7 +121,7 @@ I=rmfieldsoft(I,torem);
 P=I;
 P.paleoData=PD;
 
-if iscell(C)
+if iscell(C) | isstruct(C)
     P.chronData=C;
 end
 
