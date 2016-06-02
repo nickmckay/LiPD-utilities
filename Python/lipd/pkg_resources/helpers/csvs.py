@@ -4,36 +4,139 @@ from ..helpers.loggers import *
 logger_csvs = create_logger("csvs")
 
 
-def add_csv_to_json(d):
+def add_csv_to_metadata(d):
     """
     Using the given metadata dictionary, retrieve CSV data from CSV files, and insert the CSV
     values into their respective metadata columns. Checks for both paleoData and chronData tables.
     :param dict d: Metadata
-    :return dict: Modified original dictionary (dict) CSV tables - column - column data
+    :return dict: Modified metadata dictionary
     """
     logger_csvs.info("enter add_csv_to_json")
-    d2 = {}
-    for key in ["paleoData", "chronData"]:
-        if key in d:
-            # Loop through each table in paleoData
-            for table_name, table_content in d[key].items():
-                # Create CSV entry into dictionary that contains all columns.
-                d2[table_content['filename']] = read_csv_to_columns(table_content['filename'])
-                # Start putting CSV data into corresponding JSON metadata columns under 'values' key.
-                for col_name, col_content in table_content['columns'].items():
-                    col_content['values'] = d2[table_content['filename']][col_content['number']-1]
+
+    # Add CSV to paleoData
+    if "paleoData" in d:
+        d["paleoData"] = _import_paleo_csv(d["paleoData"])
+
+    # Add CSV to chronData
+    if "chronData" in d:
+        d["chronData"] = _import_chron_data_csv(d["chronData"])
+
     logger_csvs.info("exit add_csv_to_json")
-    return d, d2
+    return d
+
+
+def _add_csv_to_columns(table):
+    """
+    Add csv data to each column in a list of columns
+    :param dict table: Table metadata
+    :return dict: Table metadata with csv "values" entry
+    """
+    # Get the filename or this table
+    filename = _get_table_csv_filename(table)
+
+    # If there's no filename, bypass whole process
+    if filename:
+        # Call read_csv_to_columns for this filename. csv_data is list of lists.
+        csv_data = read_csv_to_columns(filename)
+
+        # Start putting CSV data into corresponding column "values" key
+        try:
+            for col_name, col in table['columns'].items():
+                col['values'] = csv_data[col["number"] - 1]
+        except IndexError:
+            logger_csvs.warning("add_csv_to_json: IndexError: index out of range of csv_data list")
+
+    return table
+
+
+def _get_table_csv_filename(table):
+    """
+    Get the value from the filename field if the table has one
+    :param dict table: Table metadata
+    :return str: Filename
+    """
+    file = ""
+    try:
+        file = table["filename"]
+    except KeyError:
+        logger_csvs.info("get_table_csv_filename: KeyError: missing csv filename")
+    return file
+
+
+def _import_paleo_csv(paleo_data):
+    """
+    Add csv data to all paleo data tables
+    :param dict paleo_data: Metadata
+    :return dict: Modified metadata
+    """
+    logger_csvs.info("enter import_paleo_csv")
+
+    # Loop through each table in paleoData
+    for table_name, table in paleo_data.items():
+
+        # Send whole table through. Adds csv data to columns
+        paleo_data[table_name] = _add_csv_to_columns(table)
+
+    logger_csvs.info("exit import_paleo_csv")
+    return paleo_data
+
+
+def _import_chron_data_csv(chron_data):
+    """
+    Wrapper function. Calls all the individual csv getter functions for chron related csv. Works on indexed-by-name
+    dictionaries.
+    :param dict chron_data: Metadata
+    :return dict: Modified metadata
+    """
+    logger_csvs.info("enter import_chron_data_csv")
+    for table_name, table_data in chron_data.items():
+
+        # Process chronModel
+        if "chronModel" in table_data:
+            # Replace the chronModel in-place
+            table_data["chronModel"] = _import_chron_model_csv(table_data["chronModel"])
+
+        # Process chronMeasurementTable
+        if "chronMeasurementTable" in table_data:
+            # Replace the chronMeasurementTable in-place
+            table_data["chronMeasurementTable"] = _add_csv_to_columns(table_data["chronMeasurementTable"])
+
+    logger_csvs.info("exit import_chron_data_csv")
+    return chron_data
+
+
+def _import_chron_model_csv(chron_model):
+    """
+    Add csv data to each column in chron model
+    :param list chron_model:
+    :return:
+    """
+    logger_csvs.info("enter import_chron_model_csv")
+
+    for model in chron_model:
+
+        if "chronModelTable" in model:
+            model["chronModelTable"] = _add_csv_to_columns(model["chronModelTable"])
+        if "ensembleTable" in model:
+            model["ensembleTable"] = _add_csv_to_columns(model["ensembleTable"])
+        if "calibratedAges" in model:
+            # Calibrated age tables are nested. Go down an extra layer.
+            for k, v in model["calibratedAges"].items():
+                model["calibratedAges"][k] = _add_csv_to_columns(v)
+
+    logger_csvs.info("exit import_chron_model_csv")
+    return chron_model
 
 
 def read_csv_to_columns(filename):
     """
     Opens the target CSV file and creates a dictionary with one list for each CSV column.
     :param str filename:
-    :return dict: CSV data. Keys: Column number(int), Values: Column data (list)
+    :return list of lists: column values
     """
     logger_csvs.info("enter read_csv_to_columns")
     d = {}
+    l = []
     try:
         with open(filename, 'r') as f:
             r = csv.reader(f, delimiter=',')
@@ -51,11 +154,16 @@ def read_csv_to_columns(filename):
                         logger_csvs.warn("ValueError: col: {}, {}".format(col, e))
                     except KeyError as e:
                         logger_csvs.warn("KeyError: col: {}, {}".format(col, e))
+
+        # Make a list of lists out of the dictionary instead
+        for idx, col in d.items():
+            l.append(col)
+
     except FileNotFoundError as e:
         print('CSV FileNotFound: ' + filename)
         logger_csvs.warn("read_csv_to_columns: FileNotFound: {}, {}".format(filename, e))
     logger_csvs.info("exit read_csv_to_columns")
-    return d
+    return l
 
 
 def write_csv_to_file(filename, d):

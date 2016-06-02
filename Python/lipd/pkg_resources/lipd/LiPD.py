@@ -26,7 +26,7 @@ class LiPD(object):
         self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}
         self.data_json = {}  # JSON metadata without CSV values
         self.data_master = {}  # JSON metadata with CSV values
-        logger_lipd.info("LiPD: object created: {}".format(self.name))
+        logger_lipd.info("object created: {}".format(self.name))
 
     # LOADING
 
@@ -43,7 +43,7 @@ class LiPD(object):
         t = lipd_lint(j)
 
         # Read in JSON, and switch to new structure
-        j = old_to_new_structure(t)
+        j = idx_num_to_name(t)
         # Clean JSON of empty fields and data before loading. Then set JSON to object self.
         self.data_master = remove_empty_fields(remove_empty_doi(j))
 
@@ -52,10 +52,10 @@ class LiPD(object):
 
         # Import CSV into data_master, and set csv data to self.
         os.chdir(self.dir_tmp_bag_data)
-        self.data_master, self.data_csv = add_csv_to_json(self.data_master)
+        self.data_master = add_csv_to_metadata(self.data_master)
 
         os.chdir(self.dir_root)
-        logger_lipd.info("LiPD: object loaded: {}".format(self.name))
+        logger_lipd.info("object loaded: {}".format(self.name))
         return
 
     # ANALYSIS
@@ -116,7 +116,7 @@ class LiPD(object):
         self.data_json = remove_csv_from_json(self.data_master)
 
         # Switch JSON back to old structure
-        self.data_json = new_to_old_structure(self.data_json)
+        self.data_json = idx_name_to_num(self.data_json)
 
         # Overwrite JSON dictionary to file
         write_json_to_file(self.name_ext, self.data_master)

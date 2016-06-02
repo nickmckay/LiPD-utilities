@@ -94,7 +94,7 @@ def _verify_sections(full, d, sections):
         # Item is in root
         if isinstance(v, str) and k != '@context' and k not in quick['root']:
             # Invalid key. Get valid
-            metadata[k] = _iter_root(full, 'root', k)
+            metadata[_iter_root(full, 'root', k)] = v
         elif k in ('chronData', 'chronTable'):
             metadata[k] = v
         # Item is a section
@@ -121,12 +121,9 @@ def _iter_root(full, section, key):
             if key in line:
                 # Found a match. Replace with valid
                 return line[0]
-            else:
-                # No match found. Return original key
-                return key
     except KeyError as e:
         logger_lipd_lint.warn("iter_root: KeyError: key: {}, {}".format(key, e))
-        return key
+    return key
 
 
 def _iter_section(full, quick, section, d1):

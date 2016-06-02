@@ -24,7 +24,7 @@ def write_json_to_file(filename, json_data):
     # Write json to file
     try:
         open(filename, "wb").write(json_bin)
-        logger_jsons.info("Wrote data to json file")
+        logger_jsons.info("wrote data to json file")
     except FileNotFoundError as e:
         print("Error: Writing json to file: {}".format(filename))
         logger_jsons.debug("write_json_to_file: FileNotFound: {}, {}".format(filename, e))
@@ -63,7 +63,7 @@ def remove_csv_from_json(d):
     :param dict d: JSON data - old structure
     :return dict: Metadata dictionary without CSV values
     """
-    # TODO update to work with chronology also
+    # TODO Update to work with chronology?
     # Loop through each table in paleoData
     logger_jsons.info("enter remove_csv_from_json")
     try:
@@ -88,7 +88,7 @@ def get_csv_from_json(d):
     :param dict d: JSON with CSV values
     :return dict: CSV values. (i.e. { CSVFilename1: { Column1: [Values], Column2: [Values] }, CSVFilename2: ... }
     """
-    # TODO update to work with chronology also
+    # TODO Update to work with chronology?
     logger_jsons.info("enter get_csv_from_json")
     csv = {}
     try:
@@ -171,79 +171,11 @@ def remove_empty_doi(d):
     return d
 
 
-def old_to_new_structure(d):
-    """
-    Restructure JSON to the new format. Table and columns referenced by name, not index. (dictionaries)
-    :param dict d: Metadata
-    :return dict: Modified Metadata
-    """
-    logger_jsons.info("enter old_to_new_structure")
-    table_names = {"paleoData": "paleoDataTableName", "chronData": "chronDataTableName"}
-    for key in ["paleoData", "chronData"]:
-        if key in d:
-            tmp = {}
-            for table in d[key]:
-                # All tables, all columns, table name
-                tmp_t = {}
-                tmp_c = {}
-                t_name = table[table_names[key]]
-
-                # Restructure columns into tmp_c
-                try:
-                    for col in table['columns']:
-                        c_name = col['variableName']
-                        tmp_c[c_name] = col
-                except KeyError as e:
-                    logger_jsons.warn("old_to_new_structure: KeyError: columns, {}".format(e))
-                # Move table strings into tmp_t
-                for k, v in table.items():
-                    if isinstance(v, str):
-                        tmp_t[k] = v
-
-                # Move new column structure to table
-                tmp_t['columns'] = copy.deepcopy(tmp_c)
-
-                # Move table into tmp_p
-                tmp[t_name] = copy.deepcopy(tmp_t)
-
-            # Overwrite original paleoData dictionary with new dictionary
-            d[key] = copy.deepcopy(tmp)
-    logger_jsons.info("exit old_to_new_structure")
-    return d
-
-
-def new_to_old_structure(d):
-    """
-    Restructure JSON to the old format. Table and columns are indexed by numbers. (lists)
-    :param dict d: JSON metadata
-    :return dict: JSON metadata
-    """
-    logger_jsons.info("enter new_to_old_structure")
-    tmp_p = []
-    try:
-        for k, v in d['paleoData'].items():
-            tmp_c = []
-            # For each column, append the value, forget the key.
-            for i, e in v['columns'].items():
-                tmp_c.append(e)
-            # Replace the old column dict with the new column list
-            v['columns'] = copy.deepcopy(tmp_c)
-            # Append the table to the PaleoData Dict to the list, forget the key.
-            tmp_p.append(v)
-        # Overwrite original paleoData dictionary with new dictionary
-        d['paleoData'] = tmp_p
-    except KeyError as e:
-        print("Error: paleoData key not found")
-        logger_jsons.warn("new_to_old_structure: KeyError: paleoData key not found, {}".format(e))
-    logger_jsons.info("exit new_to_old_structure")
-    return d
-
-
 def split_csv_json(d):
     """
     Split JSON with CSV values into separate JSON and CSV dictionaries.
     :param dict d: JSON metadata with CSV values in paleoData columns
-    :return dict dict: JSON only metadata, CSV organized by filename->column
+    :return dict, dict: JSON only metadata, CSV organized by filename->column
     """
     logger_jsons.info("enter split_csv_json")
     # First, get CSV values and organize.
@@ -254,4 +186,303 @@ def split_csv_json(d):
     return j, csv
 
 
+def _get_lipd_version(d):
+    """
+    Check what version of LiPD this file is using. If none is found, assume it's using version 1.0
+    :param dict d: Metadata
+    :return float:
+    """
+    version = 1.0
+    if "LiPDVersion" in d:
+        version = d["LiPDVersion"]
+        # Cast the version number to a float
+        try:
+            version = float(version)
+        except AttributeError:
+            # If the casting failed, then something is wrong with the key so assume version is 1.0
+            version = 1.0
+    return version
 
+
+def _update_structure(d):
+    """
+    Change an old LiPD version structure to the most recent LiPD version structure
+    :param dict d: Metadata
+    :return dict bool:
+    """
+    logger_jsons.info("enter update_structure")
+    tmp_all = []
+    try:
+        # As of v1.1, ChronData should have an extra level of abstraction.
+        # No longer shares the same structure of paleoData
+        for table in d["chronData"]:
+            tmp_all.append({"chronMeasurementTable": table})
+    except KeyError:
+        # chronData section doesn't exist. Return unsuccessful and continue without chronData
+        logger_jsons.info("update_structure: KeyError: missing chronData key")
+        return d, False
+
+    d["chronData"] = tmp_all
+    d["LiPDVersion"] = 1.1
+    # Update successful. Return new dict and flag
+    logger_jsons.info("exit update_structure")
+    return d, True
+
+
+def _import_chron_data(chron_data):
+    """
+    Import the chronData metadata and change it to index-by-name.
+    :param list chron_data: ChronData metadata
+    :return dict: Modified chronData
+    """
+    logger_jsons.info("enter import_chron_data")
+    d = {}
+    idx = 1
+    try:
+        for table in chron_data:
+            tmp_table = {}
+
+            # Get the table name, and use that as the index name for this table
+            tmp_table_name = _get_variable_name_table("chronTableName", table["chronMeasurementTable"], "chronology")
+
+            # Process the chron measurement table
+            try:
+                tmp_cmt = _import_chron_meas_table(table["chronMeasurementTable"])
+                tmp_table["chronMeasurementTable"] = tmp_cmt
+            except KeyError:
+                logger_jsons.info("import_chron_data: KeyError: {} table missing chronMeasurementTable".format(tmp_table_name))
+
+            # Process the chron model
+            try:
+                tmp_cm = _import_chron_model(table["chronModel"])
+                tmp_table["chronModel"] = tmp_cm
+            except KeyError:
+                # chronModel may often not be included. That's okay.
+                pass
+
+            # If we only have generic table names, and one exists already, don't overwrite. Create dynamic name
+            if tmp_table_name in d:
+                tmp_table_name = "{}_{}".format(tmp_table_name, idx)
+                idx += 1
+
+            # Put the final product into the output dictionary. Indexed-by-table-name
+            d[tmp_table_name] = tmp_table
+
+    except AttributeError:
+        # chronData is not a list like it should be.
+        logger_jsons.info("import_chron_data: AttributeError: chronData: expected list type, given {}".format(type(chron_data)))
+    logger_jsons.info("exit import_chron_data")
+    return d
+
+
+def _import_chron_model(chron_model):
+    """
+    Change the nested items of the chronModel data. Overwrite the data in-place.
+    :param list chron_model:
+    :return list:
+    """
+    logger_jsons.info("enter import_chron_data")
+    try:
+        for model in chron_model:
+            # Keep the original dictionary, but replace the three main entries below
+
+            # Do a direct replacement of chronModelTable columns. No table name, no table work needed.
+            model["chronModelTable"]["columns"] = _idx_col_by_name(model["chronModelTable"]["columns"])
+
+            # Do a direct replacement of ensembleTable columns. No table name, no table work needed.
+            model["ensembleTable"]["columns"] = _idx_col_by_name(model["ensembleTable"]["columns"])
+
+            # Iter over each calibrated age table
+            tmp_calib = {}
+            for calibration in model["calibratedAges"]:
+                # Use "name" as table name
+                name_calib = _get_variable_name_table("name", calibration)
+                # Call idx_table_by_name
+                table_new = _idx_table_by_name(calibration)
+                # Set the new table by name into the WIP tmp_calib
+                tmp_calib[name_calib] = table_new
+            model["calibratedAges"] = tmp_calib
+
+    except AttributeError:
+        logger_jsons.debug("import_chron_model: AttributeError: expected list type, given {} type".format(type(chron_model)))
+
+    logger_jsons.info("exit import_chron_data")
+    return chron_model
+
+
+def _import_chron_meas_table(d):
+    """
+    Index the chronology measurement table by name
+    :param dict d: Chronology measurement table data
+    :return:
+    """
+    table_new = {}
+
+    # Get the table name
+    name_table = d["chronTableName"]
+
+    # Call idx_table_by_name
+    d = _idx_table_by_name(d)
+
+    # Enter the named table in the output dictionary
+    table_new[name_table] = d
+
+    return d
+
+
+def _import_paleo_data(paleo_data):
+    """
+    Index the paleo data table by name
+    :param list paleo_data:
+    :return dict: Modified paleoData
+    """
+    d = {}
+    idx = 1
+
+    # Iter for each table in paleoData
+    for table in paleo_data:
+        # Get table name
+        name_table = _get_variable_name_table("paleoDataTableName", table, "data")
+        # If the table is missing a name, and we're faced with overwriting tables, make up a dynamic "data_X" name.
+        if name_table in d:
+            name_table = "{}_{}".format(name_table, idx)
+            idx += 1
+        # Process the table. Set at with named index in output dictionary
+        d[name_table] = _idx_table_by_name(table)
+
+    return d
+
+
+def _idx_table_by_name(d):
+    """
+    Switch a table of data from indexed-by-number into indexed-by-name using table names
+    :param dict d: Table data
+    :return dict: new idx-by-name table
+    """
+    try:
+        # Overwrite the columns entry with named columns
+        d["columns"] = _idx_col_by_name(d["columns"])
+    except AttributeError:
+        logger_jsons.info("idx_table_by_name: AttributeError: expected dictionary type, given {} type".format(type(d)))
+
+    return d
+
+
+def _idx_col_by_name(l):
+    """
+    Iter over columns list. Turn indexed-by-num list into an indexed-by-name dict. Keys are the variable names.
+    :param list l: Columns
+    :return dict: New column indexed-by-name
+    """
+    col_new = {}
+
+    # Iter for each column in the list
+    try:
+        for col in l:
+            try:
+                col_name = col["variableName"]
+                col_new[col_name] = col
+            except KeyError:
+                logger_jsons.info("idx_col_by_name: KeyError: missing variableName key")
+    except AttributeError:
+        logger_jsons.info("idx_col_by_name: AttributeError: expected list type, given {} type".format(type(l)))
+
+    return col_new
+
+
+def _reorganize_table_export(table):
+    """
+
+    :param table:
+    :return:
+    """
+    # todo Export process
+
+    return
+
+
+def idx_num_to_name(d):
+    """
+    Switch from index-by-number to index-by-name.
+    :param dict d: Metadata
+    :return dict: Modified Metadata
+    """
+    logger_jsons.info("enter idx_num_to_name")
+
+    # Find out what LiPD version is being used
+    version = _get_lipd_version(d)
+
+    # Success flag marks that updating the structure was a success, or if we're already at the most recent LiPDVersion
+    success = True
+    # todo for some reason this is triggering on file with 1.1 version and it shouldn't be
+    if version == 1.0 or "1.0":
+        d, success = _update_structure(d)
+
+    # Only continue if newest structure is being used
+    if success:
+        try:
+            tmp_pd = _import_paleo_data(d["paleoData"])
+            d["paleoData"] = tmp_pd
+        except KeyError:
+            logger_jsons.info("idx_num_to_name: KeyError: missing paleoData")
+
+        try:
+            tmp_cd = _import_chron_data(d["chronData"])
+            d["chronData"] = tmp_cd
+        except KeyError:
+            logger_jsons.info("idx_num_to_name: KeyError: missing chronData")
+    else:
+        print("Chronology incorrectly formatted.")
+
+    logger_jsons.info("exit idx_num_to_name")
+    return d
+
+
+def idx_name_to_num(d):
+    """
+    Restructure metadata to the old format. Table and columns are indexed-by-number in lists.
+    :param dict d: Metadata
+    :return dict: Modified metadata
+    """
+    # todo rewrite as a modular process.
+    logger_jsons.info("enter idx_name_to_num")
+
+    # Process the paleoData section
+
+    # Process the chronData section
+
+    logger_jsons.info("exit idx_name_to_num")
+    return d
+
+
+def _get_variable_name_col(d):
+    """
+    Get the variable name from a table or column
+    :param dict d: Metadata
+    :return str:
+    """
+    var = ""
+    try:
+        var = d["variableName"]
+    except KeyError:
+        try:
+            var = d["name"]
+        except KeyError:
+            logger_jsons.info("get_variable_name_col: KeyError: missing key")
+    return var
+
+
+def _get_variable_name_table(key, d, fallback=""):
+    """
+    Try to get a table name from a data table
+    :param str key: Key to try first
+    :param dict d: Data table
+    :param str fallback: (optional) If we don't find a table name, use this as a generic name fallback.
+    :return str: Data table name
+    """
+    try:
+        var = d[key]
+        return var
+    except KeyError:
+        logger_jsons.info("get_variable_name_table: KeyError: missing {}".format(key))
+        return fallback
