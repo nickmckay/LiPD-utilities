@@ -37,12 +37,18 @@ def _add_csv_to_columns(table):
     # If there's no filename, bypass whole process
     if filename:
         # Call read_csv_to_columns for this filename. csv_data is list of lists.
-        csv_data = read_csv_to_columns(filename)
+        csv_data = _read_csv_to_columns(filename)
 
         # Start putting CSV data into corresponding column "values" key
         try:
             for col_name, col in table['columns'].items():
-                col['values'] = csv_data[col["number"] - 1]
+                # The "number" entry in the ensemble table is a list of columns, instead of an int.
+                # In this case, just store all the csv data as a batch.
+                if isinstance(col["number"], list):
+                    col["values"] = csv_data
+                # For all other cases, "number" is a single int, and "values" should hold one column list.
+                else:
+                    col['values'] = csv_data[col["number"] - 1]
         except IndexError:
             logger_csvs.warning("add_csv_to_json: IndexError: index out of range of csv_data list")
 
@@ -128,7 +134,7 @@ def _import_chron_model_csv(chron_model):
     return chron_model
 
 
-def read_csv_to_columns(filename):
+def _read_csv_to_columns(filename):
     """
     Opens the target CSV file and creates a dictionary with one list for each CSV column.
     :param str filename:
@@ -166,7 +172,7 @@ def read_csv_to_columns(filename):
     return l
 
 
-def write_csv_to_file(filename, d):
+def _write_csv_to_file(filename, d):
     """
     Writes columns of data to a target CSV file.
     :param str filename: Target CSV file

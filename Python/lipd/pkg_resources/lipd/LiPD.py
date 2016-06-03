@@ -37,6 +37,7 @@ class LiPD(object):
         # Import JSON into object
         os.chdir(self.dir_tmp_bag_data)
 
+        # Read in jsonld metadata
         j = read_json_from_file(self.name + '.jsonld')
 
         os.chdir(self.dir_root)
@@ -50,7 +51,7 @@ class LiPD(object):
         # Copy the JSON only metadata to self before adding CSV
         self.data_json = copy.deepcopy(self.data_master)
 
-        # Import CSV into data_master, and set csv data to self.
+        # Import CSV into data_master
         os.chdir(self.dir_tmp_bag_data)
         self.data_master = add_csv_to_metadata(self.data_master)
 
@@ -110,7 +111,7 @@ class LiPD(object):
 
         # Overwrite csv data to CSV files. Call once for each CSV file.
         for filename, columns in self.data_csv.items():
-            write_csv_to_file(filename, columns)
+            _write_csv_to_file(filename, columns)
 
         # Remove CSV data from self.data_master and update self.data_json
         self.data_json = remove_csv_from_json(self.data_master)
