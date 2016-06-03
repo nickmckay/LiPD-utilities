@@ -7,6 +7,16 @@ checkGoogleTokens;
 %convert author cells to bibtex string
 L = authorCell2BibtexAuthorString(L);
 
+%if no verions, force to 1.0
+if ~isfield(L,'LiPDVersion')
+    L.LiPDVersion = 1.0;
+end
+
+if L.LiPDVersion == 1.0
+    display('updating LiPD file to current version')
+    L = convertLiPD1_0to1_1(L);
+end
+
 %overwrite will delete the old file
 if nargin<2
     overwrite=0;
@@ -24,24 +34,21 @@ if isfield(L,'googleSpreadSheetKey')
         
         pStructs=structFieldNames(L.paleoData);
         for p=1:length(pStructs)
-            if isfield(L.paleoData.(pStructs{p}),'googWorkSheetKey');
-                L.paleoData.(pStructs{p})=rmfield(L.paleoData.(pStructs{p}),'googWorkSheetKey');
-            end
+                L.paleoData.(pStructs{p})=rmfieldsoft(L.paleoData.(pStructs{p}),{'googWorkSheetKey','googleWorkSheetKey'});
+            
             ppstructs=structFieldNames(L.paleoData.(pStructs{p}));
             for pp=1:length(ppstructs)
-                if isfield(L.paleoData.(pStructs{p}).(ppstructs{pp}),'googWorkSheetKey')
-                    L.paleoData.(pStructs{p}).(ppstructs{pp})=rmfield(L.paleoData.(pStructs{p}).(ppstructs{pp}),'googWorkSheetKey');
-                end
+                    L.paleoData.(pStructs{p}).(ppstructs{pp})=rmfieldsoft(L.paleoData.(pStructs{p}).(ppstructs{pp}),{'googWorkSheetKey','googleWorkSheetKey'});
             end
             
             
         end
         if isfield(L,'chronData')
-            cStructs=structFieldNames(L.chronData);
-            for p=1:length(cStructs)
-                L.chronData.(cStructs{p})=rmfield(L.chronData.(cStructs{p}),'googWorkSheetKey');
+            for p=1:length(L.chronData)
+                L.chronData{p}.chronMeasurementTable=rmfieldsoft(L.chronData{p}.chronMeasurementTable,{'googWorkSheetKey','googleWorkSheetKey'});
                 
             end
+            
         end
     else
         error([L.dataSetName ' already has a google spreadsheet, you should use updateLiPDGoogleFile instead'])
@@ -69,14 +76,14 @@ for pd=1:length(pdNames)
     newWS=createWorksheet(spreadSheetNew.spreadsheetKey,nRow,nCol,['paleoData-' pdNames{pd}],aTokenSpreadsheet);
     display(['created new worksheet ' newWS.worksheetKey])
     
-    P.googWorkSheetKey=newWS.worksheetKey;
+    P.googleWorkSheetKey=newWS.worksheetKey;
     
     %go through the columns and populate the cells
     for c=1:nCol
         %check for TSid
         if ~isfield(P.(colNames{c}),'TSid')
             %create one - check against master list
-            P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googWorkSheetKey);
+            P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googleWorkSheetKey);
         end
         
         if ~iscell(P.(colNames{c}).values)
@@ -96,15 +103,19 @@ for pd=1:length(pdNames)
     
 end
 
-['L key-' L.paleoData.(pdNames{pd}).googWorkSheetKey]
+['L key-' L.paleoData.(pdNames{pd}).googleWorkSheetKey]
 
 %chronData
 %if there's chrondata, write that too.
 if isfield(L,'chronData')
-    %now create a worksheet for each chronDataTable
-    pdNames=fieldnames(L.chronData);
-    for pd=1:length(pdNames)
-        P=L.chronData.(pdNames{pd});
+    
+    
+    for pd=1:length(L.chronData)
+        if ~isfield(L.chronData{pd},'chronName')
+        L.chronData{pd}.chronName=['chron' num2str(pd)];
+        end
+        
+        P=L.chronData{pd}.chronMeasurementTable;
         %get the names of the columns
         colNames=structFieldNames(P);
         nCol=length(colNames);
@@ -114,16 +125,16 @@ if isfield(L,'chronData')
         %create a new spreadsheet, with two extra rows (for variable name
         %and TSID)
         display('creating new worksheet')
-        newWS=createWorksheet(spreadSheetNew.spreadsheetKey,nRow,nCol,['chronData-' pdNames{pd}],aTokenSpreadsheet);
+        newWS=createWorksheet(spreadSheetNew.spreadsheetKey,nRow,nCol,['chronData-' L.chronData{pd}.chronName],aTokenSpreadsheet);
         display(['created new worksheet ' newWS.worksheetKey])
-        P.googWorkSheetKey=newWS.worksheetKey;
+        P.googleWorkSheetKey=newWS.worksheetKey;
         
         
         %go through the columns and populate the cells
         for c=1:nCol
             %check for TSid
             if ~isfield(P.(colNames{c}),'TSid')
-                P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googWorkSheetKey);
+                P.(colNames{c}).TSid=createTSID(P.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,P.googleWorkSheetKey);
             end
             
             if ~iscell(P.(colNames{c}).values)
@@ -139,7 +150,7 @@ if isfield(L,'chronData')
             end
             editWorksheetColumn(spreadSheetNew.spreadsheetKey,newWS.worksheetKey,colNum,1:nRow,colData,aTokenSpreadsheet);
         end
-        L.chronData.(pdNames{pd})=P;%write it back into the main structure
+        L.chronData{pd}.chronMeasurementTable=P;%write it back into the main structure
     end
 end
 %get the names of the worksheets
@@ -152,24 +163,22 @@ L.googleMetadataWorksheet=wsNames(1).worksheetKey;
 %edit that first sheet to become the metadatasheet
 
 %extract timeseries
-TS=structord(extractTimeseriesLiPD(L,1));
+TS=extractTimeseriesLiPD(L,1);
 
-%get rid of unnecessary metadata
-torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','geo_type','geo_geometry_coordinates','paleoData_values','chronData_values','pub1_abstract','pub2_abstract','paleoData_dataType','paleoData_missingValue'};
-f=fieldnames(TS);
-pid=f(find(~cellfun(@isempty,(strfind(f,'identifier')))&strncmpi('pub',f,3)));
-if ~isempty(pid)%remove any pub identifiers, if there are any
-    TS=rmfield(TS,pid);
-end
-for i=1:length(torem)
-    if isfield(TS,torem{i})
-        TS=rmfield(TS,torem{i});
-    end
-end
+
+%and also these variables
+torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','paleoData_values',...
+    'paleoData_chronDataMD5','paleoData_number','paleoData_dataType','paleoData_missingValue'
+    'geo_meanLat','geo_meanElev','geo_type','geo_meanLon','pub1_identifier','pub2_identifier','pub3_identifier',...
+    'pub4_identifier','pub5_identifier','pub6_identifier','pub7_identifier','pub8_identifier','pub9_identifier'};
+TS=rmfieldsoft(TS,torem);
+
+
 f=fieldnames(TS);
 %make chunks.
 baseNames=f(find(cellfun(@isempty,(strfind(f,'_')))));
 geoNames=f(find(strncmpi('geo_',f,4)));
+
 
 pubNames=f(find(strncmpi('pub',f,3)));
 fundNames=f(find(strncmpi('fund',f,4)));
@@ -236,6 +245,31 @@ topChunk=[header ; topChunk];
 
 
 %now make the paleoData chunks
+
+
+%get rid of unnecessary metadata
+%remove all varaibles that follow this prefix
+prefixTR = {'pub','geo','funding','chron','google'};
+
+%and also these variables
+torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','paleoData_values',...
+    'LiPDVersion','archiveType','dataSetName','metadataMD5','tagMD5','paleoData_chronDataMD5','paleoData_number',...
+    'paleoData_dataType','paleoData_missingValue'};
+TS=rmfieldsoft(TS,torem);
+
+for ii = 1:length(prefixTR)
+    f=fieldnames(TS);
+    pid = find(~cellfun(@isempty,(cellfun(@(x) x==1,strfind(f,prefixTR{ii}),'UniformOutput',0))));
+    if ~isempty(pid)%remove any pub identifiers, if there are any
+        TS=rmfield(TS,f(pid));
+    end
+end
+
+    f=fieldnames(TS);
+
+
+
+
 %make TSid first
 tsi=find(strcmp('paleoData_TSid',f));
 %make variableName second
@@ -245,12 +279,12 @@ di=find(strcmp('paleoData_description',f));
 %make units fourth
 ui=find(strcmp('paleoData_units',f));
 
-geoi=(find(strncmpi('geo_',f,4)));
+% geoi=(find(strncmpi('geo_',f,4)));
+% 
+% pubi=(find(strncmpi('pub',f,3)));
+% fundi=(find(strncmpi('fund',f,4)));
 
-pubi=(find(strncmpi('pub',f,3)));
-fundi=(find(strncmpi('fund',f,4)));
-
-pdCi=[tsi; vni; di; ui;  setdiff(underscoreI,[tsi vni di ui chronDatai' pubi' geoi' fundi']')];
+pdCi=[tsi; vni; di; ui;  setdiff((1:length(f))',[tsi vni di ui]')];
 midChunk=cell(length(TS),length(pdCi));
 
 for p=1:length(pdCi)
@@ -264,74 +298,66 @@ midChunk=[h1; f(pdCi)';midChunk];
 hasChron = 0;
 %Chron metadatdata
 if isfield(L,'chronData')
-    LC=L;
-    LC.paleoData=L.chronData;
-    LC=rmfield(LC,'chronData');
-    try CTS=extractTimeseriesLiPD(LC,1);
-        hasChron=1;
-    catch me
-        warning('chron extraction failed, skipping')
-    end
-    if hasChron
-        torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','geo_type','geo_geometry_coordinates','paleoData_values','chronData_values','pub1_abstract','pub2_abstract','paleoData_dataType','paleoData_missingValue'};
-        f=fieldnames(CTS);
-        pid=f(find(~cellfun(@isempty,(strfind(f,'identifier')))&strncmpi('pub',f,3)));
-        if ~isempty(pid)%remove any pub identifiers, if there are any
-            CTS=rmfield(CTS,pid);
-        end
-        
-        
-        
-        for i=1:length(torem)
-            if isfield(CTS,torem{i})
-                CTS=rmfield(CTS,torem{i});
-            end
-        end
-        cfnames =fieldnames(CTS);
-        pdi=(find(strncmpi('paleoData_',cfnames,10)));
-        for cp = 1:length(pdi)
-            curname=cfnames{pdi(cp)};
-            newname=['chron' curname(6:end)];
-            [CTS.(newname)]=CTS.(curname);
-            CTS=rmfield(CTS,curname);
-        end
-        f=fieldnames(CTS);
-        
-        
-        %now make chron data chunk
-        tsi=find(strcmp('chronData_TSid',f));
-        %make variableName second
-        vni=find(strcmp('chronData_variableName',f));
-        %make description third
-        di=find(strcmp('chronData_description',f));
-        %make units fourth
-        ui=find(strcmp('chronData_units',f));
-        
-        
-        pdCi=[tsi; vni; di; ui;  setdiff(chronDatai,[tsi vni di ui])];
-        botChunk=cell(length(CTS),length(pdCi));
-        
-        for p=1:length(pdCi)
-            botChunk(:,p)={CTS.(f{pdCi(p)})};
-        end
-        
-        %add in the headers
-        h1=cell(1,size(botChunk,2));
-        h1{1}='chronData column metadata';
-        botChunk=[h1; f(pdCi)';botChunk];
-    else
-    %create an empty bottom chunk
     
-    botChunk=cell(1,size(midChunk,2));
-        
+    CTS = flattenChronMeasurementTable(L);
+    
+    %remove all varaibles that follow this prefix
+    prefixTR = {'pub','geo','funding','paleoData','google'};
+    
+    %and also these variables
+    torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','chronData_values',...
+        'LiPDVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number'};
+    CTS=rmfieldsoft(CTS,torem);
+    
+    for ii = 1:length(prefixTR)
+        f=fieldnames(CTS);
+        pid = find(~cellfun(@isempty,(cellfun(@(x) x==1,strfind(f,prefixTR{ii}),'UniformOutput',0))));
+        if ~isempty(pid)%remove any pub identifiers, if there are any
+            CTS=rmfield(CTS,f(pid));
+        end
     end
+    
+    
+    
+    f=fieldnames(CTS);
+    
+    
+    
+    
+    %now make chron data chunk
+    tsi=find(strcmp('chronData_TSid',f));
+    %make variableName second
+    vni=find(strcmp('chronData_variableName',f));
+    %make description third
+    di=find(strcmp('chronData_description',f));
+    %make units fourth
+    ui=find(strcmp('chronData_units',f));
+    %make measurementMaterial fourth
+    mi=find(strcmp('chronData_measurementMaterial',f));
+    
+    
+    
+    
+    
+    pdCi=[tsi; vni; di; ui; mi;  setdiff((1:length(f))',[tsi vni di ui mi])];
+    botChunk=cell(length(CTS),length(pdCi));
+    
+    for p=1:length(pdCi)
+        botChunk(:,p)={CTS.(f{pdCi(p)})};
+    end
+    
+    %add in the headers
+    h1=cell(1,size(botChunk,2));
+    h1{1}='chronData column metadata';
+    botChunk=[h1; f(pdCi)';botChunk];
 else
     %create an empty bottom chunk
     
     botChunk=cell(1,size(midChunk,2));
     
-    
 end
+
+
 %NOW COMBINE!!!!!!!!!
 %combine the two chunks
 nrow=size(topChunk,1)+size(botChunk,1)+size(midChunk,1)+2;

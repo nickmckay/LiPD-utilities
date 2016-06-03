@@ -1,3 +1,4 @@
+
 function Dnew=collapseTSChron(TS)
 %tries to convert a LiPD Timeseries object back into a LiPD Hierarchical
 %object
@@ -234,5 +235,8 @@ df=fieldnames(Dnew);
 if length(df)==1
     Dnew=Dnew.(df{1});
 end
+Dnew=rmfieldsoft(Dnew,'LiPDVersion');
+Dnew = convertLiPD1_0to1_1(Dnew);
+
 
 

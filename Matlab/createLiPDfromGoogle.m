@@ -54,15 +54,15 @@ metadataKey = wkKeys{mki};
 [GTS,GTSC]=getLiPDGoogleMetadata(spreadsheetkey,metadataKey);
 
 %check to see if the paleodata worksheet keys are stored
-if ~isfield(GTS,'paleoData_googWorkSheetKey')
+if ~isfield(GTS,'paleoData_googleWorkSheetKey')
     bc = cell(length(GTS),1);
-    [GTS.paleoData_googWorkSheetKey] = bc{:};
+    [GTS.paleoData_googleWorkSheetKey] = bc{:};
 end
-pdgwk={GTS.paleoData_googWorkSheetKey}';
+pdgwk={GTS.paleoData_googleWorkSheetKey}';
 if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
     %make sure there are names
     if ~isfield(GTS,'paleoData_paleoDataTableName')
-        error('the TS metadata must include at least paleoDataTableName or googWorksheetKey')
+        error('the TS metadata must include at least paleoDataTableName or googleWorksheetKey')
     end
     pdtNames = {GTS.paleoData_paleoDataTableName}';
     ie = find(cellfun(@isempty,pdgwk)); %identify which are missing keys
@@ -72,7 +72,7 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
         pdgwk{ie(pie)}=pdwkkeys{whichPDTsheet};
         display(['Infilling worksheet key ' pdgwk{ie(pie)} ' for paleoData sheet ' pdtNames{ie(pie)} ])
     end
-    [GTS.paleoData_googWorkSheetKey] = pdgwk{:};
+    [GTS.paleoData_googleWorkSheetKey] = pdgwk{:};
 end
 
 
@@ -110,17 +110,17 @@ end
 if isstruct(GTSC)
     
     %check to see if the chrondata worksheet keys are stored
-    if ~isfield(GTS,'chronData_googWorkSheetKey')
+    if ~isfield(GTS,'chronData_googleWorkSheetKey')
         bc = cell(length(GTSC),1);
-        [GTSC.chronData_googWorkSheetKey] = bc{:};
+        [GTSC.chronData_googleWorkSheetKey] = bc{:};
     end
-    cdgwk={GTSC.chronData_googWorkSheetKey}';
+    cdgwk={GTSC.chronData_googleWorkSheetKey}';
     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
         %make sure there are names
-        if ~isfield(GTSC,'chronData_chronDataTableName')
-            error([GTS.dataSetName ': the chron metadata must include at least chronDataTableName or googWorksheetKey'])
+        if ~isfield(GTSC,'chronData_chronName')
+            error([GTS.dataSetName ': the chron metadata must include at least chronDataTableName or googleWorksheetKey'])
         end
-        cdtNames = {GTSC.chronData_chronDataTableName}';
+        cdtNames = {GTSC.chronData_chronName}';
         ie = find(cellfun(@isempty,cdgwk)); %identify which are missing keys
         for pie = 1:length(ie)
             %match the name to the
@@ -128,7 +128,7 @@ if isstruct(GTSC)
             cdgwk{ie(pie)}=cdwkkeys{whichCDTsheet};
             display(['Infilling worksheet key ' cdgwk{ie(pie)} ' for chronData sheet ' cdtNames{ie(pie)} ])
         end
-        [GTSC.chronData_googWorkSheetKey] = cdgwk{:};
+        [GTSC.chronData_googleWorkSheetKey] = cdgwk{:};
     end
     
     
@@ -136,9 +136,10 @@ if isstruct(GTSC)
     
     %collapse the chron TS
     CD=collapseTSChron(GTSC);
-    
+    CD=rmfieldsoft(CD,'LiPDVersion');
     %CD should only inlcude one file... if it doesn't then thats a problem.
     cnames=fieldnames(CD);
+    
     
     if length(cnames)>1
         error('there shouldnt be multiple dataset Names within one dataset')

@@ -157,7 +157,11 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                     depthFlag=1;
                                     depthi=l4;
                                     depth=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).values;
+                                    if isfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}),'units')
                                     depthUnits=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).units;
+                                    else
+                                        depthUnits = 'unknown';
+                                    end
                                 end
                             end
                             if yearFlag & ageFlag

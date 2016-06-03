@@ -17,7 +17,7 @@ if ~isnan(toct) %if there are chron tables, load em in
         
         cT=readLiPDTable(cT,dirname);
         cT=processLiPDColumns(cT);
-        cT.chronMeasurementTableMD5 = I.chronMeasMD5;
+        cT.chronMeasurementTableMD5 = I.chronMeasMD5{i,2};
         C{i}.chronMeasurementTable=cT;
         
         %%%%%%END CHRON MEASUREMENT TABLE
@@ -33,7 +33,7 @@ if ~isnan(toct) %if there are chron tables, load em in
                 if isfield(CMS,'chronModelTable')
                     CMT=readLiPDTable(CMS.chronModelTable,dirname);
                     CMT=processLiPDColumns(CMT);
-                    CMT.chronModelTableMD5=I.chronModelTableMD5;
+                    CMT.chronModelTableMD5=I.chronModelTableMD5{i,2};
 
                     C{i}.chronModel{cm}.chronModelTable=cT;
                 end
@@ -42,7 +42,7 @@ if ~isnan(toct) %if there are chron tables, load em in
                 if isfield(CMS,'ensembleTable')
                     CME=readLiPDTable(CMS.ensembleTable,dirname);
                     CME=processLiPDColumns(CME);
-                    CME.chronEnsembleMD5=I.chronEnsMD5;
+                    CME.chronEnsembleMD5=I.chronEnsMD5{i,2};
                     C{i}.chronModel{cm}.ensembleTable=CME;
                     
                 end
