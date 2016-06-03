@@ -4,14 +4,17 @@ from ..helpers.loggers import *
 logger_csvs = create_logger("csvs")
 
 
-def add_csv_to_metadata(d):
+# IMPORT
+
+
+def import_csv_to_metadata(d):
     """
     Using the given metadata dictionary, retrieve CSV data from CSV files, and insert the CSV
     values into their respective metadata columns. Checks for both paleoData and chronData tables.
     :param dict d: Metadata
     :return dict: Modified metadata dictionary
     """
-    logger_csvs.info("enter add_csv_to_json")
+    logger_csvs.info("enter import_csv_to_metadata")
 
     # Add CSV to paleoData
     if "paleoData" in d:
@@ -21,7 +24,7 @@ def add_csv_to_metadata(d):
     if "chronData" in d:
         d["chronData"] = _import_chron_data_csv(d["chronData"])
 
-    logger_csvs.info("exit add_csv_to_json")
+    logger_csvs.info("exit import_csv_to_metadata")
     return d
 
 
@@ -172,7 +175,187 @@ def _read_csv_to_columns(filename):
     return l
 
 
-def _write_csv_to_file(filename, d):
+# EXPORT
+
+
+def export_csv_to_metadata(d):
+    """
+    Initial call. Start the process of finding column values in metadata and writing it to csv files
+    :param dict d:
+    :return:
+    """
+    logger_csvs.info("enter export_csv_to_metadata")
+    csv_only = {}
+    crumbs = _get_data_set_name(d)
+
+    # read from paleo data
+    if "paleoData" in d:
+        tmp = _export_paleo_csv(d["paleoData"], crumbs)
+        csv_only.update(tmp)
+
+    # read from chron data
+    if "chronData" in d:
+        tmp = _export_chron_data_csv(d["chronData"], crumbs)
+        csv_only.update(tmp)
+
+    # Write out all the tables that we collected
+    for filename, data in csv_only.items():
+        write_csv_to_file(filename, data)
+
+    logger_csvs.info("exit export_csv_to_metadata")
+    return csv_only
+
+
+def _export_chron_data_csv(chron_data, crumbs):
+    """
+    Export data from chron data
+    :return:
+    """
+    logger_csvs.info("enter export_chron_data_csv")
+    chron_csv = {}
+    idx = 1
+
+    try:
+        for table_name, table_data in chron_data.items():
+            # Process chronModel
+            if "chronModel" in table_data:
+
+                # String together crumbs for this level
+                crumbs_tmp = "{}.Chron{}".format(crumbs, str(idx))
+
+                # Replace the chronModel in-place
+                tmp = _export_chron_model_csv(table_data["chronModel"], crumbs_tmp)
+                chron_csv.update(tmp)
+
+            # Process chronMeasurementTable
+            if "chronMeasurementTable" in table_data:
+
+                # String together crumbs for this level
+                crumbs_tmp = "{}.Chron{}.ChronMeasurementTable".format(crumbs, str(idx))
+
+                # Replace the chronMeasurementTable in-place
+                tmp = _rip_csv_to_columns(table_data["chronMeasurementTable"], crumbs_tmp)
+                chron_csv.update(tmp)
+
+            idx += 1
+
+    except AttributeError:
+        logger_csvs.debug("export_chron_data_csv: AttributeError: expected dict type, given {}".format(type(chron_data)))
+
+    logger_csvs.info("exit export_chron_data_csv")
+    return chron_csv
+
+
+def _export_chron_model_csv(chron_model, crumbs):
+    """
+    Export data from chron model
+    :return:
+    """
+    logger_csvs.info("enter export_chron_model_csv")
+    model_csv = {}
+    idx = 1
+
+    for model in chron_model:
+        tmp = {}
+
+        # String together crumbs for this level
+        crumbs_tmp = "{}.Model{}".format(crumbs, str(idx))
+
+        # This could be more efficient by doing model_csv.update(_rip_csv_to_columns(model["chronModelTable"]))
+        if "chronModelTable" in model:
+            crumbs_model = "{}.ChronModelTable.csv".format(crumbs_tmp)
+            tmp = _rip_csv_to_columns(model["chronModelTable"], crumbs_model)
+        if "ensembleTable" in model:
+            crumbs_ensemble = "{}.EnsembleTable.csv"
+            tmp = _rip_csv_to_columns(model["ensembleTable"], crumbs_ensemble)
+        if "calibratedAges" in model:
+            # Calibrated age tables are nested. Go down an extra layer.
+            ca_idx = 1
+            for k, v in model["calibratedAges"].items():
+                crumbs_ca = "{}.calibratedAge.{}.csv".format(crumbs_tmp, str(ca_idx))
+                tmp2 = _rip_csv_to_columns(v, crumbs_ca)
+                tmp.update(tmp2)
+                ca_idx += 1
+
+        # Update the model_csv with the new csv data that trickled up.
+        model_csv.update(tmp)
+        idx += 1
+
+    logger_csvs.info("exit export_chron_model_csv")
+    return model_csv
+
+
+def _export_paleo_csv(paleo_data, crumbs):
+    """
+    Export data from paleo data tables
+    :return dict: filename and column data for each table
+    """
+    logger_csvs.info("enter export_paleo_csv")
+    paleo_csv = {}
+
+    try:
+        # Loop through each table in paleoData
+        for table_name, table in paleo_data.items():
+
+            # String together crumbs for this level
+            crumbs_tmp = "{}.{}.PaleoData".format(crumbs, table_name)
+
+            # Send whole table through. Adds csv data to columns
+            tmp = _rip_csv_to_columns(table, crumbs_tmp)
+            paleo_csv.update(tmp)
+    except AttributeError:
+        logger_csvs.debug("export_paleo_csv: AttributeError: expected dict, given {}".format(type(paleo_data)))
+
+    logger_csvs.info("exit export_paleo_csv")
+    return paleo_csv
+
+
+def _rip_csv_to_columns(table, crumbs):
+    """
+    Rip the csv data from a given table
+    :param dict table: Table data
+    :return dict: key: table filename val: column data
+    """
+    col_data = {}
+    complete = {}
+    ens = False
+
+    # Get the filename or table name
+    filename = _get_filename(table, crumbs)
+
+    try:
+        # Loop over "columns" key and track all data
+        for var, col in table["columns"].items():
+
+            # Get the column number, and decrement for 0-index.
+            # This is the position that the col will be written to in csv.
+            try:
+                # Catch the ensemble table exception. "number" is a list instead of an int
+                if isinstance(col["number"], list):
+                    ens_num = col["number"]
+                    ens_val = col["values"]
+                    ens = True
+                else:
+                    num = col["number"] - 1
+                    arr = col["values"]
+
+                    # Set data to the running col data
+                    col_data[num] = arr
+
+            except KeyError:
+                logger_csvs.warning("rip_csv_to_columns: KeyError: missing number or values keys")
+        if ens:
+            col_data = _merge_ensemble(col_data, ens_num, ens_val)
+
+    except AttributeError:
+        logger_csvs.debug("rip_csv_to_columns: AttributeError: expected dict, given {}".format(type(table)))
+
+    complete[filename] = col_data
+
+    return complete
+
+
+def write_csv_to_file(filename, d):
     """
     Writes columns of data to a target CSV file.
     :param str filename: Target CSV file
@@ -191,3 +374,58 @@ def _write_csv_to_file(filename, d):
     logger_csvs.info("exit write_csv_to_file")
     return
 
+
+# HELPERS
+
+
+def _get_filename(table, crumbs):
+    """
+    Get the filename from a data table. If it doesn't exist, create a new one based on table hierarchy in metadata file.
+    format: <dataSetName>.<dataTableType><idx>.<dataTableName>.csv
+    example: ODP1098B.Chron1.ChronMeasurementTable.csv
+    :param dict table: Table data
+    :return str: Filename
+    """
+    try:
+        filename = table["filename"]
+    except KeyError:
+        logger_csvs.info("get_filename: KeyError: missing filename key")
+        filename = crumbs
+    return filename
+
+
+def _get_data_set_name(d):
+    """
+    Get data set name from metadata
+    :param dict d: Metadata
+    :return str: Data set name
+    """
+    try:
+        s = d["dataSetName"]
+    except KeyError:
+        logger_csvs.warn("get_data_set_name: KeyError: missing dataSetName")
+        s = "lipd"
+    return s
+
+
+def _merge_ensemble(ensemble, col_nums, col_vals):
+    """
+    The second column is not typical.
+    "number" is a list of column numbers and "values" is an array of column values.
+    Before we can write this to csv, it has to match the format the writer expects.
+    :param dict ensemble: First column data
+    :param list col_nums: Second column numbers. list of ints
+    :param list col_vals: Second column values. list of lists
+    :return dict:
+    """
+    try:
+        # Loop for each column available
+        for num in col_nums:
+            # first column number in col_nums is usually "2", so backtrack once since ensemble already has one entry
+            # col_vals is 0-indexed, so backtrack 2 entries
+            ensemble[num-1] = col_vals[num - 2]
+
+    except IndexError:
+        logger_csvs.debug("merge_ensemble: IndexError: index out of range")
+
+    return ensemble

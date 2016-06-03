@@ -23,9 +23,9 @@ class LiPD(object):
         self.dir_tmp = dir_tmp  # Directory containing unzipped files for this LiPD. Temporary workspace.
         self.dir_tmp_bag = os.path.join(dir_tmp, self.name)  # Bagit directory in temporary folder
         self.dir_tmp_bag_data = os.path.join(self.dir_tmp_bag, 'data')  # Data folder (json, csv) in Bagit directory.
-        self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}
-        self.data_json = {}  # JSON metadata without CSV values
-        self.data_master = {}  # JSON metadata with CSV values
+        self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}}
+        self.data_json = {}  # Metadata without CSV values
+        self.data_master = {}  # Metadata with CSV values
         logger_lipd.info("object created: {}".format(self.name))
 
     # LOADING
@@ -53,7 +53,7 @@ class LiPD(object):
 
         # Import CSV into data_master
         os.chdir(self.dir_tmp_bag_data)
-        self.data_master = add_csv_to_metadata(self.data_master)
+        self.data_master = import_csv_to_metadata(self.data_master)
 
         os.chdir(self.dir_root)
         logger_lipd.info("object loaded: {}".format(self.name))
@@ -109,9 +109,9 @@ class LiPD(object):
         # Move to data files
         os.chdir(self.dir_tmp_bag_data)
 
-        # Overwrite csv data to CSV files. Call once for each CSV file.
-        for filename, columns in self.data_csv.items():
-            _write_csv_to_file(filename, columns)
+        # Collect all the csv data from the metadata
+        # Write each table to its own csv file
+        self.data_csv = export_csv_to_metadata(self.data_master)
 
         # Remove CSV data from self.data_master and update self.data_json
         self.data_json = remove_csv_from_json(self.data_master)
