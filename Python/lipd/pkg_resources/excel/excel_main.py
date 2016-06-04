@@ -490,9 +490,9 @@ def name_to_jsonld(title_in):
     title_out = ''
     try:
         title_in = title_in.lower()
-        title_out = ALTS_JSONLD[title_in]
+        title_out = EXCEL_KEYS[title_in]
     except (KeyError, AttributeError) as e:
-        for k, v in ALTS_JSONLD.items():
+        for k, v in EXCEL_KEYS.items():
             if title_in == k:
                 title_out = v
             elif k in title_in:
