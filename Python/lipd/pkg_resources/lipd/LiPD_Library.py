@@ -6,7 +6,6 @@ from ..helpers.google import *
 from ..helpers.PDSlib import *
 from ..helpers.loggers import create_logger
 
-
 logger_lipd_lib = create_logger('LiPD_Library')
 
 
@@ -237,6 +236,8 @@ class LiPD_Library(object):
         """
         try:
             self.master[name].save()
+            # Reload the newly saved LiPD file back into the library.
+            self.loadLipd(name)
         except KeyError:
             print("LiPD file not found")
         return
@@ -247,6 +248,8 @@ class LiPD_Library(object):
         """
         for k, v in self.master.items():
             self.master[k].save()
+        # Reload the newly saved LiPD files back into the library.
+        self.loadLipds()
         return
 
     def removeLipd(self, name):

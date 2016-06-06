@@ -179,7 +179,7 @@ def extractTimeSeries():
     return d
 
 
-def exportTimeSeries():
+def collapseTimeSeries():
     """
     Export TimeSeries back to LiPD Library. Updates information in LiPD objects.
     """

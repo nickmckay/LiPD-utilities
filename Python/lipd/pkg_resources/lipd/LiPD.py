@@ -31,27 +31,31 @@ class LiPD(object):
     # LOADING
 
     def load(self):
+        # Start in dir_root
+
         # Unzip LiPD into tmp folder
         unzip(self.name_ext, self.dir_tmp)
 
-        # Import JSON into object
+        # Import metadata into object
         os.chdir(self.dir_tmp_bag_data)
 
-        # Read in jsonld metadata
+        # Read in metadata file
         j = read_json_from_file(self.name + '.jsonld')
 
+        # Run the metadata through lint and correct any invalid keys
         os.chdir(self.dir_root)
         t = lipd_lint(j)
 
-        # Read in JSON, and switch to new structure
+        # Read in metadata, and switch to idx-by-name
         j = idx_num_to_name(t)
-        # Clean JSON of empty fields and data before loading. Then set JSON to object self.
+
+        # Clean metadata of empty fields and data before loading. Set metadata to self
         self.data_master = remove_empty_fields(remove_empty_doi(j))
 
-        # Copy the JSON only metadata to self before adding CSV
+        # Copy metadata to self before adding csv
         self.data_json = copy.deepcopy(self.data_master)
 
-        # Import CSV into data_master
+        # Import csv into data_master
         os.chdir(self.dir_tmp_bag_data)
         self.data_master = import_csv_to_metadata(self.data_master)
 
@@ -106,6 +110,7 @@ class LiPD(object):
     # CLOSING
 
     def save(self):
+
         # Move to data files
         os.chdir(self.dir_tmp_bag_data)
 
@@ -114,13 +119,13 @@ class LiPD(object):
         self.data_csv = export_csv_to_metadata(self.data_master)
 
         # Remove CSV data from self.data_master and update self.data_json
-        self.data_json = remove_csv_from_json(self.data_master)
+        self.data_json = remove_values_fields(self.data_master)
 
         # Switch JSON back to old structure
         self.data_json = idx_name_to_num(self.data_json)
 
         # Overwrite JSON dictionary to file
-        write_json_to_file(self.name_ext, self.data_master)
+        write_json_to_file(self.name_ext, self.data_json)
 
         # Cleanup directory and prep for bagit
         dir_cleanup(self.dir_tmp_bag, self.dir_tmp_bag_data)
@@ -133,6 +138,7 @@ class LiPD(object):
 
         # Move back to root
         os.chdir(self.dir_root)
+
         return
 
     def remove(self):

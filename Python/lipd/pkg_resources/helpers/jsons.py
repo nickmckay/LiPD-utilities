@@ -49,26 +49,20 @@ def idx_num_to_name(d):
     # Find out what LiPD version is being used
     version = _get_lipd_version(d)
 
-    # Success flag marks that updating the structure was a success, or if we're already at the most recent LiPDVersion
-    success = True
     if version in (1.0, "1.0"):
-        d, success = _update_structure(d)
+        d = _update_structure(d)
 
-    # Only continue if newest structure is being used
-    if success:
-        try:
-            tmp_pd = _import_paleo_data(d["paleoData"])
-            d["paleoData"] = tmp_pd
-        except KeyError:
-            logger_jsons.info("idx_num_to_name: KeyError: missing paleoData")
+    try:
+        tmp_pd = _import_paleo_data(d["paleoData"])
+        d["paleoData"] = tmp_pd
+    except KeyError:
+        logger_jsons.info("idx_num_to_name: KeyError: missing paleoData key")
 
-        try:
-            tmp_cd = _import_chron_data(d["chronData"])
-            d["chronData"] = tmp_cd
-        except KeyError:
-            logger_jsons.info("idx_num_to_name: KeyError: missing chronData")
-    else:
-        print("Chronology incorrectly formatted.")
+    try:
+        tmp_cd = _import_chron_data(d["chronData"])
+        d["chronData"] = tmp_cd
+    except KeyError:
+        logger_jsons.info("idx_num_to_name: KeyError: missing chronData key")
 
     logger_jsons.info("exit idx_num_to_name")
     return d
@@ -215,24 +209,24 @@ def _import_chron_model(chron_model):
     return chron_model
 
 
-def _import_chron_meas_table(d):
+def _import_chron_meas_table(chron_meas_table):
     """
     Index the chronology measurement table by name
-    :param dict d: Chronology measurement table data
+    :param dict chron_meas_table: Chronology measurement table data
     :return:
     """
     table_new = {}
 
     # Get the table name
-    name_table = d["chronTableName"]
+    name_table = chron_meas_table["chronTableName"]
 
     # Call idx_table_by_name
-    d = _idx_table_by_name(d)
+    chron_meas_table = _idx_table_by_name(chron_meas_table)
 
     # Enter the named table in the output dictionary
-    table_new[name_table] = d
+    table_new[name_table] = chron_meas_table
 
-    return d
+    return chron_meas_table
 
 
 # EXPORT
@@ -304,19 +298,158 @@ def remove_csv_from_json(d):
 
 def idx_name_to_num(d):
     """
-    Restructure metadata to the old format. Table and columns are indexed-by-number in lists.
+    Switch from index-by-name to index-by-number.
     :param dict d: Metadata
     :return dict: Modified metadata
     """
-    # todo rewrite as a modular process.
     logger_jsons.info("enter idx_name_to_num")
 
     # Process the paleoData section
+    try:
+        d["paleoData"] = _export_paleo_data(d["paleoData"])
+    except KeyError:
+        logger_jsons.warn("idx_name_to_num: KeyError: missing paleoData key")
 
     # Process the chronData section
+    try:
+        d["chronData"] = _export_chron_data(d["chronData"])
+    except KeyError:
+        logger_jsons.info("idx_name_to_num: KeyError: missing chronData key")
 
     logger_jsons.info("exit idx_name_to_num")
     return d
+
+
+def _export_paleo_data(paleo_data):
+    """
+    Switch paleo data to index-by-number
+    :param dict paleo_data: Name and table data
+    :return list: List of table data
+    """
+    l = []
+    try:
+        for name, table in paleo_data.items():
+            try:
+                # todo make sure this is actually replacing columns key
+                # Switch columns to index-by-number
+                table["columns"] = _idx_col_by_num(table["columns"])
+                # Add table data to output list. Drop key
+                l.append(table)
+            except KeyError:
+                logger_jsons.warn("export_paleo_data: KeyError: missing columns key")
+
+    except AttributeError:
+        logger_jsons.debug("export_paleo_data: AttributeError: expected type dict, given type {}".format(type(paleo_data)))
+
+    return l
+
+
+def _export_chron_data(chron_data):
+    """
+    Switch chron data to index-by-number
+    :param dict chron_data: ChronData
+    :return list: ChronData tables
+    """
+    l = []
+
+    # For each chron in chronData,
+    for name, table in chron_data.items():
+
+        # Process chron models
+        try:
+            table["chronModel"] = _export_chron_model(table["chronModel"])
+        except KeyError:
+            # chron model key is optional. No need to report.
+            pass
+
+        # Process the chron measurement table
+        try:
+            table["chronMeasurementTable"] = _idx_table_by_num(table["chronMeasurementTable"])
+        except KeyError:
+            logger_jsons.warn("export_chron_data: KeyError: missing chronMeasurementTable key")
+
+        # Add only the table to the output list
+        l.append(table)
+
+    return l
+
+
+def _export_chron_model(chron_model):
+    """
+    Switch chron model to index-by-number
+    :param list chron_model: Chron model
+    :return list: modified chron model
+    """
+    try:
+        for model in chron_model:
+
+            # Process calibrated ages (nested tables)
+            if "calibratedAges" in model:
+                ca = []
+                for name, table in model["calibratedAges"].items():
+                    try:
+                        # Get the modified table data
+                        tmp = _idx_table_by_num(table)
+                        # Append it to the growing calibrated age list of tables
+                        ca.append(tmp)
+                    except KeyError:
+                        logger_jsons.debug("export_chron_model: KeyError: missing columns key")
+
+                # Insert the newly built list in-place over the dictionary
+                model["calibratedAges"] = ca
+
+            # Process ensemble table (special two columns)
+            if "ensembleTable" in model:
+                model["ensembleTable"] = _idx_table_by_num(model["ensembleTable"])
+
+            # Process chronModelTable (normal)
+            if "chronModelTable" in model:
+                model["chronModelTable"] = _idx_table_by_num(model["chronModelTable"])
+
+    except AttributeError:
+        logger_jsons.debug("export_chron_model: AttributeError: expected list type, received {} type".format(type(chron_model)))
+
+    return chron_model
+
+
+def _idx_table_by_num(d):
+    """
+    Append all the values from the dictionary to an output list. Drop the keys.
+    :return:
+    """
+    try:
+        # Overwrite the columns dict with a new columns list
+        d["columns"] = _idx_col_by_num(d["columns"])
+    except AttributeError:
+        logger_jsons.debug("idx_table_by_num: AttributeError: expected type dict, given type {}".format(type(d)))
+    return d
+
+
+def _idx_col_by_num(d):
+    """
+    Index columns by number instead of by name. Use "number" key in column to maintain order
+    :param dict d: Column data
+    :return list: modified column data
+    """
+    l = []
+    try:
+        # Create an empty list that matches the length of the column dictionary
+        l = [None for i in d]
+
+        # Loop and start placing data in the output list based on its "number" entry
+        for var, data in d.items():
+            try:
+                # Special case for ensemble table "numbers" list
+                if isinstance(data["number"], list):
+                    l.append(data)
+                # Place at list index based on its column number
+                else:
+                    l[data["number"] - 1] = data
+            except KeyError:
+                logger_jsons.debug("idx_col_by_num: KeyError: missing number key")
+    except AttributeError:
+        logger_jsons.debug("idx_col_by_num: AttributeError: expected dict type, given {} type".format(type(d)))
+    return l
 
 
 def write_json_to_file(filename, json_data):
@@ -344,43 +477,65 @@ def write_json_to_file(filename, json_data):
 # HELPERS
 
 
-def remove_empty_fields(d):
+def remove_values_fields(x):
+    """
+    (recursive) Remove all "values" fields from the metadata
+    :param any x: Any data type
+    :return dict: metadata without "values"
+    """
+    if isinstance(x, dict):
+        if "values" in x:
+            del x["values"]
+        else:
+            for k, v in x.items():
+                if isinstance(v, dict):
+                    remove_values_fields(v)
+                elif isinstance(v, list):
+                    remove_values_fields(v)
+    elif isinstance(x, list):
+        for i in x:
+            remove_values_fields(i)
+
+    return x
+
+
+def remove_empty_fields(x):
     """
     Go through N number of nested data types and remove all empty entries. Recursion
-    :param any d: Dictionary, List, or String of data
+    :param any x: Dictionary, List, or String of data
     :return any: Returns a same data type as original, but without empties.
     """
     # No logger here because the function is recursive.
     # Int types don't matter. Return as-is.
-    if not isinstance(d, int):
-        if isinstance(d, str) or d is None:
+    if not isinstance(x, int):
+        if isinstance(x, str) or x is None:
             try:
                 # Remove new line characters and carriage returns
-                d = d.rstrip()
+                x = x.rstrip()
             except AttributeError:
                 # None types don't matter. Keep going.
                 pass
-            if d in EMPTY:
+            if x in EMPTY:
                 # Substitute empty entries with ""
-                d = ''
-        elif isinstance(d, list):
+                x = ''
+        elif isinstance(x, list):
             # Recurse once for each item in the list
-            for i, v in enumerate(d):
-                d[i] = remove_empty_fields(d[i])
+            for i, v in enumerate(x):
+                x[i] = remove_empty_fields(x[i])
             # After substitutions, remove and empty entries.
-            for i in d:
+            for i in x:
                 if not i:
-                    d.remove(i)
-        elif isinstance(d, dict):
+                    x.remove(i)
+        elif isinstance(x, dict):
             # First, go through and substitute "" (empty string) entry for any values in EMPTY
-            for k, v in d.items():
-                d[k] = remove_empty_fields(v)
+            for k, v in x.items():
+                x[k] = remove_empty_fields(v)
             # After substitutions, go through and delete the key-value pair.
             # This has to be done after we come back up from recursion because we cannot pass keys down.
-            for key in list(d.keys()):
-                if not d[key]:
-                    del d[key]
-    return d
+            for key in list(x.keys()):
+                if not x[key]:
+                    del x[key]
+    return x
 
 
 def remove_empty_doi(d):
@@ -431,25 +586,24 @@ def _update_structure(d):
     """
     Change an old LiPD version structure to the most recent LiPD version structure
     :param dict d: Metadata
-    :return dict bool:
+    :return dict:
     """
     logger_jsons.info("enter update_structure")
     tmp_all = []
-    try:
-        # As of v1.1, ChronData should have an extra level of abstraction.
-        # No longer shares the same structure of paleoData
-        for table in d["chronData"]:
-            tmp_all.append({"chronMeasurementTable": table})
-    except KeyError:
-        # chronData section doesn't exist. Return unsuccessful and continue without chronData
-        logger_jsons.info("update_structure: KeyError: missing chronData key")
-        return d, False
+    if "chronData" in d:
+        try:
+            # As of v1.1, ChronData should have an extra level of abstraction.
+            # No longer shares the same structure of paleoData
+            for table in d["chronData"]:
+                tmp_all.append({"chronMeasurementTable": table})
+            d["chronData"] = tmp_all
+        except KeyError:
+            # chronData section doesn't exist. Return unsuccessful and continue without chronData
+            logger_jsons.info("update_structure: KeyError: missing chronData key")
 
-    d["chronData"] = tmp_all
     d["LiPDVersion"] = 1.1
-    # Update successful. Return new dict and flag
     logger_jsons.info("exit update_structure")
-    return d, True
+    return d
 
 
 def _get_variable_name_col(d):
