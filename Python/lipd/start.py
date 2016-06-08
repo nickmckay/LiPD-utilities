@@ -53,13 +53,13 @@ def lipd_to_df(filename):
     :return obj: Pandas data frames
     """
     try:
-        df_meta, df_data, df_chron = lipd_lib.LiPD_to_df(filename)
+        dfs = lipd_lib.LiPD_to_df(filename)
     except KeyError:
         print("Error: Unable to find LiPD file")
         logger_start.warn("KeyError: Unable to find record {}".format(filename))
-        df_meta, df_data, df_chron = None
+        dfs = None
     print("Process Complete")
-    return df_meta, df_data, df_chron
+    return dfs
 
 
 def ts_to_df(ts, filename):
@@ -73,7 +73,7 @@ def ts_to_df(ts, filename):
     df_data = ""
     df_chron = ""
     try:
-        df_meta, df_data, df_chron = TS_to_df(ts[filename])
+        df_meta, df_data, df_chron = ts_to_df(ts[filename])
     except KeyError as e:
         print("Error: LiPD file not found")
         logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))

@@ -31,74 +31,71 @@ def _dotnotation_for_nested_dictionary(d, key, dots):
     return dots
 
 
-def LiPD_to_df(dict_in):
+def lipd_to_df(metadata, csvs):
     """
-    Create a pandas dataframe using LiPD metadata and CSV data
-    :param dict dict_in: LiPD metadata dictionary
-    :return obj: Metadata DF, CSV DF
+    Create a pandas data frame using LiPD metadata and CSV data
+    :param dict metadata: LiPD metadata dictionary
+    :param dict csvs: Csv data
+    :return dict: One data frame per table, organized in a dictionary by name
     """
-    logger_pdslib.info("enter lipd_to_df()")
+    dfs = {}
+    logger_pdslib.info("enter lipd_to_df")
     dict_in_dotted = {}
-    logger_pdslib.info("dot_notation()")
-    _dotnotation_for_nested_dictionary(dict_in, '', dict_in_dotted)
+    logger_pdslib.info("enter dot_notation")
+    _dotnotation_for_nested_dictionary(metadata, '', dict_in_dotted)
     dict_in_dotted = collections.OrderedDict(sorted(dict_in_dotted.items()))
-    df_meta = pd.DataFrame(list(dict_in_dotted.items()), columns=["Key", "Value"])
-    df_data = pd.DataFrame(_get_lipd_cols(dict_in))
-    try:
-        df_chron = pd.DataFrame(_get_chron_cols(dict_in))
-    except KeyError as e:
-        df_chron = "Chronology not found"
-        logger_pdslib.warn("LiPD_to_df: KeyError: chronology not found, {}".format(e))
-    logger_pdslib.info("exit lipd_to_df()")
-    return df_meta, df_data, df_chron
+    dfs["metadata"] = pd.DataFrame(list(dict_in_dotted.items()), columns=["Key", "Value"])
+    dfs.update(_get_dfs(csvs))
+    return dfs
 
 
-def TS_to_df(dict_in):
+def ts_to_df(metadata):
     """
     Create a data frame from one TimeSeries object
-    :param dict dict_in: Time Series dictionary
-    :return obj: 3 Data Frame objects
+    :param dict metadata: Time Series dictionary
+    :return dict: One data frame per table, organized in a dictionary by name
     """
     logger_pdslib.info("enter ts_to_df")
-    s = collections.OrderedDict(sorted(dict_in.items()))
+    dfs = {}
+    s = collections.OrderedDict(sorted(metadata.items()))
+
     # Put key-vars in a data frame to make it easier to visualize
-    df_meta = pd.DataFrame(list(s.items()), columns=['Key', 'Value'])
+    dfs["metadata"] = pd.DataFrame(list(s.items()), columns=['Key', 'Value'])
+
     # Plot the variable + values vs year, age, depth (whichever are available)
-    df_data = pd.DataFrame(_get_ts_cols(dict_in))
+    dfs["paleoData"] = pd.DataFrame(_get_ts_cols(metadata))
+
     # Plot the chronology variables + values in a data frame
-    try:
-        df_chron = dict_in["chronData_df"]
-    except KeyError as e:
-        df_chron = "Chronology not found"
-        logger_pdslib.warn("TS_to_df: KeyError: chronology not found, {}".format(e))
+    dfs["chronData"] = metadata["chronData_df"]
+
     logger_pdslib.info("exit ts_to_df")
-    return df_meta, df_data, df_chron
+    return dfs
 
 
-def _get_ts_cols(dict_in):
+def _get_ts_cols(ts):
     """
     Get variable + values vs year, age, depth (whichever are available)
-    :param dict dict_in: TimeSeries dictionary
+    :param dict ts: TimeSeries dictionary
     :return dict: Key: variableName, Value: Panda Series object
     """
     logger_pdslib.info("enter get_ts_cols()")
     d = {}
     try:
         # Get the main column data first
-        units = " (" + dict_in["paleoData_units"] + ")"
+        units = " (" + ts["paleoData_units"] + ")"
     except KeyError as e:
         units = ""
         logger_pdslib.warn("get_ts_cols: KeyError: paleoData_units not found, {}".format(e))
     try:
-        d[dict_in["paleoData_variableName"] + units] = dict_in["paleoData_values"]
+        d[ts["paleoData_variableName"] + units] = ts["paleoData_values"]
     except KeyError as e:
         logger_pdslib.warn("get_ts_cols: KeyError: variableName or values not found, {}".format(e))
 
     # Start looking for the additional special columns
-    for k, v in dict_in.items():
+    for k, v in ts.items():
         if re_pandas_x_num.match(k):
             try:
-                units = " (" + dict_in[k + "Units"] + ")"
+                units = " (" + ts[k + "Units"] + ")"
             except KeyError as e:
                 units = ""
                 logger_pdslib.warn("get_ts_cols: KeyError: Special column units, {}, {}".format(k, e))
@@ -107,38 +104,27 @@ def _get_ts_cols(dict_in):
     return d
 
 
-def _get_lipd_cols(dict_in):
+def _get_dfs(csvs):
     """
-    Grab the variableName and values data from each paleoData table in the LiPD metadata
-    :param dict dict_in: LiPD metadata dictionary
-    :return dict: Dictionary of { variableName: [valuesArray] }
+    Create a data frame for each table for the given key
+    :param dict csvs: LiPD metadata dictionary
+    :return dict: paleo data data frames
     """
     logger_pdslib.info("enter get_lipd_cols")
-    d = {}
+    # placeholders for the incoming data frames
+    dfs = {"chronData": {}, "paleoData": {}}
     try:
-        # TODO: make sure this accounts for multiple tables
-        for table, table_data in dict_in['paleoData'].items():
-            for var, arr in table_data["columns"].items():
-                d[var] = pd.Series(arr["values"])
-    except KeyError as e:
-        logger_pdslib.warn("get_lipd_cols: KeyError: paleoData key not found, {}".format(e))
-    logger_pdslib.info("exit get_lipd_cols: found {}".format(len(d)))
-    return d
+        for filename, cols in csvs.items():
+            tmp = {}
+            for var, vals in cols.items():
+                tmp[var] = pd.Series(vals)
+            if "chron" in filename.lower():
+                dfs["chronData"][filename] = pd.DataFrame(tmp)
+            elif "paleo" in filename.lower():
+                dfs["paleoData"][filename] = pd.DataFrame(tmp)
+    except KeyError:
+        logger_pdslib.warn("get_lipd_cols: AttributeError: expected type dict, given type {}".format(type(csvs)))
 
+    logger_pdslib.info("exit get_lipd_cols")
+    return dfs
 
-def _get_chron_cols(dict_in):
-    """
-    Grab the variableName and values data from each chronData table in the LiPD metadata
-    : param dict dict_in: LiPD metadata dictionary
-    : return dict: Dictionary of { variableName: [ValuesArray] }
-    """
-    logger_pdslib.info("enter get_chron_cols")
-    d = {}
-    try:
-        for table, table_data in dict_in['chronData'].items():
-            for var, arr in table_data["columns"].items():
-                d[var] = pd.Series(arr["values"])
-    except KeyError as e:
-        logger_pdslib.warn("get_chron_cols: KeyError: chronData key not found {}".format(e))
-    logger_pdslib.info("exit get_chron_cols: found {}".format(len(d)))
-    return d

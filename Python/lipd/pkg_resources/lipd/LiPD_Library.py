@@ -65,7 +65,7 @@ class LiPD_Library(object):
                 print("processing: {}".format(name_ext))
                 self.__append_lipd(name_ext)
             except Exception as e:
-                print("Error: {}".format(name_ext))
+                print("Error: unable to load {}".format(name_ext))
                 logger_lipd_lib.warn("loadLipds: failed to load {}, {}".format(name_ext, e))
 
         return
@@ -225,8 +225,8 @@ class LiPD_Library(object):
         :param str filename:
         :return obj: Pandas data frames - 3
         """
-        df_meta, df_data, df_chron = LiPD_to_df(self.master[filename].get_master())
-        return df_meta, df_data, df_chron
+        dfs = lipd_to_df(self.master[filename].get_master(), self.master[filename].get_csv())
+        return dfs
 
     # CLOSING
 
