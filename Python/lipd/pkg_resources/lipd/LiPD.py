@@ -31,6 +31,10 @@ class LiPD(object):
     # LOADING
 
     def load(self):
+        """
+        Loads a LiPD file from local path. Unpacks, processes, and sets data to object self.
+        :return:
+        """
         # Start in dir_root
 
         # Unzip LiPD into tmp folder
@@ -58,6 +62,9 @@ class LiPD(object):
         # Import csv into data_master
         os.chdir(self.dir_tmp_bag_data)
         self.data_master = import_csv_to_metadata(self.data_master)
+
+        # Set CSV data to self
+        self.data_csv = get_organized_csv(self.data_master)
 
         os.chdir(self.dir_root)
         logger_lipd.info("object loaded: {}".format(self.name))
@@ -95,14 +102,14 @@ class LiPD(object):
 
     def get_metadata(self):
         """
-
+        For returning and setting metadata to variable
         :return:
         """
-        return self.data_master
+        return self.data_json
 
     def get_csv(self):
         """
-
+        For returning and setting csv data to variable
         :return:
         """
         return self.data_csv
@@ -110,6 +117,10 @@ class LiPD(object):
     # CLOSING
 
     def save(self):
+        """
+        Saves current state of LiPD object data. Outputs to a LiPD file.
+        :return:
+        """
 
         # Move to data files
         os.chdir(self.dir_tmp_bag_data)

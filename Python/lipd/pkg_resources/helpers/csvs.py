@@ -1,4 +1,5 @@
 import csv
+
 from ..helpers.loggers import *
 
 logger_csvs = create_logger("csvs")
@@ -373,6 +374,137 @@ def write_csv_to_file(filename, d):
             w.writerow(row)
     logger_csvs.info("exit write_csv_to_file")
     return
+
+
+# SKIM CSV AFTER IMPORT
+
+
+def get_organized_csv(metadata):
+    """
+    Get only csv data from metadata
+    :param dict metadata: Metdata
+    :return dict:
+    """
+    logger_csvs.info("enter get_organized_csv")
+
+    d = {}
+    crumbs = _get_data_set_name(metadata)
+
+    if "paleoData" in metadata:
+        crumbs_tmp = "{}.PaleoData".format(crumbs)
+        pd_out = _get_paleo_csv(metadata["paleoData"], crumbs_tmp)
+        d.update(pd_out)
+
+    if "chronData" in metadata:
+        crumbs_tmp = "{}.ChronData".format(crumbs)
+        cd_out = _get_chron_csv(metadata["chronData"], crumbs_tmp)
+        d.update(cd_out)
+
+    logger_csvs.info("exit get_organized_csv")
+    return d
+
+
+def _get_paleo_csv(paleo_data, crumbs):
+    """
+    Get table name, variable name, and column values from paleo metadata
+    :return:
+    """
+    logger_csvs.info("enter get_paleo_csv")
+    d = {}
+    try:
+        for name_table, data_table in paleo_data.items():
+            crumbs_tmp = "{}.{}.csv".format(crumbs, str(name_table))
+            filename = _get_filename(data_table, crumbs_tmp)
+            cols = _search_table_for_vals(data_table)
+            d[filename] = cols
+
+    except AttributeError:
+        logger_csvs.debug("get_paleo_csv: AttributeError: expected type dict, given type {}".format(type(paleo_data)))
+
+    logger_csvs.info("exit get_paleo_csv")
+    return d
+
+
+def _get_chron_csv(chron_data, crumbs):
+    """
+    Get table name, variable name, and column values from chron metadata
+    :return:
+    """
+    logger_csvs.info("enter get_chron_csv")
+    d = {}
+    try:
+        # Process the tables in chronData
+        for name_table, data_table in chron_data.items():
+            crumbs_tmp = "{}.{}".format(crumbs, str(name_table))
+
+            # Process each entry sub-table below if they exist
+            if "chronMeasurementTable" in data_table:
+                crumbs_tmp_cmt = "{}.{}.csv".format(crumbs_tmp, "ChronMeasurementTable")
+                filename = _get_filename(data_table["chronMeasurementTable"], crumbs_tmp_cmt)
+                out = _search_table_for_vals(data_table["chronMeasurementTable"])
+                d[filename] = out
+
+            if "chronModel" in data_table:
+                for item in data_table["chronModel"]:
+                    if "calibratedAges" in item:
+                        # CA has an extra level of nesting
+                        for name_ca, data_ca in item["calibratedAges"].items():
+                            crumbs_tmp_ca = "{}.{}.csv".format(crumbs, name_ca)
+                            filename = _get_filename(data_ca, crumbs_tmp_ca)
+                            out = _search_table_for_vals(data_ca)
+                            d[filename] = out
+
+                    if "chronModelTable" in item:
+                        crumbs_tmp_cmt2 = "{}.{}.csv".format(crumbs, "ChronModelTable")
+                        filename = _get_filename(item["chronModelTable"], crumbs_tmp_cmt2)
+                        out = _search_table_for_vals(item["chronModelTable"])
+                        d[filename] = out
+
+                    if "ensembleTable" in item:
+                        crumbs_tmp_et = "{}.{}.csv".format(crumbs, "EnsembleTable")
+                        filename = _get_filename(item["ensembleTable"], crumbs_tmp_et)
+                        out = _search_table_for_vals(item["ensembleTable"])
+                        d[filename] = out
+
+    except AttributeError:
+        logger_csvs.info("get_chron_csv: AttributeError: expected type dict, given type {}".format(type(chron_data)))
+
+    logger_csvs.info("exit get_chron_csv")
+    return d
+
+
+def _search_table_for_vals(d):
+    """
+    Search a data tables for column values. Return a dict of column values
+    :param dict d: Table data
+    :return dict: Column values. ref by var name
+    """
+    cols = {}
+    if "columns" in d:
+        try:
+            for name_col, data_col in d["columns"].items():
+                vals = _get_key_values(data_col)
+                if vals:
+                    cols[name_col] = vals
+        except AttributeError:
+            logger_csvs.debug("search_table_for_vals: AttributeError: expected type dict, given type {}".format(type(d)))
+
+    return cols
+
+
+def _get_key_values(data_col):
+    """
+    Get the values key from a data column
+    :param dict data_col:
+    :return list:
+    """
+    val = []
+    try:
+        val = data_col["values"]
+    except KeyError:
+        logger_csvs.info("get_values_key: KeyError: missing values key")
+
+    return val
 
 
 # HELPERS

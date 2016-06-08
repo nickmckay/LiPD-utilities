@@ -111,6 +111,7 @@ def _import_paleo_data(paleo_data):
     :param list paleo_data:
     :return dict: Modified paleoData
     """
+    logger_jsons.info("enter import_paleo_data")
     d = {}
     idx = 1
 
@@ -124,7 +125,7 @@ def _import_paleo_data(paleo_data):
             idx += 1
         # Process the table. Set at with named index in output dictionary
         d[name_table] = _idx_table_by_name(table)
-
+    logger_jsons.info("exit import_paleo_data")
     return d
 
 
@@ -145,19 +146,14 @@ def _import_chron_data(chron_data):
             tmp_table_name = _get_variable_name_table("chronTableName", table["chronMeasurementTable"], "chronology")
 
             # Process the chron measurement table
-            try:
+            if "chronMeasurementTable" in table:
                 tmp_cmt = _import_chron_meas_table(table["chronMeasurementTable"])
                 tmp_table["chronMeasurementTable"] = tmp_cmt
-            except KeyError:
-                logger_jsons.info("import_chron_data: KeyError: {} table missing chronMeasurementTable".format(tmp_table_name))
 
             # Process the chron model
-            try:
+            if "chronModel" in table:
                 tmp_cm = _import_chron_model(table["chronModel"])
                 tmp_table["chronModel"] = tmp_cm
-            except KeyError:
-                # chronModel may often not be included. That's okay.
-                pass
 
             # If we only have generic table names, and one exists already, don't overwrite. Create dynamic name
             if tmp_table_name in d:
@@ -180,7 +176,7 @@ def _import_chron_model(chron_model):
     :param list chron_model:
     :return list:
     """
-    logger_jsons.info("enter import_chron_data")
+    logger_jsons.info("enter import_chron_model")
     try:
         for model in chron_model:
             # Keep the original dictionary, but replace the three main entries below
@@ -205,7 +201,7 @@ def _import_chron_model(chron_model):
     except AttributeError:
         logger_jsons.debug("import_chron_model: AttributeError: expected list type, given {} type".format(type(chron_model)))
 
-    logger_jsons.info("exit import_chron_data")
+    logger_jsons.info("exit import_chron_model")
     return chron_model
 
 
@@ -215,17 +211,18 @@ def _import_chron_meas_table(chron_meas_table):
     :param dict chron_meas_table: Chronology measurement table data
     :return:
     """
+    logger_jsons.info("enter import_chron_meas_table")
     table_new = {}
 
     # Get the table name
-    name_table = chron_meas_table["chronTableName"]
+    name_table = _get_variable_name_table("chronTableName", chron_meas_table, "chronology")
 
     # Call idx_table_by_name
     chron_meas_table = _idx_table_by_name(chron_meas_table)
 
     # Enter the named table in the output dictionary
     table_new[name_table] = chron_meas_table
-
+    logger_jsons.info("exit import_chron_meas_table")
     return chron_meas_table
 
 
@@ -326,6 +323,7 @@ def _export_paleo_data(paleo_data):
     :param dict paleo_data: Name and table data
     :return list: List of table data
     """
+    logger_jsons.info("enter export_paleo_data")
     l = []
     try:
         for name, table in paleo_data.items():
@@ -340,7 +338,7 @@ def _export_paleo_data(paleo_data):
 
     except AttributeError:
         logger_jsons.debug("export_paleo_data: AttributeError: expected type dict, given type {}".format(type(paleo_data)))
-
+    logger_jsons.info("exit export_paleo_data")
     return l
 
 
@@ -350,6 +348,7 @@ def _export_chron_data(chron_data):
     :param dict chron_data: ChronData
     :return list: ChronData tables
     """
+    logger_jsons.info("enter export_chron_data")
     l = []
 
     # For each chron in chronData,
@@ -371,6 +370,7 @@ def _export_chron_data(chron_data):
         # Add only the table to the output list
         l.append(table)
 
+    logger_jsons.info("exit export_chron_data")
     return l
 
 
@@ -380,6 +380,7 @@ def _export_chron_model(chron_model):
     :param list chron_model: Chron model
     :return list: modified chron model
     """
+    logger_jsons.info("enter export_chron_model")
     try:
         for model in chron_model:
 
@@ -408,7 +409,7 @@ def _export_chron_model(chron_model):
 
     except AttributeError:
         logger_jsons.debug("export_chron_model: AttributeError: expected list type, received {} type".format(type(chron_model)))
-
+    logger_jsons.info("exit export_chron_model")
     return chron_model
 
 
