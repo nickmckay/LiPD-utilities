@@ -10,10 +10,13 @@ tomt=1:length(I.paleoData);
 for i =tomt;
     I.paleoData{i}=processLiPDColumns(readLiPDTable(I.paleoData{i},dirname));
     if i==1
-        P.(makeValidName(I.paleoData{i}.paleoDataTableName))=I.paleoData{i};
+        goodName = makeValidName(I.paleoData{i}.paleoDataTableName);
     else
-        P.(makeUniqueStrings(I.paleoData{i}.paleoDataTableName,fieldnames(P)))=I.paleoData{i};
+        goodName = makeUniqueStrings(makeValidName(I.paleoData{i}.paleoDataTableName),fieldnames(P));
     end
+        P.(goodName)=I.paleoData{i};
+        P.(goodName).paleoDataTableName = goodName;
+    
 end
 
 

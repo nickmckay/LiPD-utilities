@@ -42,20 +42,23 @@ end
 
 %write coordinates back into geometry
 if isfield(LiPDStruct.geo,'elevation')
-    if isstruct(LiPDStruct.geo.elevation)
-        if length(LiPDStruct.geo.elevation.value)~=length(LiPDStruct.geo.latitude)
-            LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.longitude LiPDStruct.geo.latitude repmat(LiPDStruct.geo.elevation.value,length(LiPDStruct.geo.latitude),1)];
-        else
-            LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.longitude LiPDStruct.geo.latitude LiPDStruct.geo.elevation.value];
-        end
-        
-    else
-        if length(LiPDStruct.geo.elevation)~=length(LiPDStruct.geo.latitude)
+%     if isstruct(LiPDStruct.geo.elevation)
+%         if length(LiPDStruct.geo.elevation.value)<length(LiPDStruct.geo.latitude)
+%             LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.longitude LiPDStruct.geo.latitude repmat(LiPDStruct.geo.elevation.value,length(LiPDStruct.geo.latitude),1)];
+%         elseif length(LiPDStruct.geo.elevation.value)>length(LiPDStruct.geo.latitude)
+%             LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.longitude LiPDStruct.geo.latitude LiPDStruct.geo.elevation.value];
+%         end
+%         
+%     else
+        if length(LiPDStruct.geo.elevation)<length(LiPDStruct.geo.latitude)
             LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.longitude LiPDStruct.geo.latitude repmat(LiPDStruct.geo.elevation,length(LiPDStruct.geo.latitude),1)];
+        elseif length(LiPDStruct.geo.elevation)>length(LiPDStruct.geo.latitude)
+            LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.longitude LiPDStruct.geo.latitude LiPDStruct.geo.elevation(1:length(LiPDStruct.geo.latitude))];
+
         else
             LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.longitude LiPDStruct.geo.latitude LiPDStruct.geo.elevation];
         end
-    end
+%     end
 else
     LiPDStruct.geo.geometry.coordinates=[LiPDStruct.geo.longitude LiPDStruct.geo.latitude];
 end

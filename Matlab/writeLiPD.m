@@ -1,5 +1,6 @@
 
 function writeLiPD(LiPDStruct,bagit,outdir)
+load LiPDUtilitiesPreferences.mat
 LiPDVersion = '1.1';
 LiPDStruct.LiPDVersion = LiPDVersion;
 %LiPD exporter
@@ -74,7 +75,7 @@ end
 if bagit
     
     %2. bagit
-    system(['/Library/Frameworks/Python.framework/Versions/3.4/bin/bagit.py  ' outdir '/' goodOutName])
+    system([githubPath '/bagit.py  ' outdir '/' goodOutName])
     
     %3. compress it and rename it
     system(['cd ' outdir '; zip -r ' outdir goodOutName '.lpd ' goodOutName]);

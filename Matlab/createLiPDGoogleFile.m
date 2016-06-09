@@ -168,7 +168,7 @@ TS=extractTimeseriesLiPD(L,1);
 
 %and also these variables
 torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','paleoData_values',...
-    'paleoData_chronDataMD5','paleoData_number','paleoData_dataType','paleoData_missingValue'
+    'paleoData_chronDataMD5','paleoData_number','paleoData_dataType','paleoData_missingValue',...
     'geo_meanLat','geo_meanElev','geo_type','geo_meanLon','pub1_identifier','pub2_identifier','pub3_identifier',...
     'pub4_identifier','pub5_identifier','pub6_identifier','pub7_identifier','pub8_identifier','pub9_identifier'};
 TS=rmfieldsoft(TS,torem);
@@ -265,10 +265,17 @@ for ii = 1:length(prefixTR)
     end
 end
 
-    f=fieldnames(TS);
 
 
+f=fieldnames(TS);
+%start with pa
+paleoDatai=(find(strncmpi('paleoData_',f,10)));
+cii=(find(strncmpi('climateInterpretation_',f,22)));
+cali=(find(strncmpi('calibration_',f,12)));
+ii=(find(strncmpi('isotopeInterpretation_',f,22)));
 
+
+f = f([paleoDatai; cii ;ii ;cali]);
 
 %make TSid first
 tsi=find(strcmp('paleoData_TSid',f));
@@ -285,6 +292,8 @@ ui=find(strcmp('paleoData_units',f));
 % fundi=(find(strncmpi('fund',f,4)));
 
 pdCi=[tsi; vni; di; ui;  setdiff((1:length(f))',[tsi vni di ui]')];
+
+
 midChunk=cell(length(TS),length(pdCi));
 
 for p=1:length(pdCi)
@@ -321,7 +330,10 @@ if isfield(L,'chronData')
     
     f=fieldnames(CTS);
     
-    
+    chronDatai=(find(strncmpi('chronData_',f,10)));
+
+
+f = f(chronDatai);
     
     
     %now make chron data chunk

@@ -21,9 +21,9 @@ for i=3:nCol
 end
 if nCDT>0
     for i=3:nCol
-   E.chronData.chronology.(['dummy' num2str(i)])= E.chronData.chronology.dummy2;
-   E.chronData.chronology.(['dummy' num2str(i)]).variableName=['dummy' num2str(i)];
-   E.chronData.chronology.(['dummy' num2str(i)]).number=i;
+   E.chronData{1}.chronMeasurementTable.(['dummy' num2str(i)])= E.chronData{1}.chronMeasurementTable.dummy2;
+   E.chronData{1}.chronMeasurementTable.(['dummy' num2str(i)]).variableName=['dummy' num2str(i)];
+   E.chronData{1}.chronMeasurementTable.(['dummy' num2str(i)]).number=i;
 
     end
 else
@@ -43,9 +43,9 @@ end
 
 %replicate for multiple CDTs
 if nCDT>1
-    for i=2:nPDT
-    E.chronData.(['chron' num2str(i)])= E.chronData.data;
-    E.chronData.(['chron' num2str(i)]).chronDataTableName= ['chron' num2str(i)];
+    for i=2:nCDT
+    E.chronData{i}= E.chronData{1};
+    E.chronData{i}.chronName = ['chron' num2str(i)];
 
     end
 end

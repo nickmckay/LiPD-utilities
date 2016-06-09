@@ -1,4 +1,4 @@
-function writeLiPDLibrary(Dout,overwrite,libdir)
+function writeLiPDLibrary(Dout,overwrite,libDir)
 %write LiPD library
 if nargin < 3
     libDir=uigetdir;
