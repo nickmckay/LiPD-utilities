@@ -1,14 +1,20 @@
-function L=updateLiPDGoogleFile(L)
+function L=updateLiPDGoogleFile(L,createIfNeeded)
 %updates the google version of LiPD file that already exists
 % % % deal with authorization on google
 checkGoogleTokens;
 L = authorCell2BibtexAuthorString(L);
 
-
+if nargin<2
+    createIfNeeded=0;
+end
 %check to see if L already has a google file
 if ~isfield(L,'googleSpreadSheetKey')
+    if ~createIfNeeded
     error([L.dataSetName ' does not already have a google spreadsheet, you should use createLiPDGoogleFile instead'])
-end
+    else
+        L=createLiPDGoogleFile(L);
+    end
+else
 rewrite=0; %by default, we're doing nothing to this spreadsheet
 %check to see if the tagMD5's are the same
 col1=getWorksheetColumn(L.googleSpreadSheetKey,L.googleMetadataWorksheet,1,aTokenSpreadsheet,0);
@@ -370,5 +376,5 @@ if rewrite>0
 else %don't rewrite
     display([L.dataSetName ': MD5 tags match - not updating spreadsheet'])
 end    %save updated LipD file?
-
+end
 L =  BibtexAuthorString2Cell(L);
