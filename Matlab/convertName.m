@@ -29,7 +29,7 @@ if ischar(name)
                 newname=standardNames{i};
                 break
             elseif i==length(standardNames)
-                warning('no name was recognized, keeping original')
+                warning([strtrim(name) ': no name was recognized, keeping original'])
                 newname=name;
             end
         end

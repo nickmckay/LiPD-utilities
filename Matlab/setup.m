@@ -14,6 +14,7 @@ save tsidCell.mat tsidCell lastSync
 
 goog=GetGoogleSpreadsheet('1C135kP-SRRGO331v9d8fqJfa3ydmkG2QQ5tiXEHj5us' ) ;
 save localRenameTS.mat goog lastSync
+save LiPDUtilitiesPreferences.mat githubPath
 
 
 updateNameConverterFromGoogle
