@@ -22,7 +22,7 @@ end
 
 for i=1:length(sheetKeys)
     %download data
-    [goog,dum]= GetGoogleSpreadsheet(sheetKeys{i});
+    [goog]= GetGoogleSpreadsheet(sheetKeys{i});
     acceptedNames=goog(2:end,1);
     
     nameCon.(sheets{i})=cell(1,1);

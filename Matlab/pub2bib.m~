@@ -28,10 +28,6 @@ for p = 1:length(pub)
         bib.pubYear = bib.year;
     end
     
-    if(forceNewKey)
-        bib=rmfieldsoft(bib,'citeKey');
-    end
-    
     %find citeKey
     if isfield(bib,'citeKey')
         citeKey=bib.citeKey;

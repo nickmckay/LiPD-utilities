@@ -35,6 +35,12 @@ table = [table1 ; table2];
 %apply authorName conversion
 table(:,4) = cellfun(@authorCell2BibtexAuthorString,table(:,4),'UniformOutput',0);
 
+for i = 1:length(table)
+    if ischar(table{i,2})
+table{i,2} = unicode2alpha(table{i,2});
+    end
+end
+
 
 %restrict to good records
 nPopulated = sum(~cellfun(@isempty,table(:,2:size(table,2))),2);
@@ -54,7 +60,7 @@ keyTable = table(uk1,:);
 bigTable = [keyTable ; noKeyTable(b,:)];
 
 
-cell2csv('~/Dropbox/pages2kphase2/bibData.txt',bigTable,'|');
+cell2csv('~/Dropbox/pages2kphase2/bibData0617.txt',bigTable,'|');
 
 
 

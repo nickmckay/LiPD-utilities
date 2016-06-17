@@ -1,4 +1,4 @@
-function LiPDStruct = writeLiPDPaleoData1_1(LiPDStruct,goodOutName)
+function LiPDStruct = writeLiPDPaleoData1_0(LiPDStruct,goodOutName)
 
 %%%%%%%PALEODATA SECTION%%%%%%%
 %build data tables then write out

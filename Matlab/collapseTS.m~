@@ -141,15 +141,15 @@ for i=1:length(udsn)
         
         
 %which variables should be at the measurement table level?
-amt = {'paleoDataTableName','paleoMeasurementTableName',...
-'paleoRecordName','paleoRecordNumber',...
-'paleoMeasurementTableNumber','paleoDataMD5',...
-'googleWorkSheetKey'};
+amt = {'paleoData_paleoDataTableName','paleoData_paleoMeasurementTableName',...
+'paleoData_paleoRecordName','paleoData_paleoRecordNumber',...
+'paleoData_paleoMeasurementTableNumber','paleoData_paleoDataMD5',...
+'paleoData_googleWorkSheetKey'};
 
 for am =1:length(amt)
         if any(strcmp(['paleoData_' amt{am}],fT))
-            Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(amt{am})=T.(['paleoData_' amt{am}]);
-            pd=setdiff(pd,find(strcmp(fT,['paleoData_' amt{am}])));
+            Dnew.(makeValidName(udsn{i})).paleoData.(pdName).googleWorkSheetKey=T.paleoData_googleWorkSheetKey;
+            pd=setdiff(pd,find(strcmp(fT,'paleoData_googleWorkSheetKey')));
         end
 
 end
@@ -159,7 +159,10 @@ end
         
         Dnew.(makeValidName(udsn{i})).paleoData.(pdName).paleoDataTableName=pdName;
         
-          
+        
+        %ignore paleodata name from pd
+        pd=setdiff(pd,find(strcmp(fT,'paleoData_paleoDataTableName')));
+        
   
 
 
@@ -325,10 +328,6 @@ end
         end
         
     end
-
-%force convert to new structure
-Dnew.(makeValidName(udsn{i}))=convertLiPD1_1to1_2(Dnew.(makeValidName(udsn{i})),1);
-
     
 end
 

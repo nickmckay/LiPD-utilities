@@ -1,4 +1,4 @@
-function LiPDStruct = writeLiPDPub(LiPDStruct)
+function LiPDStruct = writeLiPDPub1_0(LiPDStruct)
 %%%%%START PUB SECTION %%%%%%%%%%
 for dd=1:length(LiPDStruct.pub)
     if isfield(LiPDStruct.pub{dd},'DOI')

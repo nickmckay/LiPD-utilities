@@ -1,3 +1,5 @@
+if bagged
+
 %get tag manifest MD5
 tmd5=table2cell(readtable('../tagmanifest-md5.txt','readVariableNames',0,'delimiter',' '));
 tmd5=tmd5{3,1};
@@ -59,3 +61,15 @@ I.paleoMD5=paleoMD5;
 I.chronMeasMD5=chronMeasMD5;
 I.chronEnsMD5=chronEnsMD5;
 I.chronModelTableMD5=chronMTMD5;
+I.tagMD5=tmd5;
+I.metadataMD5=metaMD5;
+
+
+else%assign in MD5's
+I.paleoMD5=NaN;
+I.chronMeasMD5=NaN;
+I.chronEnsMD5=NaN;
+I.chronModelTableMD5=NaN;
+I.tagMD5=NaN;
+I.metadataMD5=NaN;
+end

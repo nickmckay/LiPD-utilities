@@ -14,6 +14,7 @@ function [result, result2]= GetGoogleSpreadsheet(DOCID)
 %
 % DM, Jan 2013
 %
+%NM: Edied parseCsv to deal with carriage returns in cells. 15/6/16
 
 
 loginURL = 'https://www.google.com'; 
@@ -30,21 +31,29 @@ connection.getInputStream();
 connection2 = java.net.URL([],csvURL,handler).openConnection();
 result = connection2.getInputStream();
 result = char(readstream(result));
-result2=result;
+
+
+
 %Step 3: convert the csv to a cell array
 result = parseCsv(result);
 
 end
 
-function data = parseCsv(data)
+function dataOut = parseCsv(data)
+    %how many columns in first row?
+    data1 = textscan(data,'%q','whitespace','\n');
+    row1 = data1{1}(1);
+    nCol = length(strfind(row1{1},','))+1;
+
 % splits data into individual lines
-data = textscan(data,'%s','whitespace','\n');
-data = data{1};
-for ii=1:length(data)
+data2 = textscan(data,repmat('%q',1,nCol),'whitespace','\n','Delimiter',',');
+%data = data{1};
+nRow = max(cellfun(@length,data2));
+dataOut = cell(nRow,nCol);
+for ii=1:length(data2)
    %for each line, split the string into its comma-delimited units
    %the '%q' format deals with the "quoting" convention appropriately.
-   tmp = textscan(data{ii},'%q','delimiter',',');
-   data(ii,1:length(tmp{1})) = tmp{1};
+   dataOut(1:length(data2{1,ii}),ii) = data2{1,ii};
 end
 
 end

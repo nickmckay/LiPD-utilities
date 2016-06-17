@@ -69,6 +69,10 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
     for pie = 1:length(ie)
         %match the name to the
         whichPDTsheet = find(strcmp(pdtNames{ie(pie)},pdwknames));
+        if isempty(whichPDTsheet)
+            error(['Cant find a paleoData worksheet named ' pdtNames{ie(pie)}])
+            
+        end
         pdgwk{ie(pie)}=pdwkkeys{whichPDTsheet};
         display(['Infilling worksheet key ' pdgwk{ie(pie)} ' for paleoData sheet ' pdtNames{ie(pie)} ])
     end
@@ -118,13 +122,22 @@ if isstruct(GTSC)
     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
         %make sure there are names
         if ~isfield(GTSC,'chronData_chronName')
-            error([GTS.dataSetName ': the chron metadata must include at least chronDataTableName or googleWorksheetKey'])
+            if isfield(GTSC,'chronData_chronDataTableName')
+                [GTSC.chronData_chronName]=GTSC.chronData_chronDataTableName;
+            else
+                
+                error([GTS.dataSetName ': the chron metadata must include at least chronName or googleWorksheetKey'])
+            end
         end
         cdtNames = {GTSC.chronData_chronName}';
         ie = find(cellfun(@isempty,cdgwk)); %identify which are missing keys
         for pie = 1:length(ie)
             %match the name to the
             whichCDTsheet = find(strcmp(cdtNames{ie(pie)},cdwknames));
+            if isempty(whichCDTsheet)
+                error(['Cant find a chronology worksheet named ' cdtNames{ie(pie)}])
+                
+            end
             cdgwk{ie(pie)}=cdwkkeys{whichCDTsheet};
             display(['Infilling worksheet key ' cdgwk{ie(pie)} ' for chronData sheet ' cdtNames{ie(pie)} ])
         end

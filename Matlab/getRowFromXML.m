@@ -38,10 +38,16 @@ end
 end
 end
 function number=letter2col(letter)
-if length(letter)>1
-    error('not set up for rows > 26 yet')
-end
 alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-number=strfind(alphabet,letter);
-end
 
+if length(letter)>2
+    error('not set up for rows > 676 yet')
+elseif length(letter)==2
+    num1= strfind(alphabet,letter(1));
+    num2= strfind(alphabet,letter(2));
+    number = num1*26+num2;
+else
+    
+    number=strfind(alphabet,letter);
+end
+end

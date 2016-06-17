@@ -1,4 +1,5 @@
 %set up LiPD on local computer...
+display('Where is the LiPD-Utilities/matlab folder on your computer?')
 githubPath=uigetdir('Where is the LiPD-Utilities/matlab folder on your computer?');
 cd(githubPath)
 

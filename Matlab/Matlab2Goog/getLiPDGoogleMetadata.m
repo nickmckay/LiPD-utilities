@@ -28,13 +28,15 @@ nTS=pde-(pds+1);
 
 clear toFindc
 %find key names
-toFind={'Bas','Pub','Geo'};
+toFind={'Bas','Pub','Geo','Fun'};
 %where does it start?
 
-for i=1:length(toFind)
+toFindc(1) = find(strncmpi(toFind{1},metadata(1,:),3));
+for i=2:length(toFind)
+    if ~isempty(find(strncmpi(toFind{i},metadata(1,:),3)))
     
-    toFindc(i)=find(strncmpi(toFind{i},metadata(1,:),3));
-    
+    toFindc=[toFindc find(strncmpi(toFind{i},metadata(1,:),3))];
+    end
     
 end
 %%
@@ -50,6 +52,9 @@ for c=toFindc
         for ts=1:nTS
             if isempty(strfind(value,'_DOI'))
             GTS(ts).(value)=convertCellStringToNumeric(metadata(r,c+1));
+            else
+                GTS(ts).(value)=metadata{r,c+1};
+
             end
         end
         r=r+1;

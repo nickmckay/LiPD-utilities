@@ -1,7 +1,7 @@
 
 function writeLiPD(LiPDStruct,bagit,outdir)
 load LiPDUtilitiesPreferences.mat
-LiPDVersion = '1.1';
+LiPDVersion = '1.2';
 LiPDStruct.LiPDVersion = LiPDVersion;
 %LiPD exporter
 curdir=pwd;
@@ -50,10 +50,10 @@ LiPDStruct = writeLiPDGeo1_0(LiPDStruct);
 LiPDStruct = writeLiPDPub1_0(LiPDStruct);
 
 %%%%%Write Paleodata SECTION%%%%%%%
-LiPDStruct = writeLiPDPaleoData1_0(LiPDStruct,goodOutName);
+LiPDStruct = writeLiPDPaleoData1_2(LiPDStruct,goodOutName);
 
 %%%%%Write Chrondata SECTION%%%%%%%
-LiPDStruct = writeLiPDChronData1_1(LiPDStruct,goodOutName,1);
+LiPDStruct = writeLiPDChronData1_2(LiPDStruct,goodOutName,1);
 
 
 %%%%%%Remove unneeded fields
@@ -80,8 +80,11 @@ if bagit
     %3. compress it and rename it
     system(['cd ' outdir '; zip -r ' outdir goodOutName '.lpd ' goodOutName]);
     system(['cp ' outdir goodOutName '.lpd ' writedir '/']);
+    rmdir([outdir goodOutName],'s');
+
 end
 cd(curdir);
+
 
 
 

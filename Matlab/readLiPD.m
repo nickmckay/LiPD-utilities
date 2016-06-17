@@ -2,8 +2,8 @@ function [P,I,C]=readLiPD(lpdname)
 
 %ui selection
 if nargin<1
-   [lpdfile, lpdpath] = uigetfile('.lpd'); 
-   lpdname = [lpdpath lpdfile];
+    [lpdfile, lpdpath] = uigetfile('.lpd');
+    lpdname = [lpdpath lpdfile];
 end
 
 
@@ -17,10 +17,27 @@ display(['Reading ' headerName '.lpd ...'])
 
 %unzip the bagged file
 unzip(lpdname,tempdir);
+
+
+%check for bagging...
+
 if isunix
-    cd([tempdir headerName '/data' ]);
+    if isdir([tempdir headerName '/data' ])%it's bagged!
+        bagged=1;
+        cd([tempdir headerName '/data' ]);
+    else%it's not! %Don't worry - we'll get it next time.
+        cd([tempdir headerName ]);
+        bagged=0;
+    end
+    
 else
-    cd([tempdir headerName '\data' ]);
+    if isdir([tempdir headerName '\data' ])%it's bagged!
+        bagged=1;
+        cd([tempdir headerName '\data' ]);
+    else%it's not! %Don't worry - we'll get it next time.
+        cd([tempdir headerName ]);
+        bagged=0;
+    end
 end
 
 filename=[headerName '.jsonld'];
@@ -52,14 +69,11 @@ V=vi{wvi,2};
 
 
 
-
 %get MD5 sums from bag
 eval(['grabMD5s' V.MD5v])
 
-
-
-
-%look for directories
+    
+   %look for directories
 if isunix
     slashfind=strfind(filename,'/');
 elseif ispc
@@ -84,9 +98,7 @@ if isfield(I,'x0x40_context')
     I=rmfield(I,'x0x40_context');
 end
 
-%assign in metadata MD5
-I.metadataMD5=metaMD5;
-I.tagMD5=tmd5;
+
 
 %%%%BEGIN GEO SECTION %%%%%%%%%%%%%%%
 eval(['I = readLiPDGeo' V.geov '(I);']);
@@ -114,7 +126,7 @@ eval(['C = readLiPDChronData' V.chronDatav '(I,dirname);']);
 
 
 %remove unneeded variables from top structure
-torem={'paleoMD5','chronMeasMD5','chronEnsMD5','chronModelTableMD5'};
+torem={'paleoMD5','chronMeasMD5','chronEnsMD5','chronSummaryTableMD5','paleoMeasMD5','paleoEnsMD5','paleoSummaryTableMD5'};
 I=rmfieldsoft(I,torem);
 
 %%%%%COMBINE TO CREATE FINAL
@@ -126,6 +138,14 @@ if iscell(C) | isstruct(C)
 end
 
 cd(p)
+rmdir([tempdir headerName],'s');
+
+
+%%%%%UPDATE TO MOST RECENT VERSION
+P=convertLiPD1_0to1_1(P);
+P=convertLiPD1_1to1_2(P);
+
+
 %end
 
 
