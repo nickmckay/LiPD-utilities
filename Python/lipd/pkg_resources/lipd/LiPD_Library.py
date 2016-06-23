@@ -122,6 +122,18 @@ class LiPD_Library(object):
             print("LiPD file not found")
         return d
 
+    def getDfs(self, name):
+        """
+        Get data frames from LiPD object
+        :return dict:
+        """
+        d = {}
+        try:
+            d = self.master[name].get_dfs()
+        except KeyError:
+            logger_lipd_lib.debug("getDfs: KeyError: missing lipd {}".format(name))
+        return d
+
     def showLipdMaster(self, name):
         """
         Display data from target LiPD file.
@@ -218,15 +230,6 @@ class LiPD_Library(object):
         get_static_google_map('multi-marker', markers=markers)
         logger_lipd_lib.info("exit map_all")
         return
-
-    def LiPD_to_df(self, filename):
-        """
-        Create a pandas data frame from a LiPD file
-        :param str filename:
-        :return obj: Pandas data frames - 3
-        """
-        dfs = lipd_to_df(self.master[filename].get_master(), self.master[filename].get_csv())
-        return dfs
 
     # CLOSING
 

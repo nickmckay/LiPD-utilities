@@ -55,14 +55,14 @@
 #   Southernmost_Latitude: -24
 #   Easternmost_Longitude: 29.18
 #   Westernmost_Longitude: 29.18
-#   Elevation: 100m
+#   Elevation: 0
 #------------------
 # Data_Collection 
 #   Collection_Name: ColdAir2013T7temp
 #   Earliest_Year: 0
 #   Most_Recent_Year: 0
 #   Time_Unit: yr
-#   Core_Length: 0 centimeters
+#   Core_Length: 0cm
 #   Notes: example_notes
 #------------------
 # Species 

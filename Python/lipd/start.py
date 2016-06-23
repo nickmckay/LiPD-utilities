@@ -48,15 +48,15 @@ def loadLipds():
 
 def lipd_to_df(filename):
     """
-    Create Pandas DataFrame from LiPD file
+    Get lipd data frames from lipd object
     :param str filename:
-    :return obj: Pandas data frames
+    :return dict: Pandas data frame objects
     """
     try:
-        dfs = lipd_lib.LiPD_to_df(filename)
+        dfs = lipd_lib.getDfs(filename)
     except KeyError:
         print("Error: Unable to find LiPD file")
-        logger_start.warn("KeyError: Unable to find record {}".format(filename))
+        logger_start.warn("lipd_to_df: KeyError: missing lipd {}".format(filename))
         dfs = None
     print("Process Complete")
     return dfs
@@ -64,21 +64,20 @@ def lipd_to_df(filename):
 
 def ts_to_df(ts, filename):
     """
-    Create Pandas DataFrame from TimeSeries object
+    Create Pandas DataFrame from TimeSeries object.
+    Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
     :param dict ts: TimeSeries
     :param str filename:
-    :return:
+    :return dict: Pandas data frames
     """
-    df_meta = ""
-    df_data = ""
-    df_chron = ""
+    dfs = {}
     try:
-        df_meta, df_data, df_chron = ts_to_df(ts[filename])
+        dfs = ts_to_dfs(ts[filename])
     except KeyError as e:
         print("Error: LiPD file not found")
         logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
     print("Process Complete")
-    return df_meta, df_data, df_chron
+    return dfs
 
 
 def showCsv(filename):
@@ -166,14 +165,13 @@ def extractTimeSeries():
     """
     d = {}
     try:
-        # Loop over the LiPD objects in the LiPD_Library
+        # Loop over the LiPD files in the LiPD_Library
         for k, v in lipd_lib.get_master().items():
-            # Get metadata from this LiPD object. Convert it. Pass TSO metadata to the TS_Library.
-            # ts_lib.loadTsos(v.get_name_ext(), convert.ts_extract_main(v.get_master()))
-            d.update(convert.ts_extract_main(v.get_master()))
-    except KeyError:
-        print("ERROR: Unable to extractTimeSeries")
-        logger_start.debug("extractTimeSeries() failed")
+            # Get metadata from this LiPD object. Convert. Pass TSO metadata to time series dictionary output.
+            d.update(convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+    except KeyError as e:
+        print("Error: Unable to extractTimeSeries")
+        logger_start.debug("extractTimeSeries() failed at {}".format(e))
 
     print("Process Complete")
     return d
@@ -219,6 +217,34 @@ def showTsos(dict_in):
             print(k)
     except AttributeError:
         print("ERROR: Invalid TimeSeries")
+    return
+
+
+def showDfs(dict_in):
+    """
+    Print the available data frame names in a given data frame collection
+    :param dict dict_in: Data frame collection
+    :return none:
+    """
+    if "metadata" in dict_in:
+        print("metadata")
+    if "paleoData" in dict_in:
+        try:
+            for k,v in dict_in["paleoData"].items():
+                print(k)
+        except KeyError:
+            pass
+        except AttributeError:
+            pass
+    if "chronData" in dict_in:
+        try:
+            for k,v in dict_in["chronData"].items():
+                print(k)
+        except KeyError:
+            pass
+        except AttributeError:
+            pass
+    print("Process Complete")
     return
 
 

@@ -5,6 +5,7 @@ from ..helpers.csvs import *
 from ..helpers.jsons import *
 from ..helpers.lipd_lint import *
 from ..helpers.loggers import create_logger
+from ..helpers.PDSlib import *
 
 
 logger_lipd = create_logger('LiPD')
@@ -26,6 +27,7 @@ class LiPD(object):
         self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}}
         self.data_json = {}  # Metadata without CSV values
         self.data_master = {}  # Metadata with CSV values
+        self.dfs = {}  # Pandas data frame objects
         logger_lipd.info("object created: {}".format(self.name))
 
     # LOADING
@@ -66,6 +68,9 @@ class LiPD(object):
         # Set CSV data to self
         self.data_csv = get_organized_csv(self.data_master)
 
+        # Create pandas data frames from metadata and csv
+        self.dfs = lipd_to_dfs(self.data_master, self.data_csv)
+
         os.chdir(self.dir_root)
         logger_lipd.info("object loaded: {}".format(self.name))
         return
@@ -74,45 +79,82 @@ class LiPD(object):
 
     def display_csv(self):
         """
-        Display only CSV data
+        Display csv data
         :return: None
         """
         print(json.dumps(self.data_csv, indent=2))
 
     def display_json(self):
         """
-        Display JSON data.
-        :return: None
+        Display metadata.
+        :return none:
         """
         print(json.dumps(self.data_json, indent=2))
 
     def display_master(self):
         """
-        Display CSV and JSON data
-        :return: None
+        Display metadata w/ csv
+        :return none:
         """
         print(json.dumps(self.data_master, indent=2))
 
     def get_master(self):
         """
-        Retrieve the contents of self.data_master
-        :return: (dict) Metadata + CSV data
+        Return data_master (metadata w/ csv)
+        :return dict:
         """
         return self.data_master
 
     def get_metadata(self):
         """
-        For returning and setting metadata to variable
-        :return:
+        Return metadata
+        :return dict:
         """
         return self.data_json
 
     def get_csv(self):
         """
-        For returning and setting csv data to variable
-        :return:
+        Return csv data
+        :return dict:
         """
         return self.data_csv
+
+    def get_dfs(self):
+        """
+        Return metadata, paleo, and chron data frames
+        :return dict:
+        """
+        return self.dfs
+
+    def get_dfs_chron(self):
+        """
+        Return chron data frames
+        :return:
+        """
+        try:
+            return self.dfs["chronData"]
+        except KeyError:
+            return {}
+
+    def get_dfs_lipd(self):
+        """
+        Return metadata data frames
+        :return:
+        """
+        try:
+            return self.dfs["metadata"]
+        except KeyError:
+            return {}
+
+    def get_dfs_paleo(self):
+        """
+        Return paleo data frames
+        :return:
+        """
+        try:
+            return self.dfs["paleoData"]
+        except KeyError:
+            return {}
 
     # CLOSING
 

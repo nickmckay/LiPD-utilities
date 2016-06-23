@@ -50,7 +50,7 @@ def idx_num_to_name(d):
     version = _get_lipd_version(d)
 
     if version in (1.0, "1.0"):
-        d = _update_structure(d)
+        d = _update_structure_1_1(d)
 
     try:
         tmp_pd = _import_paleo_data(d["paleoData"])
@@ -583,7 +583,7 @@ def _get_lipd_version(d):
     return version
 
 
-def _update_structure(d):
+def _update_structure_1_1(d):
     """
     Change an old LiPD version structure to the most recent LiPD version structure
     :param dict d: Metadata
@@ -596,8 +596,10 @@ def _update_structure(d):
             # As of v1.1, ChronData should have an extra level of abstraction.
             # No longer shares the same structure of paleoData
             for table in d["chronData"]:
-                tmp_all.append({"chronMeasurementTable": table})
-            d["chronData"] = tmp_all
+                if "chronMeasurementTable" not in table:
+                    tmp_all.append({"chronMeasurementTable": table})
+            if tmp_all:
+                d["chronData"] = tmp_all
         except KeyError:
             # chronData section doesn't exist. Return unsuccessful and continue without chronData
             logger_jsons.info("update_structure: KeyError: missing chronData key")

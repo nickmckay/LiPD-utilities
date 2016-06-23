@@ -31,25 +31,32 @@ def _dotnotation_for_nested_dictionary(d, key, dots):
     return dots
 
 
-def lipd_to_df(metadata, csvs):
+def lipd_to_dfs(metadata, csvs):
     """
-    Create a pandas data frame using LiPD metadata and CSV data
-    :param dict metadata: LiPD metadata dictionary
+    Create an organized collection of data frames from LiPD data
+    :param dict metadata: LiPD data
     :param dict csvs: Csv data
     :return dict: One data frame per table, organized in a dictionary by name
     """
     dfs = {}
     logger_pdslib.info("enter lipd_to_df")
+
+    # Flatten the dictionary, but ignore the chron data items
     dict_in_dotted = {}
     logger_pdslib.info("enter dot_notation")
     _dotnotation_for_nested_dictionary(metadata, '', dict_in_dotted)
     dict_in_dotted = collections.OrderedDict(sorted(dict_in_dotted.items()))
+
+    # Create one data frame for metadata items
     dfs["metadata"] = pd.DataFrame(list(dict_in_dotted.items()), columns=["Key", "Value"])
+
+    # Create data frames for paleo data and chron data items. This does not use LiPD data, it uses the csv data
     dfs.update(_get_dfs(csvs))
+
     return dfs
 
 
-def ts_to_df(metadata):
+def ts_to_dfs(metadata):
     """
     Create a data frame from one TimeSeries object
     :param dict metadata: Time Series dictionary
@@ -57,22 +64,27 @@ def ts_to_df(metadata):
     """
     logger_pdslib.info("enter ts_to_df")
     dfs = {}
+
+    # Plot the variable + values vs year, age, depth (whichever are available)
+    dfs["paleoData"] = pd.DataFrame(_plot_ts_cols(metadata))
+
+    # Plot the chronology variables + values in a data frame
+    dfs["chronData"] = _get_key_data(metadata, "chronData_df")
+
+    # Take out the chronData pandas data frame object if it exists in the metadata
+    # Otherwise, the data frame renderer gets crazy and errors out.
+    if "chronData_df" in metadata:
+        del metadata["chronData_df"]
     s = collections.OrderedDict(sorted(metadata.items()))
 
     # Put key-vars in a data frame to make it easier to visualize
     dfs["metadata"] = pd.DataFrame(list(s.items()), columns=['Key', 'Value'])
 
-    # Plot the variable + values vs year, age, depth (whichever are available)
-    dfs["paleoData"] = pd.DataFrame(_get_ts_cols(metadata))
-
-    # Plot the chronology variables + values in a data frame
-    dfs["chronData"] = metadata["chronData_df"]
-
     logger_pdslib.info("exit ts_to_df")
     return dfs
 
 
-def _get_ts_cols(ts):
+def _plot_ts_cols(ts):
     """
     Get variable + values vs year, age, depth (whichever are available)
     :param dict ts: TimeSeries dictionary
@@ -80,8 +92,10 @@ def _get_ts_cols(ts):
     """
     logger_pdslib.info("enter get_ts_cols()")
     d = {}
+
+    # Not entirely necessary, but this will make the column headers look nicer for the data frame
+    # The column header will be in format "variableName (units)"
     try:
-        # Get the main column data first
         units = " (" + ts["paleoData_units"] + ")"
     except KeyError as e:
         units = ""
@@ -91,15 +105,14 @@ def _get_ts_cols(ts):
     except KeyError as e:
         logger_pdslib.warn("get_ts_cols: KeyError: variableName or values not found, {}".format(e))
 
-    # Start looking for the additional special columns
+    # Start looking for age, year, depth columns
     for k, v in ts.items():
         if re_pandas_x_num.match(k):
             try:
                 units = " (" + ts[k + "Units"] + ")"
+                d[k + units] = v
             except KeyError as e:
-                units = ""
                 logger_pdslib.warn("get_ts_cols: KeyError: Special column units, {}, {}".format(k, e))
-            d[k + units] = v
     logger_pdslib.info("exit get_ts_cols: found {}".format(len(d)))
     return d
 
@@ -128,3 +141,15 @@ def _get_dfs(csvs):
     logger_pdslib.info("exit get_lipd_cols")
     return dfs
 
+
+def _get_key_data(d, key):
+    """
+    Generic function to grab dictionary data by key with error handling
+    :return:
+    """
+    d2 = ""
+    try:
+        d2 = d[key]
+    except KeyError:
+        logger_pdslib.info("get_key_data: KeyError: {}".format(key))
+    return d2
