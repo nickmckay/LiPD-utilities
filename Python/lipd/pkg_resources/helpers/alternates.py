@@ -3,6 +3,23 @@
 GLOBAL LIST OF ALTERNATES AND SYNONYMS
 """
 
+# Allowable int and float fields
+NUMERIC_INTS = [
+    "maxYear",
+    "minYear",
+    "pubYear",
+    "number",
+    "year",
+    "age14c",
+    "sd14c"
+]
+
+NUMERIC_FLOATS = [
+    "LiPDVersion",
+    "coordinates",
+    "depth"
+]
+
 # FILTER
 COMPARISONS = {
     "==": "=",

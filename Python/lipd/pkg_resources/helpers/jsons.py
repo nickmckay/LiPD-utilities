@@ -46,11 +46,9 @@ def idx_num_to_name(d):
     """
     logger_jsons.info("enter idx_num_to_name")
 
-    # Find out what LiPD version is being used
-    version = _get_lipd_version(d)
+    # Take whatever lipd version this file is, and convert it to the most current lipd version
+    d = _update_lipd_version(d)
 
-    if version in (1.0, "1.0"):
-        d = _update_structure_1_1(d)
 
     try:
         tmp_pd = _import_paleo_data(d["paleoData"])
@@ -583,29 +581,77 @@ def _get_lipd_version(d):
     return version
 
 
-def _update_structure_1_1(d):
+def _update_lipd_version(d):
     """
-    Change an old LiPD version structure to the most recent LiPD version structure
+    Use the current version number to determine where to start updating from. Use "chain versioning" to make it
+    modular. If a file is a few versions behind, convert to EACH version until reaching current. If a file is one
+    version behind, it will only convert once to the newest.
+    :param dict d: Metadata dictionary
+    :return dict: Most current version metadata dictionary
+    """
+
+    # Get the lipd version number.
+    version = _get_lipd_version(d)
+
+    # Update from (N/A or 1.0) to 1.1
+    if version in (1.0, "1.0"):
+        d = _lipd_v1_0_to_v1_1(d)
+        version = 1.1
+
+    # Update from 1.1 to 1.2
+    if version in (1.1, "1.1"):
+        d = _lipd_v1_1_to_v1_2(d)
+
+    return d
+
+
+def _lipd_v1_0_to_v1_1(d):
+    """
+    Update LiPD version 1.0 to version 1.1.  See LiPD Version changelog for details.
+    NOTE main changes: ChronData turned into a scalable lists of dictioanries.
     :param dict d: Metadata
-    :return dict:
+    :return dict: v1.1 metadata dictionary
     """
-    logger_jsons.info("enter update_structure")
+    logger_jsons.info("enter lipd 1.0 to 1.1")
     tmp_all = []
+
+    # ChronData is the only structure update
     if "chronData" in d:
-        try:
-            # As of v1.1, ChronData should have an extra level of abstraction.
-            # No longer shares the same structure of paleoData
-            for table in d["chronData"]:
-                if "chronMeasurementTable" not in table:
-                    tmp_all.append({"chronMeasurementTable": table})
-            if tmp_all:
-                d["chronData"] = tmp_all
-        except KeyError:
-            # chronData section doesn't exist. Return unsuccessful and continue without chronData
-            logger_jsons.info("update_structure: KeyError: missing chronData key")
+        # As of v1.1, ChronData should have an extra level of abstraction.
+        # No longer shares the same structure of paleoData
+        for table in d["chronData"]:
+            if "chronMeasurementTable" not in table:
+                tmp_all.append({"chronMeasurementTable": table})
+        if tmp_all:
+            d["chronData"] = tmp_all
 
     d["LiPDVersion"] = 1.1
-    logger_jsons.info("exit update_structure")
+    logger_jsons.info("exit lipd 1.0 to 1.1")
+    return d
+
+
+def _lipd_v1_1_to_v1_2(d):
+    """
+    Update LiPD version 1.1 to version 1.2. See LiPD Version changelog for details.
+    :param dict d: Metadata dictioanry
+    :return dict: v1.2 metadata dictionary
+    """
+    logger_jsons.info("enter lipd 1.1 to 1.2")
+    tmp_all = []
+
+    # PaleoData is the only structure update
+    if "paleoData" in d:
+
+        # As of 1.2, PaleoData should match the structure of v1.1 chronData.
+        # There is an extra level of abstraction and room for models, ensembles, calibrations, etc.
+        for table in d["paleoData"]:
+            if "paleoMeasurementTable" not in table:
+                tmp_all.append({"paleoMeasurementTable": table})
+        if tmp_all:
+            d["paleoData"] = tmp_all
+
+    d["LiPDVersion"] = 1.2
+    logger_jsons.info("exit lipd 1.1 to 1.2")
     return d
 
 
