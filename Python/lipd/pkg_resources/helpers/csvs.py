@@ -55,6 +55,8 @@ def _add_csv_to_columns(table):
                     col['values'] = csv_data[col["number"] - 1]
         except IndexError:
             logger_csvs.warning("add_csv_to_json: IndexError: index out of range of csv_data list")
+        except KeyError:
+            logger_csvs.debug("add_csv_to_json: KeyError: missing columns key")
 
     return table
 
@@ -81,11 +83,15 @@ def _import_paleo_csv(paleo_data):
     """
     logger_csvs.info("enter import_paleo_csv")
 
-    # Loop through each table in paleoData
-    for table_name, table in paleo_data.items():
+    # Loop through each table_data in paleoData
+    for table_name, table_data in paleo_data.items():
 
-        # Send whole table through. Adds csv data to columns
-        paleo_data[table_name] = _add_csv_to_columns(table)
+        if "paleoMeasurementTable" in table_data:
+            # Send whole table_data through. Adds csv data to columns
+            table_data["paleoMeasurementTable"] = _add_csv_to_columns(table_data["paleoMeasurementTable"])
+
+        if "paleoModel" in table_data:
+            pass
 
     logger_csvs.info("exit import_paleo_csv")
     return paleo_data

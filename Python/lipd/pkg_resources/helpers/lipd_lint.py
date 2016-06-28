@@ -95,8 +95,6 @@ def _verify_sections(full, d, sections):
         if isinstance(v, str) and k != '@context' and k not in quick['root']:
             # Invalid key. Get valid
             metadata[_iter_root(full, 'root', k)] = v
-        elif k in ('chronData', 'chronTable'):
-            metadata[k] = v
         # Item is a section
         elif isinstance(v, list) or isinstance(v, dict) and k in sections:
             # Invalid key. Get valid

@@ -49,7 +49,6 @@ def idx_num_to_name(d):
     # Take whatever lipd version this file is, and convert it to the most current lipd version
     d = _update_lipd_version(d)
 
-
     try:
         tmp_pd = _import_paleo_data(d["paleoData"])
         d["paleoData"] = tmp_pd
@@ -105,26 +104,99 @@ def _idx_col_by_name(l):
 
 def _import_paleo_data(paleo_data):
     """
-    Index the paleo data table by name
-    :param list paleo_data:
+    Import the paleoData metadata and change it to index-by-name.
+    :param list paleo_data: PaleoData metadata
     :return dict: Modified paleoData
     """
     logger_jsons.info("enter import_paleo_data")
     d = {}
     idx = 1
+    try:
+        for table in paleo_data:
+            tmp_table = {}
 
-    # Iter for each table in paleoData
-    for table in paleo_data:
-        # Get table name
-        name_table = _get_variable_name_table("paleoDataTableName", table, "data")
-        # If the table is missing a name, and we're faced with overwriting tables, make up a dynamic "data_X" name.
-        if name_table in d:
-            name_table = "{}_{}".format(name_table, idx)
-            idx += 1
-        # Process the table. Set at with named index in output dictionary
-        d[name_table] = _idx_table_by_name(table)
+            # Get the table name, and use that as the index name for this table
+            tmp_table_name = _get_variable_name_table("paleoDataTableName", table["paleoMeasurementTable"], "paleo")
+
+            # Process the chron measurement table
+            if "paleoMeasurementTable" in table:
+                tmp_cmt = _import_paleo_meas_table(table["paleoMeasurementTable"])
+                tmp_table["paleoMeasurementTable"] = tmp_cmt
+
+            # Process the chron model
+            if "paleoModel" in table:
+                tmp_cm = _import_paleo_model(table["paleoModel"])
+                tmp_table["paleoModel"] = tmp_cm
+
+            # If we only have generic table names, and one exists already, don't overwrite. Create dynamic name
+            if tmp_table_name in d:
+                tmp_table_name = "{}_{}".format(tmp_table_name, idx)
+                idx += 1
+
+            # Put the final product into the output dictionary. Indexed-by-table-name
+            d[tmp_table_name] = tmp_table
+
+    except AttributeError:
+        # paleoData is not a list like it should be.
+        logger_jsons.info("import_paleo_data: AttributeError: paleoData: expected list type, given {}".format(type(paleo_data)))
     logger_jsons.info("exit import_paleo_data")
     return d
+
+
+def _import_paleo_model(paleo_model):
+    """
+    Change the nested items of the paleoModel data. Overwrite the data in-place.
+    :param list paleo_model:
+    :return list:
+    """
+    logger_jsons.info("enter import_chron_model")
+    try:
+        for model in paleo_model:
+            # Keep the original dictionary, but replace the three main entries below
+
+            # Do a direct replacement of paleoModelTable columns. No table name, no table work needed.
+            model["paleoModelTable"]["columns"] = _idx_col_by_name(model["paleoModelTable"]["columns"])
+
+            # Do a direct replacement of ensembleTable columns. No table name, no table work needed.
+            model["ensembleTable"]["columns"] = _idx_col_by_name(model["ensembleTable"]["columns"])
+
+            # Iter over each calibrated age table
+            tmp_calib = {}
+            for calibration in model["calibratedAges"]:
+                # Use "name" as table name
+                name_calib = _get_variable_name_table("name", calibration)
+                # Call idx_table_by_name
+                table_new = _idx_table_by_name(calibration)
+                # Set the new table by name into the WIP tmp_calib
+                tmp_calib[name_calib] = table_new
+            model["calibratedAges"] = tmp_calib
+
+    except AttributeError:
+        logger_jsons.debug("import_paleo_model: AttributeError: expected list type, given {} type".format(type(paleo_model)))
+
+    logger_jsons.info("exit import_paleo_model")
+    return paleo_model
+
+
+def _import_paleo_meas_table(paleo_meas_table):
+    """
+    Index the paleo measurement table by name
+    :param dict paleo_meas_table: Paleo measurement table data
+    :return dict:
+    """
+    logger_jsons.info("enter import_paleo_meas_table")
+    table_new = {}
+
+    # Get the table name
+    name_table = _get_variable_name_table("paleoTableName", paleo_meas_table, "paleo")
+
+    # Call idx_table_by_name
+    paleo_meas_table = _idx_table_by_name(paleo_meas_table)
+
+    # Enter the named table in the output dictionary
+    table_new[name_table] = paleo_meas_table
+    logger_jsons.info("exit import_paleo_meas_table")
+    return paleo_meas_table
 
 
 def _import_chron_data(chron_data):
@@ -207,19 +279,19 @@ def _import_chron_meas_table(chron_meas_table):
     """
     Index the chronology measurement table by name
     :param dict chron_meas_table: Chronology measurement table data
-    :return:
+    :return dict:
     """
     logger_jsons.info("enter import_chron_meas_table")
-    table_new = {}
+    # table_new = {}
 
     # Get the table name
-    name_table = _get_variable_name_table("chronTableName", chron_meas_table, "chronology")
+    # name_table = _get_variable_name_table("chronTableName", chron_meas_table, "chronology")
 
     # Call idx_table_by_name
     chron_meas_table = _idx_table_by_name(chron_meas_table)
 
     # Enter the named table in the output dictionary
-    table_new[name_table] = chron_meas_table
+    # table_new[name_table] = chron_meas_table
     logger_jsons.info("exit import_chron_meas_table")
     return chron_meas_table
 
@@ -601,6 +673,7 @@ def _update_lipd_version(d):
     # Update from 1.1 to 1.2
     if version in (1.1, "1.1"):
         d = _lipd_v1_1_to_v1_2(d)
+        version = 1.2
 
     return d
 

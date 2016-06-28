@@ -31,7 +31,7 @@ def excel():
     #             need_response = False
 
     # For testing, assume we don't want to run these to make things easier for now.
-    chron_run = 'n'
+    chron_run = 'y'
     flat_run = 'n'
 
     # Find excel files
@@ -145,6 +145,7 @@ def excel():
                 logger_excel.debug("excel: doi resolver failed: {}, {}".format(name, e))
 
             # Dump final_dict to a json file.
+            final_dict["LiPDVersion"] = 1.0
             write_json_to_file(name + '.jsonld', final_dict)
 
             # JSON FLATTEN code would go here.
@@ -950,13 +951,13 @@ def cells_rt_ds(workbook, sheet, row, col, col_list_num):
                 # Special case if we need to split the climate interpretation string into 3 parts
                 if title_in == 'climateInterpretation':
                     if cell in (EMPTY, xlrd.empty_cell):
-                        climate_int_dict['parameter'] = ''
-                        climate_int_dict['parameterDetail'] = ''
+                        climate_int_dict['variable'] = ''
+                        climate_int_dict['variableDetail'] = ''
                         climate_int_dict['interpDirection'] = ''
                     else:
                         cicSplit = cell.split('.')
-                        climate_int_dict['climateParameter'] = cicSplit[0]
-                        climate_int_dict['climateParameterDetail'] = cicSplit[1]
+                        climate_int_dict['variable'] = cicSplit[0]
+                        climate_int_dict['variableDetail'] = cicSplit[1]
                         climate_int_dict['interpDirection'] = cicSplit[2]
 
                 # Special case to add these two categories to climateInterpretation
@@ -1087,7 +1088,7 @@ def get_chron_var(temp_sheet, start_row):
 
         # Fill the dictionary for this column
         col_dict['number'] = column
-        col_dict['parameter'] = short_cell
+        col_dict['variableName'] = short_cell
         col_dict['description'] = long_cell
         col_dict['units'] = units_cell
         out_list.append(col_dict.copy())
