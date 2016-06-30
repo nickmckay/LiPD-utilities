@@ -418,14 +418,41 @@ def _get_paleo_csv(paleo_data, crumbs):
     logger_csvs.info("enter get_paleo_csv")
     d = {}
     try:
+        # Process the tables in chronData
         for name_table, data_table in paleo_data.items():
-            crumbs_tmp = "{}.{}.csv".format(crumbs, str(name_table))
-            filename = _get_filename(data_table, crumbs_tmp)
-            cols = _search_table_for_vals(data_table)
-            d[filename] = cols
+            crumbs_tmp = "{}.{}".format(crumbs, str(name_table))
+
+            # Process each entry sub-table below if they exist
+            if "paleoMeasurementTable" in data_table:
+                crumbs_tmp_cmt = "{}.{}.csv".format(crumbs_tmp, "paleoMeasurementTable")
+                filename = _get_filename(data_table["paleoMeasurementTable"], crumbs_tmp_cmt)
+                out = _search_table_for_vals(data_table["paleoMeasurementTable"])
+                d[filename] = out
+
+            if "paleoModel" in data_table:
+                for item in data_table["paleoModel"]:
+                    if "calibratedAges" in item:
+                        # CA has an extra level of nesting
+                        for name_ca, data_ca in item["calibratedAges"].items():
+                            crumbs_tmp_ca = "{}.{}.csv".format(crumbs, name_ca)
+                            filename = _get_filename(data_ca, crumbs_tmp_ca)
+                            out = _search_table_for_vals(data_ca)
+                            d[filename] = out
+
+                    if "paleoModelTable" in item:
+                        crumbs_tmp_cmt2 = "{}.{}.csv".format(crumbs, "PaleoModelTable")
+                        filename = _get_filename(item["paleoModelTable"], crumbs_tmp_cmt2)
+                        out = _search_table_for_vals(item["paleoModelTable"])
+                        d[filename] = out
+
+                    if "ensembleTable" in item:
+                        crumbs_tmp_et = "{}.{}.csv".format(crumbs, "EnsembleTable")
+                        filename = _get_filename(item["ensembleTable"], crumbs_tmp_et)
+                        out = _search_table_for_vals(item["ensembleTable"])
+                        d[filename] = out
 
     except AttributeError:
-        logger_csvs.debug("get_paleo_csv: AttributeError: expected type dict, given type {}".format(type(paleo_data)))
+        logger_csvs.info("get_paleo_csv: AttributeError: expected type dict, given type {}".format(type(paleo_data)))
 
     logger_csvs.info("exit get_paleo_csv")
     return d
