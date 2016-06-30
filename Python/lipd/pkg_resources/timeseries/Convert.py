@@ -22,7 +22,6 @@ class Convert(object):
 
         # LiPD to TS (One file at a time)
         self.ts_root = {}  # Root metadata for current LiPD.
-        self.ts_chron = {}  # Chron data if available
         self.ts_tsos = {}  # Individual columns. One entry represents one TSO (to be created later)
 
         # TS to LiPD (Batch Process)
@@ -42,10 +41,12 @@ class Convert(object):
 
     # LiPD TO TIME SERIES
 
-    def ts_extract_main(self, d):
+    def ts_extract_main(self, d, dfs):
         """
+        LiPD Version 1.2
         Main function to initiate LiPD to TSOs conversion.
         :param dict d: Metadata for one LiPD file
+        :param dict dfs: Chron data frame(s)
         """
         logger_convert.info("enter ts_extract_main")
         # Reset these each run
@@ -65,7 +66,9 @@ class Convert(object):
                 self.__ts_extract_pub(v)
             elif k == 'chronData':
                 self.ts_root[k] = cp.deepcopy(v)
-                self.__ts_extract_chron(v)
+
+        # Include the chronology data frame in each time series object
+        self.ts_root["chronData_df"] = dfs
 
         # Create tso dictionaries for each individual column (build on root data)
         self.__ts_extract_paleo(d)
@@ -196,26 +199,9 @@ class Convert(object):
             self.ts_root['pub' + str(idx+1) + '_author'] = auth[:-1]
         return
 
-    def __ts_extract_chron(self, d):
-        """
-        Extract chron data and values and make a pandas Series object. Add to ts_root
-        :param dict d: Metadata dictionary
-        :return dict:
-        """
-        logger_convert.info("enter ts_extract_chron")
-        # TODO make a pandas data frame out of the chron variables and values.
-        s = {}
-        try:
-            for table_name, table_data in d.items():
-                for col, col_data in table_data["columns"].items():
-                    s[col] = pd.Series(col_data["values"])
-        except KeyError as e:
-            logger_convert.warn("ts_extract_chron: KeyError: missing columns/values, {}".format(e))
-        self.ts_root['chronData_df'] = pd.DataFrame(s)
-        return
-
     def __ts_extract_paleo(self, d):
         """
+        LiPD Version 1.2
         Extract all data from a PaleoData dictionary.
         :param dict d: PaleoData dictionary
         """
@@ -224,11 +210,11 @@ class Convert(object):
             # For each table in paleoData
             for k, v in d['paleoData'].items():
                 # Get root items for this table
-                self.__ts_extract_paleo_table_root(v)
+                self.__ts_extract_paleo_table_root(v["paleoMeasurementTable"])
                 # Add age, depth, and year columns to ts_root if available
-                self.__ts_extract_special(v)
+                self.__ts_extract_special(v["paleoMeasurementTable"])
                 # Start creating TSOs with dictionary copies.
-                for i, e in v['columns'].items():
+                for i, e in v["paleoMeasurementTable"]["columns"].items():
                     if not any(x in i for x in ('age', 'depth', 'year')):
                         # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
                         col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
@@ -488,7 +474,7 @@ class Convert(object):
                         # That's okay. Keep trying :)
                         logger_convert.warn("lipd_extract_paleo_root: KeyError: {} not found in master, {}".format(key, e))
         except KeyError as e:
-            print("Error: Failed to extract paleoData table from {}".format(self.dataset_ext))
+            print("Error: missing paleoData key: {}".format(self.dataset_ext))
             logger_convert.warn("lipd_extract_paleo_root: KeyError: missing paleoData/{} in {}, {}".format(self.table, self.dataset_ext, e))
         return
 
@@ -515,8 +501,8 @@ class Convert(object):
                 elif 'climateInterpretation' in m[0]:
                     tmp_clim[m[1]] = v
         except KeyError as e:
-            print("Error: Failed to extract column data from {}, {}".format(self.dataset_ext, self.variableName))
-            logger_convert.warn("lipd_extract_paleo: KeyError: {}, {}, {} ".format(self.dataset_ext, self.variableName, e))
+            print("Error: Unable to extract column data from {}, {}".format(self.dataset_ext, self.variableName))
+            logger_convert.warn("lipd_extract_paleo: KeyError: {}, {}".format(self.dataset_ext, self.variableName))
 
         # If these sections had any items added to them, then add them to the column master.
         if tmp_clim:
@@ -694,7 +680,6 @@ class Convert(object):
             logger_convert.debug("get_valid_tsname: IndexError: {}".format(e))
 
         if not valid:
-            print("Error: Unable to find match for term: ".format(invalid))
             logger_convert.warn("get_valid_tsname: Unable to find match for term: {}".format(invalid))
             return invalid
         return valid
@@ -729,14 +714,3 @@ class Convert(object):
                             break
 
         return valid
-
-    # HELPERS
-
-    # def create_tso(self):
-    #     """
-    #     Creates a TimeSeriesObject and add it to the TimeSeriesLibrary
-    #     :return: (obj) Time Series Object
-    #     """
-    #     for name, tso in self.ts_tsos.items():
-    #         TimeSeries().load(tso)
-    #     return

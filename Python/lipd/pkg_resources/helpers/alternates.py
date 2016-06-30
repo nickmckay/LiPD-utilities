@@ -244,3 +244,35 @@ EXCEL_KEYS = {
     "notes": "notes",
     "comments": "notes"
 }
+
+EXCEL_TEMPLATE = [
+    "Data",
+    "Chronology Table Containing Measured Depths and Ages",
+    "Chronology Notes",
+    "Chronology Table As Paragraph (insert table into cell B3) not preferred",
+    "Chronology Table (Use as many rows and columns are needed below this line)",
+    "NOTE: Additional Chronology tables should be put below the first one with no blank lines.",
+    "Variables",
+    "Use one row to define each variable, beginning with depth then age; add additional worksheets for additional tables",
+    "Note: Data_type is 'N' for numeric and 'C' for character data",
+    "Paste Data Table below starting in Column A",
+    "The value or character string used as a placeholder for missing values",
+]
+
+EXCEL_HEADER = [
+    "short_name",
+    "what",
+    "material",
+    "error",
+    "units",
+    "seasonality",
+    "archive",
+    "detail",
+    "method",
+    "data_type",
+    "uncertainty_level",
+    "calibration_curve",
+    "climate_interpretation_code",
+    "standard",
+    "basis_of_climate_relation"
+]
