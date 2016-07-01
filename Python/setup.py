@@ -40,7 +40,7 @@ class PostInstall(install):
 
 
 here = path.abspath(path.dirname(__file__))
-version = '0.1.3.9'
+version = '0.1.4.1'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -99,7 +99,7 @@ setup(
         "demjson>=2.2.4",
         "matplotlib>=1.4.2",
         "xlrd>=0.9.3",
-        "Pillow>=3.1.1",
+        "Pillow=3.1.1",
         "jupyter>=1.0.0",
         "pandas>=0.18.0",
         "requests>=2.9.1",

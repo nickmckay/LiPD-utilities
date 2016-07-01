@@ -112,17 +112,6 @@ def showLipds():
     return
 
 
-def showMap(filename):
-    """
-    Show a map of one or more LiPD coordinate locations
-    :param str filename: String or list of LiPD files to map
-    :return None:
-    """
-    lipd_lib.showMap(filename)
-    print("Process Complete")
-    return
-
-
 def getMetadata(filename):
     """
     Get metadata from LiPD file
