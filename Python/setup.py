@@ -99,7 +99,7 @@ setup(
         "demjson>=2.2.4",
         "matplotlib>=1.4.2",
         "xlrd>=0.9.3",
-        "Pillow=3.1.1",
+        "Pillow==3.1.1",
         "jupyter>=1.0.0",
         "pandas>=0.18.0",
         "requests>=2.9.1",

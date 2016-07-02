@@ -57,7 +57,7 @@ def excel():
         os.mkdir(os.path.join(dir_bag))
         os.mkdir(os.path.join(dir_data))
 
-        data_sheets = []
+        paleo_sheets = []
         chron_sheets = []
         chron_combine = []
         data_combine = []
@@ -77,12 +77,14 @@ def excel():
         if workbook:
             # Check what worksheets are available, so we know how to proceed.
             for sheet in workbook.sheet_names():
-                if 'Metadata' in sheet:
+
+                # Group the related sheets together, so it's easier to place in the metadata later.
+                if 'metadata' in sheet.lower():
                     metadata_str = 'Metadata'
-                elif 'Chronology' in sheet:
+                elif 'chron' in sheet.lower():
                     chron_sheets.append(sheet)
-                elif 'Data' in sheet:
-                    data_sheets.append(sheet)
+                elif 'data' in sheet.lower() or "paleo" in sheet.lower():
+                    paleo_sheets.append(sheet)
 
             # METADATA WORKSHEETS
             # Parse Metadata sheet and add to output dictionary
@@ -91,10 +93,11 @@ def excel():
                 cells_dn_meta(workbook, metadata_str, 0, 0, final_dict)
 
             # DATA WORKSHEETS
-            for sheet_str in data_sheets:
+            for sheet_str in paleo_sheets:
                 # Parse each Data sheet. Combine into one dictionary
                 logger_excel.info("parsing data worksheets")
-                sheet_str = cells_dn_ds(name, workbook, sheet_str, 2, 0)
+                # sheet_str = cells_dn_ds(name, workbook, sheet_str, 2, 0)
+                sheet_str = _parse_sheet(name, workbook, sheet_str, "paleo")
                 data_combine.append(sheet_str)
 
             # Add data dictionary to output dictionary
@@ -107,13 +110,14 @@ def excel():
                 for sheet_str in chron_sheets:
                     # Parse each chronology sheet. Combine into one dictionary
                     temp_sheet = workbook.sheet_by_name(sheet_str)
-                    chron_dict['filename'] = str(name) + '-' + str(sheet_str) + '.csv'
-
-                    # Create a dictionary that has a list of all the columns in the sheet
-                    start_row = traverse_to_chron_var(temp_sheet)
-                    columns_list_chron = get_chron_var(temp_sheet, start_row)
-                    chron_dict['columns'] = columns_list_chron
-                    chron_combine.append(chron_dict)
+                    # chron_dict['filename'] = str(name) + '-' + str(sheet_str) + '.csv'
+                    #
+                    # # Create a dictionary that has a list of all the columns in the sheet
+                    # start_row = traverse_to_chron_var(temp_sheet)
+                    # columns_list_chron = get_chron_var(temp_sheet, start_row)
+                    # chron_dict['columns'] = columns_list_chron
+                    # chron_combine.append(chron_dict)
+                    chron_dict = _parse_sheet(name, workbook, sheet_str, "chron")
 
                 # Add chronology dictionary to output dictionary
                 final_dict['chronData'] = chron_combine
@@ -123,17 +127,17 @@ def excel():
             # Create new files and dump data in dir_data
             os.chdir(dir_data)
 
-            # CSV - DATA
-            for sheet_str in data_sheets:
-                logger_excel.info("output to csv: data: {}".format(sheet_str))
-                write_csv_ds(workbook, sheet_str, name)
-            del data_sheets[:]
-
-            # CSV - CHRONOLOGY
-            if chron_run == 'y':
-                for sheet_str in chron_sheets:
-                    logger_excel.info("output to csv: chronology: {}".format(sheet_str))
-                    write_csv_chron(workbook, sheet_str, name)
+            # # CSV - DATA
+            # for sheet_str in paleo_sheets:
+            #     logger_excel.info("output to csv: data: {}".format(sheet_str))
+            #     write_csv_ds(workbook, sheet_str, name)
+            # del paleo_sheets[:]
+            #
+            # # CSV - CHRONOLOGY
+            # if chron_run == 'y':
+            #     for sheet_str in chron_sheets:
+            #         logger_excel.info("output to csv: chronology: {}".format(sheet_str))
+            #         write_csv_chron(workbook, sheet_str, name)
 
             # JSON-LD
             # Invoke DOI Resolver Class to update publisher data
@@ -178,6 +182,266 @@ def excel():
 
     print("Process Complete")
     return
+
+
+# NEW DS PARSE
+
+def _parse_sheet(name, workbook, sheet, paleo_chron):
+    """
+    The universal spreadsheet parser. Parse chron or paleo tables of type ensemble/model/summary.
+    :param str name: Filename
+    :param obj workbook: Excel Workbook
+    :param str sheet: Target spreadsheet
+    :param str paleo_chron: Type of sheet
+    :return dict dict: Table metadata and numeric data
+    """
+    logger_excel.info("enter parse_sheet: {}".format(sheet))
+
+    # Open the sheet from the workbook
+    temp_sheet = workbook.sheet_by_name(sheet)
+
+    # Store table metdadata and numeric data separately
+    filename = "{}.{}.csv".format(str(name), str(sheet))
+    table_name = "{}DataTableName".format(paleo_chron)
+
+    # Organize our root table data
+    table_metadata = OrderedDict()
+    table_metadata[table_name] = sheet
+    table_metadata['filename'] = filename
+    table_metadata['missingValue'] = 'NaN'
+
+    # Store all CSV in here by rows
+    table_data = {filename: []}
+
+    # Master list of all column metadata
+    column_metadata = []
+
+    # Index tracks which cells are being parsed
+    col_num = 0
+    row_num = 0
+    nrows = temp_sheet.nrows
+
+    # Tracks which "number" each metadata column is assigned
+    col_add_ct = 1
+
+    header_keys = []
+    variable_keys = []
+    mv = ""
+
+    # Markers to track where we are on the sheet
+    var_header_done = False
+    metadata_on = False
+    metadata_done = False
+    data_on = False
+
+    try:
+        # Loop for every row in the sheet
+        for i in range(0, nrows):
+            # Hold the contents of the current cell
+            cell = temp_sheet.cell_value(row_num, col_num)
+
+            # Skip all template lines
+            if isinstance(cell, str):
+                # Note and missing value entries are rogue. They are not close to the other data entries.
+                if cell.lower().strip() not in EXCEL_TEMPLATE:
+
+                    if "notes" in cell.lower():
+                        # Store at the root table level
+                        table_data["notes"] = temp_sheet.cell_value(row_num, 1)
+
+                    elif cell.lower().strip() in ALTS_MV:
+                        # Store at the root table level and in our function
+                        mv = temp_sheet.cell_value(row_num, 1)
+                        table_metadata["missingValue"] = mv
+
+                    # Variable template header row
+                    elif cell.lower() in EXCEL_HEADER:
+
+                        # Grab the header line
+                        row = temp_sheet.row(row_num)
+                        header_keys = _get_header_keys(row)
+
+                        # Turn on the marker
+                        var_header_done = True
+
+                    elif data_on:
+                        # Start parsing data
+                        # Get row of data
+                        row = temp_sheet.row(row_num)
+
+                        # Replace missing values where necessary
+                        row = _replace_mvs(row, mv)
+
+                        # Append row to list we will use to write out csv file later.
+                        table_data[filename].append(row)
+
+                    elif metadata_on:
+
+                        # Reached an empty cell while parsing metadata. Mark the end of the section.
+                        if cell in EMPTY:
+                            metadata_on = False
+                            metadata_done = True
+
+                            # Create a list of all the variable names found
+                            for entry in column_metadata:
+                                try:
+                                    variable_keys.append(entry["variableName"])
+                                except KeyError:
+                                    # missing a variableName key
+                                    pass
+
+                        # Not at the end of the section yet. Parse the metadata
+                        else:
+                            # Get the row data
+                            row = temp_sheet.row(row_num)
+
+                            # Get column metadata
+                            col_tmp = _compile_column_metadata(row, header_keys, col_add_ct)
+
+                            # Append to master list
+                            column_metadata.append(col_tmp)
+                            col_add_ct += 1
+
+                    # Variable metadata, if variable header exists
+                    elif var_header_done and not metadata_done:
+                        # Start piecing column metadata together with their respective variable keys
+                        metadata_on = True
+
+                        # Get the row data
+                        row = temp_sheet.row(row_num)
+
+                        # Get column metadata
+                        col_tmp = _compile_column_metadata(row, header_keys, col_add_ct)
+
+                        # Append to master list
+                        column_metadata.append(col_tmp)
+                        col_add_ct += 1
+
+                    # Variable metadata, if variable header does not exist
+                    elif not var_header_done and not metadata_done:
+                        # LiPD Version 1.1 and earlier: Chronology sheets don't have variable headers
+                        # We could blindly parse, but without a header row_num we wouldn't know where to save the metadata
+                        # Play it safe and assume data for first column only: variable name
+                        metadata_on = True
+
+                        # Get the row data
+                        row = temp_sheet.row(row_num)
+
+                        # Get column metadata
+                        col_tmp = _compile_column_metadata(row, header_keys, col_add_ct)
+
+                        # Append to master list
+                        column_metadata.append(col_tmp)
+                        col_add_ct += 1
+
+                    # Numeric Data. Column metadata exists and metadata_done marker is on.
+                    elif metadata_done and cell in variable_keys:
+                        data_on = True
+
+            elif isinstance(cell, float) or isinstance(cell, int):
+                if data_on or metadata_done:
+                    # Get row of data
+                    row = temp_sheet.row(row_num)
+
+                    # Replace missing values where necessary
+                    for idx, v in enumerate(row):
+                        row[idx] = v.value
+
+                    # Append row to list we will use to write out csv file later.
+                    table_data[filename].append(row)
+
+            # Move on to the next row
+            row_num += 1
+        table_metadata["columns"] = column_metadata
+    except IndexError as e:
+        logger_excel.debug("parse_sheet: IndexError: sheet: {}, row_num: {}, col_num: {}, {}".format(sheet, row_num, col_num, e))
+
+    logger_excel.info("exit parse_sheet: {}".format(sheet))
+    return table_metadata, table_data
+
+
+def _replace_mvs(row, mv):
+    """
+    Replace Missing Values in the data rows where applicable
+    :param list row: Row
+    :return list: Modified row
+    """
+    for idx, v in enumerate(row):
+        try:
+            if v.value.lower() in EMPTY or mv in v.value.lower():
+                row[idx] = "NaN"
+
+        except AttributeError:
+            row[idx] = v.value
+
+    return row
+
+
+def _get_header_keys(row):
+    """
+    Get the variable header keys from this special row
+    :return list: Header keys
+    """
+    # Swap out NOAA keys for LiPD keys
+    for idx, key in enumerate(row):
+        if key.value.lower() in EXCEL_KEYS:
+            row[idx] = EXCEL_KEYS[key.value.lower()]
+        else:
+            try:
+                row[idx] = key.value.lower()
+            except AttributeError:
+                pass
+
+    header_keys = _rm_cells(row)
+    return header_keys
+
+
+def _compile_column_metadata(row, keys, number):
+    """
+    Compile column metadata from one excel row ("9 part data")
+    :param list row: Row of cells
+    :param list keys: Variable header keys
+    :return dict: Column metadata
+    """
+    # Store the variable keys by index in a dictionary
+    column = {}
+
+    # Use the header keys to place the column data in the dictionary
+    for idx, key in enumerate(keys):
+        column[key] = row[idx].value
+    column["number"] = number
+
+    # Add this column to the overall metadata
+    column = {k: v for k, v in column.items() if v}
+    return column
+
+
+def _rm_cells(l):
+    """
+    Remove the cells that are empty or template
+    :param list l: One row from the spreadsheet
+    :return list: Modified row
+    """
+    rm = []
+    # Iter the list in reverse, and get rid of empty and template cells
+    for idx, key in reversed(list(enumerate(l))):
+        if key.lower() in EXCEL_TEMPLATE:
+            rm.append(idx)
+        elif key in EMPTY:
+            rm.append(idx)
+        else:
+            break
+
+    for idx in rm:
+        l.pop(idx)
+    return l
+
+
+# CSV
+
+
+def _write_data_csv():
+    pass
 
 
 def write_csv_ds(workbook, sheet, name):
@@ -1008,11 +1272,10 @@ def cells_dn_ds(filename, workbook, sheet, row, col):
     columnsTop = []
     commentList = []
     colListNum = 1
-    iter_var = True
 
     # Loop for all variables in top section
     try:
-        while iter_var:
+        while True:
 
             cell = temp_sheet.cell_value(row, col).lstrip().rstrip()
             if (cell == 'Data') or (cell == 'Missing Value') \
