@@ -30,12 +30,12 @@ connection.getInputStream();
 %Step 2: go to the spreadsheet export url and download the csv
 connection2 = java.net.URL([],csvURL,handler).openConnection();
 result = connection2.getInputStream();
-result = char(readstream(result));
+result2 = char(readstream(result));
 
 
 
 %Step 3: convert the csv to a cell array
-result = parseCsv(result);
+result = parseCsv(result2);
 
 end
 
