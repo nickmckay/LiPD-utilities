@@ -4,6 +4,11 @@ import re
 GLOBAL LIST OF REGEXES
 """
 
+# EXCEL
+# todo write a regex for legacy sheet names
+RE_SHEET = re.compile(r'(paleo|chron)(\d+)(model[a-z]*\d+)?(measurement|ensemble|summary|distribution)[a-zA-Z]*(\d+)', re.I)
+# (paleo\d+|chron\d+)\.(?(?=measurement)(measurement[a-z]*\d+)|(model[a-z]*\d+)\.(distribution[a-z]*\d+|model[a-z]*|ensemble[a-z]*]))
+
 # DOI
 re_doi = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'<>,])\S)+)\b')
 
@@ -18,7 +23,7 @@ re_name_unit_range = re.compile(r'([\-]?\d+)[\s\(]*(?!to)(\w+)*')
 re_chron_var_header = re.compile(r"(\w+\S+)[\s]{0,2}((?:\()?(\w+)?(?:\)))?")
 # re_chron_var_desc = re.compile(r"(\w+\S*)\s+(.*)")
 
-# TIMESERIES Convert
+# TIME SERIES
 re_misc_fetch = re.compile(r'(geo_(\w+)|climateInterpretation_(\w+)|calibration_(\w+)|paleoData_(\w+))')
 re_pub_fetch = re.compile(r'pub1_(citation|year|DOI|author|publisher|title|type|volume|issue|journal|link|pubDataUrl|abstract|pages)')
 
@@ -38,7 +43,6 @@ re_pub_h = re.compile(r'pub_(\w+)')
 re_pub_n = re.compile(r'pub(\d)(\w+)')
 
 # START
-# re_filter_expr = re.compile(r"((\w+_?)\s*(is|in|greater than|equals|equal|less than|<=|==|>=|=|>|<){1}[\"\s\']*([\"\w\d]+|-?\d+.?\d*)[\"\s&\']*)")
 re_filter_expr = re.compile(r"((\w+_?)\s*(is|in|greater than|equals|equal|less than|<=|==|>=|=|>|<){1}[\"\s\']*([\"\s\w\d]+|-?\d+.?\d*)[\"\s&\']*)")
 
 # PANDAS

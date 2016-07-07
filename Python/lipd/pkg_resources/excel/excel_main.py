@@ -9,6 +9,7 @@ from ..helpers.zips import *
 from ..helpers.blanks import *
 from ..helpers.loggers import *
 from ..helpers.alternates import *
+from ..helpers.regexes import RE_SHEET
 
 
 logger_excel = create_logger('excel_main')
@@ -20,19 +21,6 @@ def excel():
     :return:
     """
     dir_root = os.getcwd()
-    # Ask user if they want to run the Chronology sheets or flatten the JSON files.
-    # This is an all or nothing choice
-    # need_response = True
-    # while need_response:
-    #     chron_run = input("Run Chronology? (y/n)\n")
-    #     if chron_run == 'y' or 'n':
-    #         flat_run = input("Flatten JSON? (y/n)\n")
-    #         if flat_run == 'y' or 'n':
-    #             need_response = False
-
-    # For testing, assume we don't want to run these to make things easier for now.
-    chron_run = 'y'
-    flat_run = 'n'
 
     # Find excel files
     f_list = list_files('.xls') + list_files('.xlsx')
@@ -57,12 +45,24 @@ def excel():
         os.mkdir(os.path.join(dir_bag))
         os.mkdir(os.path.join(dir_data))
 
-        paleo_sheets = []
-        chron_sheets = []
-        chron_combine = []
-        data_combine = []
-        final_dict = OrderedDict()
+        pending_csv = []
+        paleo_ct = 1
+        chron_ct = 1
+        sheets = []
+        final = OrderedDict()
         logger_excel.info("variables initialized")
+
+        """
+        EACH DATA TABLE WILL BE STRUCTURED LIKE THIS
+        "paleo_chron": "paleo",
+        "pc_idx": 1,
+        "model_idx": "",
+        "table_type": "measurement",
+        "table_idx": 1,
+        "name": sheet,
+        "filename": sheet,
+        "data": { column data }
+        """
 
         # Open excel workbook with filename
         try:
@@ -78,81 +78,113 @@ def excel():
             # Check what worksheets are available, so we know how to proceed.
             for sheet in workbook.sheet_names():
 
+                # Use this for when we are dealing with older naming styles of "data (qc), data, and chronology"
+                old = "".join(sheet.lower().strip().split())
+
                 # Group the related sheets together, so it's easier to place in the metadata later.
                 if 'metadata' in sheet.lower():
-                    metadata_str = 'Metadata'
-                elif 'chron' in sheet.lower():
-                    chron_sheets.append(sheet)
-                elif 'data' in sheet.lower() or "paleo" in sheet.lower():
-                    paleo_sheets.append(sheet)
+                    metadata_str = sheet
+                elif "about" not in sheet.lower() and "proxy" not in sheet.lower():
+                    m = re.match(RE_SHEET, sheet.lower())
+                    if m:
+                        # print(m.groups())
+                        model_idx = None
+                        # Get the model idx number from string if it exists
+                        if m.group(3):
+                            model_idx = int(filter(str.isdigit, m.group(3)))
+
+                        # Standard naming. This matches the regex and the sheet name is how we want it.
+                        # paleo/chron - idx - table_type - idx
+                        # Not sure what to do with m.group(2) yet
+                        sheets.append({
+                            "paleo_chron": m.group(1),
+                            "pc_idx": int(m.group(2)),
+                            "model_idx": model_idx,
+                            "table_type": m.group(4),
+                            "table_idx": int(m.group(5)),
+                            "name": sheet,
+                            "filename": sheet,
+                            "data": ""
+                        })
+                    elif old == "data" or old in "data(qc)":
+                        sheets.append({
+                            "paleo_chron": "paleo",
+                            "pc_idx": paleo_ct,
+                            "model_idx": None,
+                            "table_type": "measurement",
+                            "table_idx": 1,
+                            "name": sheet,
+                            "filename": "Paleo{}.MeasurementTable1".format(paleo_ct),
+                            "data": ""
+                        })
+                        paleo_ct += 1
+                    elif "chronology" in old:
+                        sheets.append({
+                            "paleo_chron": "chron",
+                            "pc_idx": chron_ct,
+                            "model_idx": None,
+                            "table_type": "measurement",
+                            "table_idx": 1,
+                            "name": sheet,
+                            "filename": "Chron{}.MeasurementTable1".format(chron_ct),
+                            "data": ""
+                        })
+                        chron_ct += 1
+                    else:
+                        # Sheet naming is not standard. Let the user know that this we need this to parse the sheet.
+                        print("Sheet does not conform to naming standard. Skipping : {}".format(sheet))
+
+                    # todo handling for sheet names that don't conform to standard. User input here
+                    # else:
+                    #     # Sheet name does not conform to standard. Prompt user
+                    #     print("This sheet name does not conform to standards: {}".format(sheet))
+                    #     sheet_type = input("Is this a (p) paleo or (c) chronology sheet?")
+                    #     if sheet_type.lower() in ("p", "c", "paleo", "chron", "chronology"):
+                    #         sheet_table = input("Is this a (d) distribution,
+                        # (e) ensemble, (m) measurement, (s) summary sheet?")
+                    #         if sheet_table.lower() in ("d", "e", "m", "s", "distribution", "dist",
+                    #                                    "ens", "ensemble", "meas", "measurement", "sum", "summary"):
+                    #             pass
 
             # METADATA WORKSHEETS
             # Parse Metadata sheet and add to output dictionary
             if metadata_str:
-                logger_excel.info("parsing metadata worksheets")
-                cells_dn_meta(workbook, metadata_str, 0, 0, final_dict)
+                logger_excel.info("parsing metadata worksheet")
+                cells_dn_meta(workbook, metadata_str, 0, 0, final)
 
-            # DATA WORKSHEETS
-            for sheet_str in paleo_sheets:
-                # Parse each Data sheet. Combine into one dictionary
-                logger_excel.info("parsing data worksheets")
-                # sheet_str = cells_dn_ds(name, workbook, sheet_str, 2, 0)
-                sheet_str = _parse_sheet(name, workbook, sheet_str, "paleo")
-                data_combine.append(sheet_str)
+            # PALEO AND CHRON SHEETS
+            for sheet in sheets:
+                sheet_meta, sheet_csv = _parse_sheet(name, workbook, sheet)
+                pending_csv.append(sheet_csv)
+                sheet["data"] = sheet_meta
 
-            # Add data dictionary to output dictionary
-            final_dict['paleoData'] = data_combine
+            # Reorganize sheet metadata into LiPD structure
+            d_paleo, d_chron = _place_tables(sheets)
 
-            # CHRONOLOGY WORKSHEETS
-            chron_dict = OrderedDict()
-            if chron_run == 'y':
-                logger_excel.info("parsing chronology worksheets")
-                for sheet_str in chron_sheets:
-                    # Parse each chronology sheet. Combine into one dictionary
-                    temp_sheet = workbook.sheet_by_name(sheet_str)
-                    # chron_dict['filename'] = str(name) + '-' + str(sheet_str) + '.csv'
-                    #
-                    # # Create a dictionary that has a list of all the columns in the sheet
-                    # start_row = traverse_to_chron_var(temp_sheet)
-                    # columns_list_chron = get_chron_var(temp_sheet, start_row)
-                    # chron_dict['columns'] = columns_list_chron
-                    # chron_combine.append(chron_dict)
-                    chron_dict = _parse_sheet(name, workbook, sheet_str, "chron")
-
-                # Add chronology dictionary to output dictionary
-                final_dict['chronData'] = chron_combine
+            # Add organized metadata into final dictionary
+            final['paleoData'] = d_paleo
+            final['chronData'] = d_chron
 
             # OUTPUT
 
             # Create new files and dump data in dir_data
             os.chdir(dir_data)
 
-            # # CSV - DATA
-            # for sheet_str in paleo_sheets:
-            #     logger_excel.info("output to csv: data: {}".format(sheet_str))
-            #     write_csv_ds(workbook, sheet_str, name)
-            # del paleo_sheets[:]
-            #
-            # # CSV - CHRONOLOGY
-            # if chron_run == 'y':
-            #     for sheet_str in chron_sheets:
-            #         logger_excel.info("output to csv: chronology: {}".format(sheet_str))
-            #         write_csv_chron(workbook, sheet_str, name)
+            # WRITE CSV
+            _write_data_csv(pending_csv)
 
             # JSON-LD
             # Invoke DOI Resolver Class to update publisher data
             try:
                 logger_excel.info("invoking doi resolver")
-                final_dict = DOIResolver(dir_root, name, final_dict).main()
+                final = DOIResolver(dir_root, name, final).main()
             except Exception as e:
                 print("Error: doi resolver failed: {}".format(name))
                 logger_excel.debug("excel: doi resolver failed: {}, {}".format(name, e))
 
             # Dump final_dict to a json file.
-            final_dict["LiPDVersion"] = 1.0
-            write_json_to_file(name + '.jsonld', final_dict)
-
-            # JSON FLATTEN code would go here.
+            final["LiPDVersion"] = 1.2
+            write_json_to_file(name + '.jsonld', final)
 
             # Move files to bag root for re-bagging
             # dir : dir_data -> dir_bag
@@ -184,29 +216,180 @@ def excel():
     return
 
 
-# NEW DS PARSE
+# SORT PARSED DATA
 
-def _parse_sheet(name, workbook, sheet, paleo_chron):
+def _place_tables(metadata):
+    """
+
+    :param metadata:
+    :return:
+    """
+
+    paleo, chron = _create_metadata_skeleton(metadata)
+
+    for item in metadata:
+        pc_idx = item["pc_idx"] - 1
+        m_idx = item["model_idx"]
+        table_idx = item["table_idx"] - 1
+        pc = item["paleo_chron"]
+        name = item["name"]
+        table_type = item["table_type"]
+        data = item["data"]
+
+        # Can only decrement model index if it exists. Check first.
+        if m_idx:
+            m_idx -= 1
+
+        if pc == "paleo":
+            # If it's measurement table, it goes in first.
+            if table_type == "measurement":
+                paleo[pc_idx]["paleoMeasurementTable"][table_idx] = data
+            # Other types of tables go one step below
+            elif table_type in ("ensemble", "distribution", "model"):
+                if table_type == "model":
+                    paleo[pc_idx]["paleoModel"][m_idx]["paleoModelTable"] = data
+                elif table_type == "ensemble":
+                    paleo[pc_idx]["paleoModel"][m_idx]["ensembleTable"] = data
+                elif table_type == "distribution":
+                    paleo[pc_idx]["paleoModel"][m_idx]["distributionTable"][table_idx] = data
+
+        elif pc == "chron":
+            # If it's measurement table, it goes in first.
+            if table_type == "measurement":
+                chron[pc_idx]["chronMeasurementTable"][table_idx] = data
+            # Other types of tables go one step below
+            elif table_type in ("ensemble", "distribution", "model"):
+                if table_type == "model":
+                    paleo[pc_idx]["chronModel"][m_idx]["chronModelTable"] = data
+                elif table_type == "ensemble":
+                    paleo[pc_idx]["chronModel"][m_idx]["ensembleTable"] = data
+                elif table_type == "distribution":
+                    paleo[pc_idx]["chronModel"][m_idx]["distributionTable"][table_idx] = data
+
+    return paleo, chron
+
+
+def _create_metadata_skeleton(metadata):
+    """
+    Find out what the highest number index table is, and create a list of that length.
+    :return list: Blank list of N indices
+    """
+    pd_tmp = {"paleoMeasurementTable": [], "paleoModel": []}
+    cd_tmp = {"chronMeasurementTable": [], "chronModel": []}
+    cm_tmp = {"chronModelTable": {}, "ensembleTable": {}, "distributionTable": []}
+    pm_tmp = {"paleoModelTable": {}, "ensembleTable": {}, "distributionTable": []}
+
+    chron_numbers = {}
+    paleo_numbers = {}
+
+    # First, get the max number index for each list we need to build.
+    for item in metadata:
+        pc = item["paleo_chron"]
+        tt = item["table_type"]
+        pc_idx = item["pc_idx"]
+        t_idx = item["table_idx"]
+        m_idx = item["model_idx"]
+
+        # Tree for chron types
+        if pc == "chron":
+            # Create an index for this table if there is not one already.
+            if pc_idx not in chron_numbers:
+                chron_numbers[pc_idx] = {"meas": 0, "models": 0, "model": {}}
+            # Otherwise, start comparing indices to get the highest number for this table
+
+            # If the models list idx is higher, then swap it.
+            if m_idx:
+                if m_idx > chron_numbers[pc_idx]["models"]:
+                    chron_numbers[pc_idx]["models"] = m_idx
+
+                # If this model index is not tracked yet, create it.
+                if m_idx not in chron_numbers[pc_idx]["model"]:
+                    chron_numbers[pc_idx]["model"] = {m_idx: {"ens": 0, "mod": 0, "dist": 0}}
+
+            # Find what kind of table it is, and then increment count if it's higher than current.
+            if tt == "measurement":
+                if t_idx > chron_numbers[pc_idx]["meas"]:
+                    chron_numbers[pc_idx]["meas"] = t_idx
+            elif tt == "dist":
+                if t_idx > chron_numbers[pc_idx]["model"][m_idx]["dist"]:
+                    chron_numbers[pc_idx]["model"][m_idx]["dist"] = t_idx
+
+        # Tree for paleo types
+        elif pc == "paleo":
+            # Create an index for this table if there is not one already.
+            if pc_idx not in paleo_numbers:
+                paleo_numbers[pc_idx] = {"meas": 0, "models": 0, "model": {}}
+            # Otherwise, start comparing indices to get the highest number for this table
+
+            # If the models list idx is higher, then swap it.
+            if m_idx:
+                if m_idx > paleo_numbers[pc_idx]["models"]:
+                    paleo_numbers[pc_idx]["models"] = m_idx
+
+                # If this model index is not tracked yet, create it.
+                if m_idx not in paleo_numbers[pc_idx]["model"]:
+                    paleo_numbers[pc_idx]["model"] = {m_idx: {"ens": 0, "mod": 0, "dist": 0}}
+
+            # Find what kind of table it is, and then increment count if it's higher than current.
+            if tt == "measurement":
+                if t_idx > paleo_numbers[pc_idx]["meas"]:
+                    paleo_numbers[pc_idx]["meas"] = t_idx
+            elif tt == "dist":
+                if t_idx > paleo_numbers[pc_idx]["model"][m_idx]["dist"]:
+                    paleo_numbers[pc_idx]["model"][m_idx]["dist"] = t_idx
+
+            # elif tt == "model":
+            #     if t_idx > paleo_numbers[pc_idx]["model"]:
+            #         paleo_numbers[pc_idx]["model"] = t_idx
+
+            # elif tt == "ens":
+            #     if t_idx > paleo_numbers[pc_idx]["model"][m_idx]["ens"]:
+            #         paleo_numbers[pc_idx]["ens"] = t_idx
+
+    # Create top lists with N tables
+    paleo = [copy.deepcopy(pd_tmp)] * len(paleo_numbers)
+    chron = [copy.deepcopy(cd_tmp)] * len(chron_numbers)
+
+    for idx1, table in paleo_numbers.items():
+        paleo[idx1-1]["paleoMeasurementTable"] = [None] * paleo_numbers[idx1]["meas"]
+        paleo[idx1-1]["paleoModel"] = [copy.deepcopy(cm_tmp)] * paleo_numbers[idx1]["models"]
+        for idx2, nums in table["model"].items():
+            paleo[idx1-1]["paleoModel"][idx2-1] = {"paleoModelTable": {}, "ensembleTable": {},
+                                               "distributionTable": [None] * nums["dist"]}
+
+    for idx1, table in chron_numbers.items():
+        chron[idx1-1]["chronMeasurementTable"] = [None] * chron_numbers[idx1]["meas"]
+        chron[idx1-1]["chronModel"] = [copy.deepcopy(cm_tmp)] * chron_numbers[idx1]["models"]
+        for idx2, nums in table["model"].items():
+            chron[idx1-1]["chronModel"][idx2] = {"chronModelTable": {}, "ensembleTable": {},
+                                               "distributionTable": [None] * nums["dist"]}
+
+    return paleo, chron
+
+
+# PARSE
+
+
+def _parse_sheet(name, workbook, sheet):
     """
     The universal spreadsheet parser. Parse chron or paleo tables of type ensemble/model/summary.
     :param str name: Filename
     :param obj workbook: Excel Workbook
-    :param str sheet: Target spreadsheet
-    :param str paleo_chron: Type of sheet
+    :param dict sheet: Sheet path and naming info
     :return dict dict: Table metadata and numeric data
     """
-    logger_excel.info("enter parse_sheet: {}".format(sheet))
+    logger_excel.info("enter parse_sheet: {}".format(sheet["name"]))
 
     # Open the sheet from the workbook
-    temp_sheet = workbook.sheet_by_name(sheet)
+    temp_sheet = workbook.sheet_by_name(sheet["name"])
 
-    # Store table metdadata and numeric data separately
-    filename = "{}.{}.csv".format(str(name), str(sheet))
-    table_name = "{}DataTableName".format(paleo_chron)
+    # Store table metadata and numeric data separately
+    filename = "{}.{}.csv".format(str(name), str(sheet["name"]))
+    table_name = "{}DataTableName".format(sheet["paleo_chron"])
 
     # Organize our root table data
     table_metadata = OrderedDict()
-    table_metadata[table_name] = sheet
+    table_metadata[table_name] = sheet["name"]
     table_metadata['filename'] = filename
     table_metadata['missingValue'] = 'NaN'
 
@@ -264,8 +447,9 @@ def _parse_sheet(name, workbook, sheet, paleo_chron):
                         # Turn on the marker
                         var_header_done = True
 
+                    # Start parsing data section (bottom)
                     elif data_on:
-                        # Start parsing data
+
                         # Get row of data
                         row = temp_sheet.row(row_num)
 
@@ -275,6 +459,7 @@ def _parse_sheet(name, workbook, sheet, paleo_chron):
                         # Append row to list we will use to write out csv file later.
                         table_data[filename].append(row)
 
+                    # Start parsing the metadata section. (top)
                     elif metadata_on:
 
                         # Reached an empty cell while parsing metadata. Mark the end of the section.
@@ -304,6 +489,7 @@ def _parse_sheet(name, workbook, sheet, paleo_chron):
 
                     # Variable metadata, if variable header exists
                     elif var_header_done and not metadata_done:
+
                         # Start piecing column metadata together with their respective variable keys
                         metadata_on = True
 
@@ -318,9 +504,10 @@ def _parse_sheet(name, workbook, sheet, paleo_chron):
                         col_add_ct += 1
 
                     # Variable metadata, if variable header does not exist
-                    elif not var_header_done and not metadata_done:
+                    elif not var_header_done and not metadata_done and cell:
                         # LiPD Version 1.1 and earlier: Chronology sheets don't have variable headers
-                        # We could blindly parse, but without a header row_num we wouldn't know where to save the metadata
+                        # We could blindly parse, but without a header row_num we wouldn't know where
+                        # to save the metadata
                         # Play it safe and assume data for first column only: variable name
                         metadata_on = True
 
@@ -338,6 +525,7 @@ def _parse_sheet(name, workbook, sheet, paleo_chron):
                     elif metadata_done and cell in variable_keys:
                         data_on = True
 
+            # If this is a numeric cell, 99% chance it's parsing the data columns.
             elif isinstance(cell, float) or isinstance(cell, int):
                 if data_on or metadata_done:
                     # Get row of data
@@ -368,9 +556,10 @@ def _replace_mvs(row, mv):
     """
     for idx, v in enumerate(row):
         try:
-            if v.value.lower() in EMPTY or mv in v.value.lower():
+            if v.value.lower() in EMPTY or v.value.lower() == mv:
                 row[idx] = "NaN"
-
+            else:
+                row[idx] = v.value
         except AttributeError:
             row[idx] = v.value
 
@@ -392,7 +581,7 @@ def _get_header_keys(row):
             except AttributeError:
                 pass
 
-    header_keys = _rm_cells(row)
+    header_keys = _rm_cells_reverse(row)
     return header_keys
 
 
@@ -407,18 +596,25 @@ def _compile_column_metadata(row, keys, number):
     column = {}
 
     # Use the header keys to place the column data in the dictionary
-    for idx, key in enumerate(keys):
-        column[key] = row[idx].value
-    column["number"] = number
+    if keys:
+        for idx, key in enumerate(keys):
+            column[key] = row[idx].value
+        column["number"] = number
+
+    # If there are not keys, that means it's a header-less metadata section.
+    else:
+        # Assume we only have one cell, because we have no keys to know what data is here.
+        column["variableName"] = row[0].value
+        column["number"] = number
 
     # Add this column to the overall metadata
     column = {k: v for k, v in column.items() if v}
     return column
 
 
-def _rm_cells(l):
+def _rm_cells_reverse(l):
     """
-    Remove the cells that are empty or template
+    Remove the cells that are empty or template in reverse order. Stop when you hit data.
     :param list l: One row from the spreadsheet
     :return list: Modified row
     """
@@ -440,100 +636,27 @@ def _rm_cells(l):
 # CSV
 
 
-def _write_data_csv():
-    pass
-
-
-def write_csv_ds(workbook, sheet, name):
+def _write_data_csv(csv_data):
     """
-    Write datasheet columns to a csv file
-    :param obj workbook:
-    :param str sheet:
-    :param str name:
-    :return: none
+    CSV data has been parse by this point, so take it and write it file by file.
+    :return:
     """
-    logger_excel.info("enter write_csv_ds")
-    temp_sheet = workbook.sheet_by_name(sheet)
+    logger_excel.info("enter write_data_csv")
+    # Loop for each file and data that is stored
+    for file in csv_data:
+        for filename, data in file.items():
 
-    # Create CSV file and open
-    file_csv = open(str(name) + '-' + str(sheet) + '.csv', 'w', newline='')
-    w = csv.writer(file_csv)
-    logger_excel.info("start parsing sheet: {}".format(sheet))
+            # Make sure we're working with the right data types before trying to open and write a file
+            if isinstance(filename, str) and isinstance(data, list):
+                try:
+                    with open(filename, 'w+') as f:
+                        w = csv.writer(f)
+                        for line in data:
+                            w.writerow(line)
+                except Exception:
+                    logger_excel.debug("write_data_csv: Unable to open/write file: {}".format(filename))
 
-    try:
-        # Loop to find starting variable name
-        # Try to find if there are variable headers or not
-        ref_first_var = traverse_short_row_str(temp_sheet)
-
-        # Traverse down to the "Missing Value" cell to get us near the data we want.
-        missing_val_row = traverse_mv(temp_sheet)
-
-        # Get the missing val for search-and-replace later
-        missing_val = get_mv(temp_sheet)
-
-        # Loop for 5 times past "Missing Value" to see if we get a match on the variable header
-        # Don't want to loop for too long, or we're wasting our time.
-        position_start = var_headers_check(temp_sheet, missing_val_row, ref_first_var)
-        data_cell_start = traverse_headers_to_data(temp_sheet, position_start)
-
-        # Loop over all variable names, and count how many there are. We need to loop this many times.
-        first_short_cell = traverse_short_row_int(temp_sheet)
-        var_limit = count_vars(temp_sheet, first_short_cell)
-
-        # Until we reach the bottom worksheet
-        current_row = data_cell_start
-        while current_row < temp_sheet.nrows:
-            data_list = []
-
-            # Move down a row and go back to column 0
-            current_column = 0
-
-            # Until we reach the right side worksheet
-            while current_column < var_limit:
-                # Increment to column 0, and grab the cell content
-                cell_value = replace_mvs(temp_sheet.cell_value(current_row, current_column), missing_val)
-                data_list.append(cell_value)
-                current_column += 1
-            data_list = replace_mvs(data_list, missing_val)
-            w.writerow(data_list)
-            current_row += 1
-
-    except IndexError as e:
-        logger_excel.warn("write_csv_ds: IndexError while parsing: {}".format(e))
-    file_csv.close()
-    logger_excel.info("exit write_csv_ds")
-    return
-
-
-def write_csv_chron(workbook, sheet, name):
-    """
-    Output the data columns from chronology sheet to csv file
-    :param obj workbook:
-    :param str sheet:
-    :param str name:
-    :return: none
-    """
-    logger_excel.info("enter write_csv_chron")
-    temp_sheet = workbook.sheet_by_name(sheet)
-
-    # Create CSV file and open
-    file_csv = open(str(name) + '-' + str(sheet) + '.csv', 'w', newline='')
-    w = csv.writer(file_csv)
-    logger_excel.info("start parsing sheet")
-    try:
-        total_vars = count_chron_variables(temp_sheet)
-        row = traverse_to_chron_data(temp_sheet)
-
-        while row < temp_sheet.nrows:
-            data_list = get_chron_data(temp_sheet, row, total_vars)
-            w.writerow(data_list)
-            row += 1
-
-    except IndexError as e:
-        logger_excel.info("write_csv_chron: IndexError while parsing: {}".format(e))
-
-    file_csv.close()
-    logger_excel.info("exit write_csv_chron")
+    logger_excel.info("exit write_data_csv")
     return
 
 
@@ -729,22 +852,6 @@ def compile_fund(workbook, sheet, row, col):
     return l
 
 
-def cell_occupied(temp_sheet, row, col):
-    """
-    Check if there is content in this cell
-    :param obj temp_sheet:
-    :param int row:
-    :param int col:
-    :return bool:
-    """
-    try:
-        if temp_sheet.cell_value(row, col) != ("N/A" and " " and xlrd.empty_cell and ""):
-            return True
-    except IndexError as e:
-        logger_excel.debug("cell_occupied: IndexError: row:{} col:{}, {}".format(row, col, e))
-    return False
-
-
 def name_to_jsonld(title_in):
     """
     Convert formal titles to camelcase json_ld text that matches our context file
@@ -765,34 +872,6 @@ def name_to_jsonld(title_in):
     if not title_out:
         logger_excel.debug("name_to_jsonld: No match found: {}".format(title_in))
     return title_out
-
-
-def get_data_type(temp_sheet, colListNum):
-    """
-    Find out what type of values are stored in a specific column in data sheet (best guess)
-    :param obj temp_sheet:
-    :param int colListNum:
-    :return str:
-    """
-    short = traverse_short_row_str(temp_sheet)
-    mv_cell = traverse_mv(temp_sheet)
-    row = var_headers_check(temp_sheet, mv_cell, short)
-    temp = temp_sheet.cell_value(row, colListNum - 1)
-
-    # Make sure we are not getting the dataType of a "NaN" item
-    while (temp == 'NaN') and (row < temp_sheet.nrows):
-        row += 1
-
-    # If we find a value before reaching the end of the column, determine the dataType
-    if row < temp_sheet.nrows:
-        # Determine what type the item is
-        str_type = instance_str(temp_sheet.cell_value(row, colListNum - 1))
-
-    # If the whole column is NaN's, then there is no dataType
-    else:
-        str_type = 'None'
-
-    return str_type
 
 
 def instance_str(cell):
@@ -852,191 +931,6 @@ def extract_short(string_in):
 
 
 # DATA WORKSHEET HELPER METHODS
-
-
-def count_vars(temp_sheet, first_short):
-    """
-    Starts at the first short name, and counts how many variables are present
-    :param obj temp_sheet:
-    :param int first_short:
-    :return int: Number of variables
-    """
-    count = 0
-    # If we hit a blank cell, or the MV / Data cells, then stop
-    while cell_occupied(temp_sheet, first_short, 0) and temp_sheet.cell_value(first_short, 0) != ("Missing" and "Data"):
-        count += 1
-        first_short += 1
-    return count
-
-
-def get_mv(temp_sheet):
-    """
-    Look for what missing value is being used.
-    :param obj temp_sheet:
-    :return str: Missing value
-    """
-    row = traverse_mv(temp_sheet)
-    # There are two blank cells to check for a missing value
-    empty = ''
-    missing_val = temp_sheet.cell_value(row, 1)
-    missing_val2 = temp_sheet.cell_value(row, 2)
-    if cell_occupied(temp_sheet, row, 1):
-        if isinstance(missing_val, str):
-            missing_val = missing_val.lower()
-        logger_excel.info("missing value: {}".format(missing_val))
-        return missing_val
-    elif cell_occupied(temp_sheet, row, 2):
-        if isinstance(missing_val2, str):
-            missing_val2 = missing_val2.lower()
-        logger_excel.info("missing value: {}".format(missing_val))
-        return missing_val2
-    logger_excel.info("missing value is empty")
-    return empty
-
-
-def traverse_short_row_int(temp_sheet):
-    """
-    Traverse to short name cell in data sheet. Get the row number.
-    :param obj temp_sheet:
-    :return int: Current row
-    """
-    for i in range(0, temp_sheet.nrows):
-        # We need to keep the first variable name as a reference.
-        # Then loop down past "Missing Value" to see if there is a matching variable header
-        # If there's not match, then there must not be a variable header row.
-        if 'Short' in temp_sheet.cell_value(i, 0):
-            current_row = i + 1
-            return current_row
-    return
-
-
-def traverse_short_row_str(temp_sheet):
-    """
-    Traverse to short name cell in data sheet
-    :param obj temp_sheet:
-    :return str: Name of first variable, if we find one
-    """
-    for i in range(0, temp_sheet.nrows):
-
-        # We need to keep the first variable name as a reference.
-        # Then loop down past "Missing Value" to see if there is a matching variable header
-        # If there's not match, then there must not be a variable header row.
-        if 'Short' in temp_sheet.cell_value(i, 0):
-            current_row = i + 1
-            ref_first_var = temp_sheet.cell_value(current_row, 0)
-            return ref_first_var
-    return
-
-
-def traverse_mv(temp_sheet):
-    """
-    Traverse to missing value cell in data sheet
-    :param obj temp_sheet:
-    :return int: Only returns int if it finds a missing value
-    """
-    logger_excel.info("enter traverse_missing_values")
-    # Traverse down to the "Missing Value" cell. This gets us near the data we want.
-    for i in range(0, temp_sheet.nrows):
-        # Loop down until you hit the "Missing Value" cell, and then move down one more row
-        try:
-            cell = temp_sheet.cell_value(i, 0)
-            if 'Missing' in cell:
-                missing_row_num = i
-                logger_excel.info("exit traverse_missing_values")
-                return missing_row_num
-        except TypeError as e:
-            logger_excel.debug("traverse_mv: TypeError: row:{} col: {}, {}".format(i, "0", e))
-    logger_excel.info("exit traverse_missing_values")
-    return
-
-
-def traverse_headers_to_data(temp_sheet, start_cell):
-    """
-    Traverse to the first cell that has data
-    If the cell on Col 0 has content, check 5 cells to the right for content also. (fail-safe)
-    :param obj temp_sheet:
-    :param int start_cell: Start of variable headers
-    :return int : First cell that contains numeric data
-    """
-    # Start at the var_headers row, and try to find the start of the data cells
-    # Loop for 5 times. It's unlikely that there are more than 5 blank rows between the var_header row and
-    # the start of the data cells. Usually it's 1 or 2 at most.
-    while not cell_occupied(temp_sheet, start_cell, 0):
-        start_cell += 1
-    return start_cell
-
-
-def traverse_mv_to_headers(temp_sheet, start):
-    """
-    Traverse from the missing value cell to the first occupied cell
-    :param obj temp_sheet:
-    :param int start: var_headers start row
-    :return int: start cell
-    """
-    # Start at the var_headers row, and try to find the start of the data cells
-    # Loop for 5 times. It's unlikely that there are more than 5 blank rows between the var_header row and
-    # the start of the data cells. Usually it's 1 or 2 at most.
-    start += 1
-    # Move past the empty cells
-    while not cell_occupied(temp_sheet, start, 0):
-        start += 1
-    # Check if there is content in first two cols
-    # Move down a row, check again. (Safety check)
-    num = 0
-    for i in range(0, 2):
-        if cell_occupied(temp_sheet, start, i):
-            num += 1
-    start += 1
-    for i in range(0, 2):
-        if cell_occupied(temp_sheet, start, i):
-            num += 1
-    return start
-
-
-def var_headers_check(temp_sheet, missing_val_row, ref_first_var):
-    """
-    Check for matching variables first. If match, return var_header cell int.
-    If no match, check the first two rows to see if one is all strings, or if there's some discrepancy
-    :param obj temp_sheet:
-    :param int missing_val_row:
-    :param str ref_first_var:
-    :return int: start cell
-    """
-    start = traverse_mv_to_headers(temp_sheet, missing_val_row)
-    # If we find a match, then Variable headers exist for this file
-    if temp_sheet.cell_value(start, 0) == ref_first_var:
-        return start + 1
-    # No var match, start to manually check the first two rows and make a best guess
-    else:
-        col = 0
-        str_row1 = 0
-        str_row2 = 0
-
-        # Row 1
-        while col < temp_sheet.ncols:
-            if isinstance(temp_sheet.cell_value(start, col), str):
-                str_row1 += 1
-            col += 1
-
-        # Reset variables
-        col = 0
-        start += 1
-
-        # Row 2
-        while col < temp_sheet.ncols:
-            if isinstance(temp_sheet.cell_value(start, col), str):
-                str_row2 += 1
-            col += 1
-
-        # If the top row has more strings than the bottom row, then the top row must be the header
-        if str_row1 > str_row2:
-            return start
-        # If not, then we probably don't have a header, so move back up one row
-        else:
-            return start - 1
-    # If we still aren't sure, traverse one row down from the MV box and start from there
-    # UNREACHABLE
-    # return traverse_missing_value(temp_sheet) + 1
 
 
 def cells_rt_meta_pub(workbook, sheet, row, col, pub_qty):
@@ -1115,8 +1009,11 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
     # Loop until we hit the max rows in the sheet
     while row_loop < temp_sheet.nrows:
         try:
+            # Get cell value
+            cell = temp_sheet.cell_value(row, col)
+
             # If there is content in the cell...
-            if temp_sheet.cell_value(row, col) != xlrd.empty_cell and temp_sheet.cell_value(row, col) not in EMPTY:
+            if cell not in EMPTY:
 
                 # Convert title to correct format, and grab the cell data for that row
                 title_formal = temp_sheet.cell_value(row, col)
@@ -1178,143 +1075,6 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
     logger_excel.info("exit cells_dn_meta")
     return
 
-
-def cells_rt_ds(workbook, sheet, row, col, col_list_num):
-    """
-    Traverse right datasheet cells. Collect metadata for one column in the datasheet
-    :param obj workbook:
-    :param str sheet:
-    :param int row:
-    :param int col:
-    :param int col_list_num:
-    :return dict: (Attributes Dictionary
-    """
-    logger_excel.info("enter cells_rt_ds")
-    temp_sheet = workbook.sheet_by_name(sheet)
-
-    # Iterate over all attributes, and add them to the column if they are not empty
-    attr_dict = OrderedDict()
-    attr_dict['number'] = col_list_num
-
-    # Get the data type for this column
-    attr_dict['dataType'] = str(get_data_type(temp_sheet, col_list_num))
-
-    # Separate dict for climateInterp block
-    climate_int_dict = {}
-
-    try:
-        # Loop until we hit the right-side boundary
-        while col < temp_sheet.ncols:
-            cell = temp_sheet.cell_value(row, col)
-
-            # If the cell contains any data, grab it
-            if cell not in (EMPTY, xlrd.empty_cell) and "Note:" not in cell:
-
-                title_in = name_to_jsonld(temp_sheet.cell_value(1, col))
-
-                # Special case if we need to split the climate interpretation string into 3 parts
-                if title_in == 'climateInterpretation':
-                    if cell in (EMPTY, xlrd.empty_cell):
-                        climate_int_dict['variable'] = ''
-                        climate_int_dict['variableDetail'] = ''
-                        climate_int_dict['interpDirection'] = ''
-                    else:
-                        cicSplit = cell.split('.')
-                        climate_int_dict['variable'] = cicSplit[0]
-                        climate_int_dict['variableDetail'] = cicSplit[1]
-                        climate_int_dict['interpDirection'] = cicSplit[2]
-
-                # Special case to add these two categories to climateInterpretation
-                elif title_in == 'seasonality' or title_in == 'basis':
-                    climate_int_dict[title_in] = temp_sheet.cell_value(row, col)
-
-                # If the key is null, then this is a not a cell we want to add
-                # We also don't want Data Type, because we manually check for the content data type later
-                # Don't want it to overwrite the other data type.
-                # Happens when we get to the cells that are filled with formatting instructions
-                # Ex. "Climate_interpretation_code has 3 fields separated by periods..."
-                elif title_in is (None or 'dataType'):
-                    pass
-
-                # Catch all other cases
-                else:
-                    attr_dict[title_in] = cell
-            col += 1
-
-    except IndexError as e:
-        logger_excel.debug("cell_rt_ds: IndexError: sheet: {}, row: {}, col:{}, {}".format(sheet, row, col, e))
-
-    # Only add if there's data
-    if climate_int_dict:
-        attr_dict['climateInterpretation'] = climate_int_dict
-    logger_excel.info("exit cells_rt_ds")
-    return attr_dict
-
-
-def cells_dn_ds(filename, workbook, sheet, row, col):
-    """
-    Traverse down datasheet cells. Add measurement table data to the final dictionary
-    :param str filename:
-    :param obj workbook:
-    :param str sheet:
-    :param int row:
-    :param int col:
-    :return dict:
-    """
-    logger_excel.info("enter cells_dn_ds")
-    # Create a dictionary to hold each column as a separate entry
-    paleoDataTableDict = OrderedDict()
-
-    # Iterate over all the short_name variables until we hit the "Data" cell, or until we hit an empty cell
-    # If we hit either of these, that should mean that we found all the variables
-    # For each short_name, we should create a column entry and match all the info for that column
-    temp_sheet = workbook.sheet_by_name(sheet)
-    columnsTop = []
-    commentList = []
-    colListNum = 1
-
-    # Loop for all variables in top section
-    try:
-        while True:
-
-            cell = temp_sheet.cell_value(row, col).lstrip().rstrip()
-            if (cell == 'Data') or (cell == 'Missing Value') \
-                    or (cell == 'The value or character string used as a placeholder for missing values'):
-                break
-            else:
-                variable = name_to_jsonld(temp_sheet.cell_value(row, col))
-
-                # If the cell isn't blank or empty, then grab the data
-                # Special case for handling comments since we want to stop them from being inserted at column level
-                if variable == 'comments':
-                    for i in range(1, 3):
-                        if cell_occupied(temp_sheet, row, i):
-                            commentList.append(temp_sheet.cell_value(row, i))
-
-                # All other cases, create a list of columns, one dictionary per column
-                elif temp_sheet.cell_value(row, col) != ('' and xlrd.empty_cell):
-                    columnsTop.append(cells_rt_ds(workbook, sheet, row, col, colListNum))
-                    colListNum += 1
-                row += 1
-
-    except IndexError as e:
-        logger_excel.debug("cells_dn_ds: IndexError: sheet: {}, row: {}, col: {}, {}".format(sheet, row, col, e))
-
-    # Add all our data pieces for this column into a new entry in the Measurement Table Dictionary
-    logger_excel.info("compile paleoDataTableDict")
-    paleoDataTableDict['paleoDataTableName'] = sheet
-    paleoDataTableDict['filename'] = str(filename) + '-' + str(sheet) + ".csv"
-    paleoDataTableDict['missingValue'] = 'NaN'
-
-    # If comments exist, insert them at table level
-    if commentList:
-        paleoDataTableDict['comments'] = commentList[0]
-    paleoDataTableDict['columns'] = columnsTop
-
-    # Reset list back to null for next loop
-    commentList = []
-    logger_excel.info("exit cells_dn_ds")
-    return paleoDataTableDict
 
 # CHRONOLOGY HELPER METHODS
 
@@ -1418,40 +1178,6 @@ def get_chron_data(temp_sheet, row, total_vars):
             cell = 'NaN'
         data_row.append(cell)
     return data_row
-
-
-# DEPRECATED
-
-
-def single_item(arr):
-    """
-    DEPRECATED.
-    Check an array to see if it is a single item or not
-    :param list arr:
-    :return bool:
-    """
-    if len(arr) == 1:
-        return True
-    return False
-
-
-def blind_data_capture(temp_sheet):
-    """
-    DEPRECATED
-    This was the temporary, inconsistent way to get chron data as a whole chunk.
-    :param temp_sheet: (obj)
-    :return: (dict)
-    """
-    chronology = OrderedDict()
-    start_row = traverse_to_chron_var(temp_sheet)
-    for row in range(start_row, temp_sheet.nrows):
-        key = str(row)
-        row_list = []
-        for col in range(0, temp_sheet.ncols):
-            row_list.append(temp_sheet.cell_value(row, col))
-        chronology[key] = row_list
-
-    return chronology
 
 
 def _remove_geo_placeholders(l):

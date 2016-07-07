@@ -115,15 +115,24 @@ def _import_paleo_data(paleo_data):
         for table in paleo_data:
             tmp_table = {}
 
-            # Get the table name, and use that as the index name for this table
-            tmp_table_name = _get_variable_name_table("paleoDataTableName", table["paleoMeasurementTable"], "paleo")
+            # Try to get the table name, but catch if there is not key for measurement table
+            try:
+                tn = table["paleoMeasurementTable"][0]
+            except KeyError:
+                tn = {}
 
-            # Process the chron measurement table
+            # Get the table name from the first measurement table, and use that as the index name for this table
+            tmp_table_name = _get_variable_name_table("paleoDataTableName", tn, "paleo")
+
+            # Process the paleo measurement table
             if "paleoMeasurementTable" in table:
-                tmp_cmt = _import_paleo_meas_table(table["paleoMeasurementTable"])
-                tmp_table["paleoMeasurementTable"] = tmp_cmt
+                pmt_all = []
+                for meas in table["paleoMeasurementTable"]:
+                    tmp_pmt = _import_paleo_meas_table(meas)
+                    pmt_all.append(tmp_pmt)
+                tmp_table["paleoMeasurementTable"] = pmt_all
 
-            # Process the chron model
+            # Process the paleo model
             if "paleoModel" in table:
                 tmp_cm = _import_paleo_model(table["paleoModel"])
                 tmp_table["paleoModel"] = tmp_cm
@@ -212,13 +221,22 @@ def _import_chron_data(chron_data):
         for table in chron_data:
             tmp_table = {}
 
+            # Try to get the table name, but catch if there is not key for measurement table
+            try:
+                tn = table["chronMeasurementTable"][0]
+            except KeyError:
+                tn = {}
+
             # Get the table name, and use that as the index name for this table
-            tmp_table_name = _get_variable_name_table("chronTableName", table["chronMeasurementTable"], "chronology")
+            tmp_table_name = _get_variable_name_table("chronDataTableName", tn, "chronology")
 
             # Process the chron measurement table
             if "chronMeasurementTable" in table:
-                tmp_cmt = _import_chron_meas_table(table["chronMeasurementTable"])
-                tmp_table["chronMeasurementTable"] = tmp_cmt
+                cmt_all = []
+                for meas in table["chronMeasurementTable"]:
+                    tmp_cmt = _import_chron_meas_table(meas)
+                    cmt_all.append(tmp_cmt)
+                tmp_table["chronMeasurementTable"] = cmt_all
 
             # Process the chron model
             if "chronModel" in table:
@@ -692,9 +710,16 @@ def _lipd_v1_0_to_v1_1(d):
     if "chronData" in d:
         # As of v1.1, ChronData should have an extra level of abstraction.
         # No longer shares the same structure of paleoData
+
+        # If no measurement table, then make a measurement table list with the table as the entry
         for table in d["chronData"]:
             if "chronMeasurementTable" not in table:
-                tmp_all.append({"chronMeasurementTable": table})
+                tmp_all.append({"chronMeasurementTable": [table]})
+
+            # If the table exists, but it is a dictionary, then turn it into a list with one entry
+            elif "chronMeasurementTable" in table:
+                if isinstance(table["chronMeasurementTable"], dict):
+                    tmp_all.append({"chronMeasurementTable": [table["chronMeasurementTable"]]})
         if tmp_all:
             d["chronData"] = tmp_all
 
@@ -719,7 +744,13 @@ def _lipd_v1_1_to_v1_2(d):
         # There is an extra level of abstraction and room for models, ensembles, calibrations, etc.
         for table in d["paleoData"]:
             if "paleoMeasurementTable" not in table:
-                tmp_all.append({"paleoMeasurementTable": table})
+                tmp_all.append({"paleoMeasurementTable": [table]})
+
+            # If the table exists, but it is a dictionary, then turn it into a list with one entry
+            elif "paleoMeasurementTable" in table:
+                if isinstance(table["paleoMeasurementTable"], dict):
+                    tmp_all.append({"paleoMeasurementTable": [table["paleoMeasurementTable"]]})
+
         if tmp_all:
             d["paleoData"] = tmp_all
 

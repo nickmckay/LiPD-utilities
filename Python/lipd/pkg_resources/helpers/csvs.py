@@ -88,7 +88,8 @@ def _import_paleo_csv(paleo_data):
 
         if "paleoMeasurementTable" in table_data:
             # Send whole table_data through. Adds csv data to columns
-            table_data["paleoMeasurementTable"] = _add_csv_to_columns(table_data["paleoMeasurementTable"])
+            for idx, pmt in enumerate(table_data["paleoMeasurementTable"]):
+                table_data["paleoMeasurementTable"][idx] = _add_csv_to_columns(pmt)
 
         if "paleoModel" in table_data:
             pass
@@ -107,15 +108,15 @@ def _import_chron_data_csv(chron_data):
     logger_csvs.info("enter import_chron_data_csv")
     for table_name, table_data in chron_data.items():
 
+        # Process chronMeasurementTable
+        if "chronMeasurementTable" in table_data:
+            for idx, cmt in enumerate(table_data["chronMeasurementTable"]):
+                table_data["chronMeasurementTable"][idx] = _add_csv_to_columns(cmt)
+
         # Process chronModel
         if "chronModel" in table_data:
             # Replace the chronModel in-place
             table_data["chronModel"] = _import_chron_model_csv(table_data["chronModel"])
-
-        # Process chronMeasurementTable
-        if "chronMeasurementTable" in table_data:
-            # Replace the chronMeasurementTable in-place
-            table_data["chronMeasurementTable"] = _add_csv_to_columns(table_data["chronMeasurementTable"])
 
     logger_csvs.info("exit import_chron_data_csv")
     return chron_data
@@ -424,10 +425,13 @@ def _get_paleo_csv(paleo_data, crumbs):
 
             # Process each entry sub-table below if they exist
             if "paleoMeasurementTable" in data_table:
-                crumbs_tmp_cmt = "{}.{}.csv".format(crumbs_tmp, "paleoMeasurementTable")
-                filename = _get_filename(data_table["paleoMeasurementTable"], crumbs_tmp_cmt)
-                out = _search_table_for_vals(data_table["paleoMeasurementTable"])
-                d[filename] = out
+                idx = 1
+                for name_pmt, data_pmt in data_table["paleoMeasurementTable"].items():
+                    crumbs_tmp_cmt = "{}.{}{}.csv".format(crumbs_tmp, "paleoMeasurementTable", idx)
+                    filename = _get_filename(data_pmt, crumbs_tmp_cmt)
+                    out = _search_table_for_vals(data_pmt)
+                    d[filename] = out
+                    idx += 1
 
             if "paleoModel" in data_table:
                 for item in data_table["paleoModel"]:
@@ -472,10 +476,13 @@ def _get_chron_csv(chron_data, crumbs):
 
             # Process each entry sub-table below if they exist
             if "chronMeasurementTable" in data_table:
-                crumbs_tmp_cmt = "{}.{}.csv".format(crumbs_tmp, "ChronMeasurementTable")
-                filename = _get_filename(data_table["chronMeasurementTable"], crumbs_tmp_cmt)
-                out = _search_table_for_vals(data_table["chronMeasurementTable"])
-                d[filename] = out
+                idx = 1
+                for name_cmt, data_cmt in data_table["chronMeasurementTable"].items():
+                    crumbs_tmp_cmt = "{}.{}{}.csv".format(crumbs_tmp, "chronMeasurementTable", idx)
+                    filename = _get_filename(data_cmt, crumbs_tmp_cmt)
+                    out = _search_table_for_vals(data_cmt)
+                    d[filename] = out
+                    idx += 1
 
             if "chronModel" in data_table:
                 for item in data_table["chronModel"]:
