@@ -85,6 +85,7 @@ def excel():
                 if 'metadata' in sheet.lower():
                     metadata_str = sheet
                 elif "about" not in sheet.lower() and "proxy" not in sheet.lower():
+                    logger_excel.info("creating sheets metadata")
                     m = re.match(RE_SHEET, sheet.lower())
                     if m:
                         # print(m.groups())
@@ -149,11 +150,12 @@ def excel():
             # METADATA WORKSHEETS
             # Parse Metadata sheet and add to output dictionary
             if metadata_str:
-                logger_excel.info("parsing metadata worksheet")
+                logger_excel.info("parsing worksheet: {}".format(metadata_str))
                 cells_dn_meta(workbook, metadata_str, 0, 0, final)
 
             # PALEO AND CHRON SHEETS
             for sheet in sheets:
+                logger_excel.info("parsing data worksheet: {}".format(sheet))
                 sheet_meta, sheet_csv = _parse_sheet(name, workbook, sheet)
                 pending_csv.append(sheet_csv)
                 sheet["data"] = sheet_meta
@@ -220,11 +222,11 @@ def excel():
 
 def _place_tables(metadata):
     """
-
+    All the data has been parsed, now put the data into a LiPD 1.2 structure.
     :param metadata:
     :return:
     """
-
+    logger_excel.info("enter place_tables")
     paleo, chron = _create_metadata_skeleton(metadata)
 
     for item in metadata:
@@ -235,6 +237,7 @@ def _place_tables(metadata):
         name = item["name"]
         table_type = item["table_type"]
         data = item["data"]
+        logger_excel.info("placing table: {}".format(name))
 
         # Can only decrement model index if it exists. Check first.
         if m_idx:
@@ -274,6 +277,8 @@ def _create_metadata_skeleton(metadata):
     Find out what the highest number index table is, and create a list of that length.
     :return list: Blank list of N indices
     """
+    logger_excel.info("enter create_metadata_skeleton")
+
     pd_tmp = {"paleoMeasurementTable": [], "paleoModel": []}
     cd_tmp = {"chronMeasurementTable": [], "chronModel": []}
     cm_tmp = {"chronModelTable": {}, "ensembleTable": {}, "distributionTable": []}
@@ -438,7 +443,7 @@ def _parse_sheet(name, workbook, sheet):
                         table_metadata["missingValue"] = mv
 
                     # Variable template header row
-                    elif cell.lower() in EXCEL_HEADER:
+                    elif cell.lower() in EXCEL_HEADER and not metadata_on and not data_on:
 
                         # Grab the header line
                         row = temp_sheet.row(row_num)
