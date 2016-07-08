@@ -88,14 +88,23 @@ def _import_paleo_csv(paleo_data):
 
         if "paleoMeasurementTable" in table_data:
             # Send whole table_data through. Adds csv data to columns
-            for idx, pmt in enumerate(table_data["paleoMeasurementTable"]):
-                table_data["paleoMeasurementTable"][idx] = _add_csv_to_columns(pmt)
+            for table_name2, table_data2 in table_data["paleoMeasurementTable"].items():
+                table_data["paleoMeasurementTable"][table_name2] = _add_csv_to_columns(table_data2)
 
         if "paleoModel" in table_data:
+            # table_data["paleoModel"] = _import_paleo_model_csv(table_data["paleoModel"])
             pass
 
     logger_csvs.info("exit import_paleo_csv")
     return paleo_data
+
+
+def _import_paleo_model_csv(paleo_model):
+    """
+    Pass for now. No examples with paleo model data to test with.
+    :return:
+    """
+    return
 
 
 def _import_chron_data_csv(chron_data):
@@ -110,8 +119,9 @@ def _import_chron_data_csv(chron_data):
 
         # Process chronMeasurementTable
         if "chronMeasurementTable" in table_data:
-            for idx, cmt in enumerate(table_data["chronMeasurementTable"]):
-                table_data["chronMeasurementTable"][idx] = _add_csv_to_columns(cmt)
+            # Send whole table_data through. Adds csv data to columns
+            for table_name2, table_data2 in table_data["chronMeasurementTable"].items():
+                table_data["chronMeasurementTable"][table_name2] = _add_csv_to_columns(table_data2)
 
         # Process chronModel
         if "chronModel" in table_data:

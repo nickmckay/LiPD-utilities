@@ -115,22 +115,13 @@ def _import_paleo_data(paleo_data):
         for table in paleo_data:
             tmp_table = {}
 
-            # Try to get the table name, but catch if there is not key for measurement table
-            try:
-                tn = table["paleoMeasurementTable"][0]
-            except KeyError:
-                tn = {}
-
             # Get the table name from the first measurement table, and use that as the index name for this table
-            tmp_table_name = _get_variable_name_table("paleoDataTableName", tn, "paleo")
+            tmp_table_name = _get_variable_name_table("paleoDataTableName", table, "paleo")
 
             # Process the paleo measurement table
             if "paleoMeasurementTable" in table:
-                pmt_all = []
-                for meas in table["paleoMeasurementTable"]:
-                    tmp_pmt = _import_paleo_meas_table(meas)
-                    pmt_all.append(tmp_pmt)
-                tmp_table["paleoMeasurementTable"] = pmt_all
+                tmp_pmt = _import_paleo_meas_table(table["paleoMeasurementTable"])
+                tmp_table["paleoMeasurementTable"] = tmp_pmt
 
             # Process the paleo model
             if "paleoModel" in table:
@@ -196,16 +187,17 @@ def _import_paleo_meas_table(paleo_meas_table):
     logger_jsons.info("enter import_paleo_meas_table")
     table_new = {}
 
-    # Get the table name
-    name_table = _get_variable_name_table("paleoTableName", paleo_meas_table, "paleo")
+    for table in paleo_meas_table:
+        # Get the table name
+        name_table = _get_variable_name_table("paleoDataTableName", table, "paleo")
 
-    # Call idx_table_by_name
-    paleo_meas_table = _idx_table_by_name(paleo_meas_table)
+        # Call idx_table_by_name
+        table = _idx_table_by_name(table)
 
-    # Enter the named table in the output dictionary
-    table_new[name_table] = paleo_meas_table
+        # Enter the named table in the output dictionary
+        table_new[name_table] = table
     logger_jsons.info("exit import_paleo_meas_table")
-    return paleo_meas_table
+    return table_new
 
 
 def _import_chron_data(chron_data):
@@ -221,22 +213,13 @@ def _import_chron_data(chron_data):
         for table in chron_data:
             tmp_table = {}
 
-            # Try to get the table name, but catch if there is not key for measurement table
-            try:
-                tn = table["chronMeasurementTable"][0]
-            except KeyError:
-                tn = {}
-
             # Get the table name, and use that as the index name for this table
-            tmp_table_name = _get_variable_name_table("chronDataTableName", tn, "chronology")
+            tmp_table_name = _get_variable_name_table("chronDataTableName", table, "chronology")
 
             # Process the chron measurement table
             if "chronMeasurementTable" in table:
-                cmt_all = []
-                for meas in table["chronMeasurementTable"]:
-                    tmp_cmt = _import_chron_meas_table(meas)
-                    cmt_all.append(tmp_cmt)
-                tmp_table["chronMeasurementTable"] = cmt_all
+                tmp_cmt = _import_paleo_meas_table(table["chronMeasurementTable"])
+                tmp_table["chronMeasurementTable"] = tmp_cmt
 
             # Process the chron model
             if "chronModel" in table:
@@ -300,18 +283,19 @@ def _import_chron_meas_table(chron_meas_table):
     :return dict:
     """
     logger_jsons.info("enter import_chron_meas_table")
-    # table_new = {}
+    table_new = {}
 
-    # Get the table name
-    # name_table = _get_variable_name_table("chronTableName", chron_meas_table, "chronology")
+    for table in chron_meas_table:
+        # Get the table name
+        name_table = _get_variable_name_table("chronDataTableName", table, "chron")
 
-    # Call idx_table_by_name
-    chron_meas_table = _idx_table_by_name(chron_meas_table)
+        # Call idx_table_by_name
+        table = _idx_table_by_name(table)
 
-    # Enter the named table in the output dictionary
-    # table_new[name_table] = chron_meas_table
+        # Enter the named table in the output dictionary
+        table_new[name_table] = table
     logger_jsons.info("exit import_chron_meas_table")
-    return chron_meas_table
+    return table_new
 
 
 # EXPORT
