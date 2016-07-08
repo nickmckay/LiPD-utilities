@@ -104,7 +104,7 @@ def excel():
                             "table_type": m.group(4),
                             "table_idx": int(m.group(5)),
                             "name": sheet,
-                            "filename": sheet,
+                            "filename": "{}.{}.csv".format(name, sheet),
                             "data": ""
                         })
                     elif old == "data" or old in "data(qc)":
@@ -115,7 +115,7 @@ def excel():
                             "table_type": "measurement",
                             "table_idx": 1,
                             "name": sheet,
-                            "filename": "Paleo{}.MeasurementTable1".format(paleo_ct),
+                            "filename": "{}.Paleo{}.MeasurementTable1.csv".format(name, paleo_ct),
                             "data": ""
                         })
                         paleo_ct += 1
@@ -127,7 +127,7 @@ def excel():
                             "table_type": "measurement",
                             "table_idx": 1,
                             "name": sheet,
-                            "filename": "Chron{}.MeasurementTable1".format(chron_ct),
+                            "filename": "{}.Chron{}.MeasurementTable1.csv".format(name, chron_ct),
                             "data": ""
                         })
                         chron_ct += 1
@@ -157,8 +157,9 @@ def excel():
             for sheet in sheets:
                 logger_excel.info("parsing data worksheet: {}".format(sheet))
                 sheet_meta, sheet_csv = _parse_sheet(name, workbook, sheet)
-                pending_csv.append(sheet_csv)
-                sheet["data"] = sheet_meta
+                if sheet_csv and sheet_meta:
+                    pending_csv.append(sheet_csv)
+                    sheet["data"] = sheet_meta
 
             # Reorganize sheet metadata into LiPD structure
             d_paleo, d_chron = _place_tables(sheets)
@@ -387,9 +388,9 @@ def _parse_sheet(name, workbook, sheet):
 
     # Open the sheet from the workbook
     temp_sheet = workbook.sheet_by_name(sheet["name"])
+    filename = sheet["filename"]
 
     # Store table metadata and numeric data separately
-    filename = "{}.{}.csv".format(str(name), str(sheet["name"]))
     table_name = "{}DataTableName".format(sheet["paleo_chron"])
 
     # Organize our root table data
@@ -435,7 +436,7 @@ def _parse_sheet(name, workbook, sheet):
 
                     if "notes" in cell.lower():
                         # Store at the root table level
-                        table_data["notes"] = temp_sheet.cell_value(row_num, 1)
+                        table_metadata["notes"] = temp_sheet.cell_value(row_num, 1)
 
                     elif cell.lower().strip() in ALTS_MV:
                         # Store at the root table level and in our function
@@ -549,6 +550,12 @@ def _parse_sheet(name, workbook, sheet):
     except IndexError as e:
         logger_excel.debug("parse_sheet: IndexError: sheet: {}, row_num: {}, col_num: {}, {}".format(sheet, row_num, col_num, e))
 
+    # If there isn't any data in this sheet, and nothing was parsed, don't let this
+    # move forward to final output.
+    if not table_data[filename]:
+        table_data = None
+        table_metadata = None
+
     logger_excel.info("exit parse_sheet: {}".format(sheet))
     return table_metadata, table_data
 
@@ -643,7 +650,7 @@ def _rm_cells_reverse(l):
 
 def _write_data_csv(csv_data):
     """
-    CSV data has been parse by this point, so take it and write it file by file.
+    CSV data has been parsed by this point, so take it and write it file by file.
     :return:
     """
     logger_excel.info("enter write_data_csv")
