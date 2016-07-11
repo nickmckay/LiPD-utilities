@@ -91,6 +91,7 @@ def _verify_sections(full, d, sections):
     quick = _create_quick(full)
 
     for k, v in d.items():
+        logger_lipd_lint.info("iter_section: {}".format(k))
         # Item is in root
         if isinstance(v, str) and k != '@context' and k not in quick['root']:
             # Invalid key. Get valid
@@ -148,17 +149,20 @@ def _iter_section(full, quick, section, d1):
 
         # Can't mod dict in-place. Track which keys need to be switched.
         for name in list(d1.keys()):
-            if name not in quick[section]:
-                # Invalid term. Start looking for valid.
-                for line in full[section]:
-                    # Check each line to see where its match is.
-                    if name in line:
-                        # Found a match. Keep the valid term.
-                        switch[name] = line[0]
-                        break
-            if name not in switch:
-                # Valid term not found, or was already valid. Keep as-is
-                switch[name] = name
+            try:
+                if name not in quick[section]:
+                    # Invalid term. Start looking for valid.
+                    for line in full[section]:
+                        # Check each line to see where its match is.
+                        if name in line:
+                            # Found a match. Keep the valid term.
+                            switch[name] = line[0]
+                            break
+                if name not in switch:
+                    # Valid term not found, or was already valid. Keep as-is
+                    switch[name] = name
+            except KeyError:
+                logger_lipd_lint.debug("iter_section: section not in quick lint list: {}".format(section))
 
         for k, v in d1.items():
             if k in ('calibration', 'climateInterpretation'):
