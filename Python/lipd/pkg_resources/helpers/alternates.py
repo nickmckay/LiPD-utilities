@@ -3,6 +3,18 @@
 GLOBAL LIST OF ALTERNATES AND SYNONYMS
 """
 
+# TABLES
+DATA_FRAMES = [
+    "chron",
+    "paleo",
+    "ensemble",
+    "calibratedage",
+    "distribution",
+    "model",
+    "table",
+    "measurement"
+]
+
 # Allowable int and float fields
 NUMERIC_INTS = [
     "maxYear",
@@ -248,7 +260,6 @@ EXCEL_KEYS = {
 EXCEL_TEMPLATE = [
     "data",
     "chronology table containing measured depths and ages",
-    "chronology notes",
     "chronology table as paragraph (insert table into cell b3) not preferred",
     "chronology table (use as many rows and columns are needed below this line)",
     "note: additional chronology tables should be put below the first one with no blank lines.",

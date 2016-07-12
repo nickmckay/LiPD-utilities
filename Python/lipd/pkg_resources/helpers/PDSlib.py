@@ -4,6 +4,7 @@ import pandas as pd
 
 from ..helpers.regexes import *
 from ..helpers.loggers import *
+from ..helpers.alternates import DATA_FRAMES
 
 logger_pdslib = create_logger("PDSlib")
 
@@ -166,6 +167,9 @@ def get_filtered_dfs(lib, expr):
     dfs = {}
     tt = None
 
+    # Process all lipd files or one lipd file?
+    specific_files = _check_expr_filename(expr)
+
     # Determine the table type wanted
     if "chron" in expr:
         tt = "chron"
@@ -174,18 +178,37 @@ def get_filtered_dfs(lib, expr):
 
     # Get all filenames of target type.
     if tt:
-        # Loop once on each lipd object in the library
-        for ln, lo in lib.items():
-            # Get the
-            lo_meta = lo.get_metadata()
-            lo_dfs = lo.get_dfs()
 
-            # Only start a search if this lipd file has data frames available. Otherwise, pointless.
-            if lo_dfs:
-                # Get list of all matching filenames
-                filenames = _match_dfs_expr(lo_meta, expr, tt)
-                # Update our output data frames dictionary
-                dfs.update(_match_filenames_w_dfs(filenames, lo_dfs))
+        if specific_files:
+            # The user has specified a single LiPD file to get data frames from.
+            for file in specific_files:
+                if file in lib:
+                    lo_meta = lib[file].get_metadata()
+                    lo_dfs = lib[file].get_dfs()
+
+                    # Only start a search if this lipd file has data frames available. Otherwise, pointless.
+                    if lo_dfs:
+                        # Get list of all matching filenames
+                        filenames = _match_dfs_expr(lo_meta, expr, tt)
+                        # Update our output data frames dictionary
+                        dfs.update(_match_filenames_w_dfs(filenames, lo_dfs))
+                else:
+                    print("Unable to find LiPD file in Library: {}".format(file))
+
+        # Process all LiPD files in the library. A file has not been specified in the expression.
+        else:
+            # Loop once on each lipd object in the library
+            for ln, lo in lib.items():
+                # Get the
+                lo_meta = lo.get_metadata()
+                lo_dfs = lo.get_dfs()
+
+                # Only start a search if this lipd file has data frames available. Otherwise, pointless.
+                if lo_dfs:
+                    # Get list of all matching filenames
+                    filenames = _match_dfs_expr(lo_meta, expr, tt)
+                    # Update our output data frames dictionary
+                    dfs.update(_match_filenames_w_dfs(filenames, lo_dfs))
 
     logger_pdslib.info("exit get_filtered_dfs")
     return dfs
@@ -274,3 +297,14 @@ def _match_filenames_w_dfs(filenames, lo_dfs):
 
     logger_pdslib.info("exit match_filenames_w_dfs")
     return dfs
+
+
+def _check_expr_filename(expr):
+    """
+    Split the expression and look to see if there's a specific filename that the user wants to process.
+    :param str expr: Search expression
+    :return str: Filename or None
+    """
+    expr_lst = expr.split()
+    f = [x for x in expr_lst if x not in DATA_FRAMES and x.endswith(".lpd")]
+    return f
