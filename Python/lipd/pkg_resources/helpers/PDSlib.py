@@ -119,6 +119,7 @@ def _plot_ts_cols(ts):
 
 def _get_dfs(csvs):
     """
+    LiPD Version 1.2
     Create a data frame for each table for the given key
     :param dict csvs: LiPD metadata dictionary
     :return dict: paleo data data frames
@@ -153,3 +154,123 @@ def _get_key_data(d, key):
     except KeyError:
         logger_pdslib.info("get_key_data: KeyError: {}".format(key))
     return d2
+
+
+def get_filtered_dfs(lib, expr):
+    """
+    Main: Get all data frames that match the given expression
+    :return dict: Filenames and data frames (filtered)
+    """
+    logger_pdslib.info("enter get_filtered_dfs")
+
+    dfs = {}
+    tt = None
+
+    # Determine the table type wanted
+    if "chron" in expr:
+        tt = "chron"
+    elif "paleo" in expr:
+        tt = "paleo"
+
+    # Get all filenames of target type.
+    if tt:
+        # Loop once on each lipd object in the library
+        for ln, lo in lib.items():
+            # Get the
+            lo_meta = lo.get_metadata()
+            lo_dfs = lo.get_dfs()
+
+            # Only start a search if this lipd file has data frames available. Otherwise, pointless.
+            if lo_dfs:
+                # Get list of all matching filenames
+                filenames = _match_dfs_expr(lo_meta, expr, tt)
+                # Update our output data frames dictionary
+                dfs.update(_match_filenames_w_dfs(filenames, lo_dfs))
+
+    logger_pdslib.info("exit get_filtered_dfs")
+    return dfs
+
+
+def _match_dfs_expr(lo_meta, expr, tt):
+    """
+    Use the given expression to get all data frames that match the criteria (i.e. "paleo measurement tables")
+    :param dict lo_meta: Lipd object metadata
+    :param str expr: Search expression
+    :param str tt: Table type (chron or paleo)
+    :return list: All filenames that match the expression
+    """
+    logger_pdslib.info("enter match_dfs_expr")
+    filenames = []
+    s = "{}Data".format(tt)
+
+    # Top table level. Going through all tables of certain type (i.e. chron or paleo)
+    for k, v in lo_meta["{}Data".format(tt)].items():
+
+        # Inner table level. Get data from one specific table
+        if "measurement" in expr:
+            for k1, v1 in v["{}MeasurementTable".format(tt)].items():
+                try:
+                    f = v1["filename"]
+                    if f.endswith(".csv"):
+                        filenames.append(f)
+                except KeyError:
+                    # Not concerned if the key wasn't found.
+                    logger_pdslib.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "measurement"))
+
+        elif "ensemble" in expr:
+            for k1, v1 in v["{}Model".format(tt)].items():
+                try:
+                    f = v1["ensembleTable"]["filename"]
+                    if f.endswith(".csv"):
+                        filenames.append(f)
+                except KeyError:
+                    # Not concerned if the key wasn't found.
+                    logger_pdslib.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "ensemble"))
+
+        elif "model" in expr:
+            for k1, v1 in v["{}Model".format(tt)].items():
+                try:
+                    f = v1["{}ModelTable".format(tt)]["filename"]
+                    if f.endswith(".csv"):
+                        filenames.append(f)
+                except KeyError:
+                    # Not concerned if the key wasn't found.
+                    logger_pdslib.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "model"))
+
+        elif "dist" in expr:
+            for k1, v1 in v["{}Model".format(tt)].items():
+                for k2, v2 in v1["distribution"].items():
+                    try:
+                        f = v2["filename"]
+                        if f.endswith(".csv"):
+                            filenames.append(f)
+                    except KeyError:
+                        # Not concerned if the key wasn't found.
+                        logger_pdslib.info(
+                            "match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "dist"))
+
+    logger_pdslib.info("exit match_dfs_expr")
+    return filenames
+
+
+def _match_filenames_w_dfs(filenames, lo_dfs):
+    """
+    Match a list of filenames to their data frame counterparts. Return data frames
+    :param list filenames: Filenames of data frames to retrieve
+    :param dict lo_dfs: All data frames
+    :return dict: Filenames and data frames (filtered)
+    """
+    logger_pdslib.info("enter match_filenames_w_dfs")
+    dfs = {}
+
+    for filename in filenames:
+        try:
+            if filename in lo_dfs["chronData"]:
+                dfs[filename] = lo_dfs["chronData"][filename]
+            elif filename in lo_dfs["paleoData"]:
+                dfs[filename] = lo_dfs["paleoData"][filename]
+        except KeyError:
+            logger_pdslib.info("filter_dfs: KeyError: missing data frames keys")
+
+    logger_pdslib.info("exit match_filenames_w_dfs")
+    return dfs

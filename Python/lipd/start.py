@@ -46,6 +46,24 @@ def loadLipds():
 
 # ANALYSIS - LIPD
 
+
+def filter_dfs(expr):
+    """
+    Get data frames based on some criteria. i.e. all measurement tables or all ensembles.
+    :param str expr: Search expression. (i.e. "paleo measurement tables")
+    :return dict: Data frames indexed by filename
+    """
+    try:
+        dfs = get_filtered_dfs(lipd_lib.get_master(), expr)
+        print("Process Complete")
+        return dfs
+
+    except Exception:
+        logger_pdslib.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
+        print("Unable to filter data frames")
+        print("Process Complete")
+
+
 def lipd_to_df(filename):
     """
     Get lipd data frames from lipd object
