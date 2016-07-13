@@ -170,6 +170,7 @@ def _read_csv_to_columns(filename):
             # Create a dict with X lists corresponding to X columns
             for idx, col in enumerate(next(r)):
                 d[idx] = []
+                d[idx].append(col)
             # Start iter through CSV data
             for row in r:
                 for idx, col in enumerate(row):
