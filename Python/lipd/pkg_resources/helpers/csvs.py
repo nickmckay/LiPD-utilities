@@ -167,21 +167,17 @@ def _read_csv_to_columns(filename):
     try:
         with open(filename, 'r') as f:
             r = csv.reader(f, delimiter=',')
+
             # Create a dict with X lists corresponding to X columns
             for idx, col in enumerate(next(r)):
                 d[idx] = []
-                d[idx].append(col)
+                d = _cast_value(d, idx, col)
+
             # Start iter through CSV data
             for row in r:
                 for idx, col in enumerate(row):
                     # Append the cell to the correct column list
-                    try:
-                        d[idx].append(float(col))
-                    except ValueError as e:
-                        d[idx].append(col)
-                        logger_csvs.warn("ValueError: col: {}, {}".format(col, e))
-                    except KeyError as e:
-                        logger_csvs.warn("KeyError: col: {}, {}".format(col, e))
+                    d = _cast_value(d, idx, col)
 
         # Make a list of lists out of the dictionary instead
         for idx, col in d.items():
@@ -612,3 +608,20 @@ def _merge_ensemble(ensemble, col_nums, col_vals):
         logger_csvs.debug("merge_ensemble: IndexError: index out of range")
 
     return ensemble
+
+
+def _cast_value(d, idx, x):
+    """
+    Attempt to cast string to float. If error, keep as a string.
+    :param str x: String data
+    :return any:
+    """
+    try:
+        d[idx].append(float(x))
+    except ValueError as e:
+        d[idx].append(x)
+        logger_csvs.warn("ValueError: col: {}, {}".format(x, e))
+    except KeyError as e:
+        logger_csvs.warn("KeyError: col: {}, {}".format(x, e))
+
+    return d
