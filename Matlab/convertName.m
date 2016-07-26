@@ -3,7 +3,7 @@ function [ newname ,changed] = convertName(field,name)
 load nameCon.mat
 
 if ((now-lastUpdated)*1440)>30
-   updateNameConverterFromGoogle; 
+    updateNameConverterFromGoogle;
 end
 
 if ischar(name)
@@ -56,6 +56,15 @@ elseif iscell(name)
         else
             for i=1:length(standardNames)
                 if ~isempty(name{n})
+                    if ~ischar(name{n})
+                        if iscell(name{n})
+                            name{n} = stringifyCells(name{n});
+                        elseif isnumeric(name{n})
+                            name{n} = num2str(name{n});
+                        
+                        end
+                        
+                    end
                     if any(strcmpi(strtrim(name{n}),nameCon.(field){i}.alternates))
                         newname{n}=standardNames{i};
                         changed(n)=1;

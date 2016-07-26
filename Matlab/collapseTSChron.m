@@ -237,6 +237,7 @@ if length(df)==1
 end
 Dnew=rmfieldsoft(Dnew,'LiPDVersion');
 Dnew = convertLiPD1_0to1_1(Dnew);
+Dnew = convertLiPD1_1to1_2(Dnew);
 
 
 

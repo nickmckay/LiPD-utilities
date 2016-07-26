@@ -39,10 +39,9 @@ for i = 1:length(L.chronData)
         L.chronData{i}.chronMeasurementTable{j}.age =L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge});
         L.chronData{i}.chronMeasurementTable{j}=rmfield(L.chronData{i}.chronMeasurementTable{j},colNames{whichIsAge});
     end
-    
-    LC.paleoData{i}.paleoMeasurementTable{j}=L.chronData{i}.chronMeasurementTable{j};
     end
-    LC.paleoData{i}.paleoMeasurementTable{j}.paleoName=L.chronData{i}.chronName;
+    LC.paleoData.(L.chronData{i}.chronName)=L.chronData{i}.chronMeasurementTable{j};
+    LC.paleoData.(L.chronData{i}.chronName).paleoDataTableName=L.chronData{i}.chronName;
 end
 
 hasChron = 0;
@@ -65,11 +64,8 @@ if hasChron
     end
     
     %chronData name
-    %[CTS.chronData_chronName] = CTS.paleoData_paleoDataTableName;
-    [CTS.chronData_chronNumber] = CTS.paleoData_paleoNumber;
-    [CTS.chronData_chronMeasurementTableNumber] = CTS.paleoData_paleoMeasurementTableNumber;
-
-    CTS = rmfieldsoft(CTS,{'paleoData_paleoDataTableName','paleoData_paleoMeasurementTableNumber','paleoData_paleoNumber'});
+    [CTS.chronData_chronName] = CTS.paleoData_paleoDataTableName;
+    CTS = rmfieldsoft(CTS,'paleoData_paleoDataTableName');
     cfnames =fieldnames(CTS);
     pdi=(find(strncmpi('paleoData_',cfnames,10)));
     for cp = 1:length(pdi)

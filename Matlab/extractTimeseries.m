@@ -27,6 +27,10 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
     for pd=1:length(D.(dnames{d}).paleoData)
         PD=D.(dnames{d}).paleoData{pd};
         for pds= 1:length(PD)
+            if ~isfield(PD.paleoMeasurementTable{pds},'paleoDataTableName')
+                PD.paleoMeasurementTable{pds}.paleoDataTableName=['data' num2str(pds)];
+            end
+                
             if pd==1 & pds==1
                 pdname = [PD.paleoMeasurementTable{pds}.paleoDataTableName];
             else
@@ -34,7 +38,7 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
             end
             
             D.(dnames{d}).paleoMeasurementTable.(pdname) = PD.paleoMeasurementTable{pds};
-            D.(dnames{d}).paleoMeasurementTable.(pdname).paleoRecordNumber = pd;
+            D.(dnames{d}).paleoMeasurementTable.(pdname).paleoNumber = pd;
             D.(dnames{d}).paleoMeasurementTable.(pdname).paleoMeasurementTableNumber = pds;
             
             
@@ -174,6 +178,9 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                 if any(strcmpi('year',l4structs{l4})) %year field, write to year
                                     yearFlag=1;
                                     yeari=l4;
+                                    if ~isfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}),'values')
+                                        error([dnames{d} '.' ppnames{pp} '.' l3names{l3} '.' l4structs{l4} ' is missing values'])
+                                    end
                                     year=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).values;
                                     yearUnits=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).units;
                                 end

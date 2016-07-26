@@ -14,16 +14,18 @@ end
    
 if nCol>2
 for i=3:nCol
-   E.paleoData.data.(['dummy' num2str(i)])= E.paleoData.data.dummy2;
-   E.paleoData.data.(['dummy' num2str(i)]).variableName=['dummy' num2str(i)];
-      E.paleoData.data.(['dummy' num2str(i)]).number=i;
-
+%    E.paleoData.data.(['dummy' num2str(i)])= E.paleoData.data.dummy2;
+%    E.paleoData.data.(['dummy' num2str(i)]).variableName=['dummy' num2str(i)];
+%       E.paleoData.data.(['dummy' num2str(i)]).number=i;
+   E.paleoData{1}.paleoMeasurementTable{1}.(['dummy' num2str(i)])= E.paleoData{1}.paleoMeasurementTable{1}.dummy2;
+   E.paleoData{1}.paleoMeasurementTable{1}.(['dummy' num2str(i)]).variableName=['dummy' num2str(i)];
+   E.paleoData{1}.paleoMeasurementTable{1}.(['dummy' num2str(i)]).number=i;
 end
 if nCDT>0
     for i=3:nCol
-   E.chronData{1}.chronMeasurementTable.(['dummy' num2str(i)])= E.chronData{1}.chronMeasurementTable.dummy2;
-   E.chronData{1}.chronMeasurementTable.(['dummy' num2str(i)]).variableName=['dummy' num2str(i)];
-   E.chronData{1}.chronMeasurementTable.(['dummy' num2str(i)]).number=i;
+   E.chronData{1}.chronMeasurementTable{1}.(['dummy' num2str(i)])= E.chronData{1}.chronMeasurementTable{1}.dummy2;
+   E.chronData{1}.chronMeasurementTable{1}.(['dummy' num2str(i)]).variableName=['dummy' num2str(i)];
+   E.chronData{1}.chronMeasurementTable{1}.(['dummy' num2str(i)]).number=i;
 
     end
 else
@@ -34,8 +36,8 @@ end
 %replicate for multiple PDTs
 if nPDT>1
     for i=2:nPDT
-    E.paleoData.(['data' num2str(i)])= E.paleoData.data;
-    E.paleoData.(['data' num2str(i)]).paleoDataTableName= ['data' num2str(i)];
+    E.paleoData{i} = E.paleoData{1};
+    E.paleoData{i}.paleoName = ['paleo' num2str(i)];
 
     end
 end

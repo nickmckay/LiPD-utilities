@@ -18,7 +18,9 @@ if ~isnan(toct) %if there are paleo tables, load em in
         
         cT=readLiPDTable(cT,dirname);
         cT=processLiPDColumns(cT);
-        cT.paleoMeasurementTableMD5 = I.paleoMeasMD5{i,2};
+        if size(I.paleoMeasMD5,1)>=i
+            cT.paleoMeasurementTableMD5 = I.paleoMeasMD5{i,2};
+        end
         C{i}.paleoMeasurementTable{pmt}=cT;
         end
         %%%%%%END paleo MEASUREMENT TABLE
@@ -34,7 +36,9 @@ if ~isnan(toct) %if there are paleo tables, load em in
                 if isfield(CMS,'summaryTable')
                     CMT=readLiPDTable(CMS.summaryTable,dirname);
                     CMT=processLiPDColumns(CMT);
-                    CMT.summaryTableMD5=I.paleoSummaryTableMD5{i,2};
+                    if size(I.paleoSummaryTableMD5,1)>=i
+                        CMT.summaryTableMD5=I.paleoSummaryTableMD5{i,2};
+                    end
 
                     C{i}.paleoModel{cm}.summaryTable=cT;
                 end
@@ -43,7 +47,9 @@ if ~isnan(toct) %if there are paleo tables, load em in
                 if isfield(CMS,'ensembleTable')
                     CME=readLiPDTable(CMS.ensembleTable,dirname);
                     CME=processLiPDColumns(CME);
+                    if size(I.paleoEnsTableMD5,1)>=i
                     CME.paleoEnsembleMD5=I.paleoEnsMD5{i,2};
+                    end
                     C{i}.paleoModel{cm}.ensembleTable=CME;
                     
                 end

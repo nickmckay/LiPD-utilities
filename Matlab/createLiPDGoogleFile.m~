@@ -83,7 +83,7 @@ for d=1:length(dataNames)
                 if isfield(L.([dataNames{d} 'Data']){pd},[dataNames{d} tableNames{t}])
                     %go through Tables
                     for pm=1:length(L.([dataNames{d} 'Data']){pd}.([dataNames{d} tableNames{t}]))
-                        L.([dataNames{d} 'Data']){pd}.([dataNames{d} tableNames{t}]){pm}=createGoogleTable( L.([dataNames{d} 'Data']){pd}.([dataNames{d} tableNames{t}]){pm},L,pd,pm,dataNames{d},tableNames{t});
+                        L.([dataNames{d} 'Data']){pd}.([dataNames{d} tableNames{t}]){pm}=createGoogleTable( L.([dataNames{d} 'Data']){.([dataNames{d} tableNames{t}]){pm},L,pd,pm,dataNames{d},tableNames{t});
                     end
                 end
             end

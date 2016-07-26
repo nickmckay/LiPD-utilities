@@ -5,6 +5,10 @@ if ~isfield(L,'LiPDVersion')
     L.LiPDVersion = 1.0;
 end
 
+if ischar(L.LiPDVersion)
+    L.LiPDVersion = str2num(L.LiPDVersion);
+end
+
 if L.LiPDVersion == 1.0
     if isfield(L,'chronData')
     C=L.chronData;
@@ -16,7 +20,7 @@ if L.LiPDVersion == 1.0
     end
         L.chronData=newC;
     end
-    L.LiPDVersion = '1.1';
+    L.LiPDVersion = 1.1;
     
 end
 

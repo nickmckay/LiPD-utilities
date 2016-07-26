@@ -11,7 +11,13 @@ if isstruct(L) %this is the whole LiPD object
             if iscell(L.pub{pa}.author)
                 las = cell2str(L.pub{pa}.author);
                 las1 = strrep(las,''',''',' and ');
-                las2 = strrep(las1,'''','');
+                ap = strfind(las1,'''');
+                if length(ap>2)
+                    ap = [ap(1) ap(end)];
+                end
+                las2 = las1;
+                las2(ap)=[];
+                %las2 = strrep(las1,'''','');
                 las3 = strrep(las2,'{','');
                 las4 = strrep(las3,'}','');
                 L.pub{pa}.author=las4;
@@ -28,7 +34,13 @@ elseif iscell(L)
                 if iscell(L{pa}.author)
                     las = cell2str(L{pa}.author);
                     las1 = strrep(las,''',''',' and ');
-                    las2 = strrep(las1,'''','');
+                    ap = strfind(las1,'''');
+                    if length(ap>2)
+                        ap = [ap(1) ap(end)];
+                    end
+                    las2 = las1;
+                    las2(ap)=[];
+                    %las2 = strrep(las1,'''','');
                     las3 = strrep(las2,'{','');
                     las4 = strrep(las3,'}','');
                     L{pa}.author=las4;
@@ -42,7 +54,13 @@ elseif iscell(L)
         if length(L)>1
         las = cell2str(L);
         las1 = strrep(las,''',''',' and ');
-        las2 = strrep(las1,'''','');
+        ap = strfind(las1,'''');
+        if length(ap>2)
+            ap = [ap(1) ap(end)];
+        end
+        las2 = las1;
+        las2(ap)=[];
+        %las2 = strrep(las1,'''','');
         las3 = strrep(las2,'{','');
         las4 = strrep(las3,'}','');
         L=las4;

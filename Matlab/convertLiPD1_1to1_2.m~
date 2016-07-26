@@ -63,7 +63,7 @@ if L.LiPDVersion == 1.1 | forceConvert
     L.paleoData=newP;
     end
     
-    L.LiPDVersion = 1.2;
+    L.LiPDVersion = 1.2';
     
 end
 

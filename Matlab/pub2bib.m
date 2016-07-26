@@ -10,7 +10,7 @@ bigBib = cell(length(pub),1);
 keys = cell(length(pub),1);
 for p = 1:length(pub)
     bib = pub{p};
-    
+    miscFlag = 0;
     %if author field is a cell, replace appropriately
     if isfield(bib,'author') & isfield(bib,'title') & (isfield(bib,'year') | isfield(bib,'pubYear'))
         if ischar(bib.author)%if it's a string, convert back to cell
@@ -19,13 +19,46 @@ for p = 1:length(pub)
         if iscell(bib.author)
             bib.author=authorCell2BibtexAuthorString(bib.author);
         end
+    elseif isfield(bib,'type')
+        if strcmp(bib.type,'misc')
+            miscFlag = 1;
+          if isfield(bib,'author') & isfield(bib,'title')  
+              if ischar(bib.author)%if it's a string, convert back to cell
+                  bib.author=BibtexAuthorString2Cell(bib.author);
+              end
+              if iscell(bib.author)
+                  bib.author=authorCell2BibtexAuthorString(bib.author);
+              end
+          end
+        else
+            continue
+        end
     else
         continue
     end
     
+    %if misc, then assign original data URL to pub URL
+    if miscFlag
+        if ~isfield(bib,'url')
+            if ~isfield(L,'originalDataURL')
+                error('Misc entries must of original data URLs, or urls in their pub data')
+            else
+                
+                bib.url = L.originalDataURL;
+            end
+        end
+       %add an institution
+       if ~isempty(strfind(bib.url,'noaa.gov'))
+           bib.institution = 'World Data Center for Paleoclimatology';
+       end
+       
+    end
+    
     %deal with year/pubYear
-    if isfield(bib,'year') && ~isfield(bib,'pubYear')
-        bib.pubYear = bib.year;
+    if ~miscFlag
+        if isfield(bib,'year') && ~isfield(bib,'pubYear')
+            bib.pubYear = bib.year;
+        end
     end
     
     if(forceNewKey)
@@ -36,12 +69,37 @@ for p = 1:length(pub)
     if isfield(bib,'citeKey')
         citeKey=bib.citeKey;
     else
-        firstAuthor = bib.author(1:(min(regexp(bib.author,'\W')-1)));
-        firstWord = bib.title(1:(min(regexp(bib.title,'\W')-1)));
+        
+        
+        aws1 = (min(regexp(bib.author,',')-1));
+        aws2 = (min(regexp(bib.author,'\W')-1));
+        aws = min([aws1 aws2]);
+        
+        if isempty(aws)
+            aws =length(bib.author);
+        end
+        firstAuthor = bib.author(1:aws);
+
+        
+        if miscFlag & ~isfield(bib,'title')
+            bib.title = L.dataSetName;
+        end
+        
+        tws = (min(regexp(bib.title,'\W')-1));
+        if isempty(tws)
+            tws =length(bib.title);
+        end
+        firstWord = bib.title(1:tws);
+        
+        
+        if ~miscFlag
         if isnumeric(bib.pubYear)
             citeKey=lower([firstAuthor num2str(bib.pubYear) firstWord]);
         else
             citeKey=lower([firstAuthor bib.pubYear firstWord]);
+        end
+        else
+           citeKey=lower([firstAuthor firstWord]);
         end
         %convert accented characters
         citeKey = unicode2alpha(citeKey);
@@ -66,13 +124,15 @@ for p = 1:length(pub)
     
     %pub fields to write out.
     toWrite = {'author','journal','pubYear','publisher','title',...
-        'volume','DOI','pages','abstract','keywords','url','issue'};
+        'volume','DOI','pages','abstract','keywords','url','issue',...
+        'institution'};
     
     %bibtex version of those names
     bibNames ={'Author','Journal','Year','Publisher','Title',...
-        'Volume','DOI','Pages','Abstract','Keywords','Url','Issue'};
+        'Volume','DOI','Pages','Abstract','Keywords','Url','Issue',...
+        'Institution'};
     
-    doubleBracket = [0 0 0 0 1 0 0 0 1 0 0 0];
+    doubleBracket = [0 0 0 0 1 0 0 0 1 0 0 0 0];
     
     bibOut = cell(1,1);
     
