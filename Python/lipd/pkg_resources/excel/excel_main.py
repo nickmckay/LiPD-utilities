@@ -415,6 +415,7 @@ def _parse_sheet(name, workbook, sheet):
 
     header_keys = []
     variable_keys = []
+    variable_keys_lower = []
     mv = ""
 
     # Markers to track where we are on the sheet
@@ -477,6 +478,7 @@ def _parse_sheet(name, workbook, sheet):
                             for entry in column_metadata:
                                 try:
                                     variable_keys.append(entry["variableName"])
+                                    variable_keys_lower.append(entry["variableName"].lower())
                                 except KeyError:
                                     # missing a variableName key
                                     pass
@@ -528,8 +530,13 @@ def _parse_sheet(name, workbook, sheet):
                         col_add_ct += 1
 
                     # Numeric Data. Column metadata exists and metadata_done marker is on.
-                    elif metadata_done and cell in variable_keys:
-                        data_on = True
+                    else:
+                        try:
+                            if metadata_done and cell.lower() in variable_keys_lower:
+                                data_on = True
+                        except AttributeError:
+                            pass
+                            # cell is not a string, and lower() was not a valid call.
 
             # If this is a numeric cell, 99% chance it's parsing the data columns.
             elif isinstance(cell, float) or isinstance(cell, int):
