@@ -40,7 +40,7 @@ class PostInstall(install):
 
 
 here = path.abspath(path.dirname(__file__))
-version = '0.1.4.9'
+version = '0.1.5.2'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':

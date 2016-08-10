@@ -88,23 +88,28 @@ def excel():
                     logger_excel.info("creating sheets metadata")
                     m = re.match(RE_SHEET, sheet.lower())
                     if m:
-                        # print(m.groups())
                         model_idx = None
+                        pc = m.group(1)
                         # Get the model idx number from string if it exists
                         if m.group(3):
                             model_idx = int(filter(str.isdigit, m.group(3)))
+                        if pc == "paleodata":
+                            pc = "paleo"
+                        elif pc == "chrondata":
+                            pc = "chron"
 
                         # Standard naming. This matches the regex and the sheet name is how we want it.
                         # paleo/chron - idx - table_type - idx
                         # Not sure what to do with m.group(2) yet
                         sheets.append({
-                            "paleo_chron": m.group(1),
+                            "paleo_chron": pc,
                             "pc_idx": int(m.group(2)),
                             "model_idx": model_idx,
                             "table_type": m.group(4),
                             "table_idx": int(m.group(5)),
                             "name": sheet,
-                            "filename": "{}.{}.csv".format(name, sheet),
+                            "filename": "{}.{}{}{}{}.csv".format(name, pc, m.group(2), m.group(4), m.group(5)),
+                            "table_name": "{}{}{}{}".format(pc, m.group(2), m.group(4), m.group(5)),
                             "data": ""
                         })
                     elif old == "data" or old in "data(qc)":
@@ -115,7 +120,8 @@ def excel():
                             "table_type": "measurement",
                             "table_idx": 1,
                             "name": sheet,
-                            "filename": "{}.Paleo{}.MeasurementTable1.csv".format(name, paleo_ct),
+                            "filename": "{}.paleo{}.measurementTable1.csv".format(name, paleo_ct),
+                            "table_name": "paleo{}.measurementTable1".format(paleo_ct),
                             "data": ""
                         })
                         paleo_ct += 1
@@ -127,7 +133,8 @@ def excel():
                             "table_type": "measurement",
                             "table_idx": 1,
                             "name": sheet,
-                            "filename": "{}.Chron{}.MeasurementTable1.csv".format(name, chron_ct),
+                            "filename": "{}.chron{}.measurementTable1.csv".format(name, chron_ct),
+                            "table_name": "chron{}.measurementTable1".format(chron_ct),
                             "data": ""
                         })
                         chron_ct += 1
@@ -395,7 +402,7 @@ def _parse_sheet(name, workbook, sheet):
 
     # Organize our root table data
     table_metadata = OrderedDict()
-    table_metadata[table_name] = sheet["name"]
+    table_metadata[table_name] = sheet["table_name"]
     table_metadata['filename'] = filename
     table_metadata['missingValue'] = 'NaN'
 

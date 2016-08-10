@@ -240,6 +240,8 @@ EXCEL_KEYS = {
     "easternmost longitude": "lonMax",
     "westernmost longitude": "lonMin",
     "elevation": "elevation",
+    "variablename": "variableName",
+    "description": "description",
     "short_name": "variableName",
     "what": "description",
     "material": "measurementMaterial",
@@ -271,6 +273,7 @@ EXCEL_TEMPLATE = [
 ]
 
 EXCEL_HEADER = [
+    "variablename",
     "short_name",
     "what",
     "material",
