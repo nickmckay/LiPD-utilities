@@ -725,11 +725,44 @@ def geometry_linestring(lat, lon, elev):
     return d
 
 
+def geometry_range(crd_range, elev, crd_type):
+    """
+    Range of coordinates. (e.g. 2 latitude coordinates, and 0 longitude coordinates)
+    :param crd_range: Latitude or Longitude values
+    :param elev: Elevation value
+    :param crd_type: Coordinate type, lat or lon
+    :return dict:
+    """
+
+    d = OrderedDict()
+    coordinates = [[] for i in range(len(crd_range))]
+
+    # latitude
+    if crd_type == "lat":
+        for idx, i in enumerate(crd_range):
+            coordinates[idx] = [crd_range[idx], "NaN"]
+            if elev:
+                coordinates[idx].append(elev)
+
+    # longitude
+    elif crd_type == "lon":
+        for idx, i in enumerate(crd_range):
+            coordinates[idx] = ["NaN", crd_range[idx]]
+            if elev:
+                coordinates[idx].append(elev)
+
+    d["type"] = "Range"
+    d["coordinates"] = coordinates
+
+    return d
+
+
 def geometry_point(lat, lon, elev):
     """
     GeoJSON point. Latitude and Longitude only have one value each
     :param list lat: Latitude values
     :param list lon: Longitude values
+    :param list elev: Elevation value
     :return dict:
     """
     logger_excel.info("enter geometry_point")
@@ -779,6 +812,13 @@ def compile_geometry(lat, lon, elev):
     elif len(lat) == 1 and len(lon) == 1:
         logger_excel.info("found 2 coordinates")
         geo_dict = geometry_point(lat, lon, elev)
+
+    # coordinate range. one value given but not the other.
+    elif (None in lon and None not in lat) or (len(lat) > 0 and len(lon) == 0):
+        geo_dict = geometry_range(lat, elev, "lat")
+
+    elif (None in lat and None not in lon) or (len(lon) > 0 and len(lat) == 0):
+        geo_dict = geometry_range(lat, elev, "lon")
 
     # Too many points, or no points
     else:
