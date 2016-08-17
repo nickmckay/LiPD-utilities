@@ -81,78 +81,47 @@ def excel():
                 # Use this for when we are dealing with older naming styles of "data (qc), data, and chronology"
                 old = "".join(sheet.lower().strip().split())
 
-                # Group the related sheets together, so it's easier to place in the metadata later.
-                if 'metadata' in sheet.lower():
-                    metadata_str = sheet
-                elif "about" not in sheet.lower() and "proxy" not in sheet.lower():
-                    logger_excel.info("creating sheets metadata")
-                    m = re.match(RE_SHEET, sheet.lower())
-                    if m:
-                        model_idx = None
-                        pc = m.group(1)
-                        # Get the model idx number from string if it exists
-                        if m.group(3):
-                            model_idx = int(filter(str.isdigit, m.group(3)))
-                        if pc == "paleodata":
-                            pc = "paleo"
-                        elif pc == "chrondata":
-                            pc = "chron"
+                # Don't parse example sheets. For user use only.
+                if "example" not in sheet and "sample" not in sheet:
+                    # Group the related sheets together, so it's easier to place in the metadata later.
+                    if 'metadata' in sheet.lower():
+                        metadata_str = sheet
+                    elif "about" not in sheet.lower() and "proxy" not in sheet.lower():
+                        logger_excel.info("creating sheets metadata")
+                        m = re.match(RE_SHEET, sheet.lower())
+                        if m:
+                            sheets, paleo_ct, chron_ct = _build_sheet(m, sheets, sheet, name, paleo_ct, chron_ct)
 
-                        # Standard naming. This matches the regex and the sheet name is how we want it.
-                        # paleo/chron - idx - table_type - idx
-                        # Not sure what to do with m.group(2) yet
-                        sheets.append({
-                            "paleo_chron": pc,
-                            "pc_idx": int(m.group(2)),
-                            "model_idx": model_idx,
-                            "table_type": m.group(4),
-                            "table_idx": int(m.group(5)),
-                            "name": sheet,
-                            "filename": "{}.{}{}{}{}.csv".format(name, pc, m.group(2), m.group(4), m.group(5)),
-                            "table_name": "{}{}{}{}".format(pc, m.group(2), m.group(4), m.group(5)),
-                            "data": ""
-                        })
-                    elif old == "data" or old in "data(qc)":
-                        sheets.append({
-                            "paleo_chron": "paleo",
-                            "pc_idx": paleo_ct,
-                            "model_idx": None,
-                            "table_type": "measurement",
-                            "table_idx": 1,
-                            "name": sheet,
-                            "filename": "{}.paleo{}.measurementTable1.csv".format(name, paleo_ct),
-                            "table_name": "paleo{}.measurementTable1".format(paleo_ct),
-                            "data": ""
-                        })
-                        paleo_ct += 1
-                    elif "chronology" in old:
-                        sheets.append({
-                            "paleo_chron": "chron",
-                            "pc_idx": chron_ct,
-                            "model_idx": None,
-                            "table_type": "measurement",
-                            "table_idx": 1,
-                            "name": sheet,
-                            "filename": "{}.chron{}.measurementTable1.csv".format(name, chron_ct),
-                            "table_name": "chron{}.measurementTable1".format(chron_ct),
-                            "data": ""
-                        })
-                        chron_ct += 1
-                    else:
-                        # Sheet naming is not standard. Let the user know that this we need this to parse the sheet.
-                        print("Sheet does not conform to naming standard. Skipping : {}".format(sheet))
-
-                    # todo handling for sheet names that don't conform to standard. User input here
-                    # else:
-                    #     # Sheet name does not conform to standard. Prompt user
-                    #     print("This sheet name does not conform to standards: {}".format(sheet))
-                    #     sheet_type = input("Is this a (p) paleo or (c) chronology sheet?")
-                    #     if sheet_type.lower() in ("p", "c", "paleo", "chron", "chronology"):
-                    #         sheet_table = input("Is this a (d) distribution,
-                        # (e) ensemble, (m) measurement, (s) summary sheet?")
-                    #         if sheet_table.lower() in ("d", "e", "m", "s", "distribution", "dist",
-                    #                                    "ens", "ensemble", "meas", "measurement", "sum", "summary"):
-                    #             pass
+                        elif old == "data" or old in "data(qc)":
+                            sheets.append({
+                                "paleo_chron": "paleo",
+                                "pc_idx": paleo_ct,
+                                "model_idx": None,
+                                "table_type": "measurement",
+                                "table_idx": 1,
+                                "name": sheet,
+                                "filename": "{}paleo{}measurementTable1.csv".format(name, paleo_ct),
+                                "table_name": "paleo{}measurementTable1".format(paleo_ct),
+                                "data": ""
+                            })
+                            paleo_ct += 1
+                        elif old == "chronology":
+                            sheets.append({
+                                "paleo_chron": "chron",
+                                "pc_idx": chron_ct,
+                                "model_idx": None,
+                                "table_type": "measurement",
+                                "table_idx": 1,
+                                "name": sheet,
+                                "filename": "{}chron{}measurementTable1.csv".format(name, chron_ct),
+                                "table_name": "chron{}measurementTable1".format(chron_ct),
+                                "data": ""
+                            })
+                            chron_ct += 1
+                        else:
+                            # Sheet name does not conform to standard. Guide user to create a standardized sheet name.
+                            print("This sheet name does not conform to naming standard: {}".format(sheet))
+                            sheets, paleo_ct, chron_ct = _prompt_sheets(sheets, sheet, name, paleo_ct, chron_ct)
 
             # METADATA WORKSHEETS
             # Parse Metadata sheet and add to output dictionary
@@ -228,10 +197,100 @@ def excel():
 
 # SORT PARSED DATA
 
+def _prompt_sheets(sheets, old_sheet, name, paleo_ct, chron_ct):
+    """
+    Guide the user to create a proper, standardized sheet name
+    :param list sheets: Running list of sheet metadata
+    :param str old_sheet: Original sheet name
+    :param str name: Data set name
+    :param int paleo_ct: Running count of paleoData tables
+    :param int chron_ct: Running count of chronData tables
+    :return sheets paleo_ct chron_ct: Updated sheets and counts
+    """
+    cont = True
+    # Loop until valid sheet name is built, or user gives up
+    while cont:
+        pc = input("Is this a (p)aleo or (c)hronology sheet?").lower()
+        if pc in ("p", "c", "paleo", "chron", "chronology"):
+            tt = input("Is this a (d)istribution, (e)nsemble, (m)easurement, or (s)ummary sheet?").lower()
+            if tt in SHEETS["distribution"] or tt in SHEETS["ensemble"] \
+                    or tt in SHEETS["summary"] or tt in SHEETS["measurement"]:
+                # valid answer, keep going
+                if tt in SHEETS["distribution"]:
+                    tt = "distribution"
+                elif tt in SHEETS["summary"]:
+                    tt = "summary"
+                elif tt in SHEETS["ensemble"]:
+                    tt = "ensemble"
+                elif tt in SHEETS["measurement"]:
+                    tt = "measurement"
+                if pc in SHEETS["paleo"]:
+                    sheet = "{}{}{}{}".format("paleo", paleo_ct, tt, 1)
+                elif pc in SHEETS["chron"]:
+                    sheet = "{}{}{}{}".format("chron", chron_ct, tt, 1)
+
+                # Test the sheet that was built from the user responses.
+                # If it matches the Regex, then continue to build the sheet metadata. If not, try again or skip sheet.
+                m = re.match(RE_SHEET, sheet.lower())
+                if m:
+                    sheets, paleo_ct, chron_ct = _build_sheet(m, sheets, old_sheet, name, paleo_ct, chron_ct)
+                    print("Sheet created: {}".format(sheet))
+                    cont = False
+                else:
+                    resp = input("invalid sheet name. try again? (y/n): ")
+                    if resp == "n":
+                        print("No valid sheet name was created. Skipping sheet: {}".format(sheet))
+                        cont = False
+
+    print("=====================================================")
+    return sheets, paleo_ct, chron_ct
+
+
+def _build_sheet(m, sheets, old_sheet, name, paleo_ct, chron_ct):
+    """
+    Build metadata for a sheet. Receive valid regex match object and use that to create metadata.
+    :param obj m: Regex match object
+    :param list sheets: Running list of sheet metadata
+    :param str old_sheet: Original sheet name
+    :param str name: Data set name
+    :param int paleo_ct: Running count of paleoData tables
+    :param int chron_ct: Running count of chronData tables
+    :return sheets paleo_ct chron_ct: Updated sheets and counts
+    """
+    model_idx = None
+    pc = m.group(1)
+    # Get the model idx number from string if it exists
+    if m.group(3):
+        model_idx = int(filter(str.isdigit, m.group(3)))
+    if pc == "paleodata" or pc == "paleo":
+        pc = "paleo"
+        paleo_ct += 1
+    elif pc == "chrondata" or pc == "chron":
+        pc = "chron"
+        chron_ct += 1
+
+    # Standard naming. This matches the regex and the sheet name is how we want it.
+    # paleo/chron - idx - table_type - idx
+    # Not sure what to do with m.group(2) yet
+    sheets.append({
+        "paleo_chron": pc,
+        "pc_idx": int(m.group(2)),
+        "model_idx": model_idx,
+        "table_type": m.group(4),
+        "table_idx": int(m.group(5)),
+        "name": old_sheet,
+        "filename": "{}.{}{}{}{}.csv".format(name, pc, m.group(2), m.group(4), m.group(5)),
+        "table_name": "{}{}{}{}".format(pc, m.group(2), m.group(4), m.group(5)),
+        "data": ""
+    })
+
+    return sheets, paleo_ct, chron_ct
+
+
 def _place_tables(metadata):
     """
     All the data has been parsed, now put the data into a LiPD 1.2 structure.
-    :param metadata:
+    :param dict metadata:
     :return:
     """
     logger_excel.info("enter place_tables")
@@ -430,6 +489,7 @@ def _parse_sheet(name, workbook, sheet):
     metadata_on = False
     metadata_done = False
     data_on = False
+    notes = False
 
     try:
         # Loop for every row in the sheet
@@ -442,14 +502,18 @@ def _parse_sheet(name, workbook, sheet):
                 # Note and missing value entries are rogue. They are not close to the other data entries.
                 if cell.lower().strip() not in EXCEL_TEMPLATE:
 
-                    if "notes" in cell.lower():
+                    if "notes" in cell.lower() and not metadata_on:
                         # Store at the root table level
-                        table_metadata["notes"] = temp_sheet.cell_value(row_num, 1)
+                        nt = temp_sheet.cell_value(row_num, 1)
+                        if nt not in EXCEL_TEMPLATE:
+                            table_metadata["notes"] = nt
 
                     elif cell.lower().strip() in ALTS_MV:
                         # Store at the root table level and in our function
                         mv = temp_sheet.cell_value(row_num, 1)
-                        table_metadata["missingValue"] = mv
+                        # Add if not placeholder value
+                        if mv not in EXCEL_TEMPLATE:
+                            table_metadata["missingValue"] = mv
 
                     # Variable template header row
                     elif cell.lower() in EXCEL_HEADER and not metadata_on and not data_on:
@@ -484,8 +548,8 @@ def _parse_sheet(name, workbook, sheet):
                             # Create a list of all the variable names found
                             for entry in column_metadata:
                                 try:
-                                    variable_keys.append(entry["variableName"])
-                                    variable_keys_lower.append(entry["variableName"].lower())
+                                    variable_keys.append(entry["variableName"].strip())
+                                    variable_keys_lower.append(entry["variableName"].lower().strip())
                                 except KeyError:
                                     # missing a variableName key
                                     pass
@@ -539,7 +603,7 @@ def _parse_sheet(name, workbook, sheet):
                     # Numeric Data. Column metadata exists and metadata_done marker is on.
                     else:
                         try:
-                            if metadata_done and cell.lower() in variable_keys_lower:
+                            if metadata_done and cell.lower().strip() in variable_keys_lower:
                                 data_on = True
                         except AttributeError:
                             pass
@@ -824,7 +888,6 @@ def compile_geometry(lat, lon, elev):
     else:
         geo_dict = {}
         logger_excel.warn("compile_geometry: invalid coordinates: lat: {}, lon: {}".format(lat, lon))
-        print("Error: Invalid geo coordinates")
     logger_excel.info("exit compile_geometry")
     return geo_dict
 
@@ -1252,11 +1315,16 @@ def _remove_geo_placeholders(l):
     :param list l: Lat or long list
     :return list: Modified list
     """
+    vals = []
     for i in l:
-        if not i:
-            l.remove(i)
-    l.sort()
-    return l
+        if isinstance(i, list):
+            for k in i:
+                if isinstance(k, float) or isinstance(k, int):
+                    vals.append(k)
+        elif isinstance(i, float) or isinstance(i, int):
+            vals.append(i)
+    vals.sort()
+    return vals
 
 
 if __name__ == '__main__':

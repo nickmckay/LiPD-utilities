@@ -3,6 +3,15 @@
 GLOBAL LIST OF ALTERNATES AND SYNONYMS
 """
 
+SHEETS = {
+    "paleo": ["p", "paleo"],
+    "chron": ["c", "chron"],
+    "measurement": ["m", "meas", "measurement"],
+    "ensemble": ["e", "ens", "ensemble"],
+    "distribution": ["d", "dist", "distribution"],
+    "summary": ["s", "sum", "summary"]
+}
+
 # TABLES
 DATA_FRAMES = [
     "chron",
@@ -270,6 +279,8 @@ EXCEL_TEMPLATE = [
     "note: data_type is 'n' for numeric and 'c' for character data",
     "paste data table below starting in column a",
     "the value or character string used as a placeholder for missing values",
+    "<missing value>",
+    "<notes that describe the table as a whole>"
 ]
 
 EXCEL_HEADER = [
