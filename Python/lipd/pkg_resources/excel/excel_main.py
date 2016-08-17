@@ -900,21 +900,71 @@ def compile_geo(d):
     """
     logger_excel.info("enter compile_geo")
     d2 = OrderedDict()
+
+    # get max number of sites, or number of coordinate points given.
+    num_loc = _get_num_locations(d)
+
+    # if there's one more than one location put it in a collection
+    if num_loc > 1:
+        d2["type"] = "FeatureCollection"
+        features = []
+        for idx in range(0, num_loc):
+            # Do process for one site
+            site = _parse_geo_location(d, idx)
+            features.append(site)
+        d2["features"] = features
+
+    # if there's only one location
+    else:
+        d2 = _parse_geo_location(d, 0)
+
+    logger_excel.info("exit compile_geo")
+    return d2
+
+
+def _get_num_locations(d):
+    """
+    Find out how many locations are being parsed. Compare lengths of each
+    coordinate list and return the max
+    :param dict d: Geo metadata
+    :return int: Max number of locations
+    """
+    lengths = []
+    for key in EXCEL_GEO:
+        try:
+            lengths.append(len(d[key]))
+        except Exception:
+            pass
+    return max(lengths)
+
+
+def _parse_geo_location(d, idx):
+    """
+    Parse one geo location
+    :param d:
+    :return:
+    """
+    d2 = OrderedDict()
+    filt = {}
     d2['type'] = 'Feature'
     # If the necessary keys are missing, put in placeholders so there's no KeyErrors.
     for key in EXCEL_GEO:
         if key not in d:
             d[key] = ""
+
+    for key in EXCEL_GEO:
+        try:
+            filt[key] = d[key][idx]
+        except KeyError:
+            filt[key] = None
+        except TypeError:
+            filt[key] = None
+
     # Compile the geometry based on the info available.
-    d2['geometry'] = compile_geometry([d['latMin'], d['latMax']], [d['lonMin'], d['lonMax']], d['elevation'])
-    try:
-        d2['properties'] = {'siteName': d['siteName']}
-    except KeyError as e:
-        logger_excel.warn("compile_geo: KeyError: {}, {}".format("siteName", e))
+    d2['geometry'] = compile_geometry([filt['latMin'], filt['latMax']], [filt['lonMin'], filt['lonMax']], filt['elevation'])
+    d2['properties'] = {'siteName': filt['siteName']}
 
-    logger_excel.info("exit compile_geo")
     return d2
-
 
 def compile_authors(cell):
     """
