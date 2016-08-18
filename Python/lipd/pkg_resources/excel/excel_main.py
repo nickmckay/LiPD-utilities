@@ -915,7 +915,7 @@ def compile_geo(d):
         d2["features"] = features
 
     # if there's only one location
-    else:
+    elif num_loc == 1:
         d2 = _parse_geo_location(d, 0)
 
     logger_excel.info("exit compile_geo")
@@ -935,7 +935,12 @@ def _get_num_locations(d):
             lengths.append(len(d[key]))
         except Exception:
             pass
-    return max(lengths)
+
+    try:
+        num = max(lengths)
+    except ValueError:
+        num = 0
+    return num
 
 
 def _parse_geo_location(d, idx):
