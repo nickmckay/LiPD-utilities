@@ -475,6 +475,7 @@ def _parse_sheet(name, workbook, sheet):
     col_num = 0
     row_num = 0
     nrows = temp_sheet.nrows
+    col_total = 0
 
     # Tracks which "number" each metadata column is assigned
     col_add_ct = 1
@@ -490,6 +491,7 @@ def _parse_sheet(name, workbook, sheet):
     metadata_done = False
     data_on = False
     notes = False
+
 
     try:
         # Loop for every row in the sheet
@@ -528,14 +530,8 @@ def _parse_sheet(name, workbook, sheet):
                     # Start parsing data section (bottom)
                     elif data_on:
 
-                        # Get row of data
-                        row = temp_sheet.row(row_num)
-
-                        # Replace missing values where necessary
-                        row = _replace_mvs(row, mv)
-
-                        # Append row to list we will use to write out csv file later.
-                        table_data[filename].append(row)
+                        # Parse the row, clean, and add to table_data
+                        table_data = _parse_sheet_data_row(temp_sheet, row_num, col_total, table_data, filename, mv)
 
                     # Start parsing the metadata section. (top)
                     elif metadata_on:
@@ -605,6 +601,7 @@ def _parse_sheet(name, workbook, sheet):
                         try:
                             if metadata_done and cell.lower().strip() in variable_keys_lower:
                                 data_on = True
+                                col_total = len(column_metadata)
                         except AttributeError:
                             pass
                             # cell is not a string, and lower() was not a valid call.
@@ -612,15 +609,9 @@ def _parse_sheet(name, workbook, sheet):
             # If this is a numeric cell, 99% chance it's parsing the data columns.
             elif isinstance(cell, float) or isinstance(cell, int):
                 if data_on or metadata_done:
-                    # Get row of data
-                    row = temp_sheet.row(row_num)
 
-                    # Replace missing values where necessary
-                    for idx, v in enumerate(row):
-                        row[idx] = v.value
-
-                    # Append row to list we will use to write out csv file later.
-                    table_data[filename].append(row)
+                    # Parse the row, clean, and add to table_data
+                    table_data = _parse_sheet_data_row(temp_sheet, row_num, col_total, table_data, filename, mv)
 
             # Move on to the next row
             row_num += 1
@@ -638,6 +629,33 @@ def _parse_sheet(name, workbook, sheet):
     return table_metadata, table_data
 
 
+def _parse_sheet_data_row(temp_sheet, row_num, col_total, table_data, filename, mv):
+    """
+    Parse a row from the data section of the sheet. Add the cleaned row data to the overall table data.
+    :param obj temp_sheet: Excel sheet
+    :param int row_num: Current sheet row
+    :param int col_total: Number of column variables in this sheet
+    :param dict table_data: Running record of table data
+    :param str filename: Filename for this table
+    :param str mv: Missing value
+    :return dict: Table data with appended row
+    """
+    # Get row of data
+    row = temp_sheet.row(row_num)
+
+    # In case our row holds more cells than the amount of columns we have, slice the row
+    # We don't want to have extra empty cells in our output.
+    row = row[:col_total]
+
+    # Replace missing values where necessary
+    row = _replace_mvs(row, mv)
+
+    # Append row to list we will use to write out csv file later.
+    table_data[filename].append(row)
+
+    return table_data
+
+
 def _replace_mvs(row, mv):
     """
     Replace Missing Values in the data rows where applicable
@@ -651,7 +669,10 @@ def _replace_mvs(row, mv):
             else:
                 row[idx] = v.value
         except AttributeError:
-            row[idx] = v.value
+            if v.value == mv:
+                row[idx] = "NaN"
+            else:
+                row[idx] = v.value
 
     return row
 
@@ -910,13 +931,13 @@ def compile_geo(d):
         features = []
         for idx in range(0, num_loc):
             # Do process for one site
-            site = _parse_geo_location(d, idx)
+            site = _parse_geo_locations(d, idx)
             features.append(site)
         d2["features"] = features
 
     # if there's only one location
     elif num_loc == 1:
-        d2 = _parse_geo_location(d, 0)
+        d2 = _parse_geo_location(d)
 
     logger_excel.info("exit compile_geo")
     return d2
@@ -932,9 +953,10 @@ def _get_num_locations(d):
     lengths = []
     for key in EXCEL_GEO:
         try:
-            lengths.append(len(d[key]))
+            if key != "siteName":
+                lengths.append(len(d[key]))
         except Exception:
-            pass
+            lengths.append(1)
 
     try:
         num = max(lengths)
@@ -942,8 +964,27 @@ def _get_num_locations(d):
         num = 0
     return num
 
+def _parse_geo_location(d):
+    """
+    Parse one geo location
+    :param d:
+    :return:
+    """
+    d2 = OrderedDict()
+    filt = {}
+    d2['type'] = 'Feature'
+    # If the necessary keys are missing, put in placeholders so there's no KeyErrors.
+    for key in EXCEL_GEO:
+        if key not in d:
+            d[key] = ""
 
-def _parse_geo_location(d, idx):
+    # Compile the geometry based on the info available.
+    d2['geometry'] = compile_geometry([d['latMin'], d['latMax']], [d['lonMin'], d['lonMax']], d['elevation'])
+    d2['properties'] = {'siteName': d['siteName']}
+
+    return d2
+
+def _parse_geo_locations(d, idx):
     """
     Parse one geo location
     :param d:
@@ -959,7 +1000,10 @@ def _parse_geo_location(d, idx):
 
     for key in EXCEL_GEO:
         try:
-            filt[key] = d[key][idx]
+            if key == "siteName" and isinstance(d["siteName"], str):
+                filt["siteName"] = d["siteName"]
+            else:
+                filt[key] = d[key][idx]
         except KeyError:
             filt[key] = None
         except TypeError:

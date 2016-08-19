@@ -57,7 +57,8 @@ EXCEL_GEO = [
     "latMin",
     "lonMax",
     "lonMin",
-    "elevation"
+    "elevation",
+    "siteName"
 ]
 
 
