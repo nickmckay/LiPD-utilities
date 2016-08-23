@@ -22,18 +22,19 @@ def read_json_from_file(filename):
     logger_jsons.info("enter read_json_from_file")
     d = {}
     try:
-        # Open json file and read in the contents. Execute DOI Resolver?
-        # with open(filename, 'r') as f:
-            # Load json into dictionary
+        # Load and decode
         d = demjson.decode_file(filename)
         logger_jsons.info("successful read from json file")
     except FileNotFoundError:
+        # Didn't find a jsonld file. Maybe it's a json file instead?
         try:
             d = demjson.decode_file(os.path.splitext(filename)[0] + '.json')
         except FileNotFoundError as e:
+            # No json or jsonld file. Exit
             print("Error: Reading json from file: {}".format(filename))
             logger_jsons.debug("read_json_from_file: FileNotFound: {}, {}".format(filename, e))
-    d = remove_empty_fields(d)
+    if d:
+        d = remove_empty_fields(d)
     logger_jsons.info("exit read_json_from_file")
     return d
 
@@ -49,17 +50,13 @@ def idx_num_to_name(d):
     # Take whatever lipd version this file is, and convert it to the most current lipd version
     d = _update_lipd_version(d)
 
-    try:
-        tmp_pd = _import_paleo_data(d["paleoData"])
+    if "paleoData" in d:
+        tmp_pd = _import_data(d["paleoData"], "paleo")
         d["paleoData"] = tmp_pd
-    except KeyError:
-        logger_jsons.info("idx_num_to_name: KeyError: missing paleoData key")
 
-    try:
-        tmp_cd = _import_chron_data(d["chronData"])
+    if "chronData" in d:
+        tmp_cd = _import_data(d["chronData"], "chron")
         d["chronData"] = tmp_cd
-    except KeyError:
-        logger_jsons.info("idx_num_to_name: KeyError: missing chronData key")
 
     logger_jsons.info("exit idx_num_to_name")
     return d
@@ -102,31 +99,32 @@ def _idx_col_by_name(l):
     return col_new
 
 
-def _import_paleo_data(paleo_data):
+def _import_data(section_data, pc):
     """
-    Import the paleoData metadata and change it to index-by-name.
-    :param list paleo_data: PaleoData metadata
+    Import the section metadata and change it to index-by-name.
+    :param list section_data: Section metadata
+    :param str pc: Paleo or Chron
     :return dict: Modified paleoData
     """
-    logger_jsons.info("enter import_paleo_data")
+    logger_jsons.info("enter import_data_{}".format(pc))
     d = {}
     idx = 1
     try:
-        for table in paleo_data:
+        for table in section_data:
             tmp_table = {}
 
             # Get the table name from the first measurement table, and use that as the index name for this table
-            tmp_table_name = _get_variable_name_table("paleoDataTableName", table, "paleo")
+            tmp_table_name = _get_variable_name_table("{}DataTableName".format(pc), table, pc)
 
             # Process the paleo measurement table
-            if "paleoMeasurementTable" in table:
-                tmp_pmt = _import_paleo_meas_table(table["paleoMeasurementTable"])
-                tmp_table["paleoMeasurementTable"] = tmp_pmt
+            if "{}MeasurementTable".format(pc) in table:
+                tmp_pmt = _import_meas(table["{}MeasurementTable".format(pc)], pc)
+                tmp_table["{}MeasurementTable".format(pc)] = tmp_pmt
 
             # Process the paleo model
-            if "paleoModel" in table:
-                tmp_cm = _import_paleo_model(table["paleoModel"])
-                tmp_table["paleoModel"] = tmp_cm
+            if "{}Model".format(pc) in table:
+                tmp_cm = _import_model(table["{}Model".format(pc)], pc)
+                tmp_table["{}Model".format(pc)] = tmp_cm
 
             # If we only have generic table names, and one exists already, don't overwrite. Create dynamic name
             if tmp_table_name in d:
@@ -138,164 +136,86 @@ def _import_paleo_data(paleo_data):
 
     except AttributeError:
         # paleoData is not a list like it should be.
-        logger_jsons.info("import_paleo_data: AttributeError: paleoData: expected list type, given {}".format(type(paleo_data)))
-    logger_jsons.info("exit import_paleo_data")
+        logger_jsons.info("import_data_{}: AttributeError: paleoData: expected list type, given {}".format(pc, type(section_data)))
+    logger_jsons.info("exit import_data_".format(pc))
     return d
 
 
-def _import_paleo_model(paleo_model):
+def _import_model(models, pc):
     """
     Change the nested items of the paleoModel data. Overwrite the data in-place.
-    :param list paleo_model:
+    :param list models:
+    :param str pc: Paleo or Chron
     :return list:
     """
-    logger_jsons.info("enter import_chron_model")
+    logger_jsons.info("enter import_model".format(pc))
+
     try:
-        for model in paleo_model:
-            # Keep the original dictionary, but replace the three main entries below
-
-            # Do a direct replacement of paleoModelTable columns. No table name, no table work needed.
-            model["paleoModelTable"]["columns"] = _idx_col_by_name(model["paleoModelTable"]["columns"])
-
-            # Do a direct replacement of ensembleTable columns. No table name, no table work needed.
-            model["ensembleTable"]["columns"] = _idx_col_by_name(model["ensembleTable"]["columns"])
-
-            # Iter over each calibrated age table
-            tmp_calib = {}
-            for calibration in model["calibratedAges"]:
-                # Use "name" as table name
-                name_calib = _get_variable_name_table("name", calibration)
-                # Call idx_table_by_name
-                table_new = _idx_table_by_name(calibration)
-                # Set the new table by name into the WIP tmp_calib
-                tmp_calib[name_calib] = table_new
-            model["calibratedAges"] = tmp_calib
-
-    except AttributeError:
-        logger_jsons.debug("import_paleo_model: AttributeError: expected list type, given {} type".format(type(paleo_model)))
-
-    logger_jsons.info("exit import_paleo_model")
-    return paleo_model
-
-
-def _import_paleo_meas_table(paleo_meas_table):
-    """
-    Index the paleo measurement table by name
-    :param dict paleo_meas_table: Paleo measurement table data
-    :return dict:
-    """
-    logger_jsons.info("enter import_paleo_meas_table")
-    table_new = {}
-
-    for table in paleo_meas_table:
-        # Get the table name
-        name_table = _get_variable_name_table("paleoDataTableName", table, "paleo")
-
-        # Call idx_table_by_name
-        table = _idx_table_by_name(table)
-
-        # Enter the named table in the output dictionary
-        table_new[name_table] = table
-    logger_jsons.info("exit import_paleo_meas_table")
-    return table_new
-
-
-def _import_chron_data(chron_data):
-    """
-    Import the chronData metadata and change it to index-by-name.
-    :param list chron_data: ChronData metadata
-    :return dict: Modified chronData
-    """
-    logger_jsons.info("enter import_chron_data")
-    d = {}
-    idx = 1
-    try:
-        for table in chron_data:
-            tmp_table = {}
-
-            # Get the table name, and use that as the index name for this table
-            tmp_table_name = _get_variable_name_table("chronDataTableName", table, "chronology")
-
-            # Process the chron measurement table
-            if "chronMeasurementTable" in table:
-                tmp_cmt = _import_paleo_meas_table(table["chronMeasurementTable"])
-                tmp_table["chronMeasurementTable"] = tmp_cmt
-
-            # Process the chron model
-            if "chronModel" in table:
-                tmp_cm = _import_chron_model(table["chronModel"])
-                tmp_table["chronModel"] = tmp_cm
-
-            # If we only have generic table names, and one exists already, don't overwrite. Create dynamic name
-            if tmp_table_name in d:
-                tmp_table_name = "{}_{}".format(tmp_table_name, idx)
-                idx += 1
-
-            # Put the final product into the output dictionary. Indexed-by-table-name
-            d[tmp_table_name] = tmp_table
-
-    except AttributeError:
-        # chronData is not a list like it should be.
-        logger_jsons.info("import_chron_data: AttributeError: chronData: expected list type, given {}".format(type(chron_data)))
-    logger_jsons.info("exit import_chron_data")
-    return d
-
-
-def _import_chron_model(chron_model):
-    """
-    Change the nested items of the chronModel data. Overwrite the data in-place.
-    :param list chron_model:
-    :return list:
-    """
-    logger_jsons.info("enter import_chron_model")
-    try:
-        for model in chron_model:
+        for model in models:
             # Keep the original dictionary, but replace the three main entries below
 
             # Do a direct replacement of chronModelTable columns. No table name, no table work needed.
-            model["chronModelTable"]["columns"] = _idx_col_by_name(model["chronModelTable"]["columns"])
+            if "summaryTable" in model:
+                model["summaryTable"]["columns"] = _idx_col_by_name(model["summaryTable"]["columns"])
+            elif "{}ModelTable".format(pc) in model:
+                model["{}ModelTable".format(pc)]["columns"] = _idx_col_by_name(model["{}ModelTable".format(pc)]["columns"])
 
             # Do a direct replacement of ensembleTable columns. No table name, no table work needed.
-            model["ensembleTable"]["columns"] = _idx_col_by_name(model["ensembleTable"]["columns"])
+            if "ensembleTable" in model:
+                model["ensembleTable"]["columns"] = _idx_col_by_name(model["ensembleTable"]["columns"])
 
             # Iter over each calibrated age table
-            tmp_calib = {}
-            for calibration in model["calibratedAges"]:
-                # Use "name" as table name
-                name_calib = _get_variable_name_table("name", calibration)
-                # Call idx_table_by_name
-                table_new = _idx_table_by_name(calibration)
-                # Set the new table by name into the WIP tmp_calib
-                tmp_calib[name_calib] = table_new
-            model["calibratedAges"] = tmp_calib
+            if "calibratedAges" in model:
+                model["distributionTable"] = _import_dist(model, "calibratedAges")
+                model.pop("calibratedAges")
+            elif "distributionTable" in model:
+                model["distributionTable"] = _import_dist(model, "distributionTable")
 
     except AttributeError:
-        logger_jsons.debug("import_chron_model: AttributeError: expected list type, given {} type".format(type(chron_model)))
+        logger_jsons.debug("import_model_{}: AttributeError: expected list type, given {} type".format(pc, type(models)))
 
-    logger_jsons.info("exit import_chron_model")
-    return chron_model
+    logger_jsons.info("exit import_model_{}".format(pc))
+    return models
 
 
-def _import_chron_meas_table(chron_meas_table):
+def _import_meas(tables, pc):
     """
-    Index the chronology measurement table by name
-    :param dict chron_meas_table: Chronology measurement table data
+    Index the measurement table by name
+    :param dict tables: Measurement table data
     :return dict:
     """
-    logger_jsons.info("enter import_chron_meas_table")
+    logger_jsons.info("enter import_meas_{}".format(pc))
     table_new = {}
 
-    for table in chron_meas_table:
+    for table in tables:
         # Get the table name
-        name_table = _get_variable_name_table("chronDataTableName", table, "chron")
+        name_table = _get_variable_name_table("{}DataTableName".format(pc), table, pc)
 
         # Call idx_table_by_name
         table = _idx_table_by_name(table)
 
         # Enter the named table in the output dictionary
         table_new[name_table] = table
-    logger_jsons.info("exit import_chron_meas_table")
+    logger_jsons.info("exit import_meas_{}".format(pc))
     return table_new
+
+
+def _import_dist(model, key):
+    """
+    Import calibratedAges or distributionTable.
+    :param model: Table metadata
+    :param key: calibratedAges or distributionTable
+    :return: Modified table metadata
+    """
+    tmp_calib = {}
+    for calibration in model[key]:
+        # Use "name" as table name
+        name_calib = _get_variable_name_table("name", calibration)
+        # Call idx_table_by_name
+        table_new = _idx_table_by_name(calibration)
+        # Set the new table by name into the WIP tmp_calib
+        tmp_calib[name_calib] = table_new
+    return tmp_calib
 
 
 # EXPORT
@@ -322,22 +242,38 @@ def get_csv_from_json(d):
     :param dict d: JSON with CSV values
     :return dict: CSV values. (i.e. { CSVFilename1: { Column1: [Values], Column2: [Values] }, CSVFilename2: ... }
     """
-    # TODO Update to work with chronology?
     logger_jsons.info("enter get_csv_from_json")
-    csv = {}
-    try:
-        for table, table_content in d['paleoData'].items():
-            # Create entry for this table/CSV file (i.e. Asia-1.measTable.PaleoData.csv)
-            # Note: Each table has a respective CSV file.
-            csv[table_content['filename']] = {}
-            for column, column_content in table_content['columns'].items():
-                # Set the "values" into csv dictionary in order of column "number"
-                csv[table_content['filename']][column_content['number']] = column_content['values']
-    except KeyError as e:
-        print("Error: Getting CSV from JSON - No paleoData key")
-        logger_jsons.debug("get_csv_from_json: KeyError: paleoData key not found, {}".format(e))
+    csv_data = {}
+
+    if "paleoData" in d:
+        csv_data = _get_csv_from_section(d, "paleoData", csv_data)
+
+    if "chronData" in d:
+        csv_data = _get_csv_from_section(d, "chronData", csv_data)
+
     logger_jsons.info("exit get_csv_from_json")
-    return csv
+    return csv_data
+
+
+def _get_csv_from_section(d, pc, csv_data):
+    """
+    Get csv from paleo and chron sections
+    :param dict d: Metadata
+    :param str pc: Paleo or chron
+    :return dict: running csv data
+    """
+    logger_jsons.info("enter get_csv_from_section: {}".format(pc))
+
+    for table, table_content in d[pc].items():
+        # Create entry for this table/CSV file (i.e. Asia-1.measTable.PaleoData.csv)
+        # Note: Each table has a respective CSV file.
+        csv_data[table_content['filename']] = {}
+        for column, column_content in table_content['columns'].items():
+            # Set the "values" into csv dictionary in order of column "number"
+            csv_data[table_content['filename']][column_content['number']] = column_content['values']
+
+    logger_jsons.info("exit get_csv_from_section: {}".format(pc))
+    return csv_data
 
 
 def remove_csv_from_json(d):
@@ -346,22 +282,38 @@ def remove_csv_from_json(d):
     :param dict d: JSON data - old structure
     :return dict: Metadata dictionary without CSV values
     """
-    # TODO Update to work with chronology?
-    # Loop through each table in paleoData
     logger_jsons.info("enter remove_csv_from_json")
-    try:
-        for table, table_content in d['paleoData'].items():
-            for column, column_content in table_content['columns'].items():
-                try:
-                    # try to delete the values key entry
-                    del column_content['values']
-                except KeyError as e:
-                    # if the key doesn't exist, keep going
-                    logger_jsons.debug("remove_csv_from_json: KeyError: {}".format(e))
-    except KeyError as e:
-        print("Error: Failed to remove csv from json")
-        logger_jsons.debug("remove_csv_from_json: KeyError: paleoData key not found: {}".format(e))
+
+    # Check both sections
+    if "paleoData" in d:
+        d = _remove_csv_from_section(d, "paleoData")
+
+    if "chronData" in d:
+        d = _remove_csv_from_section(d, "chronData")
+
     logger_jsons.info("exit remove_csv_from_json")
+    return d
+
+
+def _remove_csv_from_section(d, pc):
+    """
+    Remove CSV from metadata in this section
+    :param dict d: Metadata
+    :param str pc: Paleo or chron
+    :return dict: Modified metadata
+    """
+    logger_jsons.info("enter remove_csv_from_json: {}".format(pc))
+
+    for table, table_content in d[pc].items():
+        for column, column_content in table_content['columns'].items():
+            try:
+                # try to delete the values key entry
+                del column_content['values']
+            except KeyError as e:
+                # if the key doesn't exist, keep going
+                logger_jsons.debug("remove_csv_from_json: KeyError: {}, {}".format(pc, e))
+
+    logger_jsons.info("exit remove_csv_from_json: {}".format(pc))
     return d
 
 
