@@ -106,7 +106,7 @@ def _import_data(section_data, pc):
     :param str pc: Paleo or Chron
     :return dict: Modified paleoData
     """
-    logger_jsons.info("enter import_data_{}".format(pc))
+    logger_jsons.info("enter import_data: {}".format(pc))
     d = {}
     idx = 1
     try:
@@ -136,8 +136,8 @@ def _import_data(section_data, pc):
 
     except AttributeError:
         # paleoData is not a list like it should be.
-        logger_jsons.info("import_data_{}: AttributeError: paleoData: expected list type, given {}".format(pc, type(section_data)))
-    logger_jsons.info("exit import_data_".format(pc))
+        logger_jsons.info("import_data: {},  AttributeError: expected list type, given {}".format(pc, type(section_data)))
+    logger_jsons.info("exit import_data: {}".format(pc))
     return d
 
 
@@ -164,7 +164,7 @@ def _import_model(models, pc):
             if "ensembleTable" in model:
                 model["ensembleTable"]["columns"] = _idx_col_by_name(model["ensembleTable"]["columns"])
 
-            # Iter over each calibrated age table
+            # Iter over each distribution. Check for calibrated ages (old) just in case
             if "calibratedAges" in model:
                 model["distributionTable"] = _import_dist(model, "calibratedAges")
                 model.pop("calibratedAges")
@@ -184,7 +184,7 @@ def _import_meas(tables, pc):
     :param dict tables: Measurement table data
     :return dict:
     """
-    logger_jsons.info("enter import_meas_{}".format(pc))
+    logger_jsons.info("enter import_meas: {}".format(pc))
     table_new = {}
 
     for table in tables:
@@ -196,7 +196,7 @@ def _import_meas(tables, pc):
 
         # Enter the named table in the output dictionary
         table_new[name_table] = table
-    logger_jsons.info("exit import_meas_{}".format(pc))
+    logger_jsons.info("exit import_meas: {}".format(pc))
     return table_new
 
 
@@ -326,87 +326,63 @@ def idx_name_to_num(d):
     logger_jsons.info("enter idx_name_to_num")
 
     # Process the paleoData section
-    try:
-        d["paleoData"] = _export_paleo_data(d["paleoData"])
-    except KeyError:
-        logger_jsons.warn("idx_name_to_num: KeyError: missing paleoData key")
+    if "paleoData" in d:
+        d["paleoData"] = _export_idx_data(d["paleoData"], "paleo")
 
     # Process the chronData section
-    try:
-        d["chronData"] = _export_chron_data(d["chronData"])
-    except KeyError:
-        logger_jsons.info("idx_name_to_num: KeyError: missing chronData key")
+    if "chronData" in d:
+        d["chronData"] = _export_idx_data(d["chronData"], "chron")
 
     logger_jsons.info("exit idx_name_to_num")
     return d
 
 
-def _export_paleo_data(paleo_data):
-    """
-    Switch paleo data to index-by-number
-    :param dict paleo_data: Name and table data
-    :return list: List of table data
-    """
-    logger_jsons.info("enter export_paleo_data")
-    l = []
-    try:
-        for name, table in paleo_data.items():
-            try:
-                # todo make sure this is actually replacing columns key
-                # Switch columns to index-by-number
-                table["columns"] = _idx_col_by_num(table["columns"])
-                # Add table data to output list. Drop key
-                l.append(table)
-            except KeyError:
-                logger_jsons.warn("export_paleo_data: KeyError: missing columns key")
-
-    except AttributeError:
-        logger_jsons.debug("export_paleo_data: AttributeError: expected type dict, given type {}".format(type(paleo_data)))
-    logger_jsons.info("exit export_paleo_data")
-    return l
-
-
-def _export_chron_data(chron_data):
+def _export_idx_data(section_data, pc):
     """
     Switch chron data to index-by-number
-    :param dict chron_data: ChronData
-    :return list: ChronData tables
+    :param dict section_data: Metadata
+    :return list: Metadata
     """
-    logger_jsons.info("enter export_chron_data")
+    logger_jsons.info("enter export_data: {}".format(pc))
     l = []
 
-    # For each chron in chronData,
-    for name, table in chron_data.items():
+    for name, table in section_data.items():
 
         # Process chron models
-        try:
-            table["chronModel"] = _export_chron_model(table["chronModel"])
-        except KeyError:
-            # chron model key is optional. No need to report.
-            pass
+        if "{}Model".format(pc) in table:
+            table["{}Model".format(pc)] = _export_model(table["{}Model".format(pc)], pc)
 
         # Process the chron measurement table
-        try:
-            table["chronMeasurementTable"] = _idx_table_by_num(table["chronMeasurementTable"])
-        except KeyError:
-            logger_jsons.warn("export_chron_data: KeyError: missing chronMeasurementTable key")
+        if "{}MeasurementTable".format(pc) in table:
+            table["{}nMeasurementTable".format(pc)] = _idx_table_by_num(table["{}MeasurementTable".format(pc)])
 
         # Add only the table to the output list
         l.append(table)
 
-    logger_jsons.info("exit export_chron_data")
+    logger_jsons.info("exit export_data: {}".format(pc))
     return l
 
 
-def _export_chron_model(chron_model):
+def _export_model(models, pc):
     """
     Switch chron model to index-by-number
-    :param list chron_model: Chron model
-    :return list: modified chron model
+    :param list models: Metadata
+    :return list: modified model
     """
-    logger_jsons.info("enter export_chron_model")
+    logger_jsons.info("enter export_model: {}".format(pc))
     try:
-        for model in chron_model:
+        for model in models:
+
+            if "summaryTable" in model:
+                model["summaryTable"] = _idx_table_by_num(model["summaryTable"])
+
+            if "{}ModelTable".format(pc) in model:
+                model["summaryTable"] = _idx_table_by_num(model["{}ModelTable".format(pc)])
+                model.pop("{}ModelTable".format(pc))
+
+            # Process ensemble table (special two columns)
+            if "ensembleTable" in model:
+                model["ensembleTable"] = _idx_table_by_num(model["ensembleTable"])
 
             # Process calibrated ages (nested tables)
             if "calibratedAges" in model:
@@ -418,22 +394,28 @@ def _export_chron_model(chron_model):
                         # Append it to the growing calibrated age list of tables
                         ca.append(tmp)
                     except KeyError:
-                        logger_jsons.debug("export_chron_model: KeyError: missing columns key")
+                        logger_jsons.debug("export_model: {},  KeyError: missing columns key".format(pc))
 
                 # Insert the newly built list in-place over the dictionary
-                model["calibratedAges"] = ca
+                model["distributionTable"] = ca
+                model.pop("calibratedAges")
+            elif "distributionTable" in model:
+                dt = []
+                for name, table in model["distributionTable"].items():
+                    try:
+                        # Get the modified table data
+                        tmp = _idx_table_by_num(table)
+                        # Append it to the growing calibrated age list of tables
+                        dt.append(tmp)
+                    except KeyError:
+                        logger_jsons.debug("export_model: {}, KeyError: missing columns key".format(pc))
 
-            # Process ensemble table (special two columns)
-            if "ensembleTable" in model:
-                model["ensembleTable"] = _idx_table_by_num(model["ensembleTable"])
-
-            # Process chronModelTable (normal)
-            if "chronModelTable" in model:
-                model["chronModelTable"] = _idx_table_by_num(model["chronModelTable"])
+                # Insert the newly built list in-place over the dictionary
+                model["distributionTable"] = dt
 
     except AttributeError:
-        logger_jsons.debug("export_chron_model: AttributeError: expected list type, received {} type".format(type(chron_model)))
-    logger_jsons.info("exit export_chron_model")
+        logger_jsons.debug("export_model: {}, AttributeError: expected list type, received {} type".format(pc, type(chron_model)))
+    logger_jsons.info("exit export_model: {}".format(pc))
     return chron_model
 
 
