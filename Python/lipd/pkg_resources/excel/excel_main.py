@@ -1092,11 +1092,16 @@ def name_to_jsonld(title_in):
         title_in = title_in.lower()
         title_out = EXCEL_KEYS[title_in]
     except (KeyError, AttributeError) as e:
+        if "(" in title_in:
+            title_in = title_in.split("(")[0].strip()
+        # try to find an exact match first.
         for k, v in EXCEL_KEYS.items():
             if title_in == k:
-                title_out = v
-            elif k in title_in:
-                title_out = v
+                return v
+        # if no exact match, find whatever is a closest match
+        for k, v in EXCEL_KEYS.items():
+            if k in title_in:
+                return v
     if not title_out:
         logger_excel.debug("name_to_jsonld: No match found: {}".format(title_in))
     return title_out
