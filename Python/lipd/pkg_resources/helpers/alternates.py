@@ -219,6 +219,8 @@ NOAA_DOI_KEYS = [
 
 # Excel metadata keys. Left side: Excel keys, Right Side: LiPD keys
 EXCEL_KEYS = {
+    "archive type": "archiveType",
+    "dataset name": "dataSetName",
     "metadata": "metadata",
     "chronology": "chronology",
     "data (qc)": "dataQC",
