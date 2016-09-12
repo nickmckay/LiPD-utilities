@@ -11,18 +11,18 @@ logger_tslint = create_logger("ts_lint")
 # VALIDATING AND UPDATING TSNAMES
 
 
-def update_tsnames(metadata):
+def update_ts_names(metadata):
     """
     Updates the TS names for a given metadata dictionary
     :param dict metadata: Metadata dictionary
     :return dict: Updated metadata dictionary
     """
-    full, quick = _fetch_tsnames()
-    metadata = _verify_tsnames(full, quick, metadata)
+    full, quick = _fetch_ts_names()
+    metadata = _verify_ts_names(full, quick, metadata)
     return metadata
 
 
-def _fetch_tsnames():
+def _fetch_ts_names():
     """
     Call down a current version of the TSNames spreadsheet from google. Convert to a structure better
     for comparisons.
@@ -73,7 +73,7 @@ def _fetch_tsnames():
     return full, quick_list
 
 
-def _verify_tsnames(full, quick_list, d):
+def _verify_ts_names(full, quick_list, d):
     """
     Verify TSNames are current and valid. Compare to TSNames spreadsheet in Google Drive. Update where necessary.
     :param dict full: Complete TSName dictionary. Keys: Valid TSName, Values: Synonyms
@@ -94,7 +94,7 @@ def _verify_tsnames(full, quick_list, d):
     # Start to find replacements for empty entries in "limbo"
     for invalid in bad_keys:
         # Set incorrect name as key, and valid name as value.
-        limbo[invalid] = _get_valid_tsname(full, invalid)
+        limbo[invalid] = _get_valid_ts_name(full, invalid)
 
     # Use limbo to start replacing entries in d
     for invalid, valid in limbo.items():
@@ -107,7 +107,7 @@ def _verify_tsnames(full, quick_list, d):
     return d
 
 
-def _get_valid_tsname(full, invalid):
+def _get_valid_ts_name(full, invalid):
     """
     Turn a bad tsname into a valid one.
     * Note: Index[0] for each TSName is the most current, valid entry. Index[1:] are synonyms

@@ -5,7 +5,7 @@ from ..helpers.csvs import *
 from ..helpers.jsons import *
 from ..helpers.lipd_lint import *
 from ..helpers.loggers import create_logger
-from ..helpers.PDSlib import *
+from ..helpers.dataframes import *
 
 
 logger_lipd = create_logger('LiPD')

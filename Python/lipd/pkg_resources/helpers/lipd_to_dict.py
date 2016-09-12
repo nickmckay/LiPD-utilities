@@ -8,6 +8,12 @@ import copy
 # Demjson required. "pip install demjson"
 import demjson
 
+"""
+LiPD to Python Dictionary
+This is not a necessary LiPD package module. This was a special request strictly for getting LiPD data into a python
+dictionary without anything else.
+"""
+
 
 def main(name_ext):
     """

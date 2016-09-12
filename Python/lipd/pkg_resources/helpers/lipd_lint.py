@@ -72,7 +72,7 @@ def _fetch_lipdnames():
                             full[section].append(line + permutations)
 
     except FileNotFoundError as e:
-        print("CSV FileNotFound: lipdnames.csv")
+        print("Error: LiPD lint file not found: lipdnames.csv")
         logger_lipd_lint.debug("fetch_lipdnames: FileNotFound: lipdnames.csv, {}".format(e))
     logger_lipd_lint.info("exit fetch_lipdnames")
     return full, sections

@@ -1,50 +1,9 @@
-import operator
-
 from .regexes import re_filter_expr
 from .alternates import COMPARISONS
 from .loggers import create_logger
+from .misc import match_operators, cast_value
 
 logger_ts = create_logger("ts")
-
-
-def get_truth(inp, relate, cut):
-    """
-    Compare two items. Match a string operator to an operator function
-    :param str inp: Comparison item
-    :param str relate: Comparison operator
-    :param any cut: Comparison item
-    :return bool: Comparison truth
-    """
-    logger_ts.info("enter get_truth")
-    ops = {'>': operator.gt,
-           '<': operator.lt,
-           '>=': operator.ge,
-           '<=': operator.le,
-           '=': operator.eq
-           }
-    try:
-        truth = ops[relate](inp, cut)
-    except KeyError as e:
-        truth = False
-        logger_ts.warn("get_truth: KeyError: Invalid operator input: {}, {}".format(relate, e))
-    logger_ts.info("exit get_truth")
-    return truth
-
-
-def parse_str(string):
-    """
-    Attempt to cleanup string or convert to number value.
-    :param str string:
-    :return float or str:
-    """
-    try:
-        string = float(string)
-    except ValueError:
-        try:
-            string = string.rstrip()
-        except AttributeError as e:
-            logger_ts.warn("parse_str: AttributeError: String not number or word, {}, {}".format(string, e))
-    return string
 
 
 def translate_expression(expression):
@@ -59,10 +18,10 @@ def translate_expression(expression):
         for i in m:
             logger_ts.info("parse match: {}".format(i))
             tmp = list(i[1:])
-            if tmp[1] in comparisons:
-                tmp[1] = comparisons[tmp[1]]
-            tmp[0] = parse_str(tmp[0])
-            tmp[2] = parse_str(tmp[2])
+            if tmp[1] in COMPARISONS:
+                tmp[1] = COMPARISONS[tmp[1]]
+            tmp[0] = cast_value(tmp[0])
+            tmp[2] = cast_value(tmp[2])
             matches.append(tmp)
     else:
         logger_ts.warn("translate_expression: invalid expression: {}".format(expression))
@@ -91,7 +50,7 @@ def get_matches(expr_lst, ts):
                         # "IN" operator can't be used in get_truth. Handle first.
                         if expr[2] in val:
                             match = True
-                    elif get_truth(val, expr[1], expr[2]):
+                    elif match_operators(val, expr[1], expr[2]):
                         # If it's a typical operator, check with the truth test.
                         match = True
                     else:
@@ -113,7 +72,7 @@ def get_matches(expr_lst, ts):
     return names
 
 
-def extractTimeSeries(lipd_library, timeseries_library, convert):
+def extract_time_series(lipd_library, timeseries_library, convert):
     """
     Create a TimeSeries using the current files in LiPD_Library.
     :return obj: TimeSeries_Library
@@ -124,7 +83,7 @@ def extractTimeSeries(lipd_library, timeseries_library, convert):
         timeseries_library.loadTsos(v.get_name_ext(), convert.ts_extract_main(v.get_master()))
 
 
-def exportTimeSeries(lipd_library, timeseries_library, convert):
+def export_time_series(lipd_library, timeseries_library, convert):
     """
     Export TimeSeries back to LiPD Library. Updates information in LiPD objects.
     """

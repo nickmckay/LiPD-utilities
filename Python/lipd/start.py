@@ -6,10 +6,11 @@ from .pkg_resources.excel.excel_main import excel
 from .pkg_resources.noaa.noaa_main import noaa
 from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
-from .pkg_resources.helpers.PDSlib import *
+from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import set_source
 from .pkg_resources.helpers.loggers import create_logger
 
+# LOAD
 
 def setDir():
     """
@@ -47,7 +48,7 @@ def loadLipds():
 # ANALYSIS - LIPD
 
 
-def filter_dfs(expr):
+def filterDfs(expr):
     """
     Get data frames based on some criteria. i.e. all measurement tables or all ensembles.
     :param str expr: Search expression. (i.e. "paleo measurement tables")
@@ -59,12 +60,12 @@ def filter_dfs(expr):
         return dfs
 
     except Exception:
-        logger_pdslib.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
+        logger_dataframes.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
         print("Unable to filter data frames")
         print("Process Complete")
 
 
-def lipd_to_df(filename):
+def lipdToDf(filename):
     """
     Get lipd data frames from lipd object
     :param str filename:
@@ -80,7 +81,7 @@ def lipd_to_df(filename):
     return dfs
 
 
-def ts_to_df(ts, filename):
+def tsToDf(ts, filename):
     """
     Create Pandas DataFrame from TimeSeries object.
     Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
@@ -90,7 +91,7 @@ def ts_to_df(ts, filename):
     """
     dfs = {}
     try:
-        dfs = ts_to_dfs(ts[filename])
+        dfs = ts_to_df(ts[filename])
     except KeyError as e:
         print("Error: LiPD file not found")
         logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
@@ -98,74 +99,34 @@ def ts_to_df(ts, filename):
     return dfs
 
 
-def showCsv(filename):
+# ANALYSIS - ENSEMBLE
+
+
+def addEnsemble(filename , ensemble):
     """
-    Show CSV data for one LiPD
-    :param str filename:
-    :return None:
+    Add ensemble data to LiPD object
+    :param str filename: LiPD dataset name
+    :param list ensemble: Ensemble data
+    :return none:
     """
-    lipd_lib.showCsv(filename)
-    print("Process Complete")
+    add_ensemble(filename, ensemble)
     return
 
 
-def showMetadata(filename):
+def ensToDf(ensemble):
     """
-    Display the contents of the specified LiPD file. (Must be previously loaded into the workspace)
-    (ex. displayLiPD NAm-ak000.lpd)
-    :param str filename: LiPD filename
+    Create an ensemble data frame from some given nested numpy arrays
+    :param list ensemble: Ensemble data
+    :return obj: DataFrame
     """
-    lipd_lib.showMetadata(filename)
-    print("Process Complete")
-    return
-
-
-def showLipds():
-    """
-    Prints the names of all LiPD files in the LiPD_Library
-    :return None:
-    """
-    lipd_lib.showLipds()
-    print("Process Complete")
-    return
-
-
-def getMetadata(filename):
-    """
-    Get metadata from LiPD file
-    :param str filename: LiPD filename
-    :return dict d: Metadata dictionary
-    """
-    d = {}
-    try:
-        d = lipd_lib.getMetadata(filename)
-    except KeyError:
-        print("Error: Unable to find LiPD file")
-        logger_start.warn("KeyError: Unable to find record {}".format(filename))
-    print("Process Complete")
-    return d
-
-
-def getCsv(filename):
-    """
-    Get CSV from LiPD file
-    :param str filename: LiPD filename
-    :return dict d: CSV dictionary
-    """
-    d = {}
-    try:
-        d = lipd_lib.getCsv(filename)
-    except KeyError:
-        print("Error: Unable to find record")
-        logger_start.warn("Unable to find record {}".format(filename))
-    print("Process Complete")
-    return d
+    df = create_dataframe(ensemble)
+    return df
 
 
 # ANALYSIS - TIME SERIES
 
 
-def extractTimeSeries():
+def extractTs():
     """
     Create a TimeSeries using the current files in LiPD_Library.
     :return obj: TimeSeries_Library
@@ -184,7 +145,7 @@ def extractTimeSeries():
     return d
 
 
-def collapseTimeSeries():
+def collapseTs():
     """
     Export TimeSeries back to LiPD Library. Updates information in LiPD objects.
     """
@@ -198,6 +159,108 @@ def collapseTimeSeries():
     except Exception:
         print("ERROR: Converting TSOs to LiPD")
         logger_start.debug("exportTimeSeries() failed")
+    print("Process Complete")
+    return
+
+
+def find(expression, ts):
+    """
+    Find the names of the TimeSeries that match some criteria (expression)
+    :return:
+    """
+    names = []
+    filtered_ts = {}
+    expr_lst = translate_expression(expression)
+    if expr_lst:
+        names = get_matches(expr_lst, ts)
+        filtered_ts = createTs(names, ts)
+    print("Process Complete")
+    return names, filtered_ts
+
+
+def checkTs(parameter, names, ts):
+    """
+    What is this function for?
+    :param parameter:
+    :param names:
+    :param ts:
+    :return:
+    """
+    for i in names:
+        try:
+            print(ts[i][parameter])
+        except KeyError:
+            print("Error: TimeSeries object not found")
+    return
+
+
+def createTs(names, ts):
+    """
+    Create a new TS dictionary using
+    index = find(logical expression)
+    newTS = TS(index)
+    :param str expression:
+    :return dict:
+    """
+    d = {}
+    for name in names:
+        try:
+            d[name] = ts[name]
+        except KeyError as e:
+            logger_start.warn("TS: KeyError: {} not in timeseries, {}".format(name, e))
+    return d
+
+
+def getNumpy(ts):
+    """
+    Get all values from a TimeSeries
+    :param dict ts: Time Series
+    :return list of lists:
+    """
+    tmp = []
+    try:
+        for k,v in ts.items():
+            try:
+                tmp.append(v['paleoData_values'])
+            except KeyError:
+                pass
+    except AttributeError as e:
+        print("Error: Invalid TimeSeries")
+    print("Process Complete")
+    return tmp
+
+
+# SHOW
+
+
+def showLipds():
+    """
+    Prints the names of all LiPD files in the LiPD_Library
+    :return None:
+    """
+    lipd_lib.showLipds()
+    print("Process Complete")
+    return
+
+
+def showMetadata(filename):
+    """
+    Display the contents of the specified LiPD file. (Must be previously loaded into the workspace)
+    (ex. displayLiPD NAm-ak000.lpd)
+    :param str filename: LiPD filename
+    """
+    lipd_lib.showMetadata(filename)
+    print("Process Complete")
+    return
+
+
+def showCsv(filename):
+    """
+    Show CSV data for one LiPD
+    :param str filename:
+    :return None:
+    """
+    lipd_lib.showCsv(filename)
     print("Process Complete")
     return
 
@@ -255,66 +318,42 @@ def showDfs(dict_in):
     return
 
 
-def find(expression, ts):
+# GET
+
+
+def getMetadata(filename):
     """
-    Find the names of the TimeSeries that match some criteria (expression)
-    :return:
-    """
-    names = []
-    filtered_ts = {}
-    expr_lst = translate_expression(expression)
-    if expr_lst:
-        names = get_matches(expr_lst, ts)
-        filtered_ts = TS(names, ts)
-    print("Process Complete")
-    return names, filtered_ts
-
-
-def check_ts(parameter, names, ts):
-    for i in names:
-        try:
-            print(ts[i][parameter])
-        except KeyError:
-            print("Error: TimeSeries object not found")
-    return
-
-
-def TS(names, ts):
-    """
-    Create a new TS dictionary using
-    index = find(logical expression)
-    newTS = TS(index)
-    :param str expression:
-    :return dict:
+    Get metadata from LiPD file
+    :param str filename: LiPD filename
+    :return dict d: Metadata dictionary
     """
     d = {}
-    for name in names:
-        try:
-            d[name] = ts[name]
-        except KeyError as e:
-            logger_start.warn("TS: KeyError: {} not in timeseries, {}".format(name, e))
+    try:
+        d = lipd_lib.getMetadata(filename)
+    except KeyError:
+        print("Error: Unable to find LiPD file")
+        logger_start.warn("KeyError: Unable to find record {}".format(filename))
+    print("Process Complete")
     return d
 
 
-def get_numpy(ts):
+def getCsv(filename):
     """
-    Get all values from a TimeSeries
-    :param dict ts: Time Series
-    :return list of lists:
+    Get CSV from LiPD file
+    :param str filename: LiPD filename
+    :return dict d: CSV dictionary
     """
-    tmp = []
+    d = {}
     try:
-        for k,v in ts.items():
-            try:
-                tmp.append(v['paleoData_values'])
-            except KeyError:
-                pass
-    except AttributeError as e:
-        print("Error: Invalid TimeSeries")
+        d = lipd_lib.getCsv(filename)
+    except KeyError:
+        print("Error: Unable to find record")
+        logger_start.warn("Unable to find record {}".format(filename))
     print("Process Complete")
-    return tmp
+    return d
 
-# CLOSING
+
+# SAVE
 
 
 def saveLipd(filename):

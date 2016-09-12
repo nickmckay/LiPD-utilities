@@ -12,7 +12,7 @@ from .loggers import create_logger
 logger_directory = create_logger('directory')
 
 
-def file_from_path(path):
+def filename_from_path(path):
     """
     Extract the file name from a given file path.
     :param str path: File path

@@ -16,6 +16,7 @@ def create_bag(dir_bag):
         logger_bagit.info("created bag")
         return bag
     except Exception as e:
+        print("Error: failed to create bagit bag")
         logger_bagit.debug("failed to create bag, {}".format(e))
     return None
 
@@ -32,6 +33,7 @@ def open_bag(dir_bag):
         logger_bagit.info("opened bag")
         return bag
     except Exception as e:
+        print("Error: failed to open bagit bag")
         logger_bagit.debug("failed to open bag, {}".format(e))
     return None
 

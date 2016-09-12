@@ -1,12 +1,13 @@
 import zipfile
 import shutil
+import os
 
 from .loggers import create_logger
 
 logger_zips = create_logger("zips")
 
 
-def re_zip(dir_tmp, name, name_ext):
+def zipper(dir_tmp, name, name_ext):
     """
     Zips up directory back to the original location
     :param str dir_tmp: Path to tmp directory
@@ -14,11 +15,14 @@ def re_zip(dir_tmp, name, name_ext):
     :param str name_ext: Name of current file with '.lpd' extension
     """
     logger_zips.info("re_zip: name: {}, dir_tmp: {}".format(name_ext, dir_tmp))
+    # creates a zip archive in current directory. "somefile.lpd.zip"
     shutil.make_archive(name_ext, format='zip', root_dir=dir_tmp, base_dir=name)
+    # drop the .zip extension. only keep .lpd
+    os.rename("{}.zip".format(name_ext), name_ext)
     return
 
 
-def unzip(name_ext, dir_tmp):
+def unzipper(name_ext, dir_tmp):
     """
     Unzip .lpd file contents to tmp directory.
     :param str name_ext: Name of lpd file with extension

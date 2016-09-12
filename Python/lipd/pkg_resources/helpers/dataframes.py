@@ -1,12 +1,13 @@
 import collections
 
 import pandas as pd
+import numpy as np
 
 from ..helpers.regexes import *
 from ..helpers.loggers import *
 from ..helpers.alternates import DATA_FRAMES
 
-logger_pdslib = create_logger("PDSlib")
+logger_dataframes = create_logger("PDSlib")
 
 
 def _dotnotation_for_nested_dictionary(d, key, dots):
@@ -32,7 +33,104 @@ def _dotnotation_for_nested_dictionary(d, key, dots):
     return dots
 
 
-def lipd_to_dfs(metadata, csvs):
+def create_dataframe(ensemble):
+    """
+    Create a data frame from given nested lists of ensemble data
+    :param list ensemble: Ensemble data
+    :return obj: Dataframe
+    """
+    logger_dataframes.info("enter ens_to_df")
+    # "Flatten" the nested lists. Bring all nested lists up to top-level. Output looks like [ [1,2], [1,2], ... ]
+    ll = _unwrap_arrays(ensemble, True)
+    # Check that list lengths are all equal
+    valid = _match_arr_lengths(ll)
+    if valid:
+        # Lists are equal lengths, create the dataframe
+        df = pd.DataFrame(ll)
+    else:
+        # Lists are unequal. Print error and return nothing.
+        df = "empty"
+        print("Error: Numpy Array lengths do not match. Cannot create data frame")
+    logger_dataframes.info("exit ens_to_df")
+    return df
+
+
+def _match_arr_lengths(l):
+    """
+    Check that all the array lengths match so that a DataFrame can be created successfully.
+    :param list l: Nested arrays
+    :return bool: Valid or invalid
+    """
+    try:
+        # length of first list. use as basis to check other list lengths against.
+        inner_len = len(l[0])
+        # check each nested list
+        for i in l:
+            # if the length doesn't match the first list, then don't proceed.
+            if len(i) != inner_len:
+                return False
+    except IndexError:
+        # couldn't get index 0. Wrong data type given or not nested lists
+        print("Error: Array data is not formatted correctly.")
+        return False
+    except TypeError:
+        # Non-iterable data type given.
+        print("Error: Array data missing")
+        return False
+    # all array lengths are equal. made it through the whole list successfully
+    return True
+
+
+def _unwrap_arrays(l, root):
+    """
+    Unwrap nested lists to be one "flat" list of lists. Mainly for prepping ensemble data for DataFrame() creation
+    :param list ll: Nested lists
+    :return list: Flattened lists
+    """
+    # new "flat" list
+    l2 = []
+    # keep processing until all nesting is removed
+    process = True
+    # fail safe: cap the loops at 20, so we don't run into an error and loop infinitely.
+    # if it takes more than 20 loops then there is a problem with the data given.
+    loops = 20
+    while process and loops > 0:
+        try:
+            for k in l:
+                # all items in this list are numeric, so this list is done. append to main list
+                if all(isinstance(i, float) or isinstance(i, int) for i in k):
+                        l2.append(k)
+                # this list has more nested lists inside. append each individual nested list to the main one.
+                elif all(isinstance(i, list) or isinstance(i, np.ndarray) for i in k):
+                    for i in k:
+                        l2.append(i)
+        except Exception:
+            print("something went wrong during process")
+        # verify the main list
+        for k in l2:
+            try:
+                # if every list has a numeric at index 0, then there is no more nesting and we can stop processing
+                if isinstance(k[0], (int,str,float)):
+                    process = False
+            except IndexError:
+                # there's no index 0, so there must be mixed data types or empty data somewhere.
+                print("something went wrong during verify")
+        loops -= 1
+    return l2
+
+
+def add_ensemble(filename, ensemble):
+    """
+    Add ensemble data to a LiPD object
+    :param filename: LiPD object dataset name
+    :param ensemble: Ensemble data
+    :return none:
+    """
+
+    return
+
+
+def lipd_to_df(metadata, csvs):
     """
     Create an organized collection of data frames from LiPD data
     :param dict metadata: LiPD data
@@ -40,11 +138,11 @@ def lipd_to_dfs(metadata, csvs):
     :return dict: One data frame per table, organized in a dictionary by name
     """
     dfs = {}
-    logger_pdslib.info("enter lipd_to_df")
+    logger_dataframes.info("enter lipd_to_df")
 
     # Flatten the dictionary, but ignore the chron data items
     dict_in_dotted = {}
-    logger_pdslib.info("enter dot_notation")
+    logger_dataframes.info("enter dot_notation")
     _dotnotation_for_nested_dictionary(metadata, '', dict_in_dotted)
     dict_in_dotted = collections.OrderedDict(sorted(dict_in_dotted.items()))
 
@@ -57,13 +155,13 @@ def lipd_to_dfs(metadata, csvs):
     return dfs
 
 
-def ts_to_dfs(metadata):
+def ts_to_df(metadata):
     """
     Create a data frame from one TimeSeries object
     :param dict metadata: Time Series dictionary
     :return dict: One data frame per table, organized in a dictionary by name
     """
-    logger_pdslib.info("enter ts_to_df")
+    logger_dataframes.info("enter ts_to_df")
     dfs = {}
 
     # Plot the variable + values vs year, age, depth (whichever are available)
@@ -81,7 +179,7 @@ def ts_to_dfs(metadata):
     # Put key-vars in a data frame to make it easier to visualize
     dfs["metadata"] = pd.DataFrame(list(s.items()), columns=['Key', 'Value'])
 
-    logger_pdslib.info("exit ts_to_df")
+    logger_dataframes.info("exit ts_to_df")
     return dfs
 
 
@@ -91,7 +189,7 @@ def _plot_ts_cols(ts):
     :param dict ts: TimeSeries dictionary
     :return dict: Key: variableName, Value: Panda Series object
     """
-    logger_pdslib.info("enter get_ts_cols()")
+    logger_dataframes.info("enter get_ts_cols()")
     d = {}
 
     # Not entirely necessary, but this will make the column headers look nicer for the data frame
@@ -100,11 +198,11 @@ def _plot_ts_cols(ts):
         units = " (" + ts["paleoData_units"] + ")"
     except KeyError as e:
         units = ""
-        logger_pdslib.warn("get_ts_cols: KeyError: paleoData_units not found, {}".format(e))
+        logger_dataframes.warn("get_ts_cols: KeyError: paleoData_units not found, {}".format(e))
     try:
         d[ts["paleoData_variableName"] + units] = ts["paleoData_values"]
     except KeyError as e:
-        logger_pdslib.warn("get_ts_cols: KeyError: variableName or values not found, {}".format(e))
+        logger_dataframes.warn("get_ts_cols: KeyError: variableName or values not found, {}".format(e))
 
     # Start looking for age, year, depth columns
     for k, v in ts.items():
@@ -113,8 +211,8 @@ def _plot_ts_cols(ts):
                 units = " (" + ts[k + "Units"] + ")"
                 d[k + units] = v
             except KeyError as e:
-                logger_pdslib.warn("get_ts_cols: KeyError: Special column units, {}, {}".format(k, e))
-    logger_pdslib.info("exit get_ts_cols: found {}".format(len(d)))
+                logger_dataframes.warn("get_ts_cols: KeyError: Special column units, {}, {}".format(k, e))
+    logger_dataframes.info("exit get_ts_cols: found {}".format(len(d)))
     return d
 
 
@@ -125,7 +223,7 @@ def _get_dfs(csvs):
     :param dict csvs: LiPD metadata dictionary
     :return dict: paleo data data frames
     """
-    logger_pdslib.info("enter get_lipd_cols")
+    logger_dataframes.info("enter get_lipd_cols")
     # placeholders for the incoming data frames
     dfs = {"chronData": {}, "paleoData": {}}
     try:
@@ -138,9 +236,9 @@ def _get_dfs(csvs):
             elif "paleo" in filename.lower():
                 dfs["paleoData"][filename] = pd.DataFrame(tmp)
     except KeyError:
-        logger_pdslib.warn("get_lipd_cols: AttributeError: expected type dict, given type {}".format(type(csvs)))
+        logger_dataframes.warn("get_lipd_cols: AttributeError: expected type dict, given type {}".format(type(csvs)))
 
-    logger_pdslib.info("exit get_lipd_cols")
+    logger_dataframes.info("exit get_lipd_cols")
     return dfs
 
 
@@ -153,7 +251,7 @@ def _get_key_data(d, key):
     try:
         d2 = d[key]
     except KeyError:
-        logger_pdslib.info("get_key_data: KeyError: {}".format(key))
+        logger_dataframes.info("get_key_data: KeyError: {}".format(key))
     return d2
 
 
@@ -162,7 +260,7 @@ def get_filtered_dfs(lib, expr):
     Main: Get all data frames that match the given expression
     :return dict: Filenames and data frames (filtered)
     """
-    logger_pdslib.info("enter get_filtered_dfs")
+    logger_dataframes.info("enter get_filtered_dfs")
 
     dfs = {}
     tt = None
@@ -210,7 +308,7 @@ def get_filtered_dfs(lib, expr):
                     # Update our output data frames dictionary
                     dfs.update(_match_filenames_w_dfs(filenames, lo_dfs))
 
-    logger_pdslib.info("exit get_filtered_dfs")
+    logger_dataframes.info("exit get_filtered_dfs")
     return dfs
 
 
@@ -222,7 +320,7 @@ def _match_dfs_expr(lo_meta, expr, tt):
     :param str tt: Table type (chron or paleo)
     :return list: All filenames that match the expression
     """
-    logger_pdslib.info("enter match_dfs_expr")
+    logger_dataframes.info("enter match_dfs_expr")
     filenames = []
     s = "{}Data".format(tt)
 
@@ -238,7 +336,7 @@ def _match_dfs_expr(lo_meta, expr, tt):
                         filenames.append(f)
                 except KeyError:
                     # Not concerned if the key wasn't found.
-                    logger_pdslib.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "measurement"))
+                    logger_dataframes.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "measurement"))
 
         elif "ensemble" in expr:
             for k1, v1 in v["{}Model".format(tt)].items():
@@ -248,7 +346,7 @@ def _match_dfs_expr(lo_meta, expr, tt):
                         filenames.append(f)
                 except KeyError:
                     # Not concerned if the key wasn't found.
-                    logger_pdslib.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "ensemble"))
+                    logger_dataframes.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "ensemble"))
 
         elif "model" in expr:
             for k1, v1 in v["{}Model".format(tt)].items():
@@ -258,7 +356,7 @@ def _match_dfs_expr(lo_meta, expr, tt):
                         filenames.append(f)
                 except KeyError:
                     # Not concerned if the key wasn't found.
-                    logger_pdslib.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "model"))
+                    logger_dataframes.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "model"))
 
         elif "dist" in expr:
             for k1, v1 in v["{}Model".format(tt)].items():
@@ -269,10 +367,10 @@ def _match_dfs_expr(lo_meta, expr, tt):
                             filenames.append(f)
                     except KeyError:
                         # Not concerned if the key wasn't found.
-                        logger_pdslib.info(
+                        logger_dataframes.info(
                             "match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "dist"))
 
-    logger_pdslib.info("exit match_dfs_expr")
+    logger_dataframes.info("exit match_dfs_expr")
     return filenames
 
 
@@ -283,7 +381,7 @@ def _match_filenames_w_dfs(filenames, lo_dfs):
     :param dict lo_dfs: All data frames
     :return dict: Filenames and data frames (filtered)
     """
-    logger_pdslib.info("enter match_filenames_w_dfs")
+    logger_dataframes.info("enter match_filenames_w_dfs")
     dfs = {}
 
     for filename in filenames:
@@ -293,9 +391,9 @@ def _match_filenames_w_dfs(filenames, lo_dfs):
             elif filename in lo_dfs["paleoData"]:
                 dfs[filename] = lo_dfs["paleoData"][filename]
         except KeyError:
-            logger_pdslib.info("filter_dfs: KeyError: missing data frames keys")
+            logger_dataframes.info("filter_dfs: KeyError: missing data frames keys")
 
-    logger_pdslib.info("exit match_filenames_w_dfs")
+    logger_dataframes.info("exit match_filenames_w_dfs")
     return dfs
 
 

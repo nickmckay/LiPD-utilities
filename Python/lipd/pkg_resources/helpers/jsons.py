@@ -6,6 +6,7 @@ import demjson
 
 from .blanks import *
 from .loggers import *
+from .misc import *
 
 logger_jsons = create_logger("jsons")
 
@@ -31,8 +32,11 @@ def read_json_from_file(filename):
             d = demjson.decode_file(os.path.splitext(filename)[0] + '.json')
         except FileNotFoundError as e:
             # No json or jsonld file. Exit
-            print("Error: Reading json from file: {}".format(filename))
+            print("Error: jsonld file not found: {}".format(filename))
             logger_jsons.debug("read_json_from_file: FileNotFound: {}, {}".format(filename, e))
+        except Exception:
+            print("Error: unable to read jsonld file")
+
     if d:
         d = remove_empty_fields(d)
     logger_jsons.info("exit read_json_from_file")
@@ -48,7 +52,7 @@ def idx_num_to_name(d):
     logger_jsons.info("enter idx_num_to_name")
 
     # Take whatever lipd version this file is, and convert it to the most current lipd version
-    d = _update_lipd_version(d)
+    d = update_lipd_version(d)
 
     if "paleoData" in d:
         tmp_pd = _import_data(d["paleoData"], "paleo")
@@ -60,43 +64,6 @@ def idx_num_to_name(d):
 
     logger_jsons.info("exit idx_num_to_name")
     return d
-
-
-def _idx_table_by_name(d):
-    """
-    Switch a table of data from indexed-by-number into indexed-by-name using table names
-    :param dict d: Table data
-    :return dict: new idx-by-name table
-    """
-    try:
-        # Overwrite the columns entry with named columns
-        d["columns"] = _idx_col_by_name(d["columns"])
-    except AttributeError:
-        logger_jsons.info("idx_table_by_name: AttributeError: expected dictionary type, given {} type".format(type(d)))
-
-    return d
-
-
-def _idx_col_by_name(l):
-    """
-    Iter over columns list. Turn indexed-by-num list into an indexed-by-name dict. Keys are the variable names.
-    :param list l: Columns
-    :return dict: New column indexed-by-name
-    """
-    col_new = {}
-
-    # Iter for each column in the list
-    try:
-        for col in l:
-            try:
-                col_name = col["variableName"]
-                col_new[col_name] = col
-            except KeyError:
-                logger_jsons.info("idx_col_by_name: KeyError: missing variableName key")
-    except AttributeError:
-        logger_jsons.info("idx_col_by_name: AttributeError: expected list type, given {} type".format(type(l)))
-
-    return col_new
 
 
 def _import_data(section_data, pc):
@@ -114,7 +81,7 @@ def _import_data(section_data, pc):
             tmp_table = {}
 
             # Get the table name from the first measurement table, and use that as the index name for this table
-            tmp_table_name = _get_variable_name_table("{}DataTableName".format(pc), table, pc)
+            tmp_table_name = get_variable_name_table("{}DataTableName".format(pc), table, pc)
 
             # Process the paleo measurement table
             if "{}MeasurementTable".format(pc) in table:
@@ -189,7 +156,7 @@ def _import_meas(tables, pc):
 
     for table in tables:
         # Get the table name
-        name_table = _get_variable_name_table("{}DataTableName".format(pc), table, pc)
+        name_table = get_variable_name_table("{}DataTableName".format(pc), table, pc)
 
         # Call idx_table_by_name
         table = _idx_table_by_name(table)
@@ -210,7 +177,7 @@ def _import_dist(model, key):
     tmp_calib = {}
     for calibration in model[key]:
         # Use "name" as table name
-        name_calib = _get_variable_name_table("name", calibration)
+        name_calib = get_variable_name_table("name", calibration)
         # Call idx_table_by_name
         table_new = _idx_table_by_name(calibration)
         # Set the new table by name into the WIP tmp_calib
@@ -218,7 +185,45 @@ def _import_dist(model, key):
     return tmp_calib
 
 
-# EXPORT
+def _idx_table_by_name(d):
+    """
+    Switch a table of data from indexed-by-number into indexed-by-name using table names
+    :param dict d: Table data
+    :return dict: new idx-by-name table
+    """
+    try:
+        # Overwrite the columns entry with named columns
+        d["columns"] = _idx_col_by_name(d["columns"])
+    except AttributeError:
+        print("Error: 'columns' data is not a dictionary")
+        logger_jsons.info("idx_table_by_name: AttributeError: expected dictionary type, given {} type".format(type(d)))
+    return d
+
+
+def _idx_col_by_name(l):
+    """
+    Iter over columns list. Turn indexed-by-num list into an indexed-by-name dict. Keys are the variable names.
+    :param list l: Columns
+    :return dict: New column indexed-by-name
+    """
+    col_new = {}
+
+    # Iter for each column in the list
+    try:
+        for col in l:
+            try:
+                col_name = col["variableName"]
+                col_new[col_name] = col
+            except KeyError:
+                print("Error: missing 'variableName' in column")
+                logger_jsons.info("idx_col_by_name: KeyError: missing variableName key")
+    except AttributeError:
+        logger_jsons.info("idx_col_by_name: AttributeError: expected list type, given {} type".format(type(l)))
+
+    return col_new
+
+
+# PREP FOR EXPORT
 
 
 def split_csv_json(d):
@@ -317,6 +322,31 @@ def _remove_csv_from_section(d, pc):
     return d
 
 
+# EXPORT
+
+
+def write_json_to_file(filename, json_data):
+    """
+    Write all JSON in python dictionary to a new json file.
+    :param str filename: Target json file
+    :param dict json_data: JSON data
+    :return None:
+    """
+    logger_jsons.info("enter write_json_to_file")
+    json_data = remove_empty_fields(json_data)
+    # Use demjson to maintain unicode characters in output
+    json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
+    # Write json to file
+    try:
+        open(filename, "wb").write(json_bin)
+        logger_jsons.info("wrote data to json file")
+    except FileNotFoundError as e:
+        print("Error: Writing json to file: {}".format(filename))
+        logger_jsons.debug("write_json_to_file: FileNotFound: {}, {}".format(filename, e))
+    logger_jsons.info("exit write_json_to_file")
+    return
+
+
 def idx_name_to_num(d):
     """
     Switch from index-by-name to index-by-number.
@@ -327,17 +357,17 @@ def idx_name_to_num(d):
 
     # Process the paleoData section
     if "paleoData" in d:
-        d["paleoData"] = _export_idx_data(d["paleoData"], "paleo")
+        d["paleoData"] = _export_data(d["paleoData"], "paleo")
 
     # Process the chronData section
     if "chronData" in d:
-        d["chronData"] = _export_idx_data(d["chronData"], "chron")
+        d["chronData"] = _export_data(d["chronData"], "chron")
 
     logger_jsons.info("exit idx_name_to_num")
     return d
 
 
-def _export_idx_data(section_data, pc):
+def _export_data(section_data, pc):
     """
     Switch chron data to index-by-number
     :param dict section_data: Metadata
@@ -354,7 +384,7 @@ def _export_idx_data(section_data, pc):
 
         # Process the chron measurement table
         if "{}MeasurementTable".format(pc) in table:
-            table["{}nMeasurementTable".format(pc)] = _idx_table_by_num(table["{}MeasurementTable".format(pc)])
+            table["{}MeasurementTable".format(pc)] = _idx_table_by_num(table["{}MeasurementTable".format(pc)])
 
         # Add only the table to the output list
         l.append(table)
@@ -414,9 +444,12 @@ def _export_model(models, pc):
                 model["distributionTable"] = dt
 
     except AttributeError:
-        logger_jsons.debug("export_model: {}, AttributeError: expected list type, received {} type".format(pc, type(chron_model)))
+        logger_jsons.debug("export_model: {}, AttributeError: expected list type, received {} type".format(pc, type(models)))
     logger_jsons.info("exit export_model: {}".format(pc))
-    return chron_model
+    return models
+
+
+# NO EXPORT DISTRIBUTION?
 
 
 def _idx_table_by_num(d):
@@ -424,11 +457,13 @@ def _idx_table_by_num(d):
     Append all the values from the dictionary to an output list. Drop the keys.
     :return:
     """
-    try:
-        # Overwrite the columns dict with a new columns list
-        d["columns"] = _idx_col_by_num(d["columns"])
-    except AttributeError:
-        logger_jsons.debug("idx_table_by_num: AttributeError: expected type dict, given type {}".format(type(d)))
+    if "columns" in d:
+        try:
+            # Overwrite the columns dict with a new columns list
+            d["columns"] = _idx_col_by_num(d["columns"])
+        except AttributeError:
+            print("Error: table type is incorrect")
+            logger_jsons.debug("idx_table_by_num: AttributeError: expected type dict, given type {}".format(type(d)))
     return d
 
 
@@ -453,258 +488,9 @@ def _idx_col_by_num(d):
                 else:
                     l[data["number"] - 1] = data
             except KeyError:
+                print("Error: column is missing a 'number' key")
                 logger_jsons.debug("idx_col_by_num: KeyError: missing number key")
     except AttributeError:
         logger_jsons.debug("idx_col_by_num: AttributeError: expected dict type, given {} type".format(type(d)))
     return l
 
-
-def write_json_to_file(filename, json_data):
-    """
-    Write all JSON in python dictionary to a new json file.
-    :param str filename: Target json file
-    :param dict json_data: JSON data
-    :return None:
-    """
-    logger_jsons.info("enter write_json_to_file")
-    json_data = remove_empty_fields(json_data)
-    # Use demjson to maintain unicode characters in output
-    json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
-    # Write json to file
-    try:
-        open(filename, "wb").write(json_bin)
-        logger_jsons.info("wrote data to json file")
-    except FileNotFoundError as e:
-        print("Error: Writing json to file: {}".format(filename))
-        logger_jsons.debug("write_json_to_file: FileNotFound: {}, {}".format(filename, e))
-    logger_jsons.info("exit write_json_to_file")
-    return
-
-
-# HELPERS
-
-
-def remove_values_fields(x):
-    """
-    (recursive) Remove all "values" fields from the metadata
-    :param any x: Any data type
-    :return dict: metadata without "values"
-    """
-    if isinstance(x, dict):
-        if "values" in x:
-            del x["values"]
-        else:
-            for k, v in x.items():
-                if isinstance(v, dict):
-                    remove_values_fields(v)
-                elif isinstance(v, list):
-                    remove_values_fields(v)
-    elif isinstance(x, list):
-        for i in x:
-            remove_values_fields(i)
-
-    return x
-
-
-def remove_empty_fields(x):
-    """
-    Go through N number of nested data types and remove all empty entries. Recursion
-    :param any x: Dictionary, List, or String of data
-    :return any: Returns a same data type as original, but without empties.
-    """
-    # No logger here because the function is recursive.
-    # Int types don't matter. Return as-is.
-    if not isinstance(x, int):
-        if isinstance(x, str) or x is None:
-            try:
-                # Remove new line characters and carriage returns
-                x = x.rstrip()
-            except AttributeError:
-                # None types don't matter. Keep going.
-                pass
-            if x in EMPTY:
-                # Substitute empty entries with ""
-                x = ''
-        elif isinstance(x, list):
-            # Recurse once for each item in the list
-            for i, v in enumerate(x):
-                x[i] = remove_empty_fields(x[i])
-            # After substitutions, remove and empty entries.
-            for i in x:
-                if not i:
-                    x.remove(i)
-        elif isinstance(x, dict):
-            # First, go through and substitute "" (empty string) entry for any values in EMPTY
-            for k, v in x.items():
-                x[k] = remove_empty_fields(v)
-            # After substitutions, go through and delete the key-value pair.
-            # This has to be done after we come back up from recursion because we cannot pass keys down.
-            for key in list(x.keys()):
-                if not x[key]:
-                    del x[key]
-    return x
-
-
-def remove_empty_doi(d):
-    """
-    If an "identifier" dictionary has no doi ID, then it has no use. Delete it.
-    :param dict d: JSON Metadata
-    :return dict: JSON Metadata
-    """
-    logger_jsons.info("enter remove_empty_doi")
-    try:
-        # Check each publication dictionary
-        for pub in d['pub']:
-            # If no identifier, then we can quit here. If identifier, then keep going.
-            if 'identifier' in pub:
-                if 'id' in pub['identifier'][0]:
-                    # If there's a DOI id, but it's EMPTY
-                    if pub['identifier'][0]['id'] in EMPTY:
-                        del pub['identifier']
-                else:
-                    # If there's an identifier section, with no DOI id
-                    del pub['identifier']
-    except KeyError as e:
-        # What else could go wrong?
-        logger_jsons.warn("remove_empty_doi: KeyError: publication key not found, {}".format(e))
-    logger_jsons.info("exit remove_empty_doi")
-    return d
-
-
-def _get_lipd_version(d):
-    """
-    Check what version of LiPD this file is using. If none is found, assume it's using version 1.0
-    :param dict d: Metadata
-    :return float:
-    """
-    version = 1.0
-    if "LiPDVersion" in d:
-        version = d["LiPDVersion"]
-        # Cast the version number to a float
-        try:
-            version = float(version)
-        except AttributeError:
-            # If the casting failed, then something is wrong with the key so assume version is 1.0
-            version = 1.0
-    return version
-
-
-def _update_lipd_version(d):
-    """
-    Use the current version number to determine where to start updating from. Use "chain versioning" to make it
-    modular. If a file is a few versions behind, convert to EACH version until reaching current. If a file is one
-    version behind, it will only convert once to the newest.
-    :param dict d: Metadata dictionary
-    :return dict: Most current version metadata dictionary
-    """
-
-    # Get the lipd version number.
-    version = _get_lipd_version(d)
-
-    # Update from (N/A or 1.0) to 1.1
-    if version in (1.0, "1.0"):
-        d = _lipd_v1_0_to_v1_1(d)
-        version = 1.1
-
-    # Update from 1.1 to 1.2
-    if version in (1.1, "1.1"):
-        d = _lipd_v1_1_to_v1_2(d)
-        version = 1.2
-
-    return d
-
-
-def _lipd_v1_0_to_v1_1(d):
-    """
-    Update LiPD version 1.0 to version 1.1.  See LiPD Version changelog for details.
-    NOTE main changes: ChronData turned into a scalable lists of dictioanries.
-    :param dict d: Metadata
-    :return dict: v1.1 metadata dictionary
-    """
-    logger_jsons.info("enter lipd 1.0 to 1.1")
-    tmp_all = []
-
-    # ChronData is the only structure update
-    if "chronData" in d:
-        # As of v1.1, ChronData should have an extra level of abstraction.
-        # No longer shares the same structure of paleoData
-
-        # If no measurement table, then make a measurement table list with the table as the entry
-        for table in d["chronData"]:
-            if "chronMeasurementTable" not in table:
-                tmp_all.append({"chronMeasurementTable": [table]})
-
-            # If the table exists, but it is a dictionary, then turn it into a list with one entry
-            elif "chronMeasurementTable" in table:
-                if isinstance(table["chronMeasurementTable"], dict):
-                    tmp_all.append({"chronMeasurementTable": [table["chronMeasurementTable"]]})
-        if tmp_all:
-            d["chronData"] = tmp_all
-
-    d["LiPDVersion"] = 1.1
-    logger_jsons.info("exit lipd 1.0 to 1.1")
-    return d
-
-
-def _lipd_v1_1_to_v1_2(d):
-    """
-    Update LiPD version 1.1 to version 1.2. See LiPD Version changelog for details.
-    :param dict d: Metadata dictioanry
-    :return dict: v1.2 metadata dictionary
-    """
-    logger_jsons.info("enter lipd 1.1 to 1.2")
-    tmp_all = []
-
-    # PaleoData is the only structure update
-    if "paleoData" in d:
-
-        # As of 1.2, PaleoData should match the structure of v1.1 chronData.
-        # There is an extra level of abstraction and room for models, ensembles, calibrations, etc.
-        for table in d["paleoData"]:
-            if "paleoMeasurementTable" not in table:
-                tmp_all.append({"paleoMeasurementTable": [table]})
-
-            # If the table exists, but it is a dictionary, then turn it into a list with one entry
-            elif "paleoMeasurementTable" in table:
-                if isinstance(table["paleoMeasurementTable"], dict):
-                    tmp_all.append({"paleoMeasurementTable": [table["paleoMeasurementTable"]]})
-
-        if tmp_all:
-            d["paleoData"] = tmp_all
-
-    d["LiPDVersion"] = 1.2
-    logger_jsons.info("exit lipd 1.1 to 1.2")
-    return d
-
-
-def _get_variable_name_col(d):
-    """
-    Get the variable name from a table or column
-    :param dict d: Metadata
-    :return str:
-    """
-    var = ""
-    try:
-        var = d["variableName"]
-    except KeyError:
-        try:
-            var = d["name"]
-        except KeyError:
-            logger_jsons.info("get_variable_name_col: KeyError: missing key")
-    return var
-
-
-def _get_variable_name_table(key, d, fallback=""):
-    """
-    Try to get a table name from a data table
-    :param str key: Key to try first
-    :param dict d: Data table
-    :param str fallback: (optional) If we don't find a table name, use this as a generic name fallback.
-    :return str: Data table name
-    """
-    try:
-        var = d[key]
-        return var
-    except KeyError:
-        logger_jsons.info("get_variable_name_table: KeyError: missing {}".format(key))
-        return fallback
