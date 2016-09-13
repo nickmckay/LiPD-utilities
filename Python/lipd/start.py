@@ -46,6 +46,9 @@ def loadLipds():
     return
 
 
+def loadPickleObj():
+    pass
+
 def loadPickle():
     """
     Load a pickle file into the workspace
@@ -62,7 +65,40 @@ def loadPickle():
 
     # chdir in unpickle_data, so move back to root
     os.chdir(path)
-    return d
+
+    # If this unpickled data reads in as an object, then refresh the global lipd_lib
+    if type(d) not in (dict, str, int, float):
+        global lipd_lib
+        lipd_lib = d
+    elif type(d) is dict:
+        return d
+    else:
+        print("Error: unpickled data was not a valid data type")
+    return
+
+
+# PUT
+
+
+def addEnsemble(filename , ensemble):
+    """
+    Add ensemble data to LiPD object
+    :param str filename: LiPD dataset name
+    :param list ensemble: Ensemble data
+    :return none:
+    """
+    add_ensemble(filename, ensemble)
+    return
+
+
+def ensToDf(ensemble):
+    """
+    Create an ensemble data frame from some given nested numpy arrays
+    :param list ensemble: Ensemble data
+    :return obj: DataFrame
+    """
+    df = create_dataframe(ensemble)
+    return df
 
 
 # ANALYSIS - LIPD
@@ -99,48 +135,6 @@ def lipdToDf(filename):
         dfs = None
     print("Process Complete")
     return dfs
-
-
-def tsToDf(ts, filename):
-    """
-    Create Pandas DataFrame from TimeSeries object.
-    Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
-    :param dict ts: TimeSeries
-    :param str filename:
-    :return dict: Pandas data frames
-    """
-    dfs = {}
-    try:
-        dfs = ts_to_df(ts[filename])
-    except KeyError as e:
-        print("Error: LiPD file not found")
-        logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
-    print("Process Complete")
-    return dfs
-
-
-# ANALYSIS - ENSEMBLE
-
-
-def addEnsemble(filename , ensemble):
-    """
-    Add ensemble data to LiPD object
-    :param str filename: LiPD dataset name
-    :param list ensemble: Ensemble data
-    :return none:
-    """
-    add_ensemble(filename, ensemble)
-    return
-
-
-def ensToDf(ensemble):
-    """
-    Create an ensemble data frame from some given nested numpy arrays
-    :param list ensemble: Ensemble data
-    :return obj: DataFrame
-    """
-    df = create_dataframe(ensemble)
-    return df
 
 
 # ANALYSIS - TIME SERIES
@@ -248,6 +242,24 @@ def getNumpy(ts):
         print("Error: Invalid TimeSeries")
     print("Process Complete")
     return tmp
+
+
+def tsToDf(ts, filename):
+    """
+    Create Pandas DataFrame from TimeSeries object.
+    Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
+    :param dict ts: TimeSeries
+    :param str filename:
+    :return dict: Pandas data frames
+    """
+    dfs = {}
+    try:
+        dfs = ts_to_df(ts[filename])
+    except KeyError as e:
+        print("Error: LiPD file not found")
+        logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
+    print("Process Complete")
+    return dfs
 
 
 # SHOW
