@@ -104,7 +104,7 @@ def check_file_age(filename, days):
         return True
 
 
-def browse_dialog():
+def browse_dialog_dir():
     """
     Open up a GUI browse dialog window and let to user pick a target directory.
     :return str: Target directory path
@@ -114,24 +114,31 @@ def browse_dialog():
     root.withdraw()
     root.update()
     path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
-    logger_directory.info("chose path: {}".format(path))
+    logger_directory.info("chosen path: {}".format(path))
     root.destroy()
     logger_directory.info("exit browse_dialog")
     return path
 
 
-def set_source():
+def get_src_or_dst(mode):
     """
-    User sets the path to LiPD source. Local or online.
+    User sets the path to a LiPD source location
     :return str: Path
     """
-    logger_directory.info("enter set_source")
+    logger_directory.info("enter set_src_or_dst")
     _path = ''
     invalid = True
     count = 0
+
+    if mode == "save":
+        prompt = "Where would you like to save your file(s)?\n1. Current\n2. Browse\n3. Downloads\n4. Notebook\n"
+    elif mode == "load":
+        prompt = "Where are your file(s) stored?\n1. Current\n2. Browse\n3. Downloads\n4. Notebook\n"
+    else:
+        # did you forget to enter a mode? silly
+        invalid = False
     while invalid:
-        print("Where are your files stored?\n1. Current Directory\n2. Browse Computer\n3. "
-              "Downloads folder\n4. Notebooks folder\n")
+        print(prompt)
         option = input("Option: ")
         if option == '1':
             # Current directory
@@ -140,7 +147,7 @@ def set_source():
         elif option == '2':
             # Open up the GUI browse dialog
             logger_directory.info("2: browse")
-            _path = browse_dialog()
+            _path = browse_dialog_dir()
             # Set the path to the local files in CLI and lipd_lib
         elif option == '3':
             # Set the path to the system downloads folder.
@@ -162,5 +169,19 @@ def set_source():
                 print("Invalid option. Try again.")
         if _path:
             invalid = False
-    logger_directory.info("exit set_source")
+    logger_directory.info("exit set_src_or_dst")
     return _path
+
+
+def browse_dialog_file():
+    """
+    Open up a GUI browse dialog window and let to user pick a target directory.
+    :return str: Target directory path
+    :return:
+    """
+    root = tkinter.Tk()
+    root.withdraw()
+    root.update()
+    path = tkinter.filedialog.askopenfilename(parent=root, initialdir=os.path.expanduser('~'), title='Please select a file')
+    root.destroy()
+    return path

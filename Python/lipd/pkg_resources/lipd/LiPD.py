@@ -24,6 +24,7 @@ class LiPD(object):
         self.dir_tmp = dir_tmp  # Directory containing unzipped files for this LiPD. Temporary workspace.
         self.dir_tmp_bag = os.path.join(dir_tmp, self.name)  # Bagit directory in temporary folder
         self.dir_tmp_bag_data = os.path.join(self.dir_tmp_bag, 'data')  # Data folder (json, csv) in Bagit directory.
+        self.dir_save = dir_root # Optional: alternate location to save lipd files. Default to dir_root
         self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}}
         self.data_json = {}  # Metadata without CSV values
         self.data_master = {}  # Metadata with CSV values
@@ -40,36 +41,40 @@ class LiPD(object):
         # Start in dir_root
 
         # Unzip LiPD into tmp folder
-        unzip(self.name_ext, self.dir_tmp)
+        unzipper(self.name_ext, self.dir_tmp)
 
         # Import metadata into object
-        os.chdir(self.dir_tmp_bag_data)
+        try:
+            os.chdir(self.dir_tmp_bag_data)
 
-        # Read in metadata file
-        j = read_json_from_file(self.name + '.jsonld')
+            # Read in metadata file
+            j = read_json_from_file(self.name + '.jsonld')
 
-        # Run the metadata through lint and correct any invalid keys
-        os.chdir(self.dir_root)
-        t = lipd_lint(j)
+            # Run the metadata through lint and correct any invalid keys
+            os.chdir(self.dir_root)
+            t = lipd_lint(j)
 
-        # Read in metadata, and switch to idx-by-name
-        j = idx_num_to_name(t)
+            # Read in metadata, and switch to idx-by-name
+            j = idx_num_to_name(t)
 
-        # Clean metadata of empty fields and data before loading. Set metadata to self
-        self.data_master = remove_empty_fields(remove_empty_doi(j))
+            # Clean metadata of empty fields and data before loading. Set metadata to self
+            self.data_master = remove_empty_fields(remove_empty_doi(j))
 
-        # Copy metadata to self before adding csv
-        self.data_json = copy.deepcopy(self.data_master)
+            # Copy metadata to self before adding csv
+            self.data_json = copy.deepcopy(self.data_master)
 
-        # Import csv into data_master
-        os.chdir(self.dir_tmp_bag_data)
-        self.data_master = import_csv_to_metadata(self.data_master)
+            # Import csv into data_master
+            os.chdir(self.dir_tmp_bag_data)
+            self.data_master = merge_csv_metadata(self.data_master)
 
-        # Set CSV data to self
-        self.data_csv = get_organized_csv(self.data_master)
+            # Set CSV data to self
+            self.data_csv = get_csv_from_metadata(self.data_master)
 
-        # Create pandas data frames from metadata and csv
-        self.dfs = lipd_to_dfs(self.data_master, self.data_csv)
+            # Create pandas data frames from metadata and csv
+            self.dfs = lipd_to_df(self.data_master, self.data_csv)
+
+        except FileNotFoundError:
+            print("LiPD file not found. Please make sure the filename includes the .lpd extension")
 
         os.chdir(self.dir_root)
         logger_lipd.info("object loaded: {}".format(self.name))
@@ -163,13 +168,15 @@ class LiPD(object):
         Saves current state of LiPD object data. Outputs to a LiPD file.
         :return:
         """
-
         # Move to data files
         os.chdir(self.dir_tmp_bag_data)
 
-        # Collect all the csv data from the metadata
+        # Collect all the csv data from the data_master
         # Write each table to its own csv file
-        self.data_csv = export_csv_to_metadata(self.data_master)
+        self.data_csv = get_csv_from_metadata(self.data_master)
+
+        # Write csv data to file(s)
+        write_csv_to_file(self.data_csv)
 
         # Remove CSV data from self.data_master and update self.data_json
         self.data_json = remove_values_fields(self.data_master)
@@ -187,7 +194,10 @@ class LiPD(object):
         create_bag(self.dir_tmp_bag)
 
         # Zip directory and overwrite LiPD file
-        re_zip(self.dir_tmp, self.name, self.name_ext)
+        zipper(self.dir_tmp, self.name, self.name_ext)
+
+        # Move the zip file to the chosen save directory
+        shutil.move(self.name_ext)
 
         # Move back to root
         os.chdir(self.dir_root)

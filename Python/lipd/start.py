@@ -7,8 +7,9 @@ from .pkg_resources.noaa.noaa_main import noaa
 from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
-from .pkg_resources.helpers.directory import set_source
+from .pkg_resources.helpers.directory import get_src_or_dst
 from .pkg_resources.helpers.loggers import create_logger
+from .pkg_resources.helpers.misc import pickle_data, unpickle_data, split_path_and_file
 
 # LOAD
 
@@ -18,8 +19,8 @@ def setDir():
     (ex. /Path/to/files)
     :param str path: Directory path
     """
-    path = set_source()
-    lipd_lib.setDir(path)
+    path = get_src_or_dst("load")
+    lipd_lib.set_dir(path)
     logger = create_logger("start")
     logger.info("Set path: {}".format(path))
     return path, logger
@@ -31,7 +32,7 @@ def loadLipd(filename):
     (ex. loadLiPD NAm-ak000.lpd)
     :param str filename: LiPD filename
     """
-    lipd_lib.loadLipd(filename)
+    lipd_lib.load_lipd(filename)
     print("Process Complete")
     return
 
@@ -40,9 +41,28 @@ def loadLipds():
     """
     Load all LiPD files in the current working directory into the workspace.
     """
-    lipd_lib.loadLipds()
+    lipd_lib.load_lipds()
     print("Process Complete")
     return
+
+
+def loadPickle():
+    """
+    Load a pickle file into the workspace
+    :return dict: Data loaded from pickle file
+    """
+    # Ask where the file is
+    _path = browse_dialog_file()
+
+    # Split the filename and the path into two
+    _path, _filename = split_path_and_file(_path)
+
+    # Unpickle the data
+    d = unpickle_data(_path, _filename)
+
+    # chdir in unpickle_data, so move back to root
+    os.chdir(path)
+    return d
 
 
 # ANALYSIS - LIPD
@@ -72,7 +92,7 @@ def lipdToDf(filename):
     :return dict: Pandas data frame objects
     """
     try:
-        dfs = lipd_lib.getDfs(filename)
+        dfs = lipd_lib.get_dfs(filename)
     except KeyError:
         print("Error: Unable to find LiPD file")
         logger_start.warn("lipd_to_df: KeyError: missing lipd {}".format(filename))
@@ -238,7 +258,7 @@ def showLipds():
     Prints the names of all LiPD files in the LiPD_Library
     :return None:
     """
-    lipd_lib.showLipds()
+    lipd_lib.show_lipds()
     print("Process Complete")
     return
 
@@ -249,7 +269,7 @@ def showMetadata(filename):
     (ex. displayLiPD NAm-ak000.lpd)
     :param str filename: LiPD filename
     """
-    lipd_lib.showMetadata(filename)
+    lipd_lib.show_metadata(filename)
     print("Process Complete")
     return
 
@@ -260,7 +280,7 @@ def showCsv(filename):
     :param str filename:
     :return None:
     """
-    lipd_lib.showCsv(filename)
+    lipd_lib.show_csv(filename)
     print("Process Complete")
     return
 
@@ -329,7 +349,7 @@ def getMetadata(filename):
     """
     d = {}
     try:
-        d = lipd_lib.getMetadata(filename)
+        d = lipd_lib.get_metadata(filename)
     except KeyError:
         print("Error: Unable to find LiPD file")
         logger_start.warn("KeyError: Unable to find record {}".format(filename))
@@ -345,7 +365,7 @@ def getCsv(filename):
     """
     d = {}
     try:
-        d = lipd_lib.getCsv(filename)
+        d = lipd_lib.get_csv(filename)
     except KeyError:
         print("Error: Unable to find record")
         logger_start.warn("Unable to find record {}".format(filename))
@@ -356,13 +376,33 @@ def getCsv(filename):
 # SAVE
 
 
+def savePickle():
+    """
+    Compile a single dictionary of all LiPD data, then Pickle it for later.
+    * maintain compatibility for python v2.7-3+
+    :return none:
+    """
+    # get the dictionary from lipd_lib
+    d = lipd_lib.lib_to_dict()
+
+    # prompt for a destination folder
+    _path = get_src_or_dst("save")
+
+    # send the dictionary to be pickled
+    pickle_data(_path, d)
+
+    # chdir in pickle_data, so move back to root
+    os.chdir(path)
+    return
+
+
 def saveLipd(filename):
     """
     Saves changes made to the target LiPD file.
     (ex. saveLiPD NAm-ak000.lpd)
     :param str filename: LiPD filename
     """
-    lipd_lib.saveLipd(filename)
+    lipd_lib.save_lipd(filename)
     print("Process Complete")
     return
 
@@ -371,7 +411,7 @@ def saveLipds():
     """
     Save changes made to all LiPD files in the workspace.
     """
-    lipd_lib.saveLipds()
+    lipd_lib.save_lipds()
     print("Process Complete")
     return
 
@@ -381,7 +421,7 @@ def removeLipd(filename):
     Remove LiPD object from library
     :return None:
     """
-    lipd_lib.removeLipd(filename)
+    lipd_lib.remove_lipd(filename)
     print("Process Complete")
     return
 
@@ -391,7 +431,7 @@ def removeLipds():
     Remove all LiPD objects from library.
     :return None:
     """
-    lipd_lib.removeLipds()
+    lipd_lib.remove_lipds()
     print("Process Complete")
     return
 

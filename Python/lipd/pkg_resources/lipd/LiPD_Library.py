@@ -19,7 +19,7 @@ class LiPD_Library(object):
 
     # LOADING
 
-    def setDir(self, dir_root):
+    def set_dir(self, dir_root):
         """
         Changes the current working directory.
         :param str dir_root:
@@ -32,7 +32,7 @@ class LiPD_Library(object):
             logger_lipd_lib.debug("setDir: FileNotFound: invalid directory: {}, {}".format(self.dir_root, e))
         return
 
-    def loadLipd(self, name):
+    def load_lipd(self, name):
         """
         Load a single LiPD object into the LiPD Library.
         :param str name: Filename
@@ -42,7 +42,7 @@ class LiPD_Library(object):
         print("Loaded 1 LiPD file")
         return
 
-    def loadLipds(self):
+    def load_lipds(self):
         """
         Load a directory (multiple) LiPD objects into the LiPD Library
         :return:
@@ -68,7 +68,7 @@ class LiPD_Library(object):
 
     # ANALYSIS
 
-    def showCsv(self, name):
+    def show_csv(self, name):
         """
         Show CSV data from one LiPD object
         :param str name: Filename
@@ -80,7 +80,7 @@ class LiPD_Library(object):
             print("LiPD not found")
         return
 
-    def getCsv(self, name):
+    def get_csv(self, name):
         """
         Get CSV data from LiPD file
         :param str name:
@@ -93,7 +93,7 @@ class LiPD_Library(object):
             print("LiPD file not found")
         return d
 
-    def showMetadata(self, name):
+    def show_metadata(self, name):
         """
         Display data from target LiPD file.
         :param str name: Filename
@@ -105,7 +105,7 @@ class LiPD_Library(object):
             print("LiPD file not found")
         return
 
-    def getMetadata(self, name):
+    def get_metadata(self, name):
         """
         Get metadata from LiPD file
         :param str name:
@@ -118,7 +118,7 @@ class LiPD_Library(object):
             print("LiPD file not found")
         return d
 
-    def getDfs(self, name):
+    def get_dfs(self, name):
         """
         Get data frames from LiPD object
         :return dict:
@@ -130,7 +130,7 @@ class LiPD_Library(object):
             logger_lipd_lib.debug("getDfs: KeyError: missing lipd {}".format(name))
         return d
 
-    def showLipdMaster(self, name):
+    def show_lipd_master(self, name):
         """
         Display data from target LiPD file.
         :param str name: Filename
@@ -142,9 +142,9 @@ class LiPD_Library(object):
             print("LiPD not found")
         return
 
-    def showLipds(self):
+    def show_lipds(self):
         """
-        Display all LiPD files in the LiPD Library
+        Display all LiPD dataset names in the LiPD Library
         :return None:
         """
         print("Found: {} file(s)".format(len(self.master)))
@@ -154,29 +154,41 @@ class LiPD_Library(object):
 
     # CLOSING
 
-    def saveLipd(self, name):
+    def lib_to_dict(self):
+        """
+        Return compiled dictionary of master data from all LiPDs in library.
+        :return:
+        """
+        d = {}
+        # for each dataset in the lipd library
+        for k,v in self.master.items():
+            # key is dataset name, value is master data
+            d[k] = v.get_master()
+        return d
+
+    def save_lipd(self, name):
         """
         Overwrite LiPD files in OS with LiPD data in the current workspace.
         """
         try:
             self.master[name].save()
             # Reload the newly saved LiPD file back into the library.
-            self.loadLipd(name)
+            self.load_lipd(name)
         except KeyError:
             print("LiPD file not found")
         return
 
-    def saveLipds(self):
+    def save_lipds(self):
         """
         Overwrite target LiPD file in OS with LiPD data in the current workspace.
         """
         for k, v in self.master.items():
             self.master[k].save()
         # Reload the newly saved LiPD files back into the library.
-        self.loadLipds()
+        self.load_lipds()
         return
 
-    def removeLipd(self, name):
+    def remove_lipd(self, name):
         """
         Removes target LiPD file from the workspace. Delete tmp folder, then delete object.
         :param str name: Filename
@@ -188,7 +200,7 @@ class LiPD_Library(object):
             print("LiPD file not found")
         return
 
-    def removeLipds(self):
+    def remove_lipds(self):
         """
         Clear the workspace. Empty the master dictionary.
         """

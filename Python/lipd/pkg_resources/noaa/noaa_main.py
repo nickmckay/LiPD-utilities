@@ -49,7 +49,7 @@ def noaa():
 
         # Process file
         if mode == '1':
-            unzip(name_ext, dir_tmp)
+            unzipper(name_ext, dir_tmp)
             _process_lpd(name, dir_tmp, dir_root)
         elif mode == '2':
             _process_noaa(name, dir_tmp, dir_root)
@@ -73,7 +73,7 @@ def _process_noaa(name, dir_tmp, dir_root):
     logger_noaa.info("enter process_noaa")
     NOAA_LPD(dir_root, dir_tmp, name).main()
     os.chdir(dir_root)
-    re_zip(dir_tmp, name, name + ".lpd")
+    zipper(dir_tmp, name, name + ".lpd")
     os.rename(name + ".lpd" + '.zip', name + ".lpd")
     logger_noaa.info("exit process_noaa")
     return

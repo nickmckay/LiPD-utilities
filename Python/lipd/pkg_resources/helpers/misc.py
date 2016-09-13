@@ -1,9 +1,79 @@
 import operator
+import pickle
+import os
+import datetime as dt
 
 from ..helpers.loggers import *
 from ..helpers.blanks import EMPTY
 
 logger_misc = create_logger("misc")
+
+
+def _prompt_filename():
+    """
+    Ask user if they want to provide a filename, or choose a generic time-stamped filename.
+    :return:
+    """
+    filename = ""
+    return filename
+
+
+def split_path_and_file(s):
+    """
+    Given a full path to a file, split and return a path and filename
+    :param str s: Full path
+    :return str str: Path, filename
+    """
+    _path = s
+    _filename = ""
+    try:
+        x = os.path.split(s)
+        _path = x[0]
+        _filename = x[1]
+    except Exception:
+        print("Error: unable to split path")
+
+    return _path, _filename
+
+def unpickle_data(path, filename):
+    """
+    Unpickle the chosen file into the workspace
+    :param str filename: Pickle filename
+    :param str path: Source directory
+    :return dict: unpickled data
+    """
+    d = {}
+    os.chdir(path)
+    # Load data (deserialize)
+    try:
+        with open(filename, 'rb') as handle:
+            d = pickle.load(handle)
+    except Exception:
+        print("Error: unable to load pickle file")
+    return d
+
+
+def pickle_data(path, d):
+    """
+    Pickle a dictionary of data to file, and save.
+    :param dict d: Data to be pickled
+    :param str path: Destination directory
+    :return none:
+    """
+    os.chdir(path)
+
+    # get a timestamp to append to the filename, to make it unique
+    filename = 'lipd_data_{}.p'.format( dt.datetime.now().strftime('%Y%m%d%H%M%S'))
+
+    # Store data (serialize)
+    try:
+        with open(filename, 'wb') as handle:
+            pickle.dump(d, handle, protocol=2)
+    except Exception:
+        print("Error: unable to create pickle file")
+    return
+
+
 
 
 def match_operators(inp, relate, cut):
@@ -25,7 +95,7 @@ def match_operators(inp, relate, cut):
         truth = ops[relate](inp, cut)
     except KeyError as e:
         truth = False
-        logger_ts.warn("get_truth: KeyError: Invalid operator input: {}, {}".format(relate, e))
+        logger_misc.warn("get_truth: KeyError: Invalid operator input: {}, {}".format(relate, e))
     logger_misc.info("exit match_operators")
     return truth
 

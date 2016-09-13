@@ -182,7 +182,7 @@ def excel():
 
             # Zip dir_bag. Creates in dir_root directory
             logger_excel.info("re-zip and rename")
-            re_zip(dir_tmp, name, name_lpd)
+            zipper(dir_tmp, name, name_lpd)
             os.rename(name_lpd + '.zip', name_lpd)
 
         # Move back to dir_root for next loop.

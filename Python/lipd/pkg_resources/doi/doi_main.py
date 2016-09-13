@@ -26,7 +26,7 @@ def doi():
 
         # Unzip file and get tmp directory path
         dir_tmp = create_tmp_dir()
-        unzip(name_ext, dir_tmp)
+        unzipper(name_ext, dir_tmp)
 
         # Force DOI update?
         if not force:
@@ -45,7 +45,7 @@ def doi():
             # dir: dir_tmp -> dir_root
             os.chdir(dir_root)
             # Zip the directory containing the updated files. Created in dir_root directory
-            re_zip(dir_tmp, name, name_ext)
+            zipper(dir_tmp, name, name_ext)
             os.rename(name_ext + '.zip', name_ext)
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
