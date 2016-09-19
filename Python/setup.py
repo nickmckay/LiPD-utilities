@@ -7,40 +7,40 @@ import sys
 from distutils.command.install import install
 
 
-class PostInstall(install):
-    """ Custom install script that runs post-install."""
-    def run(self):
-        # Make the notebooks folder in the user directory
-        src_nb = os.path.join(here, 'lipds', 'files')
-        src_ex = os.path.join(src_nb, 'examples')
-        dst_nb = os.path.join(os.path.expanduser('~'), 'LiPD_Notebooks')
-        dst_ex = os.path.join(dst_nb, 'examples')
-
-        # Make folders if needed
-        if not os.path.isdir(dst_nb):
-            os.mkdir(dst_nb)
-        if not os.path.isdir(dst_ex):
-            os.mkdir(dst_ex)
-
-        # Copy example files (don't overwrite directory)
-        f = [x for x in os.listdir(src_ex) if not (x.startswith('.'))]
-        for file in f:
-            print(file)
-            if file == 'quickstart_functions.py':
-                shutil.copy(os.path.join(src_ex, file), dst_ex)
-            elif os.path.isfile(os.path.join(src_ex, file)):
-                shutil.copy(os.path.join(src_ex, file), dst_nb)
-
-        # Copy / Overwrite Quickstart notebook
-        shutil.copy(os.path.join(src_nb, 'Welcome LiPD - Quickstart.ipynb'), dst_nb)
-
-        # Open the install folder so the user can see the documentation and instructions
-        # os.system('open .')
-        install.run(self)
+# class PostInstall(install):
+#     """ Custom install script that runs post-install."""
+#     def run(self):
+#         # Make the notebooks folder in the user directory
+#         src_nb = os.path.join(here, 'lipds', 'files')
+#         src_ex = os.path.join(src_nb, 'examples')
+#         dst_nb = os.path.join(os.path.expanduser('~'), 'LiPD_Notebooks')
+#         dst_ex = os.path.join(dst_nb, 'examples')
+#
+#         # Make folders if needed
+#         if not os.path.isdir(dst_nb):
+#             os.mkdir(dst_nb)
+#         if not os.path.isdir(dst_ex):
+#             os.mkdir(dst_ex)
+#
+#         # Copy example files (don't overwrite directory)
+#         f = [x for x in os.listdir(src_ex) if not (x.startswith('.'))]
+#         for file in f:
+#             print(file)
+#             if file == 'quickstart_functions.py':
+#                 shutil.copy(os.path.join(src_ex, file), dst_ex)
+#             elif os.path.isfile(os.path.join(src_ex, file)):
+#                 shutil.copy(os.path.join(src_ex, file), dst_nb)
+#
+#         # Copy / Overwrite Quickstart notebook
+#         shutil.copy(os.path.join(src_nb, 'Welcome LiPD - Quickstart.ipynb'), dst_nb)
+#
+#         # Open the install folder so the user can see the documentation and instructions
+#         # os.system('open .')
+#         install.run(self)
 
 
 here = path.abspath(path.dirname(__file__))
-version = '0.1.5.7'
+version = '0.1.5.15'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -77,16 +77,15 @@ setup(
     version=version,
     author='C. Heiser',
     author_email='heiser@nau.edu',
-    packages=find_packages(exclude=['build', '_docs', 'templates']),
-    # packages = ["lipds", "doi", "noaa", "excel"],
+    packages=find_packages(),
     entry_points={
         "console_scripts": [
-            'lipds= lipds.__main__:main'
+            'lipd= lipd.__main__:main'
         ]
     },
-    cmdclass={
-        'install': PostInstall,
-    },
+    # cmdclass={
+    #     'install': PostInstall,
+    # },
     url='https://github.com/nickmckay/LiPD-utilities',
     license='GNU Public',
     description='LiPD utilities to process, convert, and analyze data.',
@@ -107,7 +106,7 @@ setup(
         "virtualenv>=15.0.1"
     ],
     include_package_data=True,
-    package_data={'noaa': ['*.txt'],
+    package_data={
                   'helpers': ['*.json']
                   },
 )
