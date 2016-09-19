@@ -1,11 +1,11 @@
 import collections
 
 import pandas as pd
-import numpy as np
 
 from ..helpers.regexes import *
 from ..helpers.loggers import *
 from ..helpers.alternates import DATA_FRAMES
+from ..helpers.misc import unwrap_arrays, match_arr_lengths
 
 logger_dataframes = create_logger("PDSlib")
 
@@ -41,9 +41,9 @@ def create_dataframe(ensemble):
     """
     logger_dataframes.info("enter ens_to_df")
     # "Flatten" the nested lists. Bring all nested lists up to top-level. Output looks like [ [1,2], [1,2], ... ]
-    ll = _unwrap_arrays(ensemble, True)
+    ll = unwrap_arrays(ensemble)
     # Check that list lengths are all equal
-    valid = _match_arr_lengths(ll)
+    valid = match_arr_lengths(ll)
     if valid:
         # Lists are equal lengths, create the dataframe
         df = pd.DataFrame(ll)
@@ -53,81 +53,6 @@ def create_dataframe(ensemble):
         print("Error: Numpy Array lengths do not match. Cannot create data frame")
     logger_dataframes.info("exit ens_to_df")
     return df
-
-
-def _match_arr_lengths(l):
-    """
-    Check that all the array lengths match so that a DataFrame can be created successfully.
-    :param list l: Nested arrays
-    :return bool: Valid or invalid
-    """
-    try:
-        # length of first list. use as basis to check other list lengths against.
-        inner_len = len(l[0])
-        # check each nested list
-        for i in l:
-            # if the length doesn't match the first list, then don't proceed.
-            if len(i) != inner_len:
-                return False
-    except IndexError:
-        # couldn't get index 0. Wrong data type given or not nested lists
-        print("Error: Array data is not formatted correctly.")
-        return False
-    except TypeError:
-        # Non-iterable data type given.
-        print("Error: Array data missing")
-        return False
-    # all array lengths are equal. made it through the whole list successfully
-    return True
-
-
-def _unwrap_arrays(l, root):
-    """
-    Unwrap nested lists to be one "flat" list of lists. Mainly for prepping ensemble data for DataFrame() creation
-    :param list ll: Nested lists
-    :return list: Flattened lists
-    """
-    # new "flat" list
-    l2 = []
-    # keep processing until all nesting is removed
-    process = True
-    # fail safe: cap the loops at 20, so we don't run into an error and loop infinitely.
-    # if it takes more than 20 loops then there is a problem with the data given.
-    loops = 20
-    while process and loops > 0:
-        try:
-            for k in l:
-                # all items in this list are numeric, so this list is done. append to main list
-                if all(isinstance(i, float) or isinstance(i, int) for i in k):
-                        l2.append(k)
-                # this list has more nested lists inside. append each individual nested list to the main one.
-                elif all(isinstance(i, list) or isinstance(i, np.ndarray) for i in k):
-                    for i in k:
-                        l2.append(i)
-        except Exception:
-            print("something went wrong during process")
-        # verify the main list
-        for k in l2:
-            try:
-                # if every list has a numeric at index 0, then there is no more nesting and we can stop processing
-                if isinstance(k[0], (int,str,float)):
-                    process = False
-            except IndexError:
-                # there's no index 0, so there must be mixed data types or empty data somewhere.
-                print("something went wrong during verify")
-        loops -= 1
-    return l2
-
-
-def add_ensemble(filename, ensemble):
-    """
-    Add ensemble data to a LiPD object
-    :param filename: LiPD object dataset name
-    :param ensemble: Ensemble data
-    :return none:
-    """
-
-    return
 
 
 def lipd_to_df(metadata, csvs):

@@ -2,6 +2,7 @@ import operator
 import pickle
 import os
 import datetime as dt
+import numpy as np
 
 from ..helpers.loggers import *
 from ..helpers.blanks import EMPTY
@@ -388,3 +389,69 @@ def get_variable_name_table(key, d, fallback=""):
     except KeyError:
         logger_misc.info("get_variable_name_table: KeyError: missing {}".format(key))
         return fallback
+
+
+def match_arr_lengths(l):
+    """
+    Check that all the array lengths match so that a DataFrame can be created successfully.
+    :param list l: Nested arrays
+    :return bool: Valid or invalid
+    """
+    try:
+        # length of first list. use as basis to check other list lengths against.
+        inner_len = len(l[0])
+        # check each nested list
+        for i in l:
+            # if the length doesn't match the first list, then don't proceed.
+            if len(i) != inner_len:
+                return False
+    except IndexError:
+        # couldn't get index 0. Wrong data type given or not nested lists
+        print("Error: Array data is not formatted correctly.")
+        return False
+    except TypeError:
+        # Non-iterable data type given.
+        print("Error: Array data missing")
+        return False
+    # all array lengths are equal. made it through the whole list successfully
+    return True
+
+
+def unwrap_arrays(l):
+    """
+    Unwrap nested lists to be one "flat" list of lists. Mainly for prepping ensemble data for DataFrame() creation
+    :param list l: Nested lists
+    :return list: Flattened lists
+    """
+    # keep processing until all nesting is removed
+    process = True
+    # fail safe: cap the loops at 20, so we don't run into an error and loop infinitely.
+    # if it takes more than 20 loops then there is a problem with the data given.
+    loops = 25
+    while process and loops > 0:
+        try:
+            # new "flat" list
+            l2 = []
+            for k in l:
+                # all items in this list are numeric, so this list is done. append to main list
+                if all(isinstance(i, float) or isinstance(i, int) for i in k):
+                        l2.append(k)
+                # this list has more nested lists inside. append each individual nested list to the main one.
+                elif all(isinstance(i, list) or isinstance(i, np.ndarray) for i in k):
+                    for i in k:
+                        l2.append(i)
+        except Exception:
+            print("something went wrong during process")
+        # verify the main list
+        try:
+            # if every list has a numeric at index 0, then there is no more nesting and we can stop processing
+            if all(isinstance(i[0], (int, str, float)) for i in l2):
+                process = False
+            else:
+                l = l2
+        except IndexError:
+            # there's no index 0, so there must be mixed data types or empty data somewhere.
+            print("something went wrong during verify")
+        loops -= 1
+    return l2
+

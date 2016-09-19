@@ -163,7 +163,7 @@ def excel():
 
             # Dump final_dict to a json file.
             final["LiPDVersion"] = 1.2
-            write_json_to_file(name + '.jsonld', final)
+            write_json_to_file(name, final)
 
             # Move files to bag root for re-bagging
             # dir : dir_data -> dir_bag
@@ -183,7 +183,6 @@ def excel():
             # Zip dir_bag. Creates in dir_root directory
             logger_excel.info("re-zip and rename")
             zipper(dir_tmp, name, name_lpd)
-            os.rename(name_lpd + '.zip', name_lpd)
 
         # Move back to dir_root for next loop.
         os.chdir(dir_root)

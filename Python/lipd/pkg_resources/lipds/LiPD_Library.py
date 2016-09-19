@@ -238,6 +238,15 @@ class LiPD_Library(object):
         """
         return self.master
 
+    def set_master(self, dat):
+        """
+        Set new data as the master dictionary
+        :param dict dat:
+        :return none:
+        """
+        self.master = dat
+        return
+
     def load_tsos(self, d):
         """
         Overwrite converted TS metadata back into its matching LiPD object.

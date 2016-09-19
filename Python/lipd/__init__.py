@@ -12,6 +12,7 @@ from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst
 from .pkg_resources.helpers.loggers import create_logger
 from .pkg_resources.helpers.misc import pickle_data, unpickle_data, split_path_and_file, prompt_protocol
+from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
 
 # LOAD
 
@@ -97,14 +98,32 @@ def loadPickle():
 # PUT
 
 
-def addEnsemble(filename , ensemble):
+def addEnsemble(filename, ensemble):
     """
-    Add ensemble data to LiPD object
-    :param str filename: LiPD dataset name
-    :param list ensemble: Ensemble data
+    Create ensemble entry and then add it to the specified LiPD dataset
+    :param str filename: LiPD dataset name to add ensemble to
+    :param list ensemble: Nested numpy array of ensemble column data.
     :return none:
     """
-    add_ensemble(filename, ensemble)
+    # Get the master lipd library
+    lib = lipd_lib.get_master()
+    # Check that the given filename exists in the library
+    if filename in lib:
+        meta = lib[filename].get_metadata()
+        # Create an ensemble dictionary entry
+        ens = create_ensemble(ensemble)
+        # If everything above worked, then there should be formatted ensemble data now.
+        if ens:
+            # Insert the formatted ensemble data into the master lipd library
+            meta = insert_ensemble(meta, ens)
+            # Set meta into lipd object
+            lib[filename].set_metadata(meta)
+            # Set the new master data back into the lipd library
+            lipd_lib.set_master(lib)
+    else:
+        print("Error: '{}' file not found in workspace. Please use showLipds() to see available files ".format(filename))
+
+    print("Process Complete")
     return
 
 

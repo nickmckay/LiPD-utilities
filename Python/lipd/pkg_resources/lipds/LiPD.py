@@ -200,7 +200,7 @@ class LiPD(object):
         zipper(self.dir_tmp, self.name, self.name_ext)
 
         # Delete the LiPD directory from inside dir_tmp
-        os.remove(self.dir_tmp_bag)
+        shutil.rmtree(self.dir_tmp_bag)
 
         return
 
@@ -213,6 +213,15 @@ class LiPD(object):
         return
 
     # HELPERS
+
+    def set_metadata(self, dat):
+        """
+        Set the dictionary to the self metadata
+        :param dict dat: Metadata
+        :return none:
+        """
+        self.data_json = dat
+        return
 
     def load_tso(self, metadata):
         """
