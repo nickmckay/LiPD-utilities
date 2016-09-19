@@ -185,3 +185,22 @@ def browse_dialog_file():
     path = tkinter.filedialog.askopenfilename(parent=root, initialdir=os.path.expanduser('~'), title='Please select a file')
     root.destroy()
     return path
+
+
+def rm_files_in_dir(path):
+    """
+    Removes all files within a directory, but does not delete the directory
+    :param str path: Target directory
+    :return none:
+    """
+    for f in os.listdir(path):
+        try:
+            os.remove(f)
+        except PermissionError:
+            os.chmod(f, 0o777)
+            try:
+                os.remove(f)
+            except Exception:
+                pass
+    return
+

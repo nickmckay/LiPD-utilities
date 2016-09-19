@@ -51,7 +51,7 @@ def idx_num_to_name(d):
     """
     logger_jsons.info("enter idx_num_to_name")
 
-    # Take whatever lipd version this file is, and convert it to the most current lipd version
+    # Take whatever lipds version this file is, and convert it to the most current lipds version
     d = update_lipd_version(d)
 
     if "paleoData" in d:
@@ -338,7 +338,7 @@ def write_json_to_file(filename, json_data):
     json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
     # Write json to file
     try:
-        open(filename, "wb").write(json_bin)
+        open("{}.jsonld".format(filename), "wb").write(json_bin)
         logger_jsons.info("wrote data to json file")
     except FileNotFoundError as e:
         print("Error: Writing json to file: {}".format(filename))
@@ -384,7 +384,7 @@ def _export_data(section_data, pc):
 
         # Process the chron measurement table
         if "{}MeasurementTable".format(pc) in table:
-            table["{}MeasurementTable".format(pc)] = _idx_table_by_num(table["{}MeasurementTable".format(pc)])
+            table["{}MeasurementTable".format(pc)] = _export_measurement(table["{}MeasurementTable".format(pc)], pc)
 
         # Add only the table to the output list
         l.append(table)
@@ -393,9 +393,30 @@ def _export_data(section_data, pc):
     return l
 
 
+def _export_measurement(meas, pc):
+    """
+    Switch measurement tables to index-by-number
+    :param dict meas: Measurement metadata
+    :param str pc: Paleo or Chron
+    :return list: Measurement metadata
+    """
+    logger_jsons.info("enter export_measurement: {}".format(pc))
+    dt = []
+    for name, table in meas.items():
+        try:
+            # Get the modified table data
+            tmp = _idx_table_by_num(table)
+            # Append it to the growing calibrated age list of tables
+            dt.append(tmp)
+        except KeyError:
+            logger_jsons.debug("export_measurement: {}, KeyError: missing columns key".format(pc))
+    logger_jsons.info("exit export_measurement: {}".format(pc))
+    return dt
+
+
 def _export_model(models, pc):
     """
-    Switch chron model to index-by-number
+    Switch model tables to index-by-number
     :param list models: Metadata
     :return list: modified model
     """

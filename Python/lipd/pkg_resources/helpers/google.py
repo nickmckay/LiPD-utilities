@@ -7,7 +7,7 @@ from .loggers import *
 logger_google = create_logger("google")
 
 # GLOBALS
-APPLICATION_NAME = 'lipd'
+APPLICATION_NAME = 'lipds'
 SCOPES = 'https://www.googleapis.com/auth/drive'
 CLIENT_SECRET_FILE = 'client_secret.json'
 

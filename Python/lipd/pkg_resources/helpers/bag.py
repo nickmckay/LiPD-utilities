@@ -12,7 +12,7 @@ def create_bag(dir_bag):
     """
     logger_bagit.info("enter create_bag")
     try:
-        bag = bagit.make_bag(dir_bag, {'Name': 'LiPD Project', 'Reference': 'www.lipd.net', 'DOI-Resolved': 'True'})
+        bag = bagit.make_bag(dir_bag, {'Name': 'LiPD Project', 'Reference': 'www.lipds.net', 'DOI-Resolved': 'True'})
         logger_bagit.info("created bag")
         return bag
     except Exception as e:

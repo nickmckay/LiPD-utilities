@@ -24,7 +24,7 @@ class LiPD(object):
         self.dir_tmp = dir_tmp  # Directory containing unzipped files for this LiPD. Temporary workspace.
         self.dir_tmp_bag = os.path.join(dir_tmp, self.name)  # Bagit directory in temporary folder
         self.dir_tmp_bag_data = os.path.join(self.dir_tmp_bag, 'data')  # Data folder (json, csv) in Bagit directory.
-        self.dir_save = dir_root # Optional: alternate location to save lipd files. Default to dir_root
+        self.dir_save = dir_root # Optional: alternate location to save lipds files. Default to dir_root
         self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}}
         self.data_json = {}  # Metadata without CSV values
         self.data_master = {}  # Metadata with CSV values
@@ -68,7 +68,7 @@ class LiPD(object):
             self.data_master = merge_csv_metadata(self.data_master)
 
             # Set CSV data to self
-            self.data_csv = get_csv_from_metadata(self.data_master)
+            self.data_json, self.data_csv = get_csv_from_metadata(self.name, self.data_master)
 
             # Create pandas data frames from metadata and csv
             self.dfs = lipd_to_df(self.data_master, self.data_csv)
@@ -168,12 +168,13 @@ class LiPD(object):
         Saves current state of LiPD object data. Outputs to a LiPD file.
         :return:
         """
-        # Move to data files
-        os.chdir(self.dir_tmp_bag_data)
+        # Remove everything in the tmp directory. We'll be writing all new files.
+        os.chdir(self.dir_tmp_bag)
+        shutil.rmtree(self.dir_tmp_bag_data)
+        rm_files_in_dir(self.dir_tmp_bag)
 
         # Collect all the csv data from the data_master
-        # Write each table to its own csv file
-        self.data_csv = get_csv_from_metadata(self.data_master)
+        self.data_json, self.data_csv = get_csv_from_metadata(self.name, self.data_master)
 
         # Write csv data to file(s)
         write_csv_to_file(self.data_csv)
@@ -185,22 +186,21 @@ class LiPD(object):
         self.data_json = idx_name_to_num(self.data_json)
 
         # Overwrite JSON dictionary to file
-        write_json_to_file(self.name_ext, self.data_json)
-
-        # Cleanup directory and prep for bagit
-        dir_cleanup(self.dir_tmp_bag, self.dir_tmp_bag_data)
+        write_json_to_file(self.name, self.data_json)
 
         # Call bagit
         create_bag(self.dir_tmp_bag)
 
+        # Change to dir_root, and delete the old lpd file if it's there.
+        os.chdir(self.dir_root)
+        if os.path.exists(self.name_ext):
+            os.remove(self.name_ext)
+
         # Zip directory and overwrite LiPD file
         zipper(self.dir_tmp, self.name, self.name_ext)
 
-        # Move the zip file to the chosen save directory
-        shutil.move(self.name_ext)
-
-        # Move back to root
-        os.chdir(self.dir_root)
+        # Delete the LiPD directory from inside dir_tmp
+        os.remove(self.dir_tmp_bag)
 
         return
 

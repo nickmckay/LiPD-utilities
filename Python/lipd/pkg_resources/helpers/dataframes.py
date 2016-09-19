@@ -265,7 +265,7 @@ def get_filtered_dfs(lib, expr):
     dfs = {}
     tt = None
 
-    # Process all lipd files or one lipd file?
+    # Process all lipds files or one lipds file?
     specific_files = _check_expr_filename(expr)
 
     # Determine the table type wanted
@@ -284,7 +284,7 @@ def get_filtered_dfs(lib, expr):
                     lo_meta = lib[file].get_metadata()
                     lo_dfs = lib[file].get_dfs()
 
-                    # Only start a search if this lipd file has data frames available. Otherwise, pointless.
+                    # Only start a search if this lipds file has data frames available. Otherwise, pointless.
                     if lo_dfs:
                         # Get list of all matching filenames
                         filenames = _match_dfs_expr(lo_meta, expr, tt)
@@ -295,13 +295,13 @@ def get_filtered_dfs(lib, expr):
 
         # Process all LiPD files in the library. A file has not been specified in the expression.
         else:
-            # Loop once on each lipd object in the library
+            # Loop once on each lipds object in the library
             for ln, lo in lib.items():
                 # Get the
                 lo_meta = lo.get_metadata()
                 lo_dfs = lo.get_dfs()
 
-                # Only start a search if this lipd file has data frames available. Otherwise, pointless.
+                # Only start a search if this lipds file has data frames available. Otherwise, pointless.
                 if lo_dfs:
                     # Get list of all matching filenames
                     filenames = _match_dfs_expr(lo_meta, expr, tt)

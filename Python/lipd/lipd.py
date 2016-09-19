@@ -1,4 +1,6 @@
-from .pkg_resources.lipd.LiPD_Library import *
+import copy
+
+from .pkg_resources.lipds.LiPD_Library import *
 from .pkg_resources.timeseries.Convert import *
 from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi
@@ -9,9 +11,10 @@ from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst
 from .pkg_resources.helpers.loggers import create_logger
-from .pkg_resources.helpers.misc import pickle_data, unpickle_data, split_path_and_file
+from .pkg_resources.helpers.misc import pickle_data, unpickle_data, split_path_and_file, prompt_protocol
 
 # LOAD
+
 
 def setDir():
     """
@@ -49,6 +52,7 @@ def loadLipds():
 def loadPickleObj():
     pass
 
+
 def loadPickle():
     """
     Load a pickle file into the workspace
@@ -63,7 +67,7 @@ def loadPickle():
     # Unpickle the data
     d = unpickle_data(_path, _filename)
 
-    # chdir in unpickle_data, so move back to root
+    # changed dir in unpickle_data, so move back to root
     os.chdir(path)
 
     # If this unpickled data reads in as an object, then refresh the global lipd_lib
@@ -123,7 +127,7 @@ def filterDfs(expr):
 
 def lipdToDf(filename):
     """
-    Get lipd data frames from lipd object
+    Get lipds data frames from lipds object
     :param str filename:
     :return dict: Pandas data frame objects
     """
@@ -131,7 +135,7 @@ def lipdToDf(filename):
         dfs = lipd_lib.get_dfs(filename)
     except KeyError:
         print("Error: Unable to find LiPD file")
-        logger_start.warn("lipd_to_df: KeyError: missing lipd {}".format(filename))
+        logger_start.warn("lipd_to_df: KeyError: missing lipds {}".format(filename))
         dfs = None
     print("Process Complete")
     return dfs
@@ -394,16 +398,31 @@ def savePickle():
     * maintain compatibility for python v2.7-3+
     :return none:
     """
-    # get the dictionary from lipd_lib
-    d = lipd_lib.lib_to_dict()
 
-    # prompt for a destination folder
+    # Ask user if they want to pickle the lipds library object, or create a stripped-down lipds library dictionary
+    ans = prompt_protocol()
+
+    # set the target data based on user answer
+    if ans == "o":
+        # hold the dir_root value.
+        tmp = lipd_lib.get_dir()
+        # wipe out the dir_root so it doesn't get passed to the next user
+        lipd_lib.set_dir("")
+        # set as the lipd_lib object
+        d = copy.deepcopy(lipd_lib)
+        # reinstate the dir_root now that the object is copied.
+        lipd_lib.set_dir(tmp)
+    else:
+        # create a dictionary from lipd_lib
+        d = lipd_lib.lib_to_dict()
+
+    # prompt for where to save the file
     _path = get_src_or_dst("save")
 
-    # send the dictionary to be pickled
-    pickle_data(_path, d)
+    # send the data to be pickled
+    pickle_data(_path, d, ans)
 
-    # chdir in pickle_data, so move back to root
+    # changed dir in pickle_data, so move back to root
     os.chdir(path)
     return
 

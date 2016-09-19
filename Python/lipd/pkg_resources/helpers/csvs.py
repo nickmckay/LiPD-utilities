@@ -1,7 +1,7 @@
 import csv
 
 from ..helpers.loggers import *
-from ..helpers.misc import cast_value
+from ..helpers.misc import cast_values_csvs
 
 logger_csvs = create_logger("csvs")
 
@@ -16,7 +16,7 @@ def merge_csv_metadata(d):
     :param dict d: Metadata
     :return dict: Modified metadata dictionary
     """
-    logger_csvs.info("enter import_csv_to_metadata")
+    logger_csvs.info("enter merge_csv_metadata")
 
     # Add CSV to paleoData
     if "paleoData" in d:
@@ -26,7 +26,7 @@ def merge_csv_metadata(d):
     if "chronData" in d:
         d["chronData"] = _merge_csv_section(d["chronData"], "chron")
 
-    logger_csvs.info("exit import_csv_to_metadata")
+    logger_csvs.info("exit merge_csv_metadata")
     return d
 
 
@@ -36,7 +36,7 @@ def _merge_csv_section(section_data, pc):
     :param dict section_data: Metadata
     :return dict: Modified metadata
     """
-    logger_csvs.info("enter import_csv: {}".format(pc))
+    logger_csvs.info("enter  merge_csv_section: {}".format(pc))
 
     try:
         # Loop through each table_data in paleoData
@@ -45,60 +45,74 @@ def _merge_csv_section(section_data, pc):
             if "{}MeasurementTable".format(pc) in table_data:
                 # Send whole table_data through. Adds csv data to columns
                 for table_name2, table_data2 in table_data["{}MeasurementTable".format(pc)].items():
-                    table_data["{}MeasurementTable".format(pc)][table_name2] = _add_csv_to_columns(table_data2)
+                    crumbs = "{}.{}.{}.{}".format(pc, table_name, "MeasurementTable", table_name2)
+                    table_data["{}MeasurementTable".format(pc)][table_name2] = _add_csv_to_columns(table_data2, crumbs)
 
             if "{}Model".format(pc) in table_data:
-                table_data["{}Model".format(pc)] = _merge_csv_model(table_data["{}Model".format(pc)], pc)
+                crumbs = "".format(pc, table_name, "Model")
+                table_data["{}Model".format(pc)] = _merge_csv_model(table_data["{}Model".format(pc)], pc, crumbs)
+
     except AttributeError:
         print("Error: {} section must be a dictionary data type".format(pc))
 
-    logger_csvs.info("exit import_csv: {}".format(pc))
+    logger_csvs.info("exit  merge_csv_section: {}".format(pc))
     return section_data
 
 
-def _merge_csv_model(models, pc):
+def _merge_csv_model(models, pc, crumbs):
     """
     Add csv data to each column in chron model
     :param list models: Metadata
     :param str pc: Paleo or chron
+    :param str crumbs: Hierarchy crumbs
     :return dict: Modified metadata
     """
-    logger_csvs.info("enter import_model_csv: {}".format(pc))
+    logger_csvs.info("enter merge_csv_model: {}".format(pc))
 
     try:
         for model in models:
 
+            if "summaryTable" in model:
+                crumbs2 = "{}.{}".format(crumbs, "summaryTable")
+                model["summaryTable"] = _add_csv_to_columns(model["summaryTable"], crumbs2)
+
             if "{}ModelTable".format(pc) in model:
-                model["{}ModelTable".format(pc)] = _add_csv_to_columns(model["{}ModelTable".format(pc)])
+                crumbs2 = "{}.{}".format(crumbs, "ModelTable")
+                model["{}ModelTable".format(pc)] = _add_csv_to_columns(model["{}ModelTable".format(pc)], crumbs2)
+
             if "ensembleTable" in model:
-                model["ensembleTable"] = _add_csv_to_columns(model["ensembleTable"])
+                crumbs2 = "{}.{}".format(crumbs, "ensembleTable")
+                model["ensembleTable"] = _add_csv_to_columns(model["ensembleTable"], crumbs2)
 
             # Check for calibratedAges (old format) and distributionTable (current format)
             if "calibratedAges" in model:
                 model["distributionTable"] = {}
                 # Calibrated age tables are nested. Go down an extra layer.
                 for k, v in model["calibratedAges"].items():
-                    model["distributionTable"][k] = _add_csv_to_columns(v)
+                    crumbs2 = "{}.{}.{}".format(crumbs, "distributionTable", k)
+                    model["distributionTable"][k] = _add_csv_to_columns(v, crumbs2)
             elif "distributionTable" in model:
                 for k, v in model["distributionTable"].items():
-                    model["distributionTable"][k] = _add_csv_to_columns(v)
+                    crumbs2 = "{}.{}.{}".format(crumbs, "distributionTable", k)
+                    model["distributionTable"][k] = _add_csv_to_columns(v, crumbs2)
     except AttributeError:
         print("Error: Model section must be a list data type")
 
-    logger_csvs.info("exit import_model_csv: {}".format(pc))
+    logger_csvs.info("exit merge_csv_model: {}".format(pc))
     return models
 
 
-def _add_csv_to_columns(table):
+def _add_csv_to_columns(table, crumbs):
     """
     Add csv data to each column in a list of columns
     :param dict table: Table metadata
+    :param str crumbs: Hierarchy crumbs
     :return dict: Table metadata with csv "values" entry
     """
     # Get the filename or this table
-    filename = _merge_get_filename(table)
+    filename = _get_filename(table, crumbs)
 
-    # If there's no filename, bypass whole process
+    # If there's no filename, bypass whole process because there's no way to know which file to open
     if filename:
         # Call read_csv_to_columns for this filename. csv_data is list of lists.
         csv_data = _read_csv_from_file(filename)
@@ -114,9 +128,9 @@ def _add_csv_to_columns(table):
                 else:
                     col['values'] = csv_data[col["number"] - 1]
         except IndexError:
-            logger_csvs.warning("add_csv_to_json: IndexError: index out of range of csv_data list")
+            logger_csvs.warning("add_csv_to_columns: IndexError: index out of range of csv_data list")
         except KeyError:
-            logger_csvs.debug("add_csv_to_json: KeyError: missing columns key")
+            logger_csvs.debug("add_csv_to_columns: KeyError: missing columns key")
 
     return table
 
@@ -127,7 +141,7 @@ def _read_csv_from_file(filename):
     :param str filename:
     :return list of lists: column values
     """
-    logger_csvs.info("enter read_csv_to_columns")
+    logger_csvs.info("enter read_csv_from_file")
     d = {}
     l = []
     try:
@@ -137,118 +151,137 @@ def _read_csv_from_file(filename):
             # Create a dict with X lists corresponding to X columns
             for idx, col in enumerate(next(r)):
                 d[idx] = []
-                d[idx] = cast_value(col)
+                d = cast_values_csvs(d, idx, col)
 
             # Start iter through CSV data
             for row in r:
                 for idx, col in enumerate(row):
                     # Append the cell to the correct column list
-                    d[idx] = cast_value(col)
+                    d = cast_values_csvs(d, idx, col)
 
         # Make a list of lists out of the dictionary instead
         for idx, col in d.items():
             l.append(col)
-
     except FileNotFoundError as e:
         print('CSV FileNotFound: ' + filename)
         logger_csvs.warn("read_csv_to_columns: FileNotFound: {}, {}".format(filename, e))
-    logger_csvs.info("exit read_csv_to_columns")
+    logger_csvs.info("exit read_csv_from_file")
     return l
 
 
 # SKIM CSV
 
 
-def get_csv_from_metadata(metadata):
+def get_csv_from_metadata(name, metadata):
     """
-    Get only csv data from metadata
-    :param dict metadata: Metdata
+    Two goals. Get all csv from metadata, and return new metadata with generated filenames to match files.
+    :param str name: LiPD dataset name
+    :param dict metadata: Metadata
     :return dict: Csv Data
     """
-    logger_csvs.info("enter get_organized_csv")
+    logger_csvs.info("enter get_csv_from_metadata")
 
-    d = {}
-    crumbs = _get_datasetname(metadata)
+    _csv = {}
+    _meta = metadata
+    # crumbs = _get_dataset_name(metadata)
 
     if "paleoData" in metadata:
-        crumbs_tmp = "{}paleo".format(crumbs)
-        pd_out = _get_csv_section(metadata["paleoData"], crumbs_tmp, "paleo")
-        d.update(pd_out)
+        # start building crumbs. This will be used to create new filenames.
+        crumbs_tmp = "{}.Paleo".format(name)
+        # Process paleoData section
+        pd_meta, pd_csv = _get_csv_section(metadata["paleoData"], crumbs_tmp, "paleo")
+        # Build up out master csv output data with our skimmed values
+        _csv.update(pd_csv)
+        # Set the new metadata in the output meta
+        _meta["paleoData"] = pd_meta
 
     if "chronData" in metadata:
-        crumbs_tmp = "{}chron".format(crumbs)
-        cd_out = _get_csv_section(metadata["chronData"], crumbs_tmp, "chron")
-        d.update(cd_out)
+        crumbs_tmp = "{}.Chron".format(name)
+        cd_meta, cd_csv = _get_csv_section(metadata["chronData"], crumbs_tmp, "chron")
+        _csv.update(cd_csv)
+        _meta["chronData"] = cd_meta
 
-    logger_csvs.info("exit get_organized_csv")
-    return d
+    logger_csvs.info("exit get_csv_from_metadata")
+    return _meta, _csv
 
 
-def _get_csv_section(section_data, crumbs, pc):
+def _get_csv_section(_meta, crumbs, pc):
     """
     Get table name, variable name, and column values from paleo metadata
-    :param dict section_data: Metadata
+    :param dict _meta: Metadata
     :param str crumbs: Table name crumbs
     :param str pc: Paleo or chron
     :return dict: Metadata
     """
     logger_csvs.info("enter get_csv_section: {}".format(pc))
-    d = {}
+    _csv = {}
+    s_idx = 1
     try:
-        # Process the tables in chronData
-        for name_table, data_table in section_data.items():
-            crumbs_tmp = "{}{}".format(crumbs, str(name_table))
+        # Process the tables in section
+        for name_table, data_table in _meta.items():
+            # crumbs_tmp = "{}{}".format(crumbs, str(name_table))
+            crumbs_tmp = "{}{}".format(crumbs, s_idx)
 
             # Process each entry sub-table below if they exist
             if "{}MeasurementTable".format(pc) in data_table:
                 idx = 1
-                for name_pmt, data_pmt in data_table["{}MeasurementTable".format(pc)].items():
-                    crumbs_tmp_cmt = "{}{}{}csv".format(crumbs_tmp, "{}MeasurementTable".format(pc), idx)
-                    filename = _export_get_filename(data_pmt, crumbs_tmp_cmt)
-                    out = _search_table_for_vals(data_pmt)
-                    d[filename] = out
+                for name_pmt, dat in data_table["{}MeasurementTable".format(pc)].items():
+                    # String together the final pieces of the crumbs filename
+                    filename = "{}.{}{}.csv".format(crumbs_tmp, "measurementTable", idx)
+                    # Set the filename inside the metadata also, so our _csv and _meta will match
+                    dat = _set_filename(dat, filename)
+                    # Get a nested list of table values
+                    out = _search_table_for_vals(dat, filename)
+                    # Set the table values to _csv using our filename.
+                    _csv[filename] = out
                     idx += 1
 
             if "{}Model".format(pc) in data_table:
                 for item in data_table["{}Model".format(pc)]:
                     if "calibratedAges" in item:
+                        idx = 1
                         # CA has an extra level of nesting
-                        for name_ca, data_ca in item["calibratedAges"].items():
-                            crumbs_tmp_ca = "{}{}.csv".format(crumbs, name_ca)
-                            filename = _export_get_filename(data_ca, crumbs_tmp_ca)
-                            out = _search_table_for_vals(data_ca)
-                            d[filename] = out
+                        for name_ca, dat in item["calibratedAges"].items():
+                            filename = "{}.distributionTable{}.csv".format(crumbs_tmp, idx)
+                            dat = _set_filename(dat, filename)
+                            out = _search_table_for_vals(dat, filename)
+                            _csv[filename] = out
+                            idx += 1
+
                     elif "distributionTable" in item:
+                        idx = 1
                         # CA has an extra level of nesting
-                        for name_ca, data_ca in item["distributionTable"].items():
-                            crumbs_tmp_ca = "{}{}.csv".format(crumbs, name_ca)
-                            filename = _export_get_filename(data_ca, crumbs_tmp_ca)
-                            out = _search_table_for_vals(data_ca)
-                            d[filename] = out
+                        for name_ca, dat in item["distributionTable"].items():
+                            filename = "{}.distributionTable{}.csv".format(crumbs_tmp, idx)
+                            dat = _set_filename(dat, filename)
+                            out = _search_table_for_vals(dat, filename)
+                            _csv[filename] = out
+                            idx += 1
 
                     if "{}ModelTable".format(pc) in item:
-                        crumbs_tmp_cmt2 = "{}{}.csv".format(crumbs, "{}ModelTable".format(pc))
-                        filename = _export_get_filename(item["{}ModelTable".format(pc)], crumbs_tmp_cmt2)
-                        out = _search_table_for_vals(item["{}ModelTable".format(pc)])
-                        d[filename] = out
+                        filename = "{}.{}.csv".format(crumbs_tmp, "{}ModelTable".format(pc))
+                        item["{}ModelTable".format(pc)] = _set_filename(item["{}ModelTable".format(pc)], filename)
+                        out = _search_table_for_vals(item["{}ModelTable".format(pc)], filename)
+                        _csv[filename] = out
 
                     elif "summaryTable".format() in item:
-                        crumbs_tmp_cmt2 = "{}{}.csv".format(crumbs, "summaryTable".format(pc))
-                        filename = _export_get_filename(item["summaryTable"], crumbs_tmp_cmt2)
-                        out = _search_table_for_vals(item["summaryTable"])
-                        d[filename] = out
+                        filename = "{}.{}.csv".format(crumbs_tmp, "summaryTable".format(pc))
+                        item["summaryTable"] = _set_filename(item["summaryTable"], filename)
+                        out = _search_table_for_vals(item["summaryTable"], filename)
+                        _csv[filename] = out
 
                     if "ensembleTable" in item:
-                        crumbs_tmp_et = "{}{}.csv".format(crumbs, "ensembleTable")
-                        filename = _export_get_filename(item["ensembleTable"], crumbs_tmp_et)
-                        out = _search_table_for_vals(item["ensembleTable"])
-                        d[filename] = out
+                        filename = "{}.{}.csv".format(crumbs_tmp, "ensembleTable")
+                        item["ensembleTable"] = _set_filename(item["ensembleTable"], filename)
+                        out = _search_table_for_vals(item["ensembleTable"], filename)
+                        _csv[filename] = out
+            s_idx += 1
 
     except AttributeError:
-        logger_csvs.info("get_csv_section: {}, AttributeError: expected type dict, given type {}".format(pc, type(section_data)))
+        logger_csvs.info("get_csv_section: {}, AttributeError: expected type dict, given type {}".format(pc, type(_meta)))
 
-    logger_csvs.info("exit get_section_csv: {}".format(pc))
-    return d
+    logger_csvs.info("exit get_csv_section: {}".format(pc))
+    return _meta, _csv
 
 
 def write_csv_to_file(d):
@@ -274,17 +307,19 @@ def write_csv_to_file(d):
 # HELPERS
 
 
-def _search_table_for_vals(d):
+def _search_table_for_vals(d, filename):
     """
     Search a data tables for column values. Return a dict of column values
     :param dict d: Table data
     :return dict: Column values. ref by var name
     """
     cols = {}
+    # if something goes wrong, we want a filename that we can track this data back to
+    # however, if there's no "filename" entry, then we'll leave that data missing
     if "columns" in d:
         try:
             for name_col, data_col in d["columns"].items():
-                vals = _search_col_for_vals(data_col)
+                vals = _search_col_for_vals(data_col, filename)
                 if vals:
                     cols[name_col] = vals
         except AttributeError:
@@ -294,38 +329,40 @@ def _search_table_for_vals(d):
     return cols
 
 
-def _search_col_for_vals(data_col):
+def _search_col_for_vals(data_col, filename):
     """
     Get the values key from a data column
-    :param dict data_col:
+    :param dict data_col: Metadata column w/ values
+    :param str filename: Filename of where this column came from
     :return list:
     """
     val = []
     try:
         val = data_col["values"]
     except KeyError:
-        print("Error: Data column is missing a 'values' entry")
-        logger_csvs.info("get_values_key: KeyError: missing values key")
+        # tell user which csv file and variable is causing issues.
+        print("Error: {}, '{}' is missing a 'values' entry".format(filename, data_col["variableName"]))
+        logger_csvs.info("_search_col_for_vals: KeyError: Filename: {},  '{}' is missing a 'values' "
+                         "entry".format(filename, data_col["variableName"]))
 
     return val
 
 
-def _merge_get_filename(table):
+def _set_filename(table, filename):
     """
-    Get the value from the filename field if the table has one
-    :param dict table: Table metadata
-    :return str: Filename
+    Overwrite filename in table with our standardized filename
+    :param dict table: Metadata
+    :param str filename: Crumbs filename
+    :return dict: Metadata
     """
-    file = ""
     try:
-        file = table["filename"]
+        table["filename"] = filename
     except KeyError:
-        print("Error: Data table is missing a csv filename")
-        logger_csvs.info("get_table_csv_filename: KeyError: missing csv filename")
-    return file
+        logger_csvs.info("_set_filename: KeyError, Unable to set filename into table")
+    return table
 
 
-def _export_get_filename(table, crumbs):
+def _get_filename(table, crumbs):
     """
     Get the filename from a data table. If it doesn't exist, create a new one based on table hierarchy in metadata file.
     format: <dataSetName>.<dataTableType><idx>.<dataTableName>.csv
@@ -336,12 +373,13 @@ def _export_get_filename(table, crumbs):
     try:
         filename = table["filename"]
     except KeyError:
-        logger_csvs.info("get_filename: KeyError: missing filename key")
-        filename = crumbs
+        logger_csvs.info("_get_filename: KeyError: missing filename key for {}".format(crumbs))
+        print("Error: Missing filename for: {} , cannot load this file".format(crumbs))
+        filename = ""
     return filename
 
 
-def _get_datasetname(d):
+def _get_dataset_name(d):
     """
     Get data set name from metadata
     :param dict d: Metadata
@@ -350,8 +388,8 @@ def _get_datasetname(d):
     try:
         s = d["dataSetName"]
     except KeyError:
-        logger_csvs.warn("get_data_set_name: KeyError: missing dataSetName")
-        s = "lipd"
+        logger_csvs.warn("get_dataset_name: KeyError: missing dataSetName")
+        s = "lipds"
     return s
 
 
@@ -377,200 +415,3 @@ def _merge_ensemble(ensemble, col_nums, col_vals):
 
     return ensemble
 
-
-# EXPORT
-
-
-# def get_csv_from_metadata(d):
-#     """
-#     Initial call. Start the process of finding column values in metadata and writing it to csv files
-#     :param dict d:
-#     :return:
-#     """
-#     logger_csvs.info("enter export_csv_to_metadata")
-#     csv_only = {}
-#     crumbs = _get_datasetname(d)
-#
-#     # read from paleo data
-#     if "paleoData" in d:
-#         tmp = _get_csv_section(d["paleoData"], crumbs, "paleo")
-#         csv_only.update(tmp)
-#
-#     # read from chron data
-#     if "chronData" in d:
-#         tmp = _get_csv_section(d["chronData"], crumbs, "chron")
-#         csv_only.update(tmp)
-#
-#     # Write out all the tables that we collected
-#     for filename, data in csv_only.items():
-#         write_csv_to_file(filename, data)
-#
-#     logger_csvs.info("exit export_csv_to_metadata")
-#     return csv_only
-#
-#
-# def _get_csv_section(section_data, crumbs, pc):
-#     """
-#     Export data from chron data
-#     :param dict section_data: Metadata
-#     :param str crumbs: Table name bread crumbs
-#     :param str pc: Paleo or chron
-#     :return:
-#     """
-#     logger_csvs.info("enter export_csv_section: {}".format(pc))
-#     chron_csv = {}
-#     idx = 1
-#
-#     try:
-#         for table_name, table_data in section_data.items():
-#             # Process Model
-#             if "{}Model".format(pc) in table_data:
-#
-#                 # String together crumbs for this level
-#                 crumbs_tmp = "{}{}{}".format(crumbs, pc, str(idx))
-#
-#                 # Replace the chronModel in-place
-#                 tmp = _get_csv_model(table_data["{}Model".format(pc)], crumbs_tmp, pc)
-#                 chron_csv.update(tmp)
-#
-#             # Process chronMeasurementTable
-#             if "{}MeasurementTable".format(pc) in table_data:
-#
-#                 # String together crumbs for this level
-#                 crumbs_tmp = "{}{}{}{}MeasurementTable".format(crumbs, pc, str(idx), pc)
-#
-#                 # Replace the chronMeasurementTable in-place
-#                 tmp = _get_csv_from_cols(table_data["{}MeasurementTable".format(pc)], crumbs_tmp)
-#                 chron_csv.update(tmp)
-#
-#             idx += 1
-#
-#     except AttributeError:
-#         print("Error: {} section must be a dictionary data type".format(pc))
-#         logger_csvs.debug("export_csv_section: {}, AttributeError: expected dict type, given {}".format(pc, type(section_data)))
-#
-#     logger_csvs.info("exit export_csv_section: {}".format(pc))
-#     return chron_csv
-#
-#
-# def _get_csv_model(models, crumbs, pc):
-#     """
-#     Export data from chron model
-#     :param dict models: Metadata
-#     :param str crumbs: Table name bread crumbs
-#     :param str pc: Paleo or chron
-#     :return dict:
-#     """
-#     logger_csvs.info("enter export_model_csv: {}".format(pc))
-#     model_csv = {}
-#     idx = 1
-#
-#     for model in models:
-#         tmp = {}
-#         dist = ""
-#
-#         # String together crumbs for this level
-#         crumbs_tmp = "{}model{}".format(crumbs, str(idx))
-#
-#         # This could be more efficient by doing model_csv.update(_rip_csv_to_columns(model["chronModelTable"]))
-#         if "{}ModelTable" in model:
-#             crumbs_model = "{}{}summaryTable.csv".format(crumbs_tmp, pc)
-#             tmp = _get_csv_from_cols(model["{}ModelTable".format(pc)], crumbs_model)
-#         elif "summaryTable" in model:
-#             crumbs_model = "{}{}summaryTable.csv".format(crumbs_tmp, pc)
-#             tmp = _get_csv_from_cols(model["summaryTable".format(pc)], crumbs_model)
-#         if "ensembleTable" in model:
-#             crumbs_ensemble = "{}ensembleTable.csv"
-#             tmp = _get_csv_from_cols(model["ensembleTable"], crumbs_ensemble)
-#         if "calibratedAges" in model:
-#             dist = "calibratedAges"
-#         elif "distributionTable" in model:
-#             dist = "distributionTable"
-#         if dist:
-#             # Calibrated age tables are nested. Go down an extra layer.
-#             c_idx = 1
-#             for k, v in model[dist].items():
-#                 crumbs_ca = "{}distributionTable{}.csv".format(crumbs_tmp, str(c_idx))
-#                 tmp2 = _get_csv_from_cols(v, crumbs_ca)
-#                 tmp.update(tmp2)
-#                 c_idx += 1
-#
-#         # Update the model_csv with the new csv data that trickled up.
-#         model_csv.update(tmp)
-#         idx += 1
-#
-#     logger_csvs.info("exit export_model_csv: {}".format(pc))
-#     return model_csv
-#
-#
-# def _get_csv_from_cols(table, crumbs):
-#     """
-#     Rip the csv data from a given table
-#     :param dict table: Table data
-#     :return dict: key: table filename val: column data
-#     """
-#     col_data = {}
-#     complete = {}
-#
-#     # Get the filename or table name
-#     filename = _export_get_filename(table, crumbs)
-#
-#     # If columns is here, start parsing.
-#     if "columns" in table:
-#         col_data = _get_csv_from_cols_sub(table)
-#
-#     # If this file had a table name, then there's an extra level before columns.
-#     else:
-#         try:
-#             for t_name, t_data in table.items():
-#                 if "columns" in t_data:
-#                     col_data = _get_csv_from_cols_sub(t_data)
-#         except KeyError:
-#             logger_csvs.warning("rip_csv_from_columns: KeyError: missing number or values keys")
-#         except AttributeError:
-#             logger_csvs.warning("rip_csv_from_columns: AttributeError: expected dictionary type, given {}".format(type(table)))
-#
-#     complete[filename] = col_data
-#     return complete
-#
-#
-# def _get_csv_from_cols_sub(table):
-#     """
-#     Sub routine to parse column data.
-#     :param dict table: Metadata
-#     :return dict: Metadata
-#     """
-#     col_data = {}
-#     keys = {"number": None, "values": None}
-#     ens = False
-#     if "columns" in table:
-#         # Loop over "columns" key and track all data
-#         for var, col in table["columns"].items():
-#
-#             for k, v in keys.items():
-#                 try:
-#                     keys[k] = col[k]
-#                 except KeyError:
-#                     print("Error: missing {} key in column".format(k))
-#                     logger_csvs.warning("rip_csv_to_columns: KeyError: missing {} key".format(k))
-#
-#             if keys["number"] and keys["values"]:
-#                 # Get the column number, and decrement for 0-index.
-#                 # This is the position that the col will be written to in csv.
-#                 # Catch the ensemble table exception. "number" is a list instead of an int
-#                 vals = keys["values"]
-#                 num = keys["number"]
-#
-#                 if isinstance(keys["number"], list):
-#                     # Set ensemble flag so we know to process data further
-#                     ens = True
-#                 else:
-#                     # Set data to the running col data. No further processing needed
-#                     col_data[num-1] = vals
-#
-#         if ens:
-#             col_data = _merge_ensemble(col_data, num, vals)
-#
-#     return col_data
-#
-#

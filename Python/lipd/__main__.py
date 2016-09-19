@@ -4,7 +4,7 @@ import sys
 
 def main():
     """
-    Wrapper for Jupyter. Keep directory for lipd notebooks under root folder for user. Launches jupyter server.
+    Wrapper for Jupyter. Keep directory for lipds notebooks under root folder for user. Launches jupyter server.
     """
     dir_nb = os.path.join(os.path.expanduser('~'), 'LiPD_Notebooks')
     if not os.path.isdir(dir_nb):

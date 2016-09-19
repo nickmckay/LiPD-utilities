@@ -18,6 +18,28 @@ def _prompt_filename():
     return filename
 
 
+def prompt_protocol():
+    """
+    Prompt user if they would like to save pickle file as a dictionary or an object.
+    :return str: Answer
+    """
+    stop = 3
+    ans = ""
+    while True and stop > 0:
+        ans = input("Save as (d)ictionary or (o)bject?\n"
+                      "* Note:\n"
+                    "Dictionaries are more basic, and are compatible with Python v2.7+.\n"
+                      "Objects are more complex, and are only compatible with v3.4+ ")
+        if ans not in ("d", "o"):
+            print("Invalid response: Please choose 'd' or 'o'")
+        else:
+            break
+    # if a valid answer isn't captured, default to dictionary (safer, broader)
+    if ans == "":
+        ans = "d"
+    return ans
+
+
 def split_path_and_file(s):
     """
     Given a full path to a file, split and return a path and filename
@@ -34,6 +56,7 @@ def split_path_and_file(s):
         print("Error: unable to split path")
 
     return _path, _filename
+
 
 def unpickle_data(path, filename):
     """
@@ -53,11 +76,12 @@ def unpickle_data(path, filename):
     return d
 
 
-def pickle_data(path, d):
+def pickle_data(path, d, ans):
     """
     Pickle a dictionary of data to file, and save.
     :param dict d: Data to be pickled
     :param str path: Destination directory
+    :param str ans: Pickle protocol option
     :return none:
     """
     os.chdir(path)
@@ -68,12 +92,15 @@ def pickle_data(path, d):
     # Store data (serialize)
     try:
         with open(filename, 'wb') as handle:
-            pickle.dump(d, handle, protocol=2)
+            # Object: Pickle with highest protocol
+            if ans == "o":
+                pickle.dump(d, handle)
+            # Dictionary: Pickle with protocol 2, for use in python v2.7+
+            else:
+                pickle.dump(d, handle, protocol=2)
     except Exception:
         print("Error: unable to create pickle file")
     return
-
-
 
 
 def match_operators(inp, relate, cut):
@@ -100,6 +127,23 @@ def match_operators(inp, relate, cut):
     return truth
 
 
+def cast_values_csvs(d, idx, x):
+    """
+    Attempt to cast string to float. If error, keep as a string.
+    :param str x: String data
+    :return any:
+    """
+    try:
+        d[idx].append(float(x))
+    except ValueError as e:
+        d[idx].append(x)
+        logger_misc.warn("ValueError: col: {}, {}".format(x, e))
+    except KeyError as e:
+        logger_misc.warn("KeyError: col: {}, {}".format(x, e))
+
+    return d
+
+
 def cast_value(string):
     """
     Attempt to cleanup string or convert to number value.
@@ -114,11 +158,6 @@ def cast_value(string):
         except AttributeError as e:
             logger_misc.warn("parse_str: AttributeError: String not number or word, {}, {}".format(string, e))
     return string
-
-
-# CSVS HELPERS
-
-# JSON HELPERS
 
 
 def remove_values_fields(x):
@@ -235,7 +274,7 @@ def update_lipd_version(d):
     :return dict: Most current version metadata dictionary
     """
 
-    # Get the lipd version number.
+    # Get the lipds version number.
     version = get_lipd_version(d)
 
     # Update from (N/A or 1.0) to 1.1
@@ -258,7 +297,7 @@ def lipd_v1_0_to_v1_1(d):
     :param dict d: Metadata
     :return dict: v1.1 metadata dictionary
     """
-    logger_misc.info("enter lipd 1.0 to 1.1")
+    logger_misc.info("enter lipds 1.0 to 1.1")
     tmp_all = []
 
     # ChronData is the only structure update
@@ -279,7 +318,7 @@ def lipd_v1_0_to_v1_1(d):
             d["chronData"] = tmp_all
 
     d["LiPDVersion"] = 1.1
-    logger_misc.info("exit lipd 1.0 to 1.1")
+    logger_misc.info("exit lipds 1.0 to 1.1")
     return d
 
 
@@ -289,7 +328,7 @@ def lipd_v1_1_to_v1_2(d):
     :param dict d: Metadata dictioanry
     :return dict: v1.2 metadata dictionary
     """
-    logger_misc.info("enter lipd 1.1 to 1.2")
+    logger_misc.info("enter lipds 1.1 to 1.2")
     tmp_all = []
 
     # PaleoData is the only structure update
@@ -310,7 +349,7 @@ def lipd_v1_1_to_v1_2(d):
             d["paleoData"] = tmp_all
 
     d["LiPDVersion"] = 1.2
-    logger_misc.info("exit lipd 1.1 to 1.2")
+    logger_misc.info("exit lipds 1.1 to 1.2")
     return d
 
 

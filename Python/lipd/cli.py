@@ -1,6 +1,6 @@
 import cmd
 
-from .pkg_resources.lipd.LiPD_Library import *
+from .pkg_resources.lipds.LiPD_Library import *
 from .pkg_resources.timeseries.Convert import *
 from .pkg_resources.timeseries.TimeSeries_Library import *
 
@@ -12,7 +12,7 @@ class LiPD_CLI(cmd.Cmd):
     """
 
     intro = "Welcome to LiPD. Type help or ? to list commands.\n"
-    prompt = '(lipd) '
+    prompt = '(lipds) '
     # print(sys.path)
 
     def __init__(self):

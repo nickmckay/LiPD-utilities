@@ -24,7 +24,7 @@ class NOAA_LPD(object):
 
     def main(self):
         """
-        Convert a NOAA text file into a lipd file.
+        Convert a NOAA text file into a lipds file.
         CSV files will be created if chronology or data sections are available.
         :return dict: Metadata Dictionary
         """

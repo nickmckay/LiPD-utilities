@@ -11,7 +11,7 @@ class PostInstall(install):
     """ Custom install script that runs post-install."""
     def run(self):
         # Make the notebooks folder in the user directory
-        src_nb = os.path.join(here, 'lipd', 'files')
+        src_nb = os.path.join(here, 'lipds', 'files')
         src_ex = os.path.join(src_nb, 'examples')
         dst_nb = os.path.join(os.path.expanduser('~'), 'LiPD_Notebooks')
         dst_ex = os.path.join(dst_nb, 'examples')
@@ -40,7 +40,7 @@ class PostInstall(install):
 
 
 here = path.abspath(path.dirname(__file__))
-version = '0.1.5.6'
+version = '0.1.5.7'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -78,10 +78,10 @@ setup(
     author='C. Heiser',
     author_email='heiser@nau.edu',
     packages=find_packages(exclude=['build', '_docs', 'templates']),
-    # packages = ["lipd", "doi", "noaa", "excel"],
+    # packages = ["lipds", "doi", "noaa", "excel"],
     entry_points={
         "console_scripts": [
-            'lipd= lipd.__main__:main'
+            'lipds= lipds.__main__:main'
         ]
     },
     cmdclass={

@@ -19,6 +19,13 @@ class LiPD_Library(object):
 
     # LOADING
 
+    def get_dir(self):
+        """
+        Get the dir_root value
+        :return str: dir_root path
+        """
+        return self.dir_root
+
     def set_dir(self, dir_root):
         """
         Changes the current working directory.
@@ -49,7 +56,7 @@ class LiPD_Library(object):
         """
         # Confirm that a CWD is set first.
         if not self.dir_root:
-            print("Current Working Directory has not been set.")
+            print("Error: Current Working Directory has not been set. Use setDir()")
             return
         os.chdir(self.dir_root)
         # Get a list of all lpd files
@@ -127,7 +134,7 @@ class LiPD_Library(object):
         try:
             d = self.master[name].get_dfs()
         except KeyError:
-            logger_lipd_lib.debug("getDfs: KeyError: missing lipd {}".format(name))
+            logger_lipd_lib.debug("getDfs: KeyError: missing lipds {}".format(name))
         return d
 
     def show_lipd_master(self, name):
@@ -160,7 +167,7 @@ class LiPD_Library(object):
         :return:
         """
         d = {}
-        # for each dataset in the lipd library
+        # for each dataset in the lipds library
         for k,v in self.master.items():
             # key is dataset name, value is master data
             d[k] = v.get_master()
@@ -185,6 +192,7 @@ class LiPD_Library(object):
         for k, v in self.master.items():
             self.master[k].save()
         # Reload the newly saved LiPD files back into the library.
+        print("Re-loading workspace..")
         self.load_lipds()
         return
 
@@ -217,7 +225,7 @@ class LiPD_Library(object):
         os.chdir(self.dir_root)
         # create a lpd object
         lipd_obj = LiPD(self.dir_root, self.dir_tmp, name_ext)
-        # load in the data from the lipd file (unpack, and create a temp workspace)
+        # load in the data from the lipds file (unpack, and create a temp workspace)
         lipd_obj.load()
         # add the lpd object to the master dictionary
         self.master[name_ext] = lipd_obj
