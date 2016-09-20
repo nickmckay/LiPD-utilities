@@ -5,6 +5,7 @@ GLOBAL LIST OF REGEXES
 """
 
 # EXCEL
+RE_VARS_W_UNITS = re.compile(r'([\w\s]+)(\([\w\s]*\)*)?', re.I)
 # todo write a regex for legacy sheet names
 RE_SHEET = re.compile(r'(paleo|chron)(\d+)(model[a-z]*\d+)?(measurement|ensemble|summary|distribution)[a-zA-Z]*(\d+)', re.I)
 # (paleo\d+|chron\d+)\.(?(?=measurement)(measurement[a-z]*\d+)|(model[a-z]*\d+)\.(distribution[a-z]*\d+|model[a-z]*|ensemble[a-z]*]))

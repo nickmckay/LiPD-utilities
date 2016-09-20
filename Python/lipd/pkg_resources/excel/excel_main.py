@@ -9,7 +9,7 @@ from ..helpers.zips import *
 from ..helpers.blanks import *
 from ..helpers.loggers import *
 from ..helpers.alternates import *
-from ..helpers.regexes import RE_SHEET
+from ..helpers.regexes import RE_SHEET, RE_VARS_W_UNITS
 
 
 logger_excel = create_logger('excel_main')
@@ -132,7 +132,7 @@ def excel():
             # PALEO AND CHRON SHEETS
             for sheet in sheets:
                 logger_excel.info("parsing data worksheet: {}".format(sheet))
-                sheet_meta, sheet_csv = _parse_sheet(name, workbook, sheet)
+                sheet_meta, sheet_csv = _parse_sheet(workbook, sheet)
                 if sheet_csv and sheet_meta:
                     pending_csv.append(sheet_csv)
                     sheet["data"] = sheet_meta
@@ -289,7 +289,7 @@ def _build_sheet(m, sheets, old_sheet, name, paleo_ct, chron_ct):
 def _place_tables(metadata):
     """
     All the data has been parsed, now put the data into a LiPD 1.2 structure.
-    :param dict metadata:
+    :param list metadata:
     :return:
     """
     logger_excel.info("enter place_tables")
@@ -441,7 +441,7 @@ def _create_metadata_skeleton(metadata):
 # PARSE
 
 
-def _parse_sheet(name, workbook, sheet):
+def _parse_sheet(workbook, sheet):
     """
     The universal spreadsheet parser. Parse chron or paleo tables of type ensemble/model/summary.
     :param str name: Filename
@@ -497,6 +497,7 @@ def _parse_sheet(name, workbook, sheet):
         for i in range(0, nrows):
             # Hold the contents of the current cell
             cell = temp_sheet.cell_value(row_num, col_num)
+            row = temp_sheet.row(row_num)
 
             # Skip all template lines
             if isinstance(cell, str):
@@ -543,7 +544,9 @@ def _parse_sheet(name, workbook, sheet):
                             # Create a list of all the variable names found
                             for entry in column_metadata:
                                 try:
+                                    # var keys is used as the variableName entry in each column's metadata
                                     variable_keys.append(entry["variableName"].strip())
+                                    # var keys lower is used for comparing and finding the data header row
                                     variable_keys_lower.append(entry["variableName"].lower().strip())
                                 except KeyError:
                                     # missing a variableName key
@@ -595,10 +598,16 @@ def _parse_sheet(name, workbook, sheet):
                         column_metadata.append(col_tmp)
                         col_add_ct += 1
 
-                    # Numeric Data. Column metadata exists and metadata_done marker is on.
+                    # Data variable header row. Column metadata exists and metadata_done marker is on.
+                    # This is where we compare top section variableNames to bottom section variableNames to see if
+                    # we need to start parsing the column values
                     else:
                         try:
-                            if metadata_done and cell.lower().strip() in variable_keys_lower:
+                            # Clean up variable_keys_lower so we all variable names change from "age(yrs BP)" to "age"
+                            # Units in parenthesis make it too difficult to compare variables. Remove them.
+                            row = _rm_units_from_var_names_multi(row)
+
+                            if metadata_done and any(i in row for i in variable_keys_lower):
                                 data_on = True
                                 col_total = len(column_metadata)
                         except AttributeError:
@@ -695,6 +704,43 @@ def _get_header_keys(row):
     return header_keys
 
 
+def _rm_units_from_var_name_single(var):
+    """
+    NOTE: USE THIS FOR SINGLE CELLS ONLY
+    When parsing sheets, all variable names be exact matches when cross-referenceing the metadata and data sections
+    However, sometimes people like to put "age (years BP)" in one section, and "age" in the other. This causes problems.
+    We're using this regex to match all variableName cells and remove the "(years BP)" where applicable.
+    :param str var: Variable name
+    :return str: Variable name
+    """
+    # Use the regex to match the cell
+    m = re.match(RE_VARS_W_UNITS, var)
+    # Should always get a match, but be careful anyways.
+    if m:
+        # m.group(1): variableName
+        # m.group(2): units in parenthesis (may not exist).
+        try:
+            var = m.group(1).strip()
+        except Exception:
+            # This must be a malformed cell somehow. This regex should match every variableName cell.
+            # It didn't work out. Return the original var as a fallback
+            pass
+    return var
+
+
+def _rm_units_from_var_names_multi(row):
+    """
+    Wrapper around "_rm_units_from_var_name_single" for doing a list instead of a single cell.
+    :param list row: Variable names
+    :return list: Variable names
+    """
+    l2 = []
+    # Check each var in the row
+    for idx, var in enumerate(row):
+        l2.append(_rm_units_from_var_name_single(row[idx].value))
+    return l2
+
+
 def _compile_column_metadata(row, keys, number):
     """
     Compile column metadata from one excel row ("9 part data")
@@ -708,13 +754,26 @@ def _compile_column_metadata(row, keys, number):
     # Use the header keys to place the column data in the dictionary
     if keys:
         for idx, key in enumerate(keys):
-            column[key] = row[idx].value
+            try:
+                val = row[idx].value
+            except Exception:
+                logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
+                val = "n/a"
+            if key == "variableName":
+                val = _rm_units_from_var_name_single(row[idx].value)
+            column[key] = val
         column["number"] = number
 
     # If there are not keys, that means it's a header-less metadata section.
     else:
         # Assume we only have one cell, because we have no keys to know what data is here.
-        column["variableName"] = row[0].value
+        try:
+            val = row[0].value
+        except Exception:
+            logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
+            val = "n/a"
+        val = _rm_units_from_var_name_single(val)
+        column["variableName"] = val
         column["number"] = number
 
     # Add this column to the overall metadata
@@ -962,6 +1021,7 @@ def _get_num_locations(d):
     except ValueError:
         num = 0
     return num
+
 
 def _parse_geo_location(d):
     """
