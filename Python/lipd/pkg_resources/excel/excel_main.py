@@ -794,9 +794,9 @@ def geometry_linestring(lat, lon, elev):
     else:
         # Creates coordinates list
         logger_excel.info("unique geo coordinates")
-        for i in lat:
+        for i in lon:
             temp[0] = i
-            for j in lon:
+            for j in lat:
                 temp[1] = j
                 coordinates.append(copy.copy(temp))
         if elev:
@@ -822,14 +822,14 @@ def geometry_range(crd_range, elev, crd_type):
     coordinates = [[] for i in range(len(crd_range))]
 
     # latitude
-    if crd_type == "lat":
+    if crd_type == "lon":
         for idx, i in enumerate(crd_range):
             coordinates[idx] = [crd_range[idx], "NaN"]
             if elev:
                 coordinates[idx].append(elev)
 
     # longitude
-    elif crd_type == "lon":
+    elif crd_type == "lat":
         for idx, i in enumerate(crd_range):
             coordinates[idx] = ["NaN", crd_range[idx]]
             if elev:
@@ -846,7 +846,7 @@ def geometry_point(lat, lon, elev):
     GeoJSON point. Latitude and Longitude only have one value each
     :param list lat: Latitude values
     :param list lon: Longitude values
-    :param list elev: Elevation value
+    :param float elev: Elevation value
     :return dict:
     """
     logger_excel.info("enter geometry_point")
@@ -854,8 +854,8 @@ def geometry_point(lat, lon, elev):
     point_dict = OrderedDict()
     for idx, val in enumerate(lat):
         try:
-            coordinates.append(lat[idx])
             coordinates.append(lon[idx])
+            coordinates.append(lat[idx])
         except IndexError as e:
             print("Error: Invalid geo coordinates")
             logger_excel.debug("geometry_point: IndexError: lat: {}, lon: {}, {}".format(lat, lon, e))
@@ -983,6 +983,7 @@ def _parse_geo_location(d):
 
     return d2
 
+
 def _parse_geo_locations(d, idx):
     """
     Parse one geo location
@@ -1013,6 +1014,7 @@ def _parse_geo_locations(d, idx):
     d2['properties'] = {'siteName': filt['siteName']}
 
     return d2
+
 
 def compile_authors(cell):
     """

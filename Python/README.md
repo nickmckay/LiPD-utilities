@@ -30,18 +30,27 @@ pip install LiPD
 For more detailed installation instructions, please refer to the file called INSTALL.
 
 
+Starter example files
+------------
 
-Quickstart guide
+[Download ZIP file](https://dl.dropboxusercontent.com/s/azp3m2hggh0l0jr/lipd_starter_files.zip?dl=1)
+
+Unzip these files to you desktop, or other easy-to-remember location.
+
+
+Quickstart
 ----------------
 1. Open your command line application (Terminal or Command Prompt):
 
-2. Install with command:  `pip install LiPD`
+2. Install the LiPD package with command:  `pip install LiPD`
 
-3. Wait for installation to complete, then type `lipd` to launch the package.
+3. Open Jupyter with `jupyter notebook`
 
 4. A web portal will launch in your default internet browser.
 
-5. Click to open the `Welcome LiPD - Quickstart.ipynb` file.
+5. Use the file browser in the web portal to find the starter files
+
+6.
 
 That’s it!
 
