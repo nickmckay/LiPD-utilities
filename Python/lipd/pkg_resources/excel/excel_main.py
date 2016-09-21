@@ -720,7 +720,7 @@ def _rm_units_from_var_name_single(var):
         # m.group(1): variableName
         # m.group(2): units in parenthesis (may not exist).
         try:
-            var = m.group(1).strip()
+            var = m.group(1).strip().lower()
         except Exception:
             # This must be a malformed cell somehow. This regex should match every variableName cell.
             # It didn't work out. Return the original var as a fallback
@@ -768,6 +768,8 @@ def _compile_column_metadata(row, keys, number):
     else:
         # Assume we only have one cell, because we have no keys to know what data is here.
         try:
+            val = row[0].value.lower()
+        except AttributeError:
             val = row[0].value
         except Exception:
             logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
