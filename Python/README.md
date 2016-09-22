@@ -10,52 +10,49 @@ What is it?
 LiPD is short for Linked PaleoData. LiPD is the data standard for paleoclimatology and the exchange of data amongst paleoclimate experts. This package will help you convert your existing database of paleoclimate observations into LiPD files. Moreover, it contains tools to analyze and manipulate LiPD data.
 
 
-How does it work?
------------
-
-The LiPD package runs within the Jupyter (formerly iPython) environment. Jupyter is an important component for interactive data science and data scientific computing. If you are familiar with iPython, then you’ll have no problem here. If not, don’t worry, Jupyter is still very easy to learn. 
-
-LiPD has its own way of manipulating and converting data, but uses Jupyter for its structure and interactive computing. When you're working you will see Jupyter's interface; however, LiPD will be working in the background.
-
-
 Installation
 ------------
-Python v3.4+ is required
 
-LiPD is published through PyPi and easily installed via `pip`.
+LiPD is a package containing multiple modules. Install globally on your system with:
 
 ```
 pip install LiPD
 ```
-For more detailed installation instructions, please refer to the file called INSTALL.
+
+Python v3.4+ is required
 
 
-Starter example files
+Usage
+----------------
+
+Using your preferred Python IDE or a Python console, you can import the LiPD package using:
+```
+import lipd
+```
+This import will trigger a prompt asking you to choose a source directory containing files.
+
+Now you can call any function in the LiPD package.
+```
+lipd.loadLipds()
+```
+```
+lipd.excel()
+```
+```
+lipd.doi()
+```
+
+Starter files
 ------------
 
 [Download ZIP file](https://dl.dropboxusercontent.com/s/azp3m2hggh0l0jr/lipd_starter_files.zip?dl=1)
 
-Unzip these files to you desktop, or other easy-to-remember location.
+The starter files will give you working examples to try out LiPD, as well as blank templates to insert your own data.
 
-
-Quickstart
-----------------
-1. Open your command line application (Terminal or Command Prompt):
-
-2. Install the LiPD package with command:  `pip install LiPD`
-
-3. Open Jupyter with `jupyter notebook`
-
-4. A web portal will launch in your default internet browser.
-
-5. Use the file browser in the web portal to find the starter files
-
-6.
-
-That’s it!
-
-What you have done is launched the LiPD package and opened your first **Notebook**. This specific Notebook is an example and a guide to getting you familiar with what LiPD can do, and how to use LiPD commands.Once you get the hang of it, you can start creating your own Notebooks that are specific to your needs.
-
+__Included:__
+* NOAA blank template and example file
+* Excel blank template and example file
+* LiPD example file
 
 Features
 ----
@@ -63,23 +60,31 @@ Features
 - Convert Excel files to LiPD files
 - Convert NOAA files to LiPD files
 - Convert LiPD files to NOAA files
-- Update LiPD publication data by fetching up-to-date information from DOI.org
-- Load LiPD files for data analyzation
-- Extract TimeSeries from LiPD files
+- Load LiPD files for data analysis
+- Extract TimeSeries
 
+Jupyter Notebooks
+----------------
+
+A Jupyter Notebook is an instructional tool to show examples of python code and code output. We have created a set of Notebooks as guides to getting familiar with LiPD and its functions. These Notebooks can be found in the github repository as '.ipynb' files.
+
+_Jupyter is not required to use the LiPD package._
 
 Requirements
 ----
-For a list of requirements that are installed with this package, please refer to the file called REQUIREMENTS.
+For a list of modules that are installed with this package, please refer to the file called REQUIREMENTS.
 
 
 Further information
 ----------
-Github: https://github.com/nickmckay/LiPD-utilities
+Github:
+https://github.com/nickmckay/LiPD-utilities
 
-Linked Earth Wiki: http://www.organicdatacuration.org/linkedearth/index.php/Main_Page
+Linked Earth Wiki:
+wiki.linked.earth
 
-Jupyter Documentation: https://jupyter.readthedocs.org/en/latest/
+Jupyter:
+www.jupyter.org
 
 
 Contact
