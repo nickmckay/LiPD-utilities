@@ -145,20 +145,36 @@ def cast_values_csvs(d, idx, x):
     return d
 
 
-def cast_value(string):
+def cast_float(x):
     """
     Attempt to cleanup string or convert to number value.
-    :param str string:
-    :return float or str:
+    :param any x:
+    :return float:
     """
     try:
-        string = float(string)
+        x = float(x)
     except ValueError:
         try:
-            string = string.strip()
+            x = x.strip()
         except AttributeError as e:
-            logger_misc.warn("parse_str: AttributeError: String not number or word, {}, {}".format(string, e))
-    return string
+            logger_misc.warn("parse_str: AttributeError: String not number or word, {}, {}".format(x, e))
+    return x
+
+
+def cast_int(x):
+    """
+    Cast unknown type into integer
+    :param any x:
+    :return int:
+    """
+    try:
+        x = int(x)
+    except ValueError:
+        try:
+            x = x.strip()
+        except AttributeError as e:
+            logger_misc.warn("parse_str: AttributeError: String not number or word, {}, {}".format(x, e))
+    return x
 
 
 def remove_values_fields(x):

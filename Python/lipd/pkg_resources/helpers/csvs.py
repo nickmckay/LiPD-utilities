@@ -1,7 +1,7 @@
 import csv
 
 from ..helpers.loggers import *
-from ..helpers.misc import cast_values_csvs
+from ..helpers.misc import cast_values_csvs, cast_int
 
 logger_csvs = create_logger("csvs")
 
@@ -126,12 +126,14 @@ def _add_csv_to_columns(table, crumbs):
                     col["values"] = csv_data
                 # For all other cases, "number" is a single int, and "values" should hold one column list.
                 else:
-                    col['values'] = csv_data[col["number"] - 1]
+                    col_num = cast_int(col["number"])
+                    col['values'] = csv_data[col_num - 1]
         except IndexError:
             logger_csvs.warning("add_csv_to_columns: IndexError: index out of range of csv_data list")
         except KeyError:
             logger_csvs.debug("add_csv_to_columns: KeyError: missing columns key")
-
+        except Exception as e:
+            logger_csvs.debug("add_csv_to_columns: Unknown Error:  {}".format(e))
     return table
 
 
