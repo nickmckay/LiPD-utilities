@@ -1,7 +1,7 @@
 from .regexes import re_filter_expr
 from .alternates import COMPARISONS
 from .loggers import create_logger
-from .misc import match_operators, cast_value
+from .misc import match_operators, cast_float
 
 logger_ts = create_logger("ts")
 
@@ -20,8 +20,8 @@ def translate_expression(expression):
             tmp = list(i[1:])
             if tmp[1] in COMPARISONS:
                 tmp[1] = COMPARISONS[tmp[1]]
-            tmp[0] = cast_value(tmp[0])
-            tmp[2] = cast_value(tmp[2])
+            tmp[0] = cast_float(tmp[0])
+            tmp[2] = cast_float(tmp[2])
             matches.append(tmp)
     else:
         logger_ts.warn("translate_expression: invalid expression: {}".format(expression))
