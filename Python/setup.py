@@ -5,6 +5,19 @@ import io
 import sys
 from distutils.command.install import install
 
+
+class PostInstall(install):
+    """ Custom install script that runs post-install."""
+    def run(self):
+        # Make the notebooks folder in the user directory
+        dst_nb = os.path.join(os.path.expanduser('~'), 'LiPD_Workspace')
+
+        # Make folders if needed
+        if not os.path.isdir(dst_nb):
+            os.mkdir(dst_nb)
+
+        install.run(self)
+
 here = path.abspath(path.dirname(__file__))
 version = '0.1.6.4'
 
@@ -49,9 +62,9 @@ setup(
             'lipd= lipd.__main__:main'
         ]
     },
-    # cmdclass={
-    #     'install': PostInstall,
-    # },
+    cmdclass={
+        'install': PostInstall,
+    },
     url='https://github.com/nickmckay/LiPD-utilities',
     license='GNU Public',
     description='LiPD utilities to process, convert, and analyze data.',

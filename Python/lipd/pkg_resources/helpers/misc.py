@@ -3,11 +3,25 @@ import pickle
 import os
 import datetime as dt
 import numpy as np
+import unicodedata
 
-from ..helpers.loggers import *
+from ..helpers.loggers import create_logger
 from ..helpers.blanks import EMPTY
 
 logger_misc = create_logger("misc")
+
+
+def normalize_name(s):
+    """
+    Remove foreign accents and characters to normalize the string. Prevents encoding errors.
+    :param str s:
+    :return str:
+    """
+    # Normalize the string into a byte string form
+    s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore')
+    # Remove the byte string and quotes from the string
+    s = str(s)[2:-1]
+    return s
 
 
 def _prompt_filename():

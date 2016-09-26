@@ -131,9 +131,9 @@ def get_src_or_dst(mode):
     count = 0
 
     if mode == "save":
-        prompt = "Where would you like to save your file(s)?\n1. Current\n2. Browse\n3. Downloads\n4. Notebook\n"
+        prompt = "Where would you like to save your file(s)?\n1. Current\n2. Browse\n3. Downloads\n4. LiPD Workspace\n"
     elif mode == "load":
-        prompt = "Where are your file(s) stored?\n1. Current\n2. Browse\n3. Downloads\n4. Notebook\n"
+        prompt = "Where are your file(s) stored?\n1. Current\n2. Browse\n3. Downloads\n4. LiPD Workspace\n"
     else:
         # did you forget to enter a mode? silly
         invalid = False
@@ -155,8 +155,8 @@ def get_src_or_dst(mode):
             _path = os.path.expanduser('~/Downloads')
         elif option == '4':
             # Set path to the Notebook folder
-            logger_directory.info("4: notebook ")
-            _path = os.path.expanduser('~/LiPD_Notebooks')
+            logger_directory.info("4: lipd workspace ")
+            _path = os.path.expanduser('~/LiPD_Workspace')
         else:
             # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
             if count == 2:

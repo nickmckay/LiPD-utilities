@@ -2,8 +2,8 @@ import collections
 
 import pandas as pd
 
-from ..helpers.regexes import *
-from ..helpers.loggers import *
+from ..helpers.regexes import re_pandas_x_num
+from ..helpers.loggers import create_logger
 from ..helpers.alternates import DATA_FRAMES
 from ..helpers.misc import unwrap_arrays, match_arr_lengths
 

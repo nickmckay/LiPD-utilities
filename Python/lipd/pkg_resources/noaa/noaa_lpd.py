@@ -1,11 +1,15 @@
 from collections import OrderedDict
 import csv
+import re
+import os
+import copy
 
-from ..helpers.jsons import *
-from ..helpers.bag import *
-from ..helpers.alternates import *
-from ..helpers.regexes import *
-from ..helpers.blanks import *
+from ..helpers.misc import remove_empty_doi, remove_empty_fields
+from ..helpers.jsons import write_json_to_file
+from ..helpers.bag import finish_bag
+from ..helpers.alternates import NOAA_SITE_INFO, NOAA_IGNORE_KEYS, FUNDING_LIST, NOAA_ORDERING, UNITS, ALTS_MV
+from ..helpers.regexes import re_var, re_var_split, re_name_unit, re_name_unit_range, re_doi, re_var_w_units, re_tab_split
+from ..helpers.blanks import NOAA_EMPTY, NOAA_DATA_LINES, NOAA_VAR_LINES, EMPTY
 from ..helpers.loggers import create_logger
 
 logger_noaa_lpd = create_logger("noaa_lpd")
@@ -233,7 +237,7 @@ class NOAA_LPD(object):
                         try:
                             # Chron variable headers line
                             if line and line[0] != "#":
-                                chron_filename = self.name + 'Chron1.ChronMeasurementTable.csv'
+                                chron_filename = self.name + '.chron1.measurementTable1.csv'
                                 # Organize the var header into a dictionary
                                 variables = self.__reorganize_chron_header(line)
 
@@ -342,7 +346,7 @@ class NOAA_LPD(object):
                                 data_vals_on = True
                                 logger_noaa_lpd.info("start section: Data_Values")
                                 # Open CSV for writing
-                                data_filename = self.name + 'PaleoData.data.csv'
+                                data_filename = self.name + 'paleoData1.measurementTable1.csv'
                                 csv_path = os.path.join(self.dir_bag, data_filename)
                                 data_csv = open(csv_path, 'w+', newline='')
                                 logger_noaa_lpd.info("opened csv file: {}".format(data_filename))
@@ -866,15 +870,23 @@ class NOAA_LPD(object):
         :return dict: key: variable, val: units (optional)
         """
         d = {}
-        l = line.split()
-        for entry in l:
-            if "(" in entry:
-                # Extract units and set the output.
-                s = entry.split("(")
-                d[s[0]] = s[1].replace(")", "")
-            else:
-                # No units found. Set placeholder
-                d[entry] = ""
+        # Header variables should be tab-delimited. Use regex to split by tabs
+        m = re.split(re_tab_split, line)
+        # If there was an output match from the line, then keep going
+        if m:
+            # Loop once for each variable in the line
+            for s in m:
+                # Match the variable to the 'variable (units)' regex to look for units
+                m2 = re.match(re_var_w_units, s)
+                # If there was a match
+                if m2:
+                    # If no units were found, set to blank
+                    if m2.group(2) is None:
+                        d[m2.group(1)] = ""
+                    # Units were found
+                    else:
+                        # Set both values
+                        d[m2.group(1)] = m2.group(2)
         return d
 
     @staticmethod

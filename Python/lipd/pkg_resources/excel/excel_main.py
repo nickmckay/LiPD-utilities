@@ -1,16 +1,21 @@
 import csv
-
+import shutil
 import xlrd
+import copy
+import re
+import os
+from collections import OrderedDict
 
-from ..doi.doi_resolver import *
-from ..helpers.bag import *
-from ..helpers.directory import *
-from ..helpers.zips import *
-from ..helpers.blanks import *
-from ..helpers.loggers import *
-from ..helpers.alternates import *
-from ..helpers.regexes import RE_SHEET, RE_VARS_W_UNITS
-
+from ..doi.doi_resolver import DOIResolver
+from ..helpers.bag import finish_bag
+from ..helpers.directory import dir_cleanup, create_tmp_dir, list_files
+from ..helpers.zips import zipper
+from ..helpers.loggers import create_logger
+from ..helpers.blanks import EMPTY
+from ..helpers.alternates import EXCEL_GEO, EXCEL_TEMPLATE, ALTS_MV, SHEETS, EXCEL_KEYS, EXCEL_HEADER
+from ..helpers.regexes import re_sheet, re_var_w_units
+from ..helpers.misc import normalize_name
+from ..helpers.jsons import write_json_to_file
 
 logger_excel = create_logger('excel_main')
 
@@ -32,6 +37,8 @@ def excel():
 
         # Filename without extension
         name = os.path.splitext(name_ext)[0]
+        # remove foreign characters to prevent wiki uploading erros
+        name = normalize_name(name)
         name_lpd = name + '.lpd'
         print("processing: {}".format(name_ext))
         logger_excel.info("processing: {}".format(name_ext))
@@ -88,7 +95,7 @@ def excel():
                         metadata_str = sheet
                     elif "about" not in sheet.lower() and "proxy" not in sheet.lower():
                         logger_excel.info("creating sheets metadata")
-                        m = re.match(RE_SHEET, sheet.lower())
+                        m = re.match(re_sheet, sheet.lower())
                         if m:
                             sheets, paleo_ct, chron_ct = _build_sheet(m, sheets, sheet, name, paleo_ct, chron_ct)
 
@@ -230,7 +237,7 @@ def _prompt_sheets(sheets, old_sheet, name, paleo_ct, chron_ct):
 
                 # Test the sheet that was built from the user responses.
                 # If it matches the Regex, then continue to build the sheet metadata. If not, try again or skip sheet.
-                m = re.match(RE_SHEET, sheet.lower())
+                m = re.match(re_sheet, sheet.lower())
                 if m:
                     sheets, paleo_ct, chron_ct = _build_sheet(m, sheets, old_sheet, name, paleo_ct, chron_ct)
                     print("Sheet created: {}".format(sheet))
@@ -714,7 +721,7 @@ def _rm_units_from_var_name_single(var):
     :return str: Variable name
     """
     # Use the regex to match the cell
-    m = re.match(RE_VARS_W_UNITS, var)
+    m = re.match(re_var_w_units, var)
     # Should always get a match, but be careful anyways.
     if m:
         # m.group(1): variableName

@@ -5,9 +5,9 @@ GLOBAL LIST OF REGEXES
 """
 
 # EXCEL
-RE_VARS_W_UNITS = re.compile(r'([\w\s]+)(\([\w\s]*\)*)?', re.I)
+re_var_w_units = re.compile(r'([\w\s]+)\(?(\w+)?\)?', re.I)
 # todo write a regex for legacy sheet names
-RE_SHEET = re.compile(r'(paleo|chron)(\d+)(model[a-z]*\d+)?(measurement|ensemble|summary|distribution)[a-zA-Z]*(\d+)', re.I)
+re_sheet = re.compile(r'(paleo|chron)(\d+)(model[a-z]*\d+)?(measurement|ensemble|summary|distribution)[a-zA-Z]*(\d+)', re.I)
 # (paleo\d+|chron\d+)\.(?(?=measurement)(measurement[a-z]*\d+)|(model[a-z]*\d+)\.(distribution[a-z]*\d+|model[a-z]*|ensemble[a-z]*]))
 
 # DOI
@@ -15,6 +15,7 @@ re_doi = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'<>,])\S)+)\b')
 
 # NOAA
 # Convert camelCase to underscore
+re_tab_split = re.compile(r'\t+')
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
 re_var = re.compile(r'#{2}\s*(\S+)(?:\s+)([\w\W\s]+)')
