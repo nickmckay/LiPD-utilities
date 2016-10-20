@@ -862,9 +862,9 @@ def geometry_linestring(lat, lon, elev):
     else:
         # Creates coordinates list
         logger_excel.info("unique geo coordinates")
-        for i in lon:
+        for i in lat:
             temp[0] = i
-            for j in lat:
+            for j in lon:
                 temp[1] = j
                 coordinates.append(copy.copy(temp))
         if elev:
@@ -890,14 +890,14 @@ def geometry_range(crd_range, elev, crd_type):
     coordinates = [[] for i in range(len(crd_range))]
 
     # latitude
-    if crd_type == "lon":
+    if crd_type == "lat":
         for idx, i in enumerate(crd_range):
             coordinates[idx] = [crd_range[idx], "NaN"]
             if elev:
                 coordinates[idx].append(elev)
 
     # longitude
-    elif crd_type == "lat":
+    elif crd_type == "lon":
         for idx, i in enumerate(crd_range):
             coordinates[idx] = ["NaN", crd_range[idx]]
             if elev:
@@ -922,8 +922,8 @@ def geometry_point(lat, lon, elev):
     point_dict = OrderedDict()
     for idx, val in enumerate(lat):
         try:
-            coordinates.append(lon[idx])
             coordinates.append(lat[idx])
+            coordinates.append(lon[idx])
         except IndexError as e:
             print("Error: Invalid geo coordinates")
             logger_excel.debug("geometry_point: IndexError: lat: {}, lon: {}, {}".format(lat, lon, e))
