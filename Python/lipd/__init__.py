@@ -39,7 +39,8 @@ def setDir():
     path = get_src_or_dst("load")
     lipd_lib.set_dir(path)
     logger = create_logger("start")
-    logger.info("Set path: {}".format(path))
+    logger.info("Working Directory: {}".format(path))
+    print("Working Directory: {}".format(path))
     return path, logger
 
 
@@ -127,6 +128,9 @@ def addEnsemble(filename, ensemble):
     return
 
 
+# DATA FRAMES
+
+
 def ensToDf(ensemble):
     """
     Create an ensemble data frame from some given nested numpy arrays
@@ -137,7 +141,38 @@ def ensToDf(ensemble):
     return df
 
 
-# ANALYSIS - LIPD
+def lipdToDf(filename):
+    """
+    Get LiPD data frames from LiPD object
+    :param str filename:
+    :return dict: Pandas data frame objects
+    """
+    try:
+        dfs = lipd_lib.get_dfs(filename)
+    except KeyError:
+        print("Error: Unable to find LiPD file")
+        logger_start.warn("lipd_to_df: KeyError: missing lipds {}".format(filename))
+        dfs = None
+    print("Process Complete")
+    return dfs
+
+
+def tsToDf(ts, filename):
+    """
+    Create Pandas DataFrame from TimeSeries object.
+    Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
+    :param dict ts: TimeSeries
+    :param str filename:
+    :return dict: Pandas data frames
+    """
+    dfs = {}
+    try:
+        dfs = ts_to_df(ts[filename])
+    except KeyError as e:
+        print("Error: LiPD file not found")
+        logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
+    print("Process Complete")
+    return dfs
 
 
 def filterDfs(expr):
@@ -155,22 +190,6 @@ def filterDfs(expr):
         logger_dataframes.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
         print("Unable to filter data frames")
         print("Process Complete")
-
-
-def lipdToDf(filename):
-    """
-    Get lipds data frames from lipds object
-    :param str filename:
-    :return dict: Pandas data frame objects
-    """
-    try:
-        dfs = lipd_lib.get_dfs(filename)
-    except KeyError:
-        print("Error: Unable to find LiPD file")
-        logger_start.warn("lipd_to_df: KeyError: missing lipds {}".format(filename))
-        dfs = None
-    print("Process Complete")
-    return dfs
 
 
 # ANALYSIS - TIME SERIES
@@ -223,28 +242,12 @@ def find(expression, ts):
     expr_lst = translate_expression(expression)
     if expr_lst:
         names = get_matches(expr_lst, ts)
-        filtered_ts = createTs(names, ts)
+        filtered_ts = _createTs(names, ts)
     print("Process Complete")
     return names, filtered_ts
 
 
-def checkTs(parameter, names, ts):
-    """
-    What is this function for?
-    :param parameter:
-    :param names:
-    :param ts:
-    :return:
-    """
-    for i in names:
-        try:
-            print(ts[i][parameter])
-        except KeyError:
-            print("Error: TimeSeries object not found")
-    return
-
-
-def createTs(names, ts):
+def _createTs(names, ts):
     """
     Create a new TS dictionary using
     index = find(logical expression)
@@ -259,43 +262,6 @@ def createTs(names, ts):
         except KeyError as e:
             logger_start.warn("TS: KeyError: {} not in timeseries, {}".format(name, e))
     return d
-
-
-def getNumpy(ts):
-    """
-    Get all values from a TimeSeries
-    :param dict ts: Time Series
-    :return list of lists:
-    """
-    tmp = []
-    try:
-        for k,v in ts.items():
-            try:
-                tmp.append(v['paleoData_values'])
-            except KeyError:
-                pass
-    except AttributeError as e:
-        print("Error: Invalid TimeSeries")
-    print("Process Complete")
-    return tmp
-
-
-def tsToDf(ts, filename):
-    """
-    Create Pandas DataFrame from TimeSeries object.
-    Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
-    :param dict ts: TimeSeries
-    :param str filename:
-    :return dict: Pandas data frames
-    """
-    dfs = {}
-    try:
-        dfs = ts_to_df(ts[filename])
-    except KeyError as e:
-        print("Error: LiPD file not found")
-        logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
-    print("Process Complete")
-    return dfs
 
 
 # SHOW
@@ -368,7 +334,7 @@ def showDfs(dict_in):
         print("metadata")
     if "paleoData" in dict_in:
         try:
-            for k,v in dict_in["paleoData"].items():
+            for k, v in dict_in["paleoData"].items():
                 print(k)
         except KeyError:
             pass
@@ -376,7 +342,7 @@ def showDfs(dict_in):
             pass
     if "chronData" in dict_in:
         try:
-            for k,v in dict_in["chronData"].items():
+            for k, v in dict_in["chronData"].items():
                 print(k)
         except KeyError:
             pass
