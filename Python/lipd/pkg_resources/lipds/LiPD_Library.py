@@ -46,21 +46,25 @@ class LiPD_Library(object):
         :return None: None
         """
         self.__append_lipd(name)
-        print("Loaded 1 LiPD file")
+        print("Found: 1 LiPD file(s)")
+        print("processing: {}".format(name))
         return
 
-    def load_lipds(self):
+    def load_lipds(self, single_file):
         """
         Load a directory (multiple) LiPD objects into the LiPD Library
         :return:
         """
         # Confirm that a CWD is set first.
         if not self.dir_root:
-            print("Error: Current Working Directory has not been set. Use setDir()")
+            print("Error: Current Working Directory has not been set. Use lipd.setDir()")
             return
         os.chdir(self.dir_root)
-        # Get a list of all lpd files
-        file_list = list_files('.lpd')
+        if single_file:
+            file_list = [single_file]
+        else:
+            # Get a list of all lpd files
+            file_list = list_files('.lpd')
         # Loop: Append each file to Library
         print("Found: {} LiPD file(s)".format(len(file_list)))
         for name_ext in file_list:

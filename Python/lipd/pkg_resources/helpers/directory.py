@@ -120,20 +120,54 @@ def browse_dialog_dir():
     return path
 
 
+def _askHowMany():
+    """
+    Ask user if they want to load in one file or do a batch process of a whole directory. Default to batch "m" mode.
+    :return str: Path or none
+    """
+    batch = True
+    invalid = True
+    _option = ""
+
+    try:
+        while invalid:
+            print("Are you loading one file or multiple? (s/m): ")
+            _option = input("Option: ")
+            if _option in ("m", "s"):
+                invalid = False
+        if _option == "s":
+            batch = False
+    except Exception:
+        logger_directory.info("_askHowMany: Couldn't get a valid input from the user.")
+
+    return batch
+
+
 def get_src_or_dst(mode):
     """
     User sets the path to a LiPD source location
     :return str: Path
     """
     logger_directory.info("enter set_src_or_dst")
-    _path = ''
+    _path = ""
+    _single_file = ""
     invalid = True
     count = 0
 
     if mode == "save":
         prompt = "Where would you like to save your file(s)?\n1. Current\n2. Browse\n3. Downloads\n4. LiPD Workspace\n"
     elif mode == "load":
-        prompt = "Where are your file(s) stored?\n1. Current\n2. Browse\n3. Downloads\n4. LiPD Workspace\n"
+        # ask user if they are loading one or more files
+        batch = _askHowMany()
+        # only do multiple files if no path was received from askHowMany
+        if batch:
+            prompt = "Where are your file(s) stored?\n1. Current\n2. Browse\n3. Downloads\n4. LiPD Workspace\n"
+        else:
+            # browse for single file
+            _path, _single_file = browse_dialog_file()
+            # return early to skip the batch steps below
+            return _path, _single_file
+
     else:
         # did you forget to enter a mode? silly
         invalid = False
@@ -170,7 +204,7 @@ def get_src_or_dst(mode):
         if _path:
             invalid = False
     logger_directory.info("exit set_src_or_dst")
-    return _path
+    return _path, _single_file
 
 
 def browse_dialog_file():
@@ -179,12 +213,24 @@ def browse_dialog_file():
     :return str: Target directory path
     :return:
     """
-    root = tkinter.Tk()
-    root.withdraw()
-    root.update()
-    path = tkinter.filedialog.askopenfilename(parent=root, initialdir=os.path.expanduser('~'), title='Please select a file')
-    root.destroy()
-    return path
+    logger_directory.info("enter browse_dialog")
+
+    try:
+        root = tkinter.Tk()
+        root.withdraw()
+        root.update()
+        _path = tkinter.filedialog.askopenfilename(parent=root, initialdir=os.path.expanduser('~'), title='Please select a file')
+        _single_file = os.path.basename(_path)
+        _path = os.path.dirname(_path)
+        logger_directory.info("chosen path: {}, chosen file: {}".format(_path, _single_file))
+        root.destroy()
+    except Exception:
+        _single_file = ""
+        _path = ""
+
+    logger_directory.info("exit browse_dialog_file")
+
+    return _path, _single_file
 
 
 def rm_files_in_dir(path):

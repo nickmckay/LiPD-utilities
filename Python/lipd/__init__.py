@@ -4,7 +4,7 @@ from .pkg_resources.lipds.LiPD_Library import *
 from .pkg_resources.timeseries.Convert import *
 from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi
-from .pkg_resources.excel.excel_main import excel
+from .pkg_resources.excel.excel_main import excel_main
 from .pkg_resources.noaa.noaa_main import noaa
 from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
@@ -23,11 +23,11 @@ def run():
     :return:
     """
     # GLOBALS
-    global lipd_lib, ts_lib, convert, path, logger_start
+    global lipd_lib, ts_lib, convert
     lipd_lib = LiPD_Library()
     ts_lib = TimeSeries_Library()
     convert = Convert()
-    path, logger_start = setDir()
+    return
 
 
 def setDir():
@@ -36,21 +36,23 @@ def setDir():
     (ex. /Path/to/files)
     :param str path: Directory path
     """
-    path = get_src_or_dst("load")
+    global path, single_file, logger_start
+    path, single_file = get_src_or_dst("load")
     lipd_lib.set_dir(path)
-    logger = create_logger("start")
-    logger.info("Working Directory: {}".format(path))
-    print("Working Directory: {}".format(path))
-    return path, logger
+    logger_start = create_logger("start")
+    logger_start.info("Working Directory: {}".format(path))
+    # print("Working Directory: {}".format(path))
+    return path
 
 
-def loadLipd(filename):
+def loadLipd():
     """
     Load a single LiPD file into the workspace. File must be located in the current working directory.
     (ex. loadLiPD NAm-ak000.lpd)
     :param str filename: LiPD filename
     """
-    lipd_lib.load_lipd(filename)
+    global single_file
+    lipd_lib.load_lipd(single_file)
     print("Process Complete")
     return
 
@@ -59,7 +61,8 @@ def loadLipds():
     """
     Load all LiPD files in the current working directory into the workspace.
     """
-    lipd_lib.load_lipds()
+    global single_file
+    lipd_lib.load_lipds(single_file)
     print("Process Complete")
     return
 
@@ -95,6 +98,15 @@ def loadPickle():
         print("Error: unpickled data was not a valid data type")
     return
 
+
+def excel():
+    """
+    User facing call to the excel function
+    :return:
+    """
+    global single_file
+    excel_main(single_file)
+    return
 
 # PUT
 
@@ -474,8 +486,6 @@ def quit():
     return True
 
 
-# GLOBALS
-lipd_lib = LiPD_Library()
-ts_lib = TimeSeries_Library()
-convert = Convert()
-path, logger_start = setDir()
+# GLOBALS - run these on initialization
+run()
+setDir()

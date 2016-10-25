@@ -20,17 +20,21 @@ from ..helpers.jsons import write_json_to_file
 logger_excel = create_logger('excel_main')
 
 
-def excel():
+def excel_main(single_file):
     """
     Parse data from Excel spreadsheets into LiPD files.
     :return:
     """
     dir_root = os.getcwd()
+    f_list = []
 
-    # Find excel files
-    f_list = list_files('.xls') + list_files('.xlsx')
-    print("Found " + str(len(f_list)) + " Excel files")
-    logger_excel.info("found excel files: {}".format(len(f_list)))
+    if single_file:
+        f_list.append(single_file)
+    else:
+        # Find excel files
+        f_list = list_files('.xls') + list_files('.xlsx')
+        print("Found " + str(len(f_list)) + " Excel files")
+        logger_excel.info("found excel files: {}".format(len(f_list)))
 
     # Run once for each file
     for name_ext in f_list:
@@ -890,14 +894,14 @@ def geometry_range(crd_range, elev, crd_type):
     coordinates = [[] for i in range(len(crd_range))]
 
     # latitude
-    if crd_type == "lon":
+    if crd_type == "lat":
         for idx, i in enumerate(crd_range):
             coordinates[idx] = [crd_range[idx], "NaN"]
             if elev:
                 coordinates[idx].append(elev)
 
     # longitude
-    elif crd_type == "lat":
+    elif crd_type == "lon":
         for idx, i in enumerate(crd_range):
             coordinates[idx] = ["NaN", crd_range[idx]]
             if elev:
@@ -1502,4 +1506,4 @@ def _remove_geo_placeholders(l):
 
 
 if __name__ == '__main__':
-    excel()
+    excel_run()
