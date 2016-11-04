@@ -81,12 +81,37 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
     for pp=1:length(ppnames) %go through all the fields in the LiPD object
         %special case for pub
         if strcmp(ppnames{pp},'pub')
+            dpn=1;
+            pubnum=1;
+            pflag=0;
+            dcflag=0;
             for pl=1:length( D.(dnames{d}).pub)
                 if isstruct(D.(dnames{d}).pub{pl})
+                    if dcflag
+                        dpn=dpn+1;
+                    end
+                    if pflag
+                        pubnum=pubnum+1;
+                    end
+                    pflag=0;
+                    dcflag=0;
                     
                     pubNames=fieldnames(D.(dnames{d}).pub{pl});
+
                     for pn=1:length(pubNames)
-                        TS(1,ts).([ppnames{pp} num2str(pl) '_' pubNames{pn}])=D.(dnames{d}).pub{pl}.(pubNames{pn});
+                        if any(strcmp('type',pubNames))
+                            if strcmp(D.(dnames{d}).pub{pl}.type,'dataCitation')
+                                TS(1,ts).(['dataPub' num2str(dpn) '_' pubNames{pn}])=D.(dnames{d}).pub{pl}.(pubNames{pn});
+                                dcflag=1;
+                            else
+                                TS(1,ts).([ppnames{pp} num2str(pl) '_' pubNames{pn}])=D.(dnames{d}).pub{pl}.(pubNames{pn});
+                                pflag=1;
+                            end
+                        else
+                            TS(1,ts).([ppnames{pp} num2str(pl) '_' pubNames{pn}])=D.(dnames{d}).pub{pl}.(pubNames{pn});
+                            pflag=1;
+                                                   
+                        end
                     end
                 end
             end

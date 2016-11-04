@@ -8,9 +8,11 @@ if ~iscell(I.pub)
 end
 for pp=1:length(I.pub)
     if isfield(I.pub{pp},'identifier')
-        if strcmpi(I.pub{pp}.identifier{1,1}.type,'doi')
-            if isfield(I.pub{pp}.identifier{1,1},'id')
-            I.pub{pp}.DOI=I.pub{pp}.identifier{1,1}.id;
+        if length(I.pub{pp}.identifier)>0
+            if strcmpi(I.pub{pp}.identifier{1,1}.type,'doi')
+                if isfield(I.pub{pp}.identifier{1,1},'id')
+                    I.pub{pp}.DOI=I.pub{pp}.identifier{1,1}.id;
+                end
             end
         end
     end

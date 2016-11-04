@@ -4,9 +4,13 @@ function cT=readLiPDTable(cT,dirname)
         ncol=sum(cellfun(@(x) length(x.number),cT.columns));
         
         %try to read in as numeric data
-        [dirname cT.filename];
+        %[dirname cT.filename]
         if ~verLessThan('matlab','8.2')
             %use readtable! Requires matlab year >= 13b
+            if ~strcmpi(cT.filename((end-3):end),'.csv')
+                cT.filename=[cT.filename '.csv'];
+            end
+                
             pdTable=table2cell(readtable([dirname cT.filename],'ReadVariableNames',0),'TreatAsEmpty',{'NA','NaN'});
         else
             try

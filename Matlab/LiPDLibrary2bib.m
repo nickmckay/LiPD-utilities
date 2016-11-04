@@ -27,4 +27,4 @@ keys = keys(good);
 
 
 
-%writeCell2Bib(allBib);
+writeCell2Bib(allBib);

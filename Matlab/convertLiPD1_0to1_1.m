@@ -1,5 +1,8 @@
-function L=convertLiPD1_0to1_1(L)
+function L=convertLiPD1_0to1_1(L,forceConvert)
 
+if nargin<2
+    forceConvert = 0;
+end
 if ~isfield(L,'LiPDVersion')
     
     L.LiPDVersion = 1.0;
@@ -9,7 +12,7 @@ if ischar(L.LiPDVersion)
     L.LiPDVersion = str2num(L.LiPDVersion);
 end
 
-if L.LiPDVersion == 1.0
+if L.LiPDVersion == 1.0 | forceConvert
     if isfield(L,'chronData')
     C=L.chronData;
     cnames = fieldnames(C);

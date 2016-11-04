@@ -84,6 +84,23 @@ for i=1:length(udsn)
                 T.(fT{p(pin)});
         end
         
+        %assign in something in case there's no other publications
+        if(~exist('pubNum'))
+            lastPub=0;
+        else
+            lastPub=pubNum;
+        end
+        
+        %handle Data citations
+        dp=find(strncmp('dataPub',fT,7));
+        for dpin=1:length(dp)
+            pubVarName=fT{dp(dpin)};
+            pubNum=lastPub+str2num(pubVarName(8:(strfind(pubVarName,'_')-1)));
+            Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+        end
+        
+        
+        
         %geo
         if f==1
             Dnew.(makeValidName(udsn{i})).geo=struct; %assign geo to structure
@@ -142,7 +159,7 @@ for i=1:length(udsn)
         
 %which variables should be at the measurement table level?
 amt = {'paleoDataTableName','paleoMeasurementTableName',...
-'paleoRecordName','paleoRecordNumber',...
+'number','paleoNumber',...
 'paleoMeasurementTableNumber','paleoDataMD5',...
 'googleWorkSheetKey'};
 
@@ -326,8 +343,15 @@ end
         
     end
 
-%force convert to new structure
-Dnew.(makeValidName(udsn{i}))=convertLiPD1_1to1_2(Dnew.(makeValidName(udsn{i})),1);
+%remove empty pub cells    
+    Dnew.(makeValidName(udsn{i}))=removeEmptyPub(Dnew.(makeValidName(udsn{i})));
+    %force convert to new structure
+    if isfield(Dnew.(makeValidName(udsn{i})),'chronData')
+        if isstruct(Dnew.(makeValidName(udsn{i})).chronData)
+            Dnew.(makeValidName(udsn{i}))=convertLiPD1_0to1_1(Dnew.(makeValidName(udsn{i})),1);
+        end
+    end
+    Dnew.(makeValidName(udsn{i}))=convertLiPD1_1to1_2(Dnew.(makeValidName(udsn{i})),1);
 
     
 end

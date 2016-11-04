@@ -20,7 +20,7 @@ for p = 1:length(pub)
             bib.author=authorCell2BibtexAuthorString(bib.author);
         end
     elseif isfield(bib,'type')
-        if strcmp(bib.type,'misc')
+        if strcmp(bib.type,'misc') | strcmp(bib.type,'dataCitation')
             miscFlag = 1;
           if isfield(bib,'author') & isfield(bib,'title')  
               if ischar(bib.author)%if it's a string, convert back to cell
@@ -41,7 +41,8 @@ for p = 1:length(pub)
     if miscFlag
         if ~isfield(bib,'url')
             if ~isfield(L,'originalDataURL')
-                error('Misc entries must of original data URLs, or urls in their pub data')
+                %error('Misc entries must of original data URLs, or urls in their pub data')
+                bib.url = 'http://need.a.url.here';
             else
                 
                 bib.url = L.originalDataURL;
@@ -63,6 +64,11 @@ for p = 1:length(pub)
     
     if(forceNewKey)
         bib=rmfieldsoft(bib,'citeKey');
+    end
+    
+    %
+    if ~isfield(bib,'author')
+        bib.author='Author needed';
     end
     
     %find citeKey
@@ -106,6 +112,13 @@ for p = 1:length(pub)
         
         %deal with illegal characters
         citeKey=regexprep(citeKey,'[^a-zA-Z0-9]','');
+        
+        %append DataCitation to datacitations
+        if isfield(bib,'type')
+            if strcmp(bib.type,'misc') | strcmp(bib.type,'dataCitation')
+                citeKey=[citeKey 'DataCitation'];
+            end
+        end
         
         
         bib.citeKey = citeKey;

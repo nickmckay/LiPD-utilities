@@ -29,24 +29,14 @@ for i=1:nr
                         
                     else
                         
-                        %[i j cc]
+                        [i j cc]
                         if iscell(c{i,j}{cc})
                             %remove brackets and quotes
                             tc=[tc ' | ' cell2str(c{i,j}{cc})];
-                            tc=strrep(tc,'{','');
-                            tc=strrep(tc,'}','');
-                            tc=strrep(tc,'''','');
-                            
                         elseif ischar(c{i,j}{cc})
                             tc=[tc ' | ' c{i,j}{cc}];
-                            tc=strrep(tc,'{','');
-                            tc=strrep(tc,'}','');
-                            tc=strrep(tc,'''','');
                         elseif isstruct(c{i,j}{cc})
                             tc= [tc ' | ' cell2str(struct2cell(c{i,j}{cc}))];
-                            tc=strrep(tc,'{','');
-                            tc=strrep(tc,'}','');
-                            tc=strrep(tc,'''','');
                         end
                     end
                     

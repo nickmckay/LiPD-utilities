@@ -49,12 +49,13 @@ if L.LiPDVersion == 1.1 | forceConvert
     if isfield(L,'paleoData')
     pnames=fieldnames(L.paleoData);
     for i = 1:length(pnames)
-        if ~isfield(L.paleoData.(pnames{i}),'paleoRecordNumber') |  ~isfield(L.paleoData.(pnames{i}),'paleoMeasurementTableNumber') %assume each paleodatatable is a different record
+        %for now force it.
+        if 1 % ~isfield(L.paleoData.(pnames{i}),'number') |  ~isfield(L.paleoData.(pnames{i}),'paleoMeasurementTableNumber') %assume each paleodatatable is a different record
                 newP{i}.paleoMeasurementTable{1}=L.paleoData.(pnames{i});
             
         else
-                newP{L.paleoData.(pnames{i}).paleoRecordNumber}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber}=L.paleoData.(pnames{i});
-                newP{L.paleoData.(pnames{i}).paleoRecordNumber}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber}=rmfield(newP{L.paleoData.(pnames{i}).paleoRecordNumber}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber},{'paleoRecordNumber','paleoMeasurementTableNumber'});
+                newP{L.paleoData.(pnames{i}).number}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber}=L.paleoData.(pnames{i});
+                newP{L.paleoData.(pnames{i}).number}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber}=rmfieldsoft(newP{L.paleoData.(pnames{i}).number}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber},{'paleoRecordNumber','paleoMeasurementTableNumber','number'});
    
         end
     end

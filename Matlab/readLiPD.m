@@ -52,7 +52,7 @@ if isfield(I,'LiPDVersion')
         vers=str2num(vers);
     end
 else
-    vers = 1.0;
+    vers = 1.2;
 end
 I.LiPDVersion = vers;
 %load in version information
@@ -114,7 +114,6 @@ eval(['I = readLiPDPub' V.pubv '(I);']);
 % if isfield(I,'measurements') & ~isfield(I,'paleoData')
 %     I.paleoData=I.measurements;
 % end
-
 %%%%%%%BEGIN PALEODATA SECTION%%%%%%%%%%%
 eval(['PD = readLiPDPaleoData' V.paleoDatav '(I,dirname);']);
 %%%%%%%END PALEODATA SECTION%%%%%%%%%%%
