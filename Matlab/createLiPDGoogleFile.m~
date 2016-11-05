@@ -324,16 +324,8 @@ metadataCell((nrow-size(botChunk,1)+1):end,1:size(botChunk,2))=botChunk;
 %save dum.mat metadataCell %troubleshooting
 metadataCell4Goog=stringifyCells(metadataCell);
 
-%Remove FORBIDDEN characters from metadataCell4Goog
-%these include:  ' 
-
-
 %now write this into the first worksheet
 changeWorksheetNameAndSize(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,nrow,ncol,'metadata',aTokenSpreadsheet);
-
-
-
-
 
 for m=1:2%ncol
     editWorksheetColumn(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,m,1:nrow,metadataCell4Goog(:,m),aTokenSpreadsheet);
