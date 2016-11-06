@@ -311,6 +311,13 @@ else
         save debug.mat metadataCell
         metadataCell4Goog=stringifyCells(metadataCell);
         
+        %Remove FORBIDDEN characters from metadataCell4Goog
+        %these include:  '
+        toRemove = {''''};
+        metadataCell4Goog=strRemoveCell(metadataCell4Goog,toRemove);
+
+        
+        
         %now write this into the first worksheet
         changeWorksheetNameAndSize(L.googleSpreadSheetKey,wsNames(1).worksheetKey,nrow,ncol,'metadata',aTokenSpreadsheet);
         
