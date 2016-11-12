@@ -18,6 +18,7 @@ def doi():
     # dir: ? -> dir_root
     dir_root = os.getcwd()
     f_list = list_files('.lpd')
+    print(f_list)
     print("Found {0} {1} file(s)".format(str(len(f_list)), 'LiPD'))
     force = prompt_force()
     for name_ext in f_list:
@@ -96,30 +97,26 @@ def prompt_force():
     :return bool: response
     """
     logger_doi_main.info("enter prompt_force")
-    force = False
     count = 0
     print("Do you want to force updates for previously resolved files? (y/n)")
     while True:
-        f = input("> ")
+        force = input("> ")
         try:
             if count == 2:
-                force = False
-                break
-            elif f.lower() in ('y', 'yes'):
-                force = True
-                break
-            elif f.lower() in ('n', 'no'):
-                force = False
-                break
+                return True
+            elif force.lower() in ('y', 'yes'):
+                return True
+            elif force.lower() in ('n', 'no'):
+                return False
             else:
                 print("invalid response")
         except AttributeError as e:
             print("invalid response")
-            logger_doi_main.warn("invalid response: {}, {}".format(f, e))
+            logger_doi_main.warn("invalid response: {}, {}".format(force, e))
         count += 1
     logger_doi_main.info("force update: {}".format(force))
     logger_doi_main.info("exit prompt_force")
-    return force
+    return True
 
 if __name__ == '__main__':
     doi()
