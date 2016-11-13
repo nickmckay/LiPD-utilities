@@ -30,15 +30,8 @@ def doi():
         unzipper(name_ext, dir_tmp)
 
         # Force DOI update?
-        if not force:
-            # Unbag and check resolved flag. Don't run if flag exists.
-            if resolved_flag(open_bag(os.path.join(dir_tmp, name))):
-                print('skipping: {}'.format(name_ext))
-                logger_doi_main.info("skipping: {}".format(name_ext))
-                shutil.rmtree(dir_tmp)
-
-        # Process file if flag does not exist or force.
-        else:
+        if force:
+            # Update file. Forcing updates for all files.
             print('processing: {}'.format(name_ext))
             logger_doi_main.info("processing: {}".format(name_ext))
             # dir: dir_root -> dir_tmp
@@ -49,6 +42,26 @@ def doi():
             zipper(dir_tmp, name, name_ext)
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
+
+        if not force:
+            # Don't Update File. Flag found and we're not forcing updates.
+            if resolved_flag(open_bag(os.path.join(dir_tmp, name))):
+                print('skipping: {}'.format(name_ext))
+                logger_doi_main.info("skipping: {}".format(name_ext))
+                shutil.rmtree(dir_tmp)
+
+            # Update File. No flag found and hasn't been processed before.
+            else:
+                print('processing: {}'.format(name_ext))
+                logger_doi_main.info("processing: {}".format(name_ext))
+                # dir: dir_root -> dir_tmp
+                process_lpd(name, dir_tmp)
+                # dir: dir_tmp -> dir_root
+                os.chdir(dir_root)
+                # Zip the directory containing the updated files. Created in dir_root directory
+                zipper(dir_tmp, name, name_ext)
+                # Cleanup and remove tmp directory
+                shutil.rmtree(dir_tmp)
     logger_doi_main.info("exit doi_main")
     print("Process Complete")
     return
