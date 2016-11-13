@@ -47,7 +47,6 @@ def doi():
             os.chdir(dir_root)
             # Zip the directory containing the updated files. Created in dir_root directory
             zipper(dir_tmp, name, name_ext)
-            os.rename(name_ext + '.zip', name_ext)
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
     logger_doi_main.info("exit doi_main")
