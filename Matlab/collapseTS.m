@@ -350,9 +350,11 @@ end
         if isstruct(Dnew.(makeValidName(udsn{i})).chronData)
             Dnew.(makeValidName(udsn{i}))=convertLiPD1_0to1_1(Dnew.(makeValidName(udsn{i})),1);
         end
-    end
+    end      
     Dnew.(makeValidName(udsn{i}))=convertLiPD1_1to1_2(Dnew.(makeValidName(udsn{i})),1);
 
+
+    
     
 end
 

@@ -52,7 +52,7 @@ if isfield(I,'LiPDVersion')
         vers=str2num(vers);
     end
 else
-    vers = 1.2;
+    vers = 1.0;
 end
 I.LiPDVersion = vers;
 %load in version information
