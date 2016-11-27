@@ -5,7 +5,7 @@ from .pkg_resources.timeseries.Convert import *
 from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi
 from .pkg_resources.excel.excel_main import excel_main
-from .pkg_resources.noaa.noaa_main import noaa
+from .pkg_resources.noaa.noaa_main import noaa_main
 from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
@@ -102,10 +102,20 @@ def loadPickle():
 def excel():
     """
     User facing call to the excel function
-    :return:
+    :return none:
     """
-    global single_file
-    excel_main(single_file)
+    global single_file, path
+    excel_main(single_file, path)
+    return
+
+
+def noaa():
+    """
+    User facing call to noaa function
+    :return none:
+    """
+    global single_file, path
+    noaa_main(single_file, path)
     return
 
 # PUT

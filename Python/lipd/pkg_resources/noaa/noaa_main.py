@@ -1,22 +1,23 @@
 import os
+import shutil
 
+from ..helpers.misc import update_lipd_version
 from ..helpers.directory import list_files, create_tmp_dir
 from ..helpers.jsons import read_json_from_file
-from ..helpers.zips import *
+from ..helpers.zips import zipper, unzipper
 from .lpd_noaa import LPD_NOAA
-from .noaa_lpd import NOAA_LPD
+# from .noaa_lpd import NOAA_LPD
 from ..helpers.loggers import create_logger
 
 logger_noaa = create_logger("noaa")
 
 
-def noaa():
+def noaa_main(single_file, dir_root):
     """
     Convert between NOAA and LiPD file formats.
     :return:
     """
     logger_noaa.info("enter noaa")
-    dir_root = os.getcwd()
     # Run lpd_noaa or noaa_lpd ?
     print("Which conversion?\n1. LPD to NOAA\n2. NOAA to LPD\n")
     mode = input("Option: ")
@@ -26,13 +27,19 @@ def noaa():
 
     # .lpd to noaa
     if mode == '1':
-        f_list = list_files('.lpd')
+        if single_file:
+            f_list.append(single_file)
+        else:
+            f_list = list_files('.lpd')
         ft = ' LiPD'
     # Find all needed files in current directory
     elif mode == '2':
-        f_list = list_files('.txt')
+        if single_file:
+            f_list.append(single_file)
+        else:
+            f_list = list_files('.txt')
         if 'noaa-blank.txt' in f_list:
-            f_list.remove('noaa-blank.txt')
+            f_list.remove('noaa-wds-paleo-template-v3.0')
         ft = ' NOAA'
     logger_noaa.info("Found {} {} file(s)".format(str(len(f_list)), ft))
     print("Found {0} {1} file(s)".format(str(len(f_list)), ft))
@@ -71,10 +78,9 @@ def _process_noaa(name, dir_tmp, dir_root):
     :return None:
     """
     logger_noaa.info("enter process_noaa")
-    NOAA_LPD(dir_root, dir_tmp, name).main()
+    # NOAA_LPD(dir_root, dir_tmp, name).main()
     os.chdir(dir_root)
     zipper(dir_tmp, name, name + ".lpd")
-    os.rename(name + ".lpd" + '.zip', name + ".lpd")
     logger_noaa.info("exit process_noaa")
     return
 
@@ -96,6 +102,9 @@ def _process_lpd(name, dir_tmp, dir_root):
         os.chdir(dir_data)
         # Open file and execute conversion script
         d = read_json_from_file(os.path.join(dir_data, name + '.jsonld'))
+        # Do we need to update json to most recent LiPD Version? Check before passing to converter
+        d = update_lipd_version(d)
+        # create object and start conversion process
         LPD_NOAA(dir_root, name, d).main()
     except FileNotFoundError:
         logger_noaa.debug("process_lpd: FileNotFound: tmp directory not found")

@@ -74,107 +74,35 @@ ALTS_MV = [
     'missingvariables'
 ]
 
-# NOAA
-# Lists for what keys go in specific dictionary blocks
-NOAA_SITE_INFO = {
-    'lat': [
-        'northernmostlatitude',
-        'northernmost latitude',
-        'northernmost_latitude',
-        'southernmostlatitude',
-        'southernmost latitude',
-        'southernmost_latitude'],
-    'lon': [
-        'easternmostlongitude',
-        'easternmost longitude',
-        'easternmost_longitude',
-        'westernmostlongitude',
-        'westernmost longitude',
-        'westernmost_longitude'],
-    'properties': [
-        'location',
-        'country',
-        'elevation',
-        'site_name',
-        'region'
-    ],
-}
-
 FUNDING_LIST = [
     'funding_agency_name',
     'grant'
 ]
 
-# 13 is a list of keys to ignore when using create_blanks
-NOAA_SECTIONS = {
-    1: ['onlineResource', 'studyName', 'archive', 'parameterKeywords', 'originalSourceUrl'],
-    2: ['date'],
-    3: ['studyName'],
-    4: ['investigators'],
-    5: ['description'],
-    6: ['pub'],
-    7: ['funding', 'agency', 'grant'],
-    8: ['geo'],
-    9: ['collectionName', 'earliestYear', 'mostRecentYear', 'timeUnit', 'coreLength', 'notes'],
-    10: ['speciesName', 'commonName', 'treeSpeciesCode'],
-    11: ['chronData'],
-    12: ['paleoData'],
-    13: []
-}
-
-# The order of the items in the list is the order that we want to write them to the file.
-# 11 is the order for writing each column in the variables section
-NOAA_ORDERING = {
-    1: ['studyName',
-        'onlineResource',
-        'originalSourceUrl',
-        'archive',
-        'parameterKeywords'],
-    2: ['date'],
-    3: ['studyName'],
-    4: ['investigators'],
-    5: ['description'],
-    6: ['author',
-        'publishedDateOrYear',
-        'publishedTitle',
-        'journalName',
-        'volume',
-        'edition',
-        'issue',
-        'pages',
-        "reportNumber",
-        'doi',
-        'onlineResource',
-        'fullCitation',
-        'abstract'
-        ],
-    7: ['agency', 'grant'],
-    8: ['siteName',
-        'location',
-        'country',
-        'northernmostLatitude',
-        'southernmostLatitude',
-        'easternmostLongitude',
-        'westernmostLongitude',
-        'elevation'],
-    9: ['collectionName',
-        'earliestYear',
-        'mostRecentYear',
-        'timeUnit',
-        'coreLength',
-        'notes'],
-    10: ['speciesName', 'commonName'],
-    11: ["variableName",
-         "variableType",
-         "measurementMaterial",
-         "uncertainty",
-         "units",
-         "seasonality",
-         "archive",
-         "detail",
-         "measurementMethod",
-         "dataType"
-         ]
+# Use this list to sort the top level keys in the LiPD file.
+# Ex: if the LiPD has geo data, take the whole geo dictionary and put it into section 8.
+# reorganize(), create_blanks()
+NOAA_ALL = {
+    "Top": ['Study_Name', 'Online_Resource', 'Original_Source_URL', 'Archive', "Dataset_DOI", "Parameter_Keywords"],
+    "Contribution_Date": ['Date'],
+    "File_Last_Modified_Date": ["Modified_Date"],
+    "Title": ['Study_Name'],
+    "Investigators": ['Investigators'],
+    "Description_Notes_and_Keywords": ['Description'],
+    "Publication": ['Author', 'Published_Date_or_Year', 'Published_Title', 'Journal_Name', 'Volume', 'Edition',
+                    'Issue', 'Pages', "Report", 'DOI', 'Online_Resource', 'Full_Citation', 'Abstract'],
+    "Funding_Agency ": ["Funding_Agency_Name", "Grant"],
+    "Site_Information ": ["Site_Name", "Location", "Country", "Northernmost_Latitude", "Southernmost_Latitude",
+                          "Easternmost_Longitude",  "Westernmost_Longitude", "Elevation"],
+    "Data_Collection": ['Collection_Name', 'Earliest_Year', 'Most_Recent_Year', 'Time_Unit', 'Core_Length', 'Notes'],
+    "Species": ['Species_Name', 'Species_Code', "Common_Name"],
+    "Chronology_Information": ['Chronology'],
+    "Variables": ["what", "material", "error", "units", "seasonality", "archive", "detail", "method", "dataType"],
+    "Data": ["Missing_Value"],
+    # These are keys that do not currently have NOAA - LPD mappings
+    "Ignore": ["Date", "Parameter_Keywords", "Dataset_Name", "Tree_Species_Code", "Species_Name", "Common_Name",
+               "Core_Length", "Time_Unit", "Most_Recent_Year", "Earliest_Year", "Collection_Name",
+               "Online_Resource_Description"]
 }
 
 UNITS = {
@@ -188,36 +116,67 @@ UNITS = {
     "millimeters": "mm"
 }
 
-# These keys do not have a corresponding match in the LiPD schema. Do not include them.
-NOAA_IGNORE_KEYS = [
-    "originalSourceUrl",
-    "original_source_url",
-    "commonName",
-    "common_name",
-    "parameterKeywords",
-    "parameter_keywords",
-    "speciesName",
-    "species_name",
-    "timeUnit",
-    "time_unit",
-    "collectionName",
-    "collection_name",
-    "earliestYear",
-    "earliest_year",
-    "mostRecentYear",
-    "most_recent_year",
-    "coreLength",
-    "core_length",
-    "note"
-]
+# LiPD on left, NOAA on right
+# Used to map LiPD to NOAA ontology (and vice versa)
+#  map_key()
+NOAA_KEYS = {
+    'LiPDVersion': 'LiPD_Version',
+    'abstract': 'Abstract',
+    'agency': 'Funding_Agency_Name',
+    'archiveType': 'Archive',
+    'authors': 'Authors',
+    'citation': 'Full_Citation',
+    'country': 'Country',
+    'dataType': 'dataType',
+    'description': 'what',
+    'detail': 'detail',
+    "funding": "Funding_Agency",
+    "geo": "Site_Information",
+    'grant': 'Grant',
+    'identifier': 'DOI',
+    'investigators': 'Investigators',
+    'issue': 'Issue',
+    'journal': 'Journal_Name',
+    'location': 'Location',
+    'measurementMaterial': 'material',
+    'measurementMethod': 'method',
+    'missingValue': 'Missing_Values',
+    'notes': 'Description',
+    'onlineResource': 'Online_Resource',
+    'originalSourceURL': 'Original_Source_URL',
+    'pages': 'Pages',
+    "pub": "Publication",
+    'pubYear': 'Published_Date_or_Year',
+    'report': 'Report_Number',
+    'seasonality': 'seasonality',
+    'siteName': 'Site_Name',
+    'studyName': 'Study_Name',
+    'title': 'Published_Title',
+    'uncertainty': 'error',
+    'units': 'units',
+    'variableName': 'shortname',
+    'volume': 'Volume',
+    ########################
+    # MULTIPOINT
+    # Since coordinates are not explicit individual fields in LiPD, we'll have to manually transfer these.
+    # coordinates[0]: "Northernmost_Latitude",
+    # coordinates[0]: "Southernmost_Latitude",
+    # coordinates[1]: "Easternmost_Longitude",
+    # coordinates[1]: "Westernmost_Longitude",
+    # coordinates[2]: "Elevation", (OPTIONAL)
+    ########################
+    # SINGLE POINT
+    # coordinates[0]: "Northernmost_Latitude",
+    # coordinates[0]: "Southernmost_Latitude",
+    # coordinates[1]: "Easternmost_Longitude",
+    # coordinates[1]: "Westernmost_Longitude",
+    # coordinates[2]: "Elevation", (OPTIONAL)
+    ########################
+    # "doi": pub[i]["identifier"][0]["id"]
+}
 
-NOAA_DOI_KEYS = [
-    "DOI",
-    "DOI_url",
-    "DOI_id"
-]
-
-# Excel metadata keys. Left side: Excel keys, Right Side: LiPD keys
+# Excel on left, LiPD on right
+# excel_main()
 EXCEL_KEYS = {
     "archive type": "archiveType",
     "dataset name": "dataSetName",
@@ -245,7 +204,7 @@ EXCEL_KEYS = {
     "report number": "reportNumber",
     "doi": "id",
     "abstract": "abstract",
-    "alternate citation": "alternateCitation",
+    "alternate citation": "citation",
     "site name": "siteName",
     "northernmost latitude": "latMax",
     "southernmost latitude": "latMin",
@@ -286,6 +245,8 @@ EXCEL_TEMPLATE = [
     "<notes that describe the table as a whole>"
 ]
 
+# HEADER ROW for parsing excel worksheets
+# excel_main()
 EXCEL_HEADER = [
     "variablename",
     "short_name",
@@ -304,3 +265,4 @@ EXCEL_HEADER = [
     "standard",
     "basis_of_climate_relation"
 ]
+

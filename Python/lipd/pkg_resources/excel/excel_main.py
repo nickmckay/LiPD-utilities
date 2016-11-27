@@ -20,12 +20,11 @@ from ..helpers.jsons import write_json_to_file
 logger_excel = create_logger('excel_main')
 
 
-def excel_main(single_file):
+def excel_main(single_file, dir_root):
     """
     Parse data from Excel spreadsheets into LiPD files.
     :return:
     """
-    dir_root = os.getcwd()
     f_list = []
 
     if single_file:
@@ -1506,4 +1505,4 @@ def _remove_geo_placeholders(l):
 
 
 if __name__ == '__main__':
-    excel_run()
+    excel_main()
