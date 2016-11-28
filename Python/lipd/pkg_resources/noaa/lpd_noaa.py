@@ -139,7 +139,8 @@ class LPD_NOAA(object):
     #         return val, unit
     #     return '', ''
 
-    def __create_blanks(self, section_name):
+    @staticmethod
+    def __create_blanks(section_name, d):
         """
         All keys need to be written to the output, with or without a value. Furthermore, only keys that have values
         exist at this point. We need to manually insert the other keys with a blank value. Loop through the global list
@@ -147,11 +148,14 @@ class LPD_NOAA(object):
         :param str section_name: Retrieve data from global dict for this section
         :return none:
         """
-        for key in NOAA_ALL[section_name]:
-            if key not in self.sorted_data[section_name]:
-                # Key not in our dict. Create the blank entry.
-                self.sorted_data[section_name][key] = ""
-        return
+        try:
+            for key in NOAA_ALL[section_name]:
+                if key not in d:
+                    # Key not in our dict. Create the blank entry.
+                    d[key] = ""
+        except Exception:
+            logger_lpd_noaa.error("lpd_noaa: create_blanks: must section: {}, key".format(section_name, key))
+        return d
 
     @staticmethod
     def __get_filename(table):
@@ -385,7 +389,7 @@ class LPD_NOAA(object):
         # Starting Directory: dir_tmp/dir_bag/data/
 
         # timestamp the conversion of the file
-        self.sorted_data["File_Last_Modified_Date"] = generate_timestamp()
+        self.sorted_data["File_Last_Modified_Date"]["Modified_Date"] = generate_timestamp()
 
         # how many measurement tables exist? this will tell use how many noaa files to create
         self.__get_meas_tables()
@@ -431,14 +435,8 @@ class LPD_NOAA(object):
             self.__write_geo()
             self.__write_generic('Data_Collection')
             self.__write_generic('Species')
-            # self.__write_chron(self.steps_dict[11])
+            self.__write_data()
 
-            # Run once for each table. Keep variables and related data grouped
-            for table in self.sorted_data[12]['paleoData']:
-                self.__write_divider()
-                self.__write_variables(table)
-                self.__write_divider()
-                self.__write_paleo(table)
             self.noaa_txt.close()
             logger_lpd_noaa.info("closed output text file")
             shutil.copy(os.path.join(os.getcwd(), self.name_txt), self.dir_root)
@@ -453,22 +451,22 @@ class LPD_NOAA(object):
         :return none:
         """
         logger_lpd_noaa.info("writing section: {}".format("top"))
-        self.__create_blanks("Top")
+        self.__create_blanks("Top", self.sorted_data["Top"])
 
         # Start writing the NOAA file section by section, starting at the very top of the template.
         self.noaa_txt.write("# {}".format(self.sorted_data["Top"]['Study_Name']))
         self.__write_template_top()
         # We don't know what the full online resource path will be yet, so leave the base path only
-        self.__write_k_v("Online_Resource", "http://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/", True, True, True, False)
-        self.__write_k_v("\tOnline_Resource_Description", self.sorted_data["Top"]['Online_Resource_Description'], True, True, True, False)
-        self.__write_k_v("Online_Resource", "http://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/supplemental/{}".format(self.name), True, True, True, False)
-        self.__write_k_v("\tOnline_Resource_Description", self.sorted_data["Top"]['Online_Resource_Description'], True, True, True, False)
+        self.__write_k_v("Online_Resource", "http://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/", True, False, False, False)
+        self.__write_k_v("Online_Resource_Description", self.sorted_data["Top"]['Online_Resource_Description'], False, False, False, True)
+        self.__write_k_v("Online_Resource", "http://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/supplemental/{}".format(self.name), True, True, False, False)
+        self.__write_k_v("Online_Resource_Description", self.sorted_data["Top"]['Online_Resource_Description'], False, True, False, True)
         self.__write_k_v("Original_Source_URL", self.sorted_data["Top"]['Original_Source_URL'], tab=False)
         self.noaa_txt.write("\n# Description/Documentation lines begin with #\n# Data lines have no #\n#")
         self.__write_k_v("Archive", self.sorted_data["Top"]['Archive'], tab=False)
         # get the doi from the pub section of self.steps_dict[6]
         # doi = self.__get_doi()
-        self.__write_k_v("Dataset_DOI",  ', '.join(self.doi), tab=False)
+        self.__write_k_v("Dataset_DOI",  ', '.join(self.doi), False, True, False, False)
         # self.__write_k_v("Parameter_Keywords", self.steps_dict[section_num]['parameterKeywords'])
         self.__write_divider()
         logger_lpd_noaa.info("exit write_top")
@@ -485,7 +483,7 @@ class LPD_NOAA(object):
         logger_lpd_noaa.info("writing section: {}".format(header))
         if not d:
             d = self.sorted_data[header]
-        self.__create_blanks(header)
+        self.__create_blanks(header, d)
         self.__write_header_name(header)
         for key in NOAA_ALL[header]:
             val = d[key]
@@ -547,62 +545,62 @@ class LPD_NOAA(object):
         self.__write_generic('Site_Information')
         return
 
-    def __write_chron(self, d):
-        """
-        Write chronology section.
-        :param dict d:
-        :return none:
-        """
-        # ChronData is a list of dictionaries
-        logger_lpd_noaa.info("writing section: {}".format("chronology"))
-        try:
-            # Loop for one or more chronologies
-            for chron in d["chronData"]:
-                try:
-                    # todo STRUCTURE: there is a discrepancy here.
-                    # LPD files created from noaa -> LPD converter work here (bad structure): chron["chronMeasurementTable"]
-                    # Normal, good LPD files fail here because there is another level of structure. : chron["chronMeasurementTable"][0]
+    # def __write_chron(self, d):
+    #     """
+    #     Write chronology section.
+    #     :param dict d:
+    #     :return none:
+    #     """
+    #     # ChronData is a list of dictionaries
+    #     logger_lpd_noaa.info("writing section: {}".format("chronology"))
+    #     try:
+    #         # Loop for one or more chronologies
+    #         for chron in d["chronData"]:
+    #             try:
+    #                 # todo STRUCTURE: there is a discrepancy here.
+    #                 # LPD files created from noaa -> LPD converter work here (bad structure): chron["chronMeasurementTable"]
+    #                 # Normal, good LPD files fail here because there is another level of structure. : chron["chronMeasurementTable"][0]
+    #
+    #                 table = chron["chronMeasurementTable"]
+    #             except KeyError:
+    #                 logger_lpd_noaa.warn("write_chron: KeyError: missing chronMeasurementTable, ()".format(self.name))
+    #                 break
+    #             # Get the csv filename from the current table
+    #             filename = self.__get_filename(table)
+    #             self.noaa_txt.write('# Chronology:\n#\n')
+    #             if self.__csv_found(filename):
+    #                 logger_lpd_noaa.info("found csv file: {}".format(filename))
+    #                 try:
+    #                     cols = table["columns"]
+    #                 except KeyError:
+    #                     logger_lpd_noaa.warn("write_chron: KeyError: missing chron columns, {}".format(filename))
+    #                 # Loop for each column in the table
+    #                 for idx, col in enumerate(cols):
+    #                     try:
+    #                         units = "({})".format(str(col["units"]))
+    #                     except KeyError:
+    #                         # No units are okay. No handling.
+    #                         units = ""
+    #                     if idx == len(cols)-1:
+    #                         self.noaa_txt.write("{:<0}".format(col['variableName'], units))
+    #                     else:
+    #                         self.noaa_txt.write("{:<15}".format(col['variableName'], units))
+    #                 self.noaa_txt.write("\n")
+    #                 # Write each line from the csv file
+    #                 with open(filename, 'r') as f:
+    #                     for line in iter(f):
+    #                         line = line.split(',')
+    #                         for idx, value in enumerate(line):
+    #                             if idx == len(line) - 1:
+    #                                 self.noaa_txt.write("{:<0}".format(str(value)))
+    #                             else:
+    #                                 self.noaa_txt.write("{:<15.10}".format(str(value)))
+    #         self.noaa_txt.write("#")
+    #     except KeyError:
+    #         logger_lpd_noaa.info("write_chron: KeyError: missing chronData key")
+    #     return
 
-                    table = chron["chronMeasurementTable"]
-                except KeyError:
-                    logger_lpd_noaa.warn("write_chron: KeyError: missing chronMeasurementTable, ()".format(self.name))
-                    break
-                # Get the csv filename from the current table
-                filename = self.__get_filename(table)
-                self.noaa_txt.write('# Chronology:\n#\n')
-                if self.__csv_found(filename):
-                    logger_lpd_noaa.info("found csv file: {}".format(filename))
-                    try:
-                        cols = table["columns"]
-                    except KeyError:
-                        logger_lpd_noaa.warn("write_chron: KeyError: missing chron columns, {}".format(filename))
-                    # Loop for each column in the table
-                    for idx, col in enumerate(cols):
-                        try:
-                            units = "({})".format(str(col["units"]))
-                        except KeyError:
-                            # No units are okay. No handling.
-                            units = ""
-                        if idx == len(cols)-1:
-                            self.noaa_txt.write("{:<0}".format(col['variableName'], units))
-                        else:
-                            self.noaa_txt.write("{:<15}".format(col['variableName'], units))
-                    self.noaa_txt.write("\n")
-                    # Write each line from the csv file
-                    with open(filename, 'r') as f:
-                        for line in iter(f):
-                            line = line.split(',')
-                            for idx, value in enumerate(line):
-                                if idx == len(line) - 1:
-                                    self.noaa_txt.write("{:<0}".format(str(value)))
-                                else:
-                                    self.noaa_txt.write("{:<15.10}".format(str(value)))
-            self.noaa_txt.write("#")
-        except KeyError:
-            logger_lpd_noaa.info("write_chron: KeyError: missing chronData key")
-        return
-
-    def __write_paleo(self, table):
+    def __write_columns(self, table):
         """
         Read numeric data from csv and write to the bottom section of the txt file.
         :param dict table: Paleodata dictionary
@@ -639,6 +637,22 @@ class LPD_NOAA(object):
                         else:
                             self.noaa_txt.write("{:<15.10}".format(str(value)))
         return
+
+    def __write_data(self):
+        """
+        Write out the measurement tables found in paleoData and chronData
+        :return:
+        """
+        # Run once for each pair (paleo+chron) of tables that was gathered earlier.
+        for pair in self.sorted_data["Data"]:
+            # loop once for paleo, once for chron
+            for name, table in pair.items():
+                # safeguard in case the table is an empty set.
+                if table:
+                    self.__write_divider()
+                    self.__write_variables(table)
+                    self.__write_divider()
+                    self.__write_columns(table)
 
     def __write_variables(self, table):
         """
@@ -703,8 +717,7 @@ class LPD_NOAA(object):
             \n# Template Version 3.0\
             \n# Encoding: UTF-8\
             \n# NOTE: Please cite Publication, and Online_Resource and date accessed when using these data. \
-            \n# If there is no publication information, please cite Investigators, Title, and Online_Resource and date\
-            accessed."
+            \n# If there is no publication information, please cite Investigators, Title, and Online_Resource and date accessed."
             )
         return
 
