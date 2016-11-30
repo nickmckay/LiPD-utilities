@@ -83,7 +83,8 @@ FUNDING_LIST = [
 # Ex: if the LiPD has geo data, take the whole geo dictionary and put it into section 8.
 # reorganize(), create_blanks()
 NOAA_ALL = {
-    "Top": ['Study_Name', 'Online_Resource', 'Original_Source_URL', 'Archive', "Dataset_DOI", "Parameter_Keywords"],
+    "Top": ['Study_Name', 'Online_Resource', "Online_Resource_Description", 'Original_Source_URL', 'Archive',
+            "Dataset_DOI", "Parameter_Keywords"],
     "Contribution_Date": ['Date'],
     "File_Last_Modified_Date": ["Modified_Date"],
     "Title": ['Study_Name'],
@@ -91,13 +92,13 @@ NOAA_ALL = {
     "Description_Notes_and_Keywords": ['Description'],
     "Publication": ['Author', 'Published_Date_or_Year', 'Published_Title', 'Journal_Name', 'Volume', 'Edition',
                     'Issue', 'Pages', "Report", 'DOI', 'Online_Resource', 'Full_Citation', 'Abstract'],
-    "Funding_Agency ": ["Funding_Agency_Name", "Grant"],
-    "Site_Information ": ["Site_Name", "Location", "Country", "Northernmost_Latitude", "Southernmost_Latitude",
+    "Funding_Agency": ["Funding_Agency_Name", "Grant"],
+    "Site_Information": ["Site_Name", "Location", "Country", "Northernmost_Latitude", "Southernmost_Latitude",
                           "Easternmost_Longitude",  "Westernmost_Longitude", "Elevation"],
     "Data_Collection": ['Collection_Name', 'Earliest_Year', 'Most_Recent_Year', 'Time_Unit', 'Core_Length', 'Notes'],
     "Species": ['Species_Name', 'Species_Code', "Common_Name"],
     "Chronology_Information": ['Chronology'],
-    "Variables": ["what", "material", "error", "units", "seasonality", "archive", "detail", "method", "dataType"],
+    "Variables": ["shortname", "what", "material", "error", "units", "seasonality", "archive", "detail", "method", "dataType"],
     "Data": ["Missing_Value"],
     # These are keys that do not currently have NOAA - LPD mappings
     "Ignore": ["Date", "Parameter_Keywords", "Dataset_Name", "Tree_Species_Code", "Species_Name", "Common_Name",
@@ -147,6 +148,7 @@ NOAA_KEYS = {
     'pages': 'Pages',
     "pub": "Publication",
     'pubYear': 'Published_Date_or_Year',
+    "year": "Published_Date_or_Year",
     'report': 'Report_Number',
     'seasonality': 'seasonality',
     'siteName': 'Site_Name',

@@ -550,8 +550,8 @@ class LPD_NOAA(object):
             # Write the output line
             self.__write_k_v(str(self.__get_noaa_key(key)), val, indent=True)
         # Don't write a divider if there isn't a Chron section after species. It'll make a double.
-        if header == "Species" and not self.noaa_data_sorted["Species"]:
-            return
+        # if header == "Species" and not self.noaa_data_sorted["Species"]:
+        #     return
         self.__write_divider()
         return
 
@@ -665,7 +665,7 @@ class LPD_NOAA(object):
             count = len(table['columns'])
             for col in table['columns']:
                 try:
-                    param = col['variableName']
+                    param = col['shortname']
                 except KeyError:
                     param = 'N/A'
                 if count == 1:
@@ -692,12 +692,12 @@ class LPD_NOAA(object):
         :return:
         """
         # Run once for each pair (paleo+chron) of tables that was gathered earlier.
-        for pair in self.noaa_data_sorted["Data"]:
+        for idx,pair in enumerate(self.noaa_data_sorted["Data"]):
             # loop once for paleo, once for chron
             for name, table in pair.items():
                 # safeguard in case the table is an empty set.
                 if table:
-                    self.__write_divider(top=False)
+                    # self.__write_divider(top=False)
                     self.__write_variables(table)
                     self.__write_divider()
                     self.__write_columns(table)
@@ -720,7 +720,7 @@ class LPD_NOAA(object):
                 for entry in NOAA_ALL["Variables"]:
                     # May need a better way of handling this in the future. Need a strict list for this section.
                     try:
-                        if entry == 'variableName':
+                        if entry == 'shortname':
                             # First entry: Add extra hash and tab
                             self.noaa_txt.write('{:<20}'.format('#' + str(col[entry])))
                         elif entry == 'dataType':
