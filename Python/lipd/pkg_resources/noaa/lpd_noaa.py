@@ -20,7 +20,7 @@ class LPD_NOAA(object):
     :return none: Writes NOAA text to file in local storage
     """
 
-    def __init__(self, dir_root, name, root_dict):
+    def __init__(self, dir_root, name, lipd_dict):
         """
         :param str dir_root: Path to dir containing all .lpd files
         :param str name: Name of current .lpd file
@@ -33,10 +33,12 @@ class LPD_NOAA(object):
         self.output_file_ct = 0
         self.noaa_txt = None
         self.doi = []
+        # noaa dict has all metadata with noaa keys
+        self.noaa_data = lipd_dict
         # the raw dictionary imported from jsonld file
-        self.root_dict = root_dict
+        self.lipd_data = lipd_dict
         # jsonld data sorted according to noaa sections
-        self.sorted_data = {
+        self.noaa_data_sorted = {
             "Top": {},
             "Contribution_Date": {},
             "File_Last_Modified_Date": {},
@@ -54,6 +56,8 @@ class LPD_NOAA(object):
             "Data": [],
             # These are keys that do not currently have NOAA - LPD mappings
             "Ignore": {},
+        }
+        self.noaa_geo = {
         }
 
     @staticmethod
@@ -139,8 +143,31 @@ class LPD_NOAA(object):
     #         return val, unit
     #     return '', ''
 
-    @staticmethod
-    def __create_blanks(section_name, d):
+    def __key_conversion(self, d):
+        """
+        Convert entire lipd metadata into noaa keys
+        :return dict: noaa dictionary
+        """
+
+        if isinstance(d, str):
+            return self.__get_noaa_key(d)
+
+        elif isinstance(d, list):
+            for idx, i in enumerate(d):
+                d[idx] = self.__key_conversion(i)
+
+        elif isinstance(d, dict):
+            for k, v in d.items():
+                if k != "Ignore":
+                    # get the new noaa key
+                    noaa_key = self.__get_noaa_key(k)
+                    # swap the keys
+                    d[noaa_key] = d.pop(k)
+                    # recursive dive
+                    d[noaa_key] = self.__key_conversion(v)
+        return d
+
+    def __create_blanks(self, section_name, d):
         """
         All keys need to be written to the output, with or without a value. Furthermore, only keys that have values
         exist at this point. We need to manually insert the other keys with a blank value. Loop through the global list
@@ -153,6 +180,7 @@ class LPD_NOAA(object):
                 if key not in d:
                     # Key not in our dict. Create the blank entry.
                     d[key] = ""
+
         except Exception:
             logger_lpd_noaa.error("lpd_noaa: create_blanks: must section: {}, key".format(section_name, key))
         return d
@@ -177,36 +205,39 @@ class LPD_NOAA(object):
                 logger_lpd_noaa.warning("get_filename: Generic: Unable to get filename from table, {}".format(e))
         return filename
 
-    def __coordinates(self, d):
+    def __coordinates(self):
         """
         Reorganize coordinates based on how many values are available.
-        :param dict d: Location with corresponding values
-        :return dict:
+        :return:
         """
         try:
-            l = self.sorted_data["Site_Information"]['geometry']['coordinates']
-            length = len(l)
+            l = self.noaa_data_sorted["Site_Information"]['geometry']['coordinates']
             locations = ["Northernmost_Latitude", "Southernmost_Latitude", "Easternmost_Longitude",
                          "Westernmost_Longitude", "Elevation"]
-            logger_lpd_noaa.info("coordinates: {} coordinates found".format(length))
+            logger_lpd_noaa.info("coordinates: {} coordinates found".format(len(l)))
 
             # Odd number of coordinates. Elevation value exists
             if len(l) % 2 == 1:
                 # Store the elevation, which is always the last value in the list
-                d["Elevation"] = l.pop()
+                self.noaa_geo["Elevation"] = l.pop()
 
             # Start compiling the lat lon coordinates
+
+            # 0 coordinate values. fill in locations with empty values
             if len(l) == 0:
                 for location in locations:
-                    d[location] = ' '
+                    self.noaa_geo[location] = ' '
+            # 2 coordinates values. duplicate to fill 4 location slots.
             elif len(l) == 2:
-                d[locations[0]] = l[0]
-                d[locations[1]] = l[1]
-                d[locations[2]] = l[0]
-                d[locations[3]] = l[1]
+                self.noaa_geo[locations[0]] = l[0]
+                self.noaa_geo[locations[1]] = l[1]
+                self.noaa_geo[locations[2]] = l[0]
+                self.noaa_geo[locations[3]] = l[1]
+
+            # 4 coordinate values. put each in its correct location slot.
             elif len(l) == 4:
                 for index, location in enumerate(locations):
-                    d[locations[index]] = l[index]
+                    self.noaa_geo[locations[index]] = l[index]
             else:
                 logger_lpd_noaa.info("coordinates: too many coordinates given")
         except KeyError:
@@ -214,19 +245,18 @@ class LPD_NOAA(object):
         except Exception:
             logger_lpd_noaa.error("lpd_noaa: coordinates: unknown exception")
 
-        return d
+        return
 
     @staticmethod
-    def __reorganize_authors(d, key):
+    def __reorganize_authors(d):
         """
         Create a combined string of authors from the pub list of authors
-        :param dict d: Publication metadata
-        :param str key: Author(s) key
+        :param dict d: One Publication metadata entry
         :return:
         """
         s = ""
         try:
-            l = d[key]
+            l = d["Author"]
         except KeyError:
             logger_lpd_noaa.debug("reorganize_authors: KeyError: missing author keys")
             return s
@@ -244,25 +274,33 @@ class LPD_NOAA(object):
     def __get_dois(self):
         """
         Collect DOI ids from all publication entries, and put them in self.doi list
+        # coordinates[0]: "Northernmost_Latitude",
+        # coordinates[0]: "Southernmost_Latitude",
+        # coordinates[1]: "Easternmost_Longitude",
+        # coordinates[1]: "Westernmost_Longitude",
+        # coordinates[2]: "Elevation", (OPTIONAL)
         :return:
         """
         l = []
         # Doi location: d["pub"][idx]["identifier"][0]["id"]
-        for pub in self.root_dict["pub"]:
-            try:
-                cur_doi = pub["identifier"][0]["id"]
-                cur_doi = clean_doi(cur_doi)
-                self.doi.append(cur_doi)
-            except KeyError:
-                logger_lpd_noaa.info("get_dois: KeyError: missing a doi key")
-            except Exception:
-                logger_lpd_noaa.info("get_dois: Exception: something went wrong")
-        for doi in self.doi:
-            if isinstance(doi, str):
-                l.append(doi)
-            elif isinstance(doi, list):
-                for i in doi:
-                    l.append(i)
+        try:
+            for pub in self.lipd_data["pub"]:
+                try:
+                    cur_doi = pub["identifier"][0]["id"]
+                    cur_doi = clean_doi(cur_doi)
+                    self.doi.append(cur_doi)
+                except KeyError:
+                    logger_lpd_noaa.info("get_dois: KeyError: missing a doi key")
+                except Exception:
+                    logger_lpd_noaa.info("get_dois: Exception: something went wrong")
+            for doi in self.doi:
+                if isinstance(doi, str):
+                    l.append(doi)
+                elif isinstance(doi, list):
+                    for i in doi:
+                        l.append(i)
+        except KeyError:
+            logger_lpd_noaa.warn("lpd_noaa: get_dois: No publication found")
         self.doi = l
         return
 
@@ -276,7 +314,7 @@ class LPD_NOAA(object):
         doi = ""
         # Doi location: d["pub"][idx]["identifier"][0]["id"]
         try:
-            doi = pub["identifier"][0]["id"]
+            doi = pub["DOI"][0]["id"]
             doi = clean_doi(doi)
         except KeyError:
             logger_lpd_noaa.info("get_dois: KeyError: missing a doi key")
@@ -285,7 +323,10 @@ class LPD_NOAA(object):
 
         # if we received a doi that's a list, we want to concat into a single string
         if isinstance(doi, list):
-            ", ".join(doi)
+            if len(doi) == 1:
+                doi = doi[0]
+            else:
+                ", ".join(doi)
         return doi
 
     def __put_dois(self):
@@ -306,7 +347,7 @@ class LPD_NOAA(object):
         """
         try:
             # this will always be called right after a paleoData table
-            self.sorted_data["Data"][len(self.sorted_data["Data"])-1]["chron"] = self.root_dict["chronData"][idx1]["chronMeasurementTable"][idx2]
+            self.noaa_data_sorted["Data"][len(self.noaa_data_sorted["Data"]) - 1]["chron"] = self.lipd_data["chronData"][idx1]["chronMeasurementTable"][idx2]
         except KeyError:
             logger_lpd_noaa.info("lpd_noaa: get_meas_table_chron: No matching chron table")
 
@@ -319,38 +360,45 @@ class LPD_NOAA(object):
         """
         # todo: is this going to be a problem if there is a chronData table but no paleoData table?
         try:
-            for idx1, pd in enumerate(self.root_dict["paleoData"]):
-                for idx2, pmt in enumerate(self.root_dict["paleoData"][idx1]["paleoMeasurementTable"]):
+            for idx1, pd in enumerate(self.lipd_data["paleoData"]):
+                for idx2, pmt in enumerate(self.lipd_data["paleoData"][idx1]["paleoMeasurementTable"]):
                     # create entry in self object collection of data tables
-                    self.sorted_data["Data"].append({"paleo": pmt, "chron": {}})
+                    self.noaa_data_sorted["Data"].append({"paleo": pmt, "chron": {}})
                     # look for a matching chron table at the same index
                     self.__get_meas_table_chron(idx1, idx2)
         except KeyError:
             logger_lpd_noaa.warning("lpd_noaa: get_meas_table: 0 paleo data tables")
 
-        self.output_file_ct = len(self.sorted_data["Data"])
+        self.output_file_ct = len(self.noaa_data_sorted["Data"])
         return
 
     def __reorganize_geo(self):
         """
         Concat geo value and units, and reorganize the rest
-        :param dict d:
-        :return dict:
+        References geo data from self.noaa_data_sorted
+        Places new data into self.noaa_geo temporarily, and then back into self.noaa_data_sorted.
+        :return:
         """
         logger_lpd_noaa.info("enter reorganize_geo")
-        d_tmp = {}
+
         try:
-            for k, v in self.sorted_data["Site_Information"]['properties'].items():
-                d_tmp[k] = v
-            # Geometry
-            d_tmp = self.__coordinates(d_tmp)
-        except KeyError as e:
-            d_tmp = {}
-            logger_lpd_noaa.debug("reorganize_geo: KeyError: improper format, {}".format(e))
-        self.sorted_data["Site_Information"] = d_tmp
+            # Geo -> Properties
+            for k, v in self.noaa_data_sorted["Site_Information"]['properties'].items():
+                noaa_key = self.__get_noaa_key(k)
+                self.noaa_geo[noaa_key] = v
+        except KeyError:
+            logger_lpd_noaa.info("reorganize_geo: KeyError: geo properties")
+        try:
+            # Geo -> Geometry
+            self.__coordinates()
+        except Exception:
+            logger_lpd_noaa.warning("reorganize_geo: Exception: missing required data: coordinates")
+
+        # put the temporarily organized data into the self.noaa_data_sorted
+        self.noaa_data_sorted["Site_Information"] = self.noaa_geo
         return
 
-    def __reorganize(self, key, value):
+    def __reorganize(self):
         """
         Reorganize the keys into their proper section order for the NOAA output file
         DO NOT parse data tables (paleoData or chronData). We will do those separately.
@@ -359,25 +407,25 @@ class LPD_NOAA(object):
         :return none:
         """
         logger_lpd_noaa.info("enter reorganize")
-        # If the key isn't in any list, stash it in number 13 for now
-        noaa_key = self.__get_noaa_key(key)
-        # the lipd key was returned without conversion. No NOAA equivalent, so ignore it.
-        if key == noaa_key:
-            self.sorted_data["Ignore"][key] = value
-        # edge case
-        elif noaa_key == "Study_Name":
-            # study name gets put in two locations
-            self.sorted_data[noaa_key][key] = value
-            self.sorted_data[noaa_key][key] = value
-        # all other keys
-        else:
-            for section_header, section_items in NOAA_ALL.items():
-                if noaa_key == section_header:
-                    self.sorted_data[section_header] = value
-                    break
-                elif noaa_key in section_items:
-                    self.sorted_data[section_header][key] = value
-                    break
+        # NOAA files are organized in sections, but jld is not. Reorganize to match NOAA template.
+        for key, value in self.lipd_data.items():
+            # if this key has a noaa match, it'll be returned. otherwise, empty string for no match
+            noaa_key = self.__get_noaa_key(key)
+            # check if this lipd key is in the NOAA_KEYS conversion dictionary
+            if key not in NOAA_KEYS:
+                self.noaa_data_sorted["Ignore"][noaa_key] = value
+            # edge case.
+            elif noaa_key == "Study_Name":
+                # study name gets put in two locations
+                self.noaa_data_sorted["Top"][noaa_key] = value
+                self.noaa_data_sorted["Title"][noaa_key] = value
+            # all other keys. determine which noaa section they belong in.
+            else:
+                for header, content in NOAA_ALL.items():
+                    if noaa_key == header:
+                        self.noaa_data_sorted[header] = value
+                    elif noaa_key in content:
+                        self.noaa_data_sorted[header][noaa_key] = value
         return
 
     def main(self):
@@ -388,8 +436,9 @@ class LPD_NOAA(object):
         logger_lpd_noaa.info("enter main")
         # Starting Directory: dir_tmp/dir_bag/data/
 
+        # convert all lipd keys to noaa keys
         # timestamp the conversion of the file
-        self.sorted_data["File_Last_Modified_Date"]["Modified_Date"] = generate_timestamp()
+        self.noaa_data_sorted["File_Last_Modified_Date"]["Modified_Date"] = generate_timestamp()
 
         # how many measurement tables exist? this will tell use how many noaa files to create
         self.__get_meas_tables()
@@ -398,10 +447,11 @@ class LPD_NOAA(object):
         self.__get_dois()
         self.__put_dois()
 
-        # NOAA files are organized in sections, but jld is not. Reorganize to match NOAA template.
-        for k, v in self.root_dict.items():
-            self.__reorganize(k, v)
+        # reorganize data into noaa sections
+        self.__reorganize()
+
         # Use data in steps_dict to write to
+        self.noaa_data_sorted = self.__key_conversion(self.noaa_data_sorted)
         self.__write_file()
         logger_lpd_noaa.info("exit main")
         return
@@ -451,19 +501,19 @@ class LPD_NOAA(object):
         :return none:
         """
         logger_lpd_noaa.info("writing section: {}".format("top"))
-        self.__create_blanks("Top", self.sorted_data["Top"])
+        self.__create_blanks("Top", self.noaa_data_sorted["Top"])
 
         # Start writing the NOAA file section by section, starting at the very top of the template.
-        self.noaa_txt.write("# {}".format(self.sorted_data["Top"]['Study_Name']))
+        self.noaa_txt.write("# {}".format(self.noaa_data_sorted["Top"]['Study_Name']))
         self.__write_template_top()
         # We don't know what the full online resource path will be yet, so leave the base path only
-        self.__write_k_v("Online_Resource", "http://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/", True, False, False, False)
-        self.__write_k_v("Online_Resource_Description", self.sorted_data["Top"]['Online_Resource_Description'], False, False, False, True)
-        self.__write_k_v("Online_Resource", "http://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/supplemental/{}".format(self.name), True, True, False, False)
-        self.__write_k_v("Online_Resource_Description", self.sorted_data["Top"]['Online_Resource_Description'], False, True, False, True)
-        self.__write_k_v("Original_Source_URL", self.sorted_data["Top"]['Original_Source_URL'], tab=False)
+        self.__write_k_v("Online_Resource", "http://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/", top=True)
+        self.__write_k_v("Online_Resource_Description", self.noaa_data_sorted["Top"]['Online_Resource_Description'], indent=True)
+        self.__write_k_v("Online_Resource", "http://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/supplemental/{}".format(self.name), top=True)
+        self.__write_k_v("Online_Resource_Description", self.noaa_data_sorted["Top"]['Online_Resource_Description'], indent=True)
+        self.__write_k_v("Original_Source_URL", self.noaa_data_sorted["Top"]['Original_Source_URL'], top=True)
         self.noaa_txt.write("\n# Description/Documentation lines begin with #\n# Data lines have no #\n#")
-        self.__write_k_v("Archive", self.sorted_data["Top"]['Archive'], tab=False)
+        self.__write_k_v("Archive", self.noaa_data_sorted["Top"]['Archive'])
         # get the doi from the pub section of self.steps_dict[6]
         # doi = self.__get_doi()
         self.__write_k_v("Dataset_DOI",  ', '.join(self.doi), False, True, False, False)
@@ -482,7 +532,7 @@ class LPD_NOAA(object):
         """
         logger_lpd_noaa.info("writing section: {}".format(header))
         if not d:
-            d = self.sorted_data[header]
+            d = self.noaa_data_sorted[header]
         self.__create_blanks(header, d)
         self.__write_header_name(header)
         for key in NOAA_ALL[header]:
@@ -492,17 +542,15 @@ class LPD_NOAA(object):
             #     value, unit = self.__get_corelength(val)
             #     val = str(value) + " " + str(unit)
             # DOI  id is nested in "identifier" block. Retrieve it.
-            if key == "doi":
+            if key == "DOI":
                 val = self.__get_doi(d)
-            elif key in ("author", "authors"):
+            elif key in ["Author", "Authors"]:
                 val = self.__reorganize_authors(d)
-            elif key == "coordinates":
-                pass
 
             # Write the output line
-            self.__write_k_v(str(self.__get_noaa_key(key)), val)
+            self.__write_k_v(str(self.__get_noaa_key(key)), val, indent=True)
         # Don't write a divider if there isn't a Chron section after species. It'll make a double.
-        if header == "Species" and not self.sorted_data["Species"]:
+        if header == "Species" and not self.noaa_data_sorted["Species"]:
             return
         self.__write_divider()
         return
@@ -513,7 +561,7 @@ class LPD_NOAA(object):
         :return none:
         """
         try:
-            for idx, pub in enumerate(self.sorted_data["Publication"]):
+            for idx, pub in enumerate(self.noaa_data_sorted["Publication"]):
                 logger_lpd_noaa.info("publication: {}".format(idx))
                 self.__write_generic('Publication', pub)
         except KeyError:
@@ -529,7 +577,7 @@ class LPD_NOAA(object):
         :param dict d:
         :return none:
         """
-        for key, fund_list in self.sorted_data["Funding_Agency"].items():
+        for key, fund_list in self.noaa_data_sorted["Funding_Agency"].items():
             for idx, fund in enumerate(fund_list):
                 logger_lpd_noaa.info("funding: {}".format(idx))
                 self.__write_generic('Funding_Agency', fund)
@@ -644,12 +692,12 @@ class LPD_NOAA(object):
         :return:
         """
         # Run once for each pair (paleo+chron) of tables that was gathered earlier.
-        for pair in self.sorted_data["Data"]:
+        for pair in self.noaa_data_sorted["Data"]:
             # loop once for paleo, once for chron
             for name, table in pair.items():
                 # safeguard in case the table is an empty set.
                 if table:
-                    self.__write_divider()
+                    self.__write_divider(top=False)
                     self.__write_variables(table)
                     self.__write_divider()
                     self.__write_columns(table)
@@ -747,7 +795,7 @@ class LPD_NOAA(object):
         \n# Missing_Values: {}\n#\n'.format(mv))
         return
 
-    def __write_k_v(self, k, v, top=False, bot=False, multi=False, tab=True):
+    def __write_k_v(self, k, v, top=False, bot=False, multi=False, indent=False):
         """
         Write a key value pair to the output file. If v is a list, write multiple lines.
         :param k: Key
@@ -761,12 +809,12 @@ class LPD_NOAA(object):
             self.noaa_txt.write("\n#")
         if multi:
             for item in v:
-                if tab:
+                if indent:
                     self.noaa_txt.write("\n#     {}: {}".format(str(k), str(item)))
                 else:
                     self.noaa_txt.write("\n# {}: {}".format(str(k), str(item)))
         else:
-            if tab:
+            if indent:
                 self.noaa_txt.write("\n#     {}: {}".format(str(k), str(v)))
             else:
                 self.noaa_txt.write("\n# {}: {}".format(str(k), str(v)))
