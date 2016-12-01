@@ -30,6 +30,7 @@ class LPD_NOAA(object):
         self.name = name
         # output filename
         self.name_txt = name + '.txt'
+        self.output_filenames = []
         self.output_file_ct = 0
         self.noaa_txt = None
         self.doi = []
@@ -88,6 +89,24 @@ class LPD_NOAA(object):
         if 'missingValue' in d:
             return d['missingValue']
         return ''
+
+    @staticmethod
+    def __get_investigators(x):
+        """
+        Get the investigators info. Sometimes a string, sometimes a dictionary with the string in it.
+        :param any x:
+        :return str: investigators string
+        """
+        val = ""
+        if isinstance(x, dict):
+            try:
+                val = x["Investigators"]
+            except KeyError:
+                # not really concerned about this
+                pass
+        elif isinstance(x, str):
+            val = x
+        return val
 
     @staticmethod
     def __get_noaa_key(lipd_key):
@@ -157,14 +176,16 @@ class LPD_NOAA(object):
                 d[idx] = self.__key_conversion(i)
 
         elif isinstance(d, dict):
+            tmp = {}
             for k, v in d.items():
                 if k != "Ignore":
                     # get the new noaa key
                     noaa_key = self.__get_noaa_key(k)
                     # swap the keys
-                    d[noaa_key] = d.pop(k)
+                    tmp[noaa_key] = v
                     # recursive dive
-                    d[noaa_key] = self.__key_conversion(v)
+                    tmp[noaa_key] = self.__key_conversion(v)
+            d = tmp
         return d
 
     def __create_blanks(self, section_name, d):
@@ -338,6 +359,22 @@ class LPD_NOAA(object):
         # todo: therefore, collecting DOIs from pubs to put into the dataset_DOI is probably wrong.
         pass
 
+    def __get_output_filenames(self):
+        """
+        Set up the output filenames. If more than one file is being written out, we need appended filenames.
+        :return:
+        """
+        # if there is only one file, use the normal filename with nothing appended.
+        if len(self.noaa_data_sorted["Data"]) == 1:
+            self.output_filenames.append(self.name_txt)
+
+        # if there are multiple files that need to be written out, (multiple data table pairs), then append numbers
+        elif len(self.noaa_data_sorted["Data"]) > 1:
+            for i in range(0, self.output_file_ct):
+                tmp_name = "{}-{}.txt".format(self.name, i+1)
+                self.output_filenames.append(tmp_name)
+        return
+
     def __get_meas_table_chron(self, idx1, idx2):
         """
         Look for a chron meas table to match the paleo meas table we just added.
@@ -463,12 +500,11 @@ class LPD_NOAA(object):
         """
         logger_lpd_noaa.info("enter write_file")
 
-        if self.output_file_ct == 0:
-            self.output_file_ct += 1
+        self.__get_output_filenames()
 
-        while self.output_file_ct > 0:
+        for idx, filename in enumerate(self.output_filenames):
             try:
-                self.noaa_txt = open(self.name_txt, "w+")
+                self.noaa_txt = open(filename, "w+")
                 logger_lpd_noaa.info("write_file: opened output txt file")
             except Exception as e:
                 logger_lpd_noaa.debug("write_file: failed to open output txt file, {}".format(e))
@@ -485,13 +521,12 @@ class LPD_NOAA(object):
             self.__write_geo()
             self.__write_generic('Data_Collection')
             self.__write_generic('Species')
-            self.__write_data()
+            self.__write_data(idx)
 
             self.noaa_txt.close()
             logger_lpd_noaa.info("closed output text file")
-            shutil.copy(os.path.join(os.getcwd(), self.name_txt), self.dir_root)
+            shutil.copy(os.path.join(os.getcwd(), filename), self.dir_root)
             logger_lpd_noaa.info("exit write_file")
-            self.output_file_ct -= 1
         return
 
     def __write_top(self):
@@ -536,7 +571,6 @@ class LPD_NOAA(object):
         self.__create_blanks(header, d)
         self.__write_header_name(header)
         for key in NOAA_ALL[header]:
-            val = d[key]
             # NOAA writes value and units on one line. Build the string here.
             # if key == 'coreLength':
             #     value, unit = self.__get_corelength(val)
@@ -544,8 +578,12 @@ class LPD_NOAA(object):
             # DOI  id is nested in "identifier" block. Retrieve it.
             if key == "DOI":
                 val = self.__get_doi(d)
+            elif key == "Investigators":
+                val = self.__get_investigators(d)
             elif key in ["Author", "Authors"]:
                 val = self.__reorganize_authors(d)
+            else:
+                val = d[key]
 
             # Write the output line
             self.__write_k_v(str(self.__get_noaa_key(key)), val, indent=True)
@@ -577,10 +615,10 @@ class LPD_NOAA(object):
         :param dict d:
         :return none:
         """
-        for key, fund_list in self.noaa_data_sorted["Funding_Agency"].items():
-            for idx, fund in enumerate(fund_list):
-                logger_lpd_noaa.info("funding: {}".format(idx))
-                self.__write_generic('Funding_Agency', fund)
+        # todo: CODE BREAKING HERE
+        for idx, entry in enumerate(self.noaa_data_sorted["Funding_Agency"]):
+            logger_lpd_noaa.info("funding: {}".format(idx))
+            self.__write_generic('Funding_Agency', entry)
         return
 
     def __write_geo(self):
@@ -686,21 +724,23 @@ class LPD_NOAA(object):
                             self.noaa_txt.write("{:<15.10}".format(str(value)))
         return
 
-    def __write_data(self):
+    def __write_data(self, idx):
         """
         Write out the measurement tables found in paleoData and chronData
         :return:
         """
+        pair = self.noaa_data_sorted["Data"][idx]
         # Run once for each pair (paleo+chron) of tables that was gathered earlier.
-        for idx,pair in enumerate(self.noaa_data_sorted["Data"]):
-            # loop once for paleo, once for chron
-            for name, table in pair.items():
-                # safeguard in case the table is an empty set.
-                if table:
-                    # self.__write_divider(top=False)
-                    self.__write_variables(table)
-                    self.__write_divider()
-                    self.__write_columns(table)
+        # for idx, pair in enumerate(self.noaa_data_sorted["Data"]):
+
+        # loop once for paleo, once for chron
+        for name, table in pair.items():
+            # safeguard in case the table is an empty set.
+            if table:
+                # self.__write_divider(top=False)
+                self.__write_variables(table)
+                self.__write_divider()
+                self.__write_columns(table)
 
     def __write_variables(self, table):
         """
@@ -715,6 +755,7 @@ class LPD_NOAA(object):
 
         # Start going through columns and writing out data
         try:
+            self.noaa_txt.write('#')
             for col in table['columns']:
                 # Write one line for each column. One line has all metadata for one column.
                 for entry in NOAA_ALL["Variables"]:
