@@ -3,13 +3,13 @@ import copy
 from .pkg_resources.lipds.LiPD_Library import *
 from .pkg_resources.timeseries.Convert import *
 from .pkg_resources.timeseries.TimeSeries_Library import *
-from .pkg_resources.doi.doi_main import doi
+from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.excel.excel_main import excel_main
 from .pkg_resources.noaa.noaa_main import noaa_main
 from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
-from .pkg_resources.helpers.directory import get_src_or_dst
+from .pkg_resources.helpers.directory import get_src_or_dst, collect_files
 from .pkg_resources.helpers.loggers import create_logger
 from .pkg_resources.helpers.misc import pickle_data, unpickle_data, split_path_and_file, prompt_protocol
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
@@ -23,10 +23,11 @@ def run():
     :return:
     """
     # GLOBALS
-    global lipd_lib, ts_lib, convert
+    global lipd_lib, ts_lib, convert, files_by_type
     lipd_lib = LiPD_Library()
     ts_lib = TimeSeries_Library()
     convert = Convert()
+    files_by_type = {"noaa": [], "lipd": [], "excel": []}
     return
 
 
@@ -36,8 +37,9 @@ def setDir():
     (ex. /Path/to/files)
     :param str path: Directory path
     """
-    global path, single_file, logger_start
-    path, single_file = get_src_or_dst("load")
+    global path, logger_start, files_by_type
+    path, new_files = get_src_or_dst("load")
+    files_by_type = collect_files(path, new_files, files_by_type)
     lipd_lib.set_dir(path)
     logger_start = create_logger("start")
     logger_start.info("Working Directory: {}".format(path))
@@ -51,8 +53,8 @@ def loadLipd():
     (ex. loadLiPD NAm-ak000.lpd)
     :param str filename: LiPD filename
     """
-    global single_file
-    lipd_lib.load_lipd(single_file)
+    global files
+    lipd_lib.load_lipd(files)
     print("Process Complete")
     return
 
@@ -61,8 +63,8 @@ def loadLipds():
     """
     Load all LiPD files in the current working directory into the workspace.
     """
-    global single_file
-    lipd_lib.load_lipds(single_file)
+    global files
+    lipd_lib.load_lipds(files)
     print("Process Complete")
     return
 
@@ -104,8 +106,8 @@ def excel():
     User facing call to the excel function
     :return none:
     """
-    global single_file, path
-    excel_main(single_file, path)
+    global files_by_type, path
+    excel_main(files_by_type, path)
     return
 
 
@@ -114,8 +116,18 @@ def noaa():
     User facing call to noaa function
     :return none:
     """
-    global single_file, path
-    noaa_main(single_file, path)
+    global files_by_type, path
+    noaa_main(files_by_type, path)
+    return
+
+
+def doi():
+    """
+    User facing call to doi function
+    :return:
+    """
+    global files_by_type, path
+    doi_main(files_by_type, path)
     return
 
 # PUT

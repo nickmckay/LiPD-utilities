@@ -2,7 +2,7 @@ import os
 import shutil
 
 from ..helpers.misc import update_lipd_version
-from ..helpers.directory import list_files, create_tmp_dir
+from ..helpers.directory import create_tmp_dir
 from ..helpers.jsons import read_json_from_file
 from ..helpers.zips import zipper, unzipper
 from .lpd_noaa import LPD_NOAA
@@ -12,13 +12,14 @@ from ..helpers.loggers import create_logger
 logger_noaa = create_logger("noaa")
 
 
-def noaa_main(single_file, dir_root):
+def noaa_main(files, dir_root):
     """
     Convert between NOAA and LiPD file formats.
     :return:
     """
     logger_noaa.info("enter noaa")
     # Run lpd_noaa or noaa_lpd ?
+    os.chdir(dir_root)
     print("Which conversion?\n1. LPD to NOAA\n2. NOAA to LPD\n")
     mode = input("Option: ")
     logger_noaa.info("chose option: {}".format(mode))
@@ -27,17 +28,11 @@ def noaa_main(single_file, dir_root):
 
     # .lpd to noaa
     if mode == '1':
-        if single_file:
-            f_list.append(single_file)
-        else:
-            f_list = list_files('.lpd')
+        f_list = files["lipd"]
         ft = ' LiPD'
     # Find all needed files in current directory
     elif mode == '2':
-        if single_file:
-            f_list.append(single_file)
-        else:
-            f_list = list_files('.txt')
+        f_list = files["noaa"]
         if 'noaa-blank.txt' in f_list:
             f_list.remove('noaa-wds-paleo-template-v3.0')
         ft = ' NOAA'

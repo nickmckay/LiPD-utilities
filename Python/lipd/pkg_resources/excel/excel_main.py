@@ -20,20 +20,17 @@ from ..helpers.jsons import write_json_to_file
 logger_excel = create_logger('excel_main')
 
 
-def excel_main(single_file, dir_root):
+def excel_main(files, dir_root):
     """
     Parse data from Excel spreadsheets into LiPD files.
     :return:
     """
-    f_list = []
+    f_list = files["excel"]
 
-    if single_file:
-        f_list.append(single_file)
-    else:
-        # Find excel files
-        f_list = list_files('.xls') + list_files('.xlsx')
-        print("Found " + str(len(f_list)) + " Excel files")
-        logger_excel.info("found excel files: {}".format(len(f_list)))
+
+    # Find excel files
+    print("Found " + str(len(f_list)) + " Excel files")
+    logger_excel.info("found excel files: {}".format(len(f_list)))
 
     # Run once for each file
     for name_ext in f_list:

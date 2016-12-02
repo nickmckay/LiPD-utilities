@@ -8,7 +8,7 @@ from ..helpers.loggers import create_logger
 logger_doi_main = create_logger("doi_main")
 
 
-def doi():
+def doi_main(files):
     """
     Main function that controls the script. Take in directory containing the .lpd file(s). Loop for each file.
     :return None:
@@ -17,7 +17,7 @@ def doi():
     # Find all .lpd files in current directory
     # dir: ? -> dir_root
     dir_root = os.getcwd()
-    f_list = list_files('.lpd')
+    f_list = files["lipd"]
     print(f_list)
     print("Found {0} {1} file(s)".format(str(len(f_list)), 'LiPD'))
     force = prompt_force()

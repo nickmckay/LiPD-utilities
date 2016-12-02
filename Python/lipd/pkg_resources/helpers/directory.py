@@ -12,6 +12,40 @@ from .loggers import create_logger
 logger_directory = create_logger('directory')
 
 
+def collect_files(path, new_files, files_by_type):
+    """
+    Collect all files from a given path. Separate by file type, and return one list for each type
+    If 'files' contains specific
+    :param str path: Directory w/ target files
+    :param list new_files: Specific new files to load
+    :param dict files_by_type: Files currently loaded, separated by type
+    :return list: All files separated by type
+    """
+
+    try:
+        os.chdir(path)
+
+        # specific files: if there is a list of new files, go through this list and sort them.
+        if new_files:
+            for file in new_files:
+                if file.endswith(".lpd"):
+                    files_by_type["lipd"].append(file)
+                elif file.endswith(".xls") or file.endswith(".xlsx"):
+                    files_by_type["excel"].append(file)
+                elif file.endswith(".txt"):
+                    files_by_type["noaa"].append(file)
+        # directory: get all files in the directory and sort by type
+        else:
+            files_by_type["lipd"] = files_by_type["lipd"] + list_files('.lpd')
+            files_by_type["excel"] = files_by_type["excel"] + list_files('.xls') + list_files('.xlsx')
+            files_by_type["noaa"] = files_by_type["noaa"] + list_files('.txt')
+
+    except Exception:
+        logger_directory.info("directory: collect_files: there's a problem")
+
+    return files_by_type
+
+
 def filename_from_path(path):
     """
     Extract the file name from a given file path.
@@ -120,6 +154,32 @@ def browse_dialog_dir():
     return path
 
 
+def browse_dialog_file():
+    """
+    Open up a GUI browse dialog window and let to user pick a target directory.
+    :return str: Target directory path
+    :return:
+    """
+    logger_directory.info("enter browse_dialog")
+
+    _files = []
+    try:
+        root = tkinter.Tk()
+        root.withdraw()
+        root.update()
+        _path = tkinter.filedialog.askopenfilenames(parent=root, initialdir=os.path.expanduser('~'), title='Please select a file')
+        _files = [os.path.basename(i) for i in _path]
+        _path = os.path.dirname(_path[0])
+        logger_directory.info("chosen path: {}, chosen file: {}".format(_path, _files))
+        root.destroy()
+    except Exception:
+        _path = ""
+
+    logger_directory.info("exit browse_dialog_file")
+
+    return _path, _files
+
+
 def _askHowMany():
     """
     Ask user if they want to load in one file or do a batch process of a whole directory. Default to batch "m" mode.
@@ -131,11 +191,11 @@ def _askHowMany():
 
     try:
         while invalid:
-            print("Are you loading one file or multiple? (s/m): ")
+            print("\nChoose a loading option:\n1. Select specific file(s)\n2. Load entire folder")
             _option = input("Option: ")
-            if _option in ("m", "s"):
+            if _option in ["1", "2"]:
                 invalid = False
-        if _option == "s":
+        if _option in ["1"]:
             batch = False
     except Exception:
         logger_directory.info("_askHowMany: Couldn't get a valid input from the user.")
@@ -164,9 +224,9 @@ def get_src_or_dst(mode):
             prompt = "Where are your file(s) stored?\n1. Current\n2. Browse\n3. Downloads\n4. LiPD Workspace\n"
         else:
             # browse for single file
-            _path, _single_file = browse_dialog_file()
+            _path, _files = browse_dialog_file()
             # return early to skip the batch steps below
-            return _path, _single_file
+            return _path, _files
 
     else:
         # did you forget to enter a mode? silly
@@ -204,32 +264,6 @@ def get_src_or_dst(mode):
         if _path:
             invalid = False
     logger_directory.info("exit set_src_or_dst")
-    return _path, _single_file
-
-
-def browse_dialog_file():
-    """
-    Open up a GUI browse dialog window and let to user pick a target directory.
-    :return str: Target directory path
-    :return:
-    """
-    logger_directory.info("enter browse_dialog")
-
-    try:
-        root = tkinter.Tk()
-        root.withdraw()
-        root.update()
-        _path = tkinter.filedialog.askopenfilename(parent=root, initialdir=os.path.expanduser('~'), title='Please select a file')
-        _single_file = os.path.basename(_path)
-        _path = os.path.dirname(_path)
-        logger_directory.info("chosen path: {}, chosen file: {}".format(_path, _single_file))
-        root.destroy()
-    except Exception:
-        _single_file = ""
-        _path = ""
-
-    logger_directory.info("exit browse_dialog_file")
-
     return _path, _single_file
 
 
