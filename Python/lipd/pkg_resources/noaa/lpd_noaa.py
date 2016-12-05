@@ -387,7 +387,9 @@ class LPD_NOAA(object):
             self.noaa_data_sorted["Data"][len(self.noaa_data_sorted["Data"]) - 1]["chron"] = self.lipd_data["chronData"][idx1]["chronMeasurementTable"][idx2]
         except KeyError:
             logger_lpd_noaa.info("lpd_noaa: get_meas_table_chron: No matching chron table")
-
+        except IndexError:
+            # there are more paleo tables than chron tables. this is okay, keep going
+            pass
         return
 
     def __get_meas_tables(self):
@@ -459,10 +461,13 @@ class LPD_NOAA(object):
             # all other keys. determine which noaa section they belong in.
             else:
                 for header, content in NOAA_ALL.items():
-                    if noaa_key == header:
-                        self.noaa_data_sorted[header] = value
-                    elif noaa_key in content:
-                        self.noaa_data_sorted[header][noaa_key] = value
+                    try:
+                        if noaa_key == header:
+                            self.noaa_data_sorted[header] = value
+                        elif noaa_key in content:
+                            self.noaa_data_sorted[header][noaa_key] = value
+                    except KeyError:
+                        logger_lpd_noaa.warn("lpd_noaa: reorganize: KeyError: {}".format(noaa_key))
         return
 
     def main(self):

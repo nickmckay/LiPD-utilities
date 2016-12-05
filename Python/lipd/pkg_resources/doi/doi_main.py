@@ -14,52 +14,46 @@ def doi_main(files):
     :return None:
     """
     logger_doi_main.info("enter doi_main")
-    # Find all .lpd files in current directory
-    # dir: ? -> dir_root
-    dir_root = os.getcwd()
-    f_list = files["lipd"]
-    print(f_list)
-    print("Found {0} {1} file(s)".format(str(len(f_list)), 'LiPD'))
+
+    print("Found {0} {1} file(s)".format(str(len(files["lipd"])), 'LiPD'))
     force = prompt_force()
-    for name_ext in f_list:
-        # .lpd name w/o extension
-        name = os.path.splitext(name_ext)[0]
+    for file in files["lipd"]:
 
         # Unzip file and get tmp directory path
         dir_tmp = create_tmp_dir()
-        unzipper(name_ext, dir_tmp)
+        unzipper(file["filename_ext"], dir_tmp)
 
         # Force DOI update?
         if force:
             # Update file. Forcing updates for all files.
-            print('processing: {}'.format(name_ext))
-            logger_doi_main.info("processing: {}".format(name_ext))
+            print('processing: {}'.format(file["filename_ext"]))
+            logger_doi_main.info("processing: {}".format(file["filename_ext"]))
             # dir: dir_root -> dir_tmp
-            process_lpd(name, dir_tmp)
+            process_lpd(file["filename_no_ext"], dir_tmp)
             # dir: dir_tmp -> dir_root
-            os.chdir(dir_root)
+            os.chdir(file["dir"])
             # Zip the directory containing the updated files. Created in dir_root directory
-            zipper(dir_tmp, name, name_ext)
+            zipper(dir_tmp, file["filename_no_ext"], file["filename_ext"])
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
 
         if not force:
             # Don't Update File. Flag found and we're not forcing updates.
-            if resolved_flag(open_bag(os.path.join(dir_tmp, name))):
-                print('skipping: {}'.format(name_ext))
-                logger_doi_main.info("skipping: {}".format(name_ext))
+            if resolved_flag(open_bag(os.path.join(dir_tmp, file["filename_no_ext"]))):
+                print('skipping: {}'.format(file["filename_ext"]))
+                logger_doi_main.info("skipping: {}".format(file["filename_ext"]))
                 shutil.rmtree(dir_tmp)
 
             # Update File. No flag found and hasn't been processed before.
             else:
-                print('processing: {}'.format(name_ext))
-                logger_doi_main.info("processing: {}".format(name_ext))
+                print('processing: {}'.format(file["filename_ext"]))
+                logger_doi_main.info("processing: {}".format(file["filename_ext"]))
                 # dir: dir_root -> dir_tmp
-                process_lpd(name, dir_tmp)
+                process_lpd(file["filename_no_ext"], dir_tmp)
                 # dir: dir_tmp -> dir_root
-                os.chdir(dir_root)
+                os.chdir(file["dir"])
                 # Zip the directory containing the updated files. Created in dir_root directory
-                zipper(dir_tmp, name, name_ext)
+                zipper(dir_tmp, file["filename_no_ext"], file["filename_ext"])
                 # Cleanup and remove tmp directory
                 shutil.rmtree(dir_tmp)
     logger_doi_main.info("exit doi_main")
@@ -131,4 +125,4 @@ def prompt_force():
     return True
 
 if __name__ == '__main__':
-    doi()
+    doi_main()

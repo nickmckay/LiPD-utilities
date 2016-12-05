@@ -23,11 +23,11 @@ def run():
     :return:
     """
     # GLOBALS
-    global lipd_lib, ts_lib, convert, files_by_type
+    global lipd_lib, ts_lib, convert, files
     lipd_lib = LiPD_Library()
     ts_lib = TimeSeries_Library()
     convert = Convert()
-    files_by_type = {"noaa": [], "lipd": [], "excel": []}
+    files = {".txt": [], ".lpd": [], ".xls": []}
     return
 
 
@@ -37,14 +37,14 @@ def setDir():
     (ex. /Path/to/files)
     :param str path: Directory path
     """
-    global path, logger_start, files_by_type
-    path, new_files = get_src_or_dst("load")
-    files_by_type = collect_files(path, new_files, files_by_type)
-    lipd_lib.set_dir(path)
+    global cwd, logger_start, files
+    cwd, new_files = get_src_or_dst("load")
+    files = collect_files(cwd, new_files, files)
+    lipd_lib.set_dir(cwd)
     logger_start = create_logger("start")
-    logger_start.info("Working Directory: {}".format(path))
+    logger_start.info("Working Directory: {}".format(cwd))
     # print("Working Directory: {}".format(path))
-    return path
+    return cwd
 
 
 def loadLipd():
@@ -78,6 +78,7 @@ def loadPickle():
     Load a pickle file into the workspace
     :return dict: Data loaded from pickle file
     """
+    global cwd
     # Ask where the file is
     _path = browse_dialog_file()
 
@@ -88,7 +89,7 @@ def loadPickle():
     d = unpickle_data(_path, _filename)
 
     # changed dir in unpickle_data, so move back to root
-    os.chdir(path)
+    os.chdir(cwd)
 
     # If this unpickled data reads in as an object, then refresh the global lipd_lib
     if type(d) not in (dict, str, int, float):
@@ -106,8 +107,8 @@ def excel():
     User facing call to the excel function
     :return none:
     """
-    global files_by_type, path
-    excel_main(files_by_type, path)
+    global files
+    excel_main(files)
     return
 
 
@@ -116,8 +117,8 @@ def noaa():
     User facing call to noaa function
     :return none:
     """
-    global files_by_type, path
-    noaa_main(files_by_type, path)
+    global files
+    noaa_main(files)
     return
 
 
@@ -126,8 +127,8 @@ def doi():
     User facing call to doi function
     :return:
     """
-    global files_by_type, path
-    doi_main(files_by_type, path)
+    global files
+    doi_main(files)
     return
 
 # PUT
@@ -455,7 +456,7 @@ def savePickle():
     pickle_data(_path, d, ans)
 
     # changed dir in pickle_data, so move back to root
-    os.chdir(path)
+    os.chdir(_path)
     return
 
 
@@ -474,7 +475,11 @@ def saveLipds():
     """
     Save changes made to all LiPD files in the workspace.
     """
+    global files_by_type
     lipd_lib.save_lipds()
+    # Reload the newly saved LiPD files back into the library.
+    print("Re-loading workspace..")
+    lipd_lib.load_lipds(files_by_type)
     print("Process Complete")
     return
 

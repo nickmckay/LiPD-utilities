@@ -50,9 +50,10 @@ class LiPD_Library(object):
         print("processing: {}".format(name))
         return
 
-    def load_lipds(self, single_file):
+    def load_lipds(self, files):
         """
         Load a directory (multiple) LiPD objects into the LiPD Library
+        :param dict files: Files and associated metadata
         :return:
         """
         # Confirm that a CWD is set first.
@@ -60,21 +61,18 @@ class LiPD_Library(object):
             print("Error: Current Working Directory has not been set. Use lipd.setDir()")
             return
         os.chdir(self.dir_root)
-        if single_file:
-            file_list = [single_file]
-        else:
-            # Get a list of all lpd files
-            file_list = list_files('.lpd')
-        # Loop: Append each file to Library
-        print("Found: {} LiPD file(s)".format(len(file_list)))
-        for name_ext in file_list:
-            try:
-                print("processing: {}".format(name_ext))
-                self.__append_lipd(name_ext)
-            except Exception as e:
-                print("Error: unable to load {}".format(name_ext))
-                logger_lipd_lib.warn("loadLipds: failed to load {}, {}".format(name_ext, e))
 
+        # Loop: Append each file to Library
+        print("Found: {} LiPD file(s)".format(len(files[".lpd"])))
+        for file in files[".lpd"]:
+            try:
+                print("processing: {}".format(file["filename_ext"]))
+                self.__append_lipd(file["filename_ext"], file["dir"])
+            except Exception as e:
+                print("Error: unable to load {}".format(file["filename_ext"]))
+                logger_lipd_lib.warn("loadLipds: failed to load {}, {}".format(file["filename_ext"], e))
+
+        os.chdir(self.dir_root)
         return
 
     # ANALYSIS
@@ -195,9 +193,6 @@ class LiPD_Library(object):
         """
         for k, v in self.master.items():
             self.master[k].save()
-        # Reload the newly saved LiPD files back into the library.
-        print("Re-loading workspace..")
-        self.load_lipds()
         return
 
     def remove_lipd(self, name):
@@ -221,14 +216,14 @@ class LiPD_Library(object):
 
     # HELPERS
 
-    def __append_lipd(self, name_ext):
+    def __append_lipd(self, name_ext, file_dir):
         """
         Creates and adds a new LiPD object to the LiPD Library for the given LiPD file...
         :param str name_ext: Filename with extension
         """
-        os.chdir(self.dir_root)
+        os.chdir(file_dir)
         # create a lpd object
-        lipd_obj = LiPD(self.dir_root, self.dir_tmp, name_ext)
+        lipd_obj = LiPD(file_dir, self.dir_tmp, name_ext)
         # load in the data from the lipds file (unpack, and create a temp workspace)
         lipd_obj.load()
         # add the lpd object to the master dictionary

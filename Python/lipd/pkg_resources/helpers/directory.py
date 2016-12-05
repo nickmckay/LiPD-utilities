@@ -12,34 +12,42 @@ from .loggers import create_logger
 logger_directory = create_logger('directory')
 
 
-def collect_files(path, new_files, files_by_type):
+def collect_files(cwd, new_files, files_by_type):
     """
     Collect all files from a given path. Separate by file type, and return one list for each type
     If 'files' contains specific
-    :param str path: Directory w/ target files
+    :param str cwd: Directory w/ target files
     :param list new_files: Specific new files to load
     :param dict files_by_type: Files currently loaded, separated by type
     :return list: All files separated by type
     """
-
     try:
-        os.chdir(path)
+        os.chdir(cwd)
 
         # specific files: if there is a list of new files, go through this list and sort them.
         if new_files:
-            for file in new_files:
-                if file.endswith(".lpd"):
-                    files_by_type["lipd"].append(file)
-                elif file.endswith(".xls") or file.endswith(".xlsx"):
-                    files_by_type["excel"].append(file)
-                elif file.endswith(".txt"):
-                    files_by_type["noaa"].append(file)
+            for full_path in new_files:
+                fne = os.path.basename(full_path)
+                fn = os.path.splitext(fne)[0]
+                obj = {"full_path": full_path, "filename_ext": fne, "filename_no_ext": fn, "dir": os.path.dirname(full_path)}
+                if full_path.endswith(".lpd"):
+                    files_by_type[".lpd"].append(obj)
+                elif full_path.endswith(".xls") or full_path.endswith(".xlsx"):
+                    files_by_type[".xls"].append(obj)
+                elif full_path.endswith(".txt"):
+                    files_by_type[".txt"].append(obj)
         # directory: get all files in the directory and sort by type
         else:
-            files_by_type["lipd"] = files_by_type["lipd"] + list_files('.lpd')
-            files_by_type["excel"] = files_by_type["excel"] + list_files('.xls') + list_files('.xlsx')
-            files_by_type["noaa"] = files_by_type["noaa"] + list_files('.txt')
-
+            for file_type in [".lpd", ".xls", ".txt"]:
+                # get all files in cwd of this file extension
+                files_found = list_files(file_type)
+                # if looking for excel files, also look for the alternate extension.
+                if file_type == ".xls":
+                    files_found += list_files(".xlsx")
+                # for each file found, build it's metadata and append it to files_by_type
+                for file in files_found:
+                    fn = os.path.splitext(file)[0]
+                    files_by_type[file_type].append({"full_path": cwd + file, "filename_ext": file, "filename_no_ext": fn,"dir": cwd})
     except Exception:
         logger_directory.info("directory: collect_files: there's a problem")
 
@@ -163,17 +171,20 @@ def browse_dialog_file():
     logger_directory.info("enter browse_dialog")
 
     _files = []
+    _path = ""
     try:
         root = tkinter.Tk()
         root.withdraw()
         root.update()
         _path = tkinter.filedialog.askopenfilenames(parent=root, initialdir=os.path.expanduser('~'), title='Please select a file')
-        _files = [os.path.basename(i) for i in _path]
+        _files = [i for i in _path]
         _path = os.path.dirname(_path[0])
         logger_directory.info("chosen path: {}, chosen file: {}".format(_path, _files))
         root.destroy()
-    except Exception:
-        _path = ""
+    except IndexError:
+        logger_directory.warn("directory: browse_dialog_file: IndexError: no file chosen")
+    except Exception as e:
+        logger_directory.error("directory: browse_dialog_file: UnknownError: {}".format(e))
 
     logger_directory.info("exit browse_dialog_file")
 
@@ -193,9 +204,11 @@ def _askHowMany():
         while invalid:
             print("\nChoose a loading option:\n1. Select specific file(s)\n2. Load entire folder")
             _option = input("Option: ")
+            # these are the only 2 valid options. if this is true, then stop prompting
             if _option in ["1", "2"]:
                 invalid = False
-        if _option in ["1"]:
+        # indicate whether to leave batch on or turn off
+        if _option == "1":
             batch = False
     except Exception:
         logger_directory.info("_askHowMany: Couldn't get a valid input from the user.")
@@ -210,7 +223,7 @@ def get_src_or_dst(mode):
     """
     logger_directory.info("enter set_src_or_dst")
     _path = ""
-    _single_file = ""
+    _files = ""
     invalid = True
     count = 0
 
@@ -264,7 +277,7 @@ def get_src_or_dst(mode):
         if _path:
             invalid = False
     logger_directory.info("exit set_src_or_dst")
-    return _path, _single_file
+    return _path, _files
 
 
 def rm_files_in_dir(path):

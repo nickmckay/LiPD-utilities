@@ -20,23 +20,22 @@ from ..helpers.jsons import write_json_to_file
 logger_excel = create_logger('excel_main')
 
 
-def excel_main(files, dir_root):
+def excel_main(files):
     """
     Parse data from Excel spreadsheets into LiPD files.
     :return:
     """
-    f_list = files["excel"]
-
 
     # Find excel files
-    print("Found " + str(len(f_list)) + " Excel files")
-    logger_excel.info("found excel files: {}".format(len(f_list)))
+    print("Found " + str(len(files[".xls"])) + " Excel files")
+    logger_excel.info("found excel files: {}".format(len(files[".xls"])))
 
     # Run once for each file
-    for name_ext in f_list:
+    for file in files[".xls"]:
+        name_ext = file["filename_ext"]
 
         # Filename without extension
-        name = os.path.splitext(name_ext)[0]
+        name = file["filename_no_ext"]
         # remove foreign characters to prevent wiki uploading erros
         name = normalize_name(name)
         name_lpd = name + '.lpd'
@@ -163,7 +162,7 @@ def excel_main(files, dir_root):
             # Invoke DOI Resolver Class to update publisher data
             try:
                 logger_excel.info("invoking doi resolver")
-                final = DOIResolver(dir_root, name, final).main()
+                final = DOIResolver(file["dir"], name, final).main()
             except Exception as e:
                 print("Error: doi resolver failed: {}".format(name))
                 logger_excel.debug("excel: doi resolver failed: {}, {}".format(name, e))
@@ -181,7 +180,7 @@ def excel_main(files, dir_root):
             finish_bag(dir_bag)
 
             # dir: dir_tmp -> dir_root
-            os.chdir(dir_root)
+            os.chdir(file["dir"])
 
             # Check if same lpd file exists. If so, delete so new one can be made
             if os.path.isfile(name_lpd):
@@ -192,7 +191,7 @@ def excel_main(files, dir_root):
             zipper(dir_tmp, name, name_lpd)
 
         # Move back to dir_root for next loop.
-        os.chdir(dir_root)
+        os.chdir(file["dir"])
 
         # Cleanup and remove tmp directory
         shutil.rmtree(dir_tmp)
