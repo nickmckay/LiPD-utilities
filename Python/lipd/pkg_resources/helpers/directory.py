@@ -228,13 +228,13 @@ def get_src_or_dst(mode):
     count = 0
 
     if mode == "save":
-        prompt = "Where would you like to save your file(s)?\n1. Current\n2. Browse\n3. Downloads\n4. LiPD Workspace\n"
+        prompt = "Where would you like to save your file(s)?\n1. Current\n2. Browse\n3. Downloads\n4. Desktop\n"
     elif mode == "load":
         # ask user if they are loading one or more files
         batch = _askHowMany()
         # only do multiple files if no path was received from askHowMany
         if batch:
-            prompt = "Where are your file(s) stored?\n1. Current\n2. Browse\n3. Downloads\n4. LiPD Workspace\n"
+            prompt = "Where are your file(s) stored?\n1. Current\n2. Browse\n3. Downloads\n4. Desktop\n"
         else:
             # browse for single file
             _path, _files = browse_dialog_file()
@@ -262,8 +262,8 @@ def get_src_or_dst(mode):
             _path = os.path.expanduser('~/Downloads')
         elif option == '4':
             # Set path to the Notebook folder
-            logger_directory.info("4: lipd workspace ")
-            _path = os.path.expanduser('~/LiPD_Workspace')
+            logger_directory.info("4: desktop ")
+            _path = os.path.expanduser('~/Desktop')
         else:
             # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
             if count == 2:

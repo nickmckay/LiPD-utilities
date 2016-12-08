@@ -23,7 +23,7 @@ def run():
     :return:
     """
     # GLOBALS
-    global lipd_lib, ts_lib, convert, files
+    global lipd_lib, ts_lib, convert, files, path
     lipd_lib = LiPD_Library()
     ts_lib = TimeSeries_Library()
     convert = Convert()
@@ -37,8 +37,9 @@ def setDir():
     (ex. /Path/to/files)
     :param str path: Directory path
     """
-    global cwd, logger_start, files
+    global cwd, logger_start, files, path
     cwd, new_files = get_src_or_dst("load")
+    path = cwd
     files = collect_files(cwd, new_files, files)
     lipd_lib.set_dir(cwd)
     logger_start = create_logger("start")
@@ -233,20 +234,22 @@ def filterDfs(expr):
 def extractTs():
     """
     Create a TimeSeries using the current files in LiPD_Library.
-    :return obj: TimeSeries_Library
+    :return list: TimeSeries_Library
     """
-    d = {}
+    l = []
     try:
         # Loop over the LiPD files in the LiPD_Library
         for k, v in lipd_lib.get_master().items():
-            # Get metadata from this LiPD object. Convert. Pass TSO metadata to time series dictionary output.
-            d.update(convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+            # Get metadata from this LiPD object. Convert.
+            # Receive a time series (list of time series objects) and add it to what we currently have.
+            # Continue building time series until all datasets are processed.
+            l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
     except KeyError as e:
         print("Error: Unable to extractTimeSeries")
         logger_start.debug("extractTimeSeries() failed at {}".format(e))
 
     print("Process Complete")
-    return d
+    return l
 
 
 def collapseTs():

@@ -100,10 +100,127 @@ NOAA_ALL = {
     "Chronology_Information": ['Chronology'],
     "Variables": ["shortname", "what", "material", "error", "units", "seasonality", "archive", "detail", "method", "dataType"],
     "Data": ["Missing_Value"],
+    # OTHERS. These are not sections, but they are important for parsing
+    "Pub_Data_Citation": [""],
     # These are keys that do not currently have NOAA - LPD mappings
-    "Ignore": ["Date", "Parameter_Keywords", "Dataset_Name", "Tree_Species_Code", "Species_Name", "Common_Name",
+    "Ignore":
+        ["Date", "Parameter_Keywords", "Dataset_Name", "Tree_Species_Code", "Species_Name", "Common_Name",
                "Core_Length", "Time_Unit", "Most_Recent_Year", "Earliest_Year", "Collection_Name",
                "Online_Resource_Description"]
+}
+
+
+# LPD to NOAA keys mapped according to NOAA sections.
+NOAA_ALL_DICT = {
+    "Top": {
+        "studyName": "",
+        'onlineResource': 'Online_Resource',
+        "onlineResourceDescription": "Online_Resource_Description",
+        "url": "Original_Source_URL",
+        "dataUrl": "Original_Source_URL",
+        "originalDataURL": "Original_Source_URL",
+        'originalSourceURL': 'Original_Source_URL',
+        "archiveType": "Archive",
+        "datasetDOI": "Dataset_DOI",
+        "parameterKeywords": "Parameter_Keywords"
+    },
+    "Contribution_Date": {
+        "date": "Date",
+    },
+    "File_Last_Modified_Date": {
+        "modifiedDate": "Modified_Date",
+    },
+    "Title": {
+        'studyName': 'Study_Name',
+    },
+    "Investigators": {
+        "investigators": "Investigators",
+    },
+    "Description_Notes_and_Keywords": {
+        'notes': 'Description',
+
+    },
+    "Publication": {
+        "url": "Online_Resource",
+        "dataUrl": "Online_Resource",
+        'pages': 'Pages',
+        "pub": "Publication",
+        'pubYear': 'Published_Date_or_Year',
+        "year": "Published_Date_or_Year",
+        'report': 'Report_Number',
+        'title': 'Published_Title',
+        'volume': 'Volume',
+        'abstract': 'Abstract',
+        "authors": "Authors",
+        "author": "Authors",
+        'identifier': 'DOI',
+        'investigators': 'Investigators',
+        'issue': 'Issue',
+        "journal": "Journal_Name",
+        "edition": "Edition",
+        'citation': 'Full_Citation',
+        'onlineResource': 'Online_Resource',
+    },
+    "Funding_Agency": {
+        'grant': 'Grant',
+        "funding": "Funding_Agency",
+        "agency": "Funding_Agency",
+    },
+    "Site_Information": {
+        'country': 'Country',
+        'siteName': 'Site_Name',
+        "nLat": "Northernmost_Latitude",
+        "sLat": "Southernmost_Latitude",
+        "eLon": "Easternmost_Longitude",
+        "wLon": "Westernmost_Longitude",
+        "elevation": "Elevation",
+
+    },
+    "Data_Collection": {
+        "collectionName": "Collection_Name",
+        "earliestYear": "Earliest_Year",
+        "mostRecentYear": "Most_Recent_Year",
+        "timeUnit": "Time_Unit",
+        "coreLength": "Core_Length",
+        "notes": "Notes"
+    },
+    "Species": {
+        "speciesName": "Species_Name",
+        "speciesCode": "Species_Code",
+        "commonName": "Common_Name",
+    },
+    "Chronology_Information": {
+        "chronology": "Chronology"
+    },
+    "Variables": {
+        'description': 'what',
+        'detail': 'detail',
+        'dataType': 'dataType',
+        'uncertainty': 'error',
+        'units': 'units',
+        'variableName': 'shortname',
+        'measurementMaterial': 'material',
+        'measurementMethod': 'method',
+        'seasonality': 'seasonality',
+    },
+    "Data": {
+        "missingValue": "Missing_Value"
+    },
+    # These are keys that do not currently have NOAA - LPD mappings
+    "Ignore": {
+        "date": "Date",
+        "parameterKeywords": "Parameter_Keywords",
+        "datasetName": "Dataset_Name",
+        "treeSpeciesCode": "Tree_Species_Code",
+        "speciesName": "Species_Name",
+        "commonName": "Common_Name",
+        "coreLength": "Core_Length",
+        "timeUnit": "Time_Unit",
+        "mostRecentYear": "Most_Recent_Year",
+        "earliestYear": "Earliest_Year",
+        "collectionName": "Collection_Name",
+        "onlineResourceDescription": "Online_Resource_Description"
+    }
 }
 
 UNITS = {
@@ -119,8 +236,20 @@ UNITS = {
 
 # LiPD on left, NOAA on right
 # Used to map LiPD to NOAA ontology (and vice versa)
-#  map_key()
 NOAA_KEYS = {
+    # column 9-part-variables
+    'description': 'what',
+    'detail': 'detail',
+    'dataType': 'dataType',
+    'uncertainty': 'error',
+    'units': 'units',
+    'variableName': 'shortname',
+    'measurementMaterial': 'material',
+    'measurementMethod': 'method',
+    'seasonality': 'seasonality',
+
+    # all other sections
+    'datasetDOI': "Dataset_DOI",
     'LiPDVersion': 'LiPD_Version',
     'abstract': 'Abstract',
     'agency': 'Funding_Agency_Name',
@@ -128,9 +257,6 @@ NOAA_KEYS = {
     'authors': 'Authors',
     'citation': 'Full_Citation',
     'country': 'Country',
-    'dataType': 'dataType',
-    'description': 'what',
-    'detail': 'detail',
     "funding": "Funding_Agency",
     "geo": "Site_Information",
     'grant': 'Grant',
@@ -139,25 +265,22 @@ NOAA_KEYS = {
     'issue': 'Issue',
     'journal': 'Journal_Name',
     'location': 'Location',
-    'measurementMaterial': 'material',
-    'measurementMethod': 'method',
     'missingValue': 'Missing_Values',
     'notes': 'Description',
     'onlineResource': 'Online_Resource',
+    "url": "Original_Source_URL",
+    "originalDataURL": "Original_Source_URL",
     'originalSourceURL': 'Original_Source_URL',
     'pages': 'Pages',
     "pub": "Publication",
     'pubYear': 'Published_Date_or_Year',
     "year": "Published_Date_or_Year",
     'report': 'Report_Number',
-    'seasonality': 'seasonality',
     'siteName': 'Site_Name',
     'studyName': 'Study_Name',
     'title': 'Published_Title',
-    'uncertainty': 'error',
-    'units': 'units',
-    'variableName': 'shortname',
     'volume': 'Volume',
+
     ########################
     # MULTIPOINT
     # Since coordinates are not explicit individual fields in LiPD, we'll have to manually transfer these.

@@ -22,7 +22,7 @@ def generate_timestamp(fmt=None):
         time = dt.datetime.now().strftime(fmt)
     else:
         time = dt.date.today()
-    return time
+    return str(time)
 
 
 def clean_doi(doi_string):

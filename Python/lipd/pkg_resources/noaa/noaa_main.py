@@ -28,11 +28,11 @@ def noaa_main(files):
     # .lpd to noaa
     if mode == '1':
         ft = ".lpd"
-        ft_print = ' LiPD'
+        ft_print = 'LiPD'
     # Find all needed files in current directory
     elif mode == '2':
         ft = ".txt"
-        ft_print = ' NOAA'
+        ft_print = 'NOAA'
     # only continue if the user selected a mode correctly
     if ft and ft_print:
         logger_noaa.info("Found {} {} file(s)".format(str(len(files[ft])), ft_print))
@@ -57,7 +57,12 @@ def noaa_main(files):
 
                 # Delete tmp folder and all contents
                 os.chdir(file["dir"])
-                shutil.rmtree(dir_tmp)
+                try:
+                    shutil.rmtree(dir_tmp)
+                except FileNotFoundError:
+                    # directory is already gone. keep going.
+                    pass
+
     else:
         print("Error: a mode was not selected")
         logger_noaa.info("noaa_main: a mode was not selected")
