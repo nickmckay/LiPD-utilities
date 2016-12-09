@@ -702,9 +702,9 @@ def _get_header_keys(row):
             row[idx] = EXCEL_KEYS[key.value.lower()]
         else:
             try:
-                row[idx] = key.value.lower()
-            except AttributeError:
-                pass
+                row[idx] = key.value
+            except AttributeError as e:
+                logger_excel.warn("excel_main: get_header_keys: unknown header key, unable to add: {}".format(e))
 
     header_keys = _rm_cells_reverse(row)
     return header_keys
