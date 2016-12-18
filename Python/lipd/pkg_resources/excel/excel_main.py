@@ -18,7 +18,9 @@ from ..helpers.misc import normalize_name
 from ..helpers.jsons import write_json_to_file
 
 logger_excel = create_logger('excel_main')
-
+"""
+VERSION: LiPD v1.2
+"""
 
 def excel_main(files):
     """
@@ -52,9 +54,6 @@ def excel_main(files):
         os.mkdir(os.path.join(dir_data))
 
         pending_csv = []
-        paleo_ct = 1
-        chron_ct = 1
-        sheets = []
         final = OrderedDict()
         logger_excel.info("variables initialized")
 
@@ -78,56 +77,12 @@ def excel_main(files):
         except Exception as e:
             # There was a problem opening a file with XLRD
             print("Failed to open Workbook: {}".format(name))
+            workbook = None
             logger_excel.debug("excel: xlrd failed to open workbook: {}, {}".format(name, e))
 
         if workbook:
-            # Check what worksheets are available, so we know how to proceed.
-            for sheet in workbook.sheet_names():
 
-                # Use this for when we are dealing with older naming styles of "data (qc), data, and chronology"
-                old = "".join(sheet.lower().strip().split())
-
-                # Don't parse example sheets. For user use only.
-                if "example" not in sheet and "sample" not in sheet:
-                    # Group the related sheets together, so it's easier to place in the metadata later.
-                    if 'metadata' in sheet.lower():
-                        metadata_str = sheet
-                    elif "about" not in sheet.lower() and "proxy" not in sheet.lower():
-                        logger_excel.info("creating sheets metadata")
-                        m = re.match(re_sheet, sheet.lower())
-                        if m:
-                            sheets, paleo_ct, chron_ct = _build_sheet(m, sheets, sheet, name, paleo_ct, chron_ct)
-
-                        elif old == "data" or old in "data(qc)":
-                            sheets.append({
-                                "paleo_chron": "paleo",
-                                "pc_idx": paleo_ct,
-                                "model_idx": None,
-                                "table_type": "measurement",
-                                "table_idx": 1,
-                                "name": sheet,
-                                "filename": "{}paleo{}measurementTable1.csv".format(name, paleo_ct),
-                                "table_name": "paleo{}measurementTable1".format(paleo_ct),
-                                "data": ""
-                            })
-                            paleo_ct += 1
-                        elif old == "chronology":
-                            sheets.append({
-                                "paleo_chron": "chron",
-                                "pc_idx": chron_ct,
-                                "model_idx": None,
-                                "table_type": "measurement",
-                                "table_idx": 1,
-                                "name": sheet,
-                                "filename": "{}chron{}measurementTable1.csv".format(name, chron_ct),
-                                "table_name": "chron{}measurementTable1".format(chron_ct),
-                                "data": ""
-                            })
-                            chron_ct += 1
-                        else:
-                            # Sheet name does not conform to standard. Guide user to create a standardized sheet name.
-                            print("This sheet name does not conform to naming standard: {}".format(sheet))
-                            sheets, paleo_ct, chron_ct = _prompt_sheets(sheets, sheet, name, paleo_ct, chron_ct)
+            sheets, ct_paleo, ct_chron, metadata_str = _get_sheet_metadata(workbook, name)
 
             # METADATA WORKSHEETS
             # Parse Metadata sheet and add to output dictionary
@@ -137,14 +92,17 @@ def excel_main(files):
 
             # PALEO AND CHRON SHEETS
             for sheet in sheets:
-                logger_excel.info("parsing data worksheet: {}".format(sheet))
+                logger_excel.info("parsing data worksheet: {}".format(sheet["new_name"]))
                 sheet_meta, sheet_csv = _parse_sheet(workbook, sheet)
                 if sheet_csv and sheet_meta:
                     pending_csv.append(sheet_csv)
                     sheet["data"] = sheet_meta
 
+            # create the metadata skeleton where we will place the tables. dynamically add empty table blocks for data.
+            skeleton_paleo, skeleton_chron = _create_skeleton_main(sheets)
+
             # Reorganize sheet metadata into LiPD structure
-            d_paleo, d_chron = _place_tables(sheets)
+            d_paleo, d_chron = _place_tables_main(sheets, skeleton_paleo, skeleton_chron)
 
             # Add organized metadata into final dictionary
             final['paleoData'] = d_paleo
@@ -200,16 +158,107 @@ def excel_main(files):
     return
 
 
-# SORT PARSED DATA
+# SORT THROUGH WORKSHEETS
 
-def _prompt_sheets(sheets, old_sheet, name, paleo_ct, chron_ct):
+def _get_sheet_metadata(workbook, name):
+    """
+    Get worksheet metadata. The sheet names tell us what type of table it is and where in the LiPD structure the data
+    should be placed.
+
+    Example VALID sheet name:
+    paleo1measurement1
+    paleo1model1ensemble
+    paleo1model1distribution1
+
+    Example INVALID sheet names:
+    paleo1measurement
+    paleo1model1ensemble1
+    paleo1ensemble
+    paleo1_measurement1
+
+    NOTE: since each model will only have one ensemble and one summary, they should not have a trailing index number.
+
+    :param obj workbook: Excel workbook
+    :param str name: Dataset name
+    :return dict int int str:
+    """
+    ct_paleo = 1
+    ct_chron = 1
+    metadata_str = ""
+    sheets = []
+
+    # Check what worksheets are available, so we know how to proceed.
+    for sheet in workbook.sheet_names():
+
+        # Use this for when we are dealing with older naming styles of "data (qc), data, and chronology"
+        old = "".join(sheet.lower().strip().split())
+
+        # Don't parse example sheets. For user use only.
+        if "example" not in sheet and "sample" not in sheet:
+
+            # Group the related sheets together, so it's easier to place in the metadata later.
+            if 'metadata' in sheet.lower():
+                metadata_str = sheet
+
+            # Skip the 'about' and 'proxy' sheets altogether. Proceed with all other sheets.
+            elif "about" not in sheet.lower() and "proxy" not in sheet.lower():
+                logger_excel.info("creating sheets metadata")
+
+                # If this is a valid sheet name, we will receive a regex object back.
+                m = re.match(re_sheet, sheet.lower())
+                print(m.groups())
+
+                # Valid regex object. This is a valid sheet name and we can use that to build the sheet metdata.
+                if m:
+                    sheets, paleo_ct, chron_ct = _sheet_meta_from_regex(m, sheets, sheet, name, ct_paleo, ct_chron)
+
+                # Older excel template style: backwards compatibility. Hard coded for one sheet per table.
+                elif old == "data" or old in "data(qc)":
+                    sheets.append({
+                        "paleo_chron": "paleo",
+                        "idx_pc": ct_paleo,
+                        "idx_model": None,
+                        "table_type": "measurement",
+                        "idx_table": 1,
+                        "old_name": sheet,
+                        "new_name": sheet,
+                        "filename": "{}paleo{}measurementTable1.csv".format(name, ct_paleo),
+                        "table_name": "paleo{}measurementTable1".format(ct_paleo),
+                        "data": ""
+                    })
+                    ct_paleo += 1
+
+                # Older excel template style: backwards compatibility. Hard coded for one sheet per table.
+                elif old == "chronology":
+                    sheets.append({
+                        "paleo_chron": "chron",
+                        "idx_pc": ct_chron,
+                        "idx_model": None,
+                        "table_type": "measurement",
+                        "idx_table": 1,
+                        "old_name": sheet,
+                        "new_name": sheet,
+                        "filename": "{}chron{}measurementTable1.csv".format(name, ct_chron),
+                        "table_name": "chron{}measurementTable1".format(ct_chron),
+                        "data": ""
+                    })
+                    ct_chron += 1
+                else:
+                    # Sheet name does not conform to standard. Guide user to create a standardized sheet name.
+                    print("This sheet name does not conform to naming standard: {}".format(sheet))
+                    sheets, paleo_ct, chron_ct = _sheet_meta_from_prompts(sheets, sheet, name, ct_paleo, ct_chron)
+
+    return sheets, ct_paleo, ct_chron, metadata_str
+
+
+def _sheet_meta_from_prompts(sheets, old_name, name, ct_paleo, ct_chron):
     """
     Guide the user to create a proper, standardized sheet name
     :param list sheets: Running list of sheet metadata
-    :param str old_sheet: Original sheet name
+    :param str old_name: Original sheet name
     :param str name: Data set name
-    :param int paleo_ct: Running count of paleoData tables
-    :param int chron_ct: Running count of chronData tables
+    :param int ct_paleo: Running count of paleoData tables
+    :param int ct_chron: Running count of chronData tables
     :return sheets paleo_ct chron_ct: Updated sheets and counts
     """
     cont = True
@@ -229,16 +278,22 @@ def _prompt_sheets(sheets, old_sheet, name, paleo_ct, chron_ct):
                     tt = "ensemble"
                 elif tt in SHEETS["measurement"]:
                     tt = "measurement"
-                if pc in SHEETS["paleo"]:
-                    sheet = "{}{}{}{}".format("paleo", paleo_ct, tt, 1)
-                elif pc in SHEETS["chron"]:
-                    sheet = "{}{}{}{}".format("chron", chron_ct, tt, 1)
 
+                if pc in SHEETS["paleo"]:
+                    if tt in ["ensemble", "summary"]:
+                        sheet = "{}{}{}{}".format("paleo", ct_paleo, tt, 1)
+                    else:
+                        sheet = "{}{}{}".format("paleo", ct_paleo, tt)
+                elif pc in SHEETS["chron"]:
+                    if tt in ["ensemble", "summary"]:
+                        sheet = "{}{}{}{}".format("chron", ct_chron, tt, 1)
+                    else:
+                        sheet = "{}{}{}".format("chron", ct_chron, tt)
                 # Test the sheet that was built from the user responses.
                 # If it matches the Regex, then continue to build the sheet metadata. If not, try again or skip sheet.
                 m = re.match(re_sheet, sheet.lower())
                 if m:
-                    sheets, paleo_ct, chron_ct = _build_sheet(m, sheets, old_sheet, name, paleo_ct, chron_ct)
+                    sheets, ct_paleo, ct_chron = _sheet_meta_from_regex(m, sheets, old_name, name, ct_paleo, ct_chron)
                     print("Sheet created: {}".format(sheet))
                     cont = False
                 else:
@@ -248,198 +303,276 @@ def _prompt_sheets(sheets, old_sheet, name, paleo_ct, chron_ct):
                         cont = False
 
     print("=====================================================")
-    return sheets, paleo_ct, chron_ct
+    return sheets, ct_paleo, ct_chron
 
 
-def _build_sheet(m, sheets, old_sheet, name, paleo_ct, chron_ct):
+def _sheet_meta_from_regex(m, sheets, old_name, name, ct_paleo, ct_chron):
     """
     Build metadata for a sheet. Receive valid regex match object and use that to create metadata.
     :param obj m: Regex match object
     :param list sheets: Running list of sheet metadata
-    :param str old_sheet: Original sheet name
+    :param str old_name: Original sheet name
     :param str name: Data set name
-    :param int paleo_ct: Running count of paleoData tables
-    :param int chron_ct: Running count of chronData tables
+    :param int ct_paleo: Running count of paleoData tables
+    :param int ct_chron: Running count of chronData tables
     :return sheets paleo_ct chron_ct: Updated sheets and counts
     """
-    model_idx = None
+    idx_model = None
+    idx_table = None
     pc = m.group(1)
     # Get the model idx number from string if it exists
     if m.group(3):
-        model_idx = int(filter(str.isdigit, m.group(3)))
+        idx_model = int(m.group(4))
+    # check if there's an index (for distribution tables)
+    if m.group(6):
+        idx_table = int(m.group(6))
+    # find out table type
     if pc == "paleodata" or pc == "paleo":
         pc = "paleo"
-        paleo_ct += 1
+        ct_paleo += 1
     elif pc == "chrondata" or pc == "chron":
         pc = "chron"
-        chron_ct += 1
+        ct_chron += 1
+    # build filename and table name strings. build table name first, then make filename from the table_name
+    new_name = "{}{}".format(pc, m.group(2))
+    if idx_model:
+        new_name = "{}model{}".format(new_name, idx_model)
+    new_name = "{}{}".format(new_name, m.group(5))
+    if idx_table:
+        new_name = "{}{}".format(new_name, m.group(6))
+    filename = "{}.{}.csv".format(name, new_name)
 
     # Standard naming. This matches the regex and the sheet name is how we want it.
     # paleo/chron - idx - table_type - idx
     # Not sure what to do with m.group(2) yet
-    sheets.append({
-        "paleo_chron": pc,
-        "pc_idx": int(m.group(2)),
-        "model_idx": model_idx,
-        "table_type": m.group(4),
-        "table_idx": int(m.group(5)),
-        "name": old_sheet,
-        "filename": "{}.{}{}{}{}.csv".format(name, pc, m.group(2), m.group(4), m.group(5)),
-        "table_name": "{}{}{}{}".format(pc, m.group(2), m.group(4), m.group(5)),
-        "data": ""
-    })
+    # ex: m.groups() = [ paleo, 1, model, 1, ensemble, 1 ]
+    try:
+        sheets.append({
+            "old_name": old_name,
+            "new_name": new_name,
+            "filename": filename,
+            "paleo_chron": pc,
+            "idx_pc": int(m.group(2)),
+            "idx_model": idx_model,
+            "idx_table": idx_table,
+            "table_type": m.group(5),
+            "data": ""
+        })
+    except Exception as e:
+        print("error: build sheets")
+        logger_excel.debug("excel: build_sheet: unable to build sheet, {}".format(e))
 
-    return sheets, paleo_ct, chron_ct
+    return sheets, ct_paleo, ct_chron
 
 
-def _place_tables(metadata):
+def _place_tables_section(skeleton_section, sheet, keys_section):
     """
-    All the data has been parsed, now put the data into a LiPD 1.2 structure.
-    :param list metadata:
+    Place data into skeleton for either a paleo or chron section.
+    :param dict skeleton_section: Empty or current progress of skeleton w/ data
+    :param dict sheet: Sheet metadata
+    :param list keys_section: Paleo or Chron specific keys
+    :return dict: Skeleton section full of data
+    """
+    new_name = sheet["new_name"]
+    logger_excel.info("placing_tables_section: {}".format(new_name))
+    # get all the sheet metadata needed for this function
+    idx_pc = sheet["idx_pc"] - 1
+    idx_model = sheet["idx_model"]
+    idx_table = sheet["idx_table"]
+    table_type = sheet["table_type"]
+    data = sheet["data"]
+    # paleoMeas or chronMeas key
+    key_1 = keys_section[0]
+    # paleoModel or chronModel key
+    key_2 = keys_section[1]
+    # Is this a measurement, or distribution table?
+    if idx_table:
+        # Yes, a table idx exists, so decrement it.
+        idx_table = sheet["idx_table"] - 1
+    # Is this a ensemble, dist, or summary table?
+    if idx_model:
+        # Yes, a model idx exists, so decrement it.
+        idx_model -= 1
+    # If it's measurement table, it goes in first.
+    try:
+        if table_type == "measurement":
+            skeleton_section[idx_pc][key_1][idx_table] = data
+        # Other types of tables go one step below
+        elif table_type in ["ensemble", "distribution", "summary"]:
+            if table_type == "summary":
+                skeleton_section[idx_pc][key_2][idx_model]["summaryTable"] = data
+            elif table_type == "ensemble":
+                skeleton_section[idx_pc][key_2][idx_model]["ensembleTable"] = data
+            elif table_type == "distribution":
+                skeleton_section[idx_pc][key_2][idx_model]["distributionTable"][idx_table] = data
+    except Exception as e:
+        logger_excel.warn("excel: place_tables_section: Unable to place table {}, {}".format(new_name, e))
+
+    return skeleton_section
+
+
+def _place_tables_main(sheets, skeleton_paleo, skeleton_chron):
+    """
+    All the data has been parsed, skeletons have been created, now put the data into the skeletons.
+    :param list sheets: All metadata needed to place sheet data into the LiPD structure
+    :param dict skeleton_paleo: The empty skeleton where we will place data
+    :param dict skeleton_chron: The empty skeleton where we will place data
     :return:
     """
     logger_excel.info("enter place_tables")
-    paleo, chron = _create_metadata_skeleton(metadata)
 
-    for item in metadata:
-        pc_idx = item["pc_idx"] - 1
-        m_idx = item["model_idx"]
-        table_idx = item["table_idx"] - 1
-        pc = item["paleo_chron"]
-        name = item["name"]
-        table_type = item["table_type"]
-        data = item["data"]
-        logger_excel.info("placing table: {}".format(name))
-
-        # Can only decrement model index if it exists. Check first.
-        if m_idx:
-            m_idx -= 1
-
+    for sheet in sheets:
+        pc = sheet["paleo_chron"]
         if pc == "paleo":
-            # If it's measurement table, it goes in first.
-            if table_type == "measurement":
-                paleo[pc_idx]["paleoMeasurementTable"][table_idx] = data
-            # Other types of tables go one step below
-            elif table_type in ("ensemble", "distribution", "model"):
-                if table_type == "model":
-                    paleo[pc_idx]["paleoModel"][m_idx]["paleoModelTable"] = data
-                elif table_type == "ensemble":
-                    paleo[pc_idx]["paleoModel"][m_idx]["ensembleTable"] = data
-                elif table_type == "distribution":
-                    paleo[pc_idx]["paleoModel"][m_idx]["distributionTable"][table_idx] = data
-
+            skeleton_paleo = _place_tables_section(skeleton_paleo, sheet, ["paleoMeasurementTable", "paleoModel"])
         elif pc == "chron":
-            # If it's measurement table, it goes in first.
-            if table_type == "measurement":
-                chron[pc_idx]["chronMeasurementTable"][table_idx] = data
-            # Other types of tables go one step below
-            elif table_type in ("ensemble", "distribution", "model"):
-                if table_type == "model":
-                    paleo[pc_idx]["chronModel"][m_idx]["chronModelTable"] = data
-                elif table_type == "ensemble":
-                    paleo[pc_idx]["chronModel"][m_idx]["ensembleTable"] = data
-                elif table_type == "distribution":
-                    paleo[pc_idx]["chronModel"][m_idx]["distributionTable"][table_idx] = data
+            skeleton_chron = _place_tables_section(skeleton_chron, sheet, ["chronMeasurementTable", "chronModel"])
 
-    return paleo, chron
+    # when returning, these should no longer be skeletons. They should be tables filled with data
+    logger_excel.info("exit place_tables")
+    return skeleton_paleo, skeleton_chron
 
 
-def _create_metadata_skeleton(metadata):
+def _get_table_counts(sheet, num_section):
+    """
+    Loop through sheet metadata and count how many of each table type is needed at each index.
+    Example: 'paleo 1' needs {'2 measurement tables', '1 model table, with 1 summary, 1 ensemble, and 3 distributions'}
+    :param dict sheet: Sheet metadata
+    :param dict num_section: Rolling number counts of table types for each index.
+    :return:
+    """
+    tt = sheet["table_type"]
+    idx_pc = sheet["idx_pc"]
+    idx_table = sheet["idx_table"]
+    idx_model = sheet["idx_model"]
+
+    # Have we started counters for this idx model yet??
+    if idx_pc not in num_section:
+        # No, create the counters and start tracking table counts
+        num_section[idx_pc] = {"ct_meas": 0, "ct_model": 0, "ct_in_model": {}}
+
+    # Compare indices to get the highest index number for this table type
+    # If we have a higher number model index, then increment out models count
+
+    # Is this a ens, dist, or summary table?
+    if idx_model:
+        # Yes it is.
+
+        # Is this model idx higher than ours?
+        if idx_model > num_section[idx_pc]["ct_model"]:
+            # Yes. Now, we have N number of model tables.
+            num_section[idx_pc]["ct_model"] = idx_model
+
+        # Have we started counters for this idx model yet??
+        if idx_model not in num_section[idx_pc]["ct_in_model"]:
+            # No, create the counters and start tracking table counts.
+            num_section[idx_pc]["ct_in_model"][idx_model] = {"ct_ens": 0, "ct_sum": 0, "ct_dist": 0}
+
+    # Incrementer!
+    # For the given table type, track the highest index number.
+    # That number is how many tables we need to make of that type.  Ex. 'measurement4', we need to make 4 empty tables
+
+    if tt == "measurement":
+        # Is this meas table a higher idx?
+        if idx_table > num_section[idx_pc]["ct_meas"]:
+            # Yes, set this idx to the counter.
+            num_section[idx_pc]["ct_meas"] = idx_table
+    elif tt == "distribution":
+        # Is this dist table a higher idx?
+        if idx_table > num_section[idx_pc]["ct_in_model"][idx_model]["ct_dist"]:
+            # Yes, set this idx to the counter.
+            num_section[idx_pc]["ct_in_model"][idx_model]["ct_dist"] = idx_table
+    elif tt == "summary":
+        # Summary tables are not indexed. Only one per table.
+        num_section[idx_pc]["ct_in_model"][idx_model]["ct_sum"] = 1
+    elif tt == "ensemble":
+        # Ensemble tables are not indexed. Only one per table.
+        num_section[idx_pc]["ct_in_model"][idx_model]["ct_ens"] = 1
+
+    return num_section
+
+
+def _create_skeleton_inner_tables(pc, l, num_section):
+    """
+    Create the inner tables of paleoData/chronData. (meas, summary, dist, ensemble) based on the counts provided in
+    num_section.
+    :param str pc:
+    :param list l:
+    :param dict num_section:
+    :return dict:
+    """
+    template_model = {"summaryTable": {}, "ensembleTable": {}, "distributionTable": []}
+    pc_meas = "{}MeasurementTable".format(pc)
+    pc_mod = "{}Model".format(pc)
+    for idx1, table in num_section.items():
+        try:
+            # create N number of empty measurement tables
+            l[idx1 - 1][pc_meas] = [None] * num_section[idx1]["ct_meas"]
+            # create N number of empty model tables
+            l[idx1 - 1][pc_mod] = [copy.deepcopy(template_model)] * num_section[idx1]["ct_model"]
+            # create N number of empty model tables
+            for idx2, nums in table["ct_in_model"].items():
+                try:
+                    dists = [None] * nums["ct_dist"]
+                except IndexError as e:
+                    dists = []
+                    logger_excel.debug("excel: create_metadata_skeleton: paleo tables messed up, {}".format(e))
+                l[idx1 - 1][pc_mod][idx2-1] = {"summaryTable": {}, "ensembleTable": {},
+                                                   "distributionTable": dists}
+        except IndexError as e:
+            logger_excel.warn("create_skeleton_inner_tables: IndexError: {}".format(e))
+        except KeyError as e:
+            logger_excel.warn("create_skeleton_inner_tables: KeyError: {}".format(e))
+    return l
+
+
+def _create_skeleton_inner_main(l, pc, num_section, template):
+    """
+    Create the top part of the table (measurement, model), and then call fn to create tables inside of model
+    :param list l: paleoData or chronData list of tables
+    :param dict num_section: Number of tables needed for each table type
+    :param dict template: The empty template for the measurement and model top section.
+    :return list:  paleoData or chronData list of tables - full skeleton
+    """
+    try:
+        # Create N number of paleoData/chronData tables.
+        l = [copy.deepcopy(template)] * len(num_section)
+        # Create the necessary tables inside of "model"
+        l = _create_skeleton_inner_tables(pc, l, num_section)
+    except Exception as e:
+        logger_excel.warn("excel: create_skeleton_main: error duplicating template tables, {}".format(e))
+
+    return l
+
+
+def _create_skeleton_main(sheets):
     """
     Find out what the highest number index table is, and create a list of that length.
     :return list: Blank list of N indices
     """
     logger_excel.info("enter create_metadata_skeleton")
 
-    pd_tmp = {"paleoMeasurementTable": [], "paleoModel": []}
-    cd_tmp = {"chronMeasurementTable": [], "chronModel": []}
-    cm_tmp = {"chronModelTable": {}, "ensembleTable": {}, "distributionTable": []}
-    pm_tmp = {"paleoModelTable": {}, "ensembleTable": {}, "distributionTable": []}
+    # These are the template structures that will be repeated for each table.
+    template_paleo = {"paleoMeasurementTable": [], "paleoModel": []}
+    template_chron = {"chronMeasurementTable": [], "chronModel": []}
 
-    chron_numbers = {}
-    paleo_numbers = {}
+    num_chron = {}
+    num_paleo = {}
+    paleo = []
+    chron = []
 
     # First, get the max number index for each list we need to build.
-    for item in metadata:
-        pc = item["paleo_chron"]
-        tt = item["table_type"]
-        pc_idx = item["pc_idx"]
-        t_idx = item["table_idx"]
-        m_idx = item["model_idx"]
+    for sheet in sheets:
+        pc = sheet["paleo_chron"]
 
         # Tree for chron types
         if pc == "chron":
-            # Create an index for this table if there is not one already.
-            if pc_idx not in chron_numbers:
-                chron_numbers[pc_idx] = {"meas": 0, "models": 0, "model": {}}
-            # Otherwise, start comparing indices to get the highest number for this table
-
-            # If the models list idx is higher, then swap it.
-            if m_idx:
-                if m_idx > chron_numbers[pc_idx]["models"]:
-                    chron_numbers[pc_idx]["models"] = m_idx
-
-                # If this model index is not tracked yet, create it.
-                if m_idx not in chron_numbers[pc_idx]["model"]:
-                    chron_numbers[pc_idx]["model"] = {m_idx: {"ens": 0, "mod": 0, "dist": 0}}
-
-            # Find what kind of table it is, and then increment count if it's higher than current.
-            if tt == "measurement":
-                if t_idx > chron_numbers[pc_idx]["meas"]:
-                    chron_numbers[pc_idx]["meas"] = t_idx
-            elif tt == "dist":
-                if t_idx > chron_numbers[pc_idx]["model"][m_idx]["dist"]:
-                    chron_numbers[pc_idx]["model"][m_idx]["dist"] = t_idx
-
-        # Tree for paleo types
+            num_chron = _get_table_counts(sheet, num_chron)
         elif pc == "paleo":
-            # Create an index for this table if there is not one already.
-            if pc_idx not in paleo_numbers:
-                paleo_numbers[pc_idx] = {"meas": 0, "models": 0, "model": {}}
-            # Otherwise, start comparing indices to get the highest number for this table
+            num_paleo = _get_table_counts(sheet, num_paleo)
 
-            # If the models list idx is higher, then swap it.
-            if m_idx:
-                if m_idx > paleo_numbers[pc_idx]["models"]:
-                    paleo_numbers[pc_idx]["models"] = m_idx
-
-                # If this model index is not tracked yet, create it.
-                if m_idx not in paleo_numbers[pc_idx]["model"]:
-                    paleo_numbers[pc_idx]["model"] = {m_idx: {"ens": 0, "mod": 0, "dist": 0}}
-
-            # Find what kind of table it is, and then increment count if it's higher than current.
-            if tt == "measurement":
-                if t_idx > paleo_numbers[pc_idx]["meas"]:
-                    paleo_numbers[pc_idx]["meas"] = t_idx
-            elif tt == "dist":
-                if t_idx > paleo_numbers[pc_idx]["model"][m_idx]["dist"]:
-                    paleo_numbers[pc_idx]["model"][m_idx]["dist"] = t_idx
-
-            # elif tt == "model":
-            #     if t_idx > paleo_numbers[pc_idx]["model"]:
-            #         paleo_numbers[pc_idx]["model"] = t_idx
-
-            # elif tt == "ens":
-            #     if t_idx > paleo_numbers[pc_idx]["model"][m_idx]["ens"]:
-            #         paleo_numbers[pc_idx]["ens"] = t_idx
-
-    # Create top lists with N tables
-    paleo = [copy.deepcopy(pd_tmp)] * len(paleo_numbers)
-    chron = [copy.deepcopy(cd_tmp)] * len(chron_numbers)
-
-    for idx1, table in paleo_numbers.items():
-        paleo[idx1-1]["paleoMeasurementTable"] = [None] * paleo_numbers[idx1]["meas"]
-        paleo[idx1-1]["paleoModel"] = [copy.deepcopy(cm_tmp)] * paleo_numbers[idx1]["models"]
-        for idx2, nums in table["model"].items():
-            paleo[idx1-1]["paleoModel"][idx2-1] = {"paleoModelTable": {}, "ensembleTable": {},
-                                               "distributionTable": [None] * nums["dist"]}
-
-    for idx1, table in chron_numbers.items():
-        chron[idx1-1]["chronMeasurementTable"] = [None] * chron_numbers[idx1]["meas"]
-        chron[idx1-1]["chronModel"] = [copy.deepcopy(cm_tmp)] * chron_numbers[idx1]["models"]
-        for idx2, nums in table["model"].items():
-            chron[idx1-1]["chronModel"][idx2] = {"chronModelTable": {}, "ensembleTable": {},
-                                               "distributionTable": [None] * nums["dist"]}
+    paleo = _create_skeleton_inner_main(paleo, "paleo", num_paleo, template_paleo)
+    chron = _create_skeleton_inner_main(chron, "chron", num_chron, template_chron)
 
     return paleo, chron
 
@@ -455,10 +588,10 @@ def _parse_sheet(workbook, sheet):
     :param dict sheet: Sheet path and naming info
     :return dict dict: Table metadata and numeric data
     """
-    logger_excel.info("enter parse_sheet: {}".format(sheet["name"]))
+    logger_excel.info("enter parse_sheet: {}".format(sheet["old_name"]))
 
     # Open the sheet from the workbook
-    temp_sheet = workbook.sheet_by_name(sheet["name"])
+    temp_sheet = workbook.sheet_by_name(sheet["old_name"])
     filename = sheet["filename"]
 
     # Store table metadata and numeric data separately
@@ -466,7 +599,7 @@ def _parse_sheet(workbook, sheet):
 
     # Organize our root table data
     table_metadata = OrderedDict()
-    table_metadata[table_name] = sheet["table_name"]
+    table_metadata[table_name] = sheet["new_name"]
     table_metadata['filename'] = filename
     table_metadata['missingValue'] = 'NaN'
 
@@ -477,8 +610,8 @@ def _parse_sheet(workbook, sheet):
     column_metadata = []
 
     # Index tracks which cells are being parsed
-    col_num = 0
-    row_num = 0
+    num_col = 0
+    num_row = 0
     nrows = temp_sheet.nrows
     col_total = 0
 
@@ -497,13 +630,12 @@ def _parse_sheet(workbook, sheet):
     data_on = False
     notes = False
 
-
     try:
         # Loop for every row in the sheet
         for i in range(0, nrows):
             # Hold the contents of the current cell
-            cell = temp_sheet.cell_value(row_num, col_num)
-            row = temp_sheet.row(row_num)
+            cell = temp_sheet.cell_value(num_row, num_col)
+            row = temp_sheet.row(num_row)
 
             # Skip all template lines
             if isinstance(cell, str):
@@ -512,13 +644,13 @@ def _parse_sheet(workbook, sheet):
 
                     if "notes" in cell.lower() and not metadata_on:
                         # Store at the root table level
-                        nt = temp_sheet.cell_value(row_num, 1)
+                        nt = temp_sheet.cell_value(num_row, 1)
                         if nt not in EXCEL_TEMPLATE:
                             table_metadata["notes"] = nt
 
                     elif cell.lower().strip() in ALTS_MV:
                         # Store at the root table level and in our function
-                        mv = temp_sheet.cell_value(row_num, 1)
+                        mv = temp_sheet.cell_value(num_row, 1)
                         # Add if not placeholder value
                         if mv not in EXCEL_TEMPLATE:
                             table_metadata["missingValue"] = mv
@@ -527,7 +659,7 @@ def _parse_sheet(workbook, sheet):
                     elif cell.lower() in EXCEL_HEADER and not metadata_on and not data_on:
 
                         # Grab the header line
-                        row = temp_sheet.row(row_num)
+                        row = temp_sheet.row(num_row)
                         header_keys = _get_header_keys(row)
 
                         # Turn on the marker
@@ -537,7 +669,7 @@ def _parse_sheet(workbook, sheet):
                     elif data_on:
 
                         # Parse the row, clean, and add to table_data
-                        table_data = _parse_sheet_data_row(temp_sheet, row_num, col_total, table_data, filename, mv)
+                        table_data = _parse_sheet_data_row(temp_sheet, num_row, col_total, table_data, filename, mv)
 
                     # Start parsing the metadata section. (top)
                     elif metadata_on:
@@ -561,7 +693,7 @@ def _parse_sheet(workbook, sheet):
                         # Not at the end of the section yet. Parse the metadata
                         else:
                             # Get the row data
-                            row = temp_sheet.row(row_num)
+                            row = temp_sheet.row(num_row)
 
                             # Get column metadata
                             col_tmp = _compile_column_metadata(row, header_keys, col_add_ct)
@@ -577,7 +709,7 @@ def _parse_sheet(workbook, sheet):
                         metadata_on = True
 
                         # Get the row data
-                        row = temp_sheet.row(row_num)
+                        row = temp_sheet.row(num_row)
 
                         # Get column metadata
                         col_tmp = _compile_column_metadata(row, header_keys, col_add_ct)
@@ -595,7 +727,7 @@ def _parse_sheet(workbook, sheet):
                         metadata_on = True
 
                         # Get the row data
-                        row = temp_sheet.row(row_num)
+                        row = temp_sheet.row(num_row)
 
                         # Get column metadata
                         col_tmp = _compile_column_metadata(row, header_keys, col_add_ct)
@@ -625,13 +757,13 @@ def _parse_sheet(workbook, sheet):
                 if data_on or metadata_done:
 
                     # Parse the row, clean, and add to table_data
-                    table_data = _parse_sheet_data_row(temp_sheet, row_num, col_total, table_data, filename, mv)
+                    table_data = _parse_sheet_data_row(temp_sheet, num_row, col_total, table_data, filename, mv)
 
             # Move on to the next row
-            row_num += 1
+            num_row += 1
         table_metadata["columns"] = column_metadata
     except IndexError as e:
-        logger_excel.debug("parse_sheet: IndexError: sheet: {}, row_num: {}, col_num: {}, {}".format(sheet, row_num, col_num, e))
+        logger_excel.debug("parse_sheet: IndexError: sheet: {}, row_num: {}, col_num: {}, {}".format(sheet, num_row, num_col, e))
 
     # If there isn't any data in this sheet, and nothing was parsed, don't let this
     # move forward to final output.
@@ -639,7 +771,7 @@ def _parse_sheet(workbook, sheet):
         table_data = None
         table_metadata = None
 
-    logger_excel.info("exit parse_sheet: {}".format(sheet))
+    logger_excel.info("exit parse_sheet")
     return table_metadata, table_data
 
 
