@@ -156,7 +156,7 @@ def addEnsemble(filename, ensemble):
             # Set meta into lipd object
             lib[filename].set_metadata(meta)
             # Set the new master data back into the lipd library
-            lipd_lib.set_master(lib)
+            lipd_lib.put_master(lib)
     else:
         print("Error: '{}' file not found in workspace. Please use showLipds() to see available files ".format(filename))
 
@@ -393,6 +393,16 @@ def showDfs(dict_in):
 # GET
 
 
+def getFileList():
+    """
+    Get a list of all lipd dataset names in the library
+    :return list:
+    """
+    f_list = []
+    f_list = lipd_lib.get_lipd_names()
+    return f_list
+
+
 def getMetadata(filename):
     """
     Get metadata from LiPD file
@@ -450,7 +460,7 @@ def savePickle():
         lipd_lib.set_dir(tmp)
     else:
         # create a dictionary from lipd_lib
-        d = lipd_lib.lib_to_dict()
+        d = lipd_lib.get_lib_as_dict()
 
     # prompt for where to save the file
     _path = get_src_or_dst("save")
