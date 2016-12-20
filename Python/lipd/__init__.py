@@ -393,7 +393,7 @@ def showDfs(dict_in):
 # GET
 
 
-def getFileList():
+def getLipdNames():
     """
     Get a list of all lipd dataset names in the library
     :return list:
