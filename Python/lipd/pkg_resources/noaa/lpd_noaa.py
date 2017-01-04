@@ -83,6 +83,22 @@ class LPD_NOAA(object):
         return found
 
     @staticmethod
+    def __get_pub_type(pub):
+        """
+        Check this publication to see if it is a data citation.
+        :param dict pub: Publication
+        :return bool: True, if data citation, False, if not data citation.
+        """
+        try:
+            # The given publication IS a data citation.
+            if pub["type"] == "dataCitation":
+                return True
+        except KeyError:
+            # Publication is missing "type" field. Assume that publication IS NOT a data citation.
+            pass
+        return False
+
+    @staticmethod
     def __split_path(string):
         """
         Used in the path_context function. Split the full path into a list of steps
@@ -217,7 +233,7 @@ class LPD_NOAA(object):
         return
 
     @staticmethod
-    def __convert_keys_section(header, d):
+    def __convert_keys_2(header, d):
         """
         Convert lpd to noaa keys for this one section
         :param str header: Section header
@@ -239,7 +255,7 @@ class LPD_NOAA(object):
             return d
         return d_out
 
-    def __convert_keys_dict(self, header, d):
+    def __convert_keys_1(self, header, d):
         """
         Loop over keys in a dictionary and replace the lipd keys with noaa keys
         :return:
@@ -659,8 +675,11 @@ class LPD_NOAA(object):
         try:
             for idx, pub in enumerate(self.noaa_data_sorted["Publication"]):
                 logger_lpd_noaa.info("publication: {}".format(idx))
-                pub = self.__convert_keys_dict("Publication", pub)
-                self.__write_generic('Publication', pub)
+                # Do not write out Data Citation publications. Check, and skip if necessary
+                is_data_citation = self.__get_pub_type(pub)
+                if not is_data_citation:
+                    pub = self.__convert_keys_1("Publication", pub)
+                    self.__write_generic('Publication', pub)
         except KeyError:
             logger_lpd_noaa.info("write_pub: KeyError: pub section not found")
         except TypeError:
@@ -706,7 +725,7 @@ class LPD_NOAA(object):
             # Write variables line from dict_in
             count = len(table['columns'])
             for col in table['columns']:
-                col = self.__convert_keys_dict("Variables", col)
+                col = self.__convert_keys_1("Variables", col)
                 try:
                     param = col['shortname']
                 except KeyError:
@@ -762,7 +781,7 @@ class LPD_NOAA(object):
         try:
             self.noaa_txt.write('#')
             for col in table['columns']:
-                col = self.__convert_keys_dict("Variables", col)
+                col = self.__convert_keys_1("Variables", col)
 
                 # Write one line for each column. One line has all metadata for one column.
                 for entry in NOAA_ALL["Variables"]:

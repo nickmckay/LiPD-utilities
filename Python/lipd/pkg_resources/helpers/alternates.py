@@ -160,6 +160,7 @@ NOAA_ALL_DICT = {
         "edition": "Edition",
         'citation': 'Full_Citation',
         'onlineResource': 'Online_Resource',
+        "type": "Type",
     },
     "Funding_Agency": {
         'grant': 'Grant',
