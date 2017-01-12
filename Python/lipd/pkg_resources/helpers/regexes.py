@@ -50,4 +50,4 @@ re_filter_expr = re.compile(r"((\w+_?)\s*(is|in|greater than|equals|equal|less t
 
 # PANDAS
 re_pandas_x_num = re.compile(r"(year\d?|age\d?|depth\d?)\b")
-re_pandas_x_und = re.compile(r"(year|age|depth){1}[_]{1}.*")
+re_pandas_x_und = re.compile(r"(year|age|depth|yr){1}[_]{1}.*")

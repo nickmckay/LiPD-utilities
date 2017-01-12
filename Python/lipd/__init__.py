@@ -193,6 +193,7 @@ def lipdToDf(filename):
     return dfs
 
 
+# todo this function no longer works. time series objects are not referenced by name. TS is a list of TSOs
 def tsToDf(ts, filename):
     """
     Create Pandas DataFrame from TimeSeries object.

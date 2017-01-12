@@ -238,23 +238,32 @@ class Convert(object):
         try:
             # Add age, year, and depth columns to ts_root where possible
             for k, v in table_data['columns'].items():
-                if any(x in k for x in ('age', 'depth', 'year')):
+                s = ""
+
+                # special case for year bp, or any variation of it. Translate key to "age""
+                if "bp" in k.lower():
+                    s = "age"
+
+                # all other normal cases. clean key and set key.
+                elif any(x in k.lower() for x in ('age', 'depth', 'year', "yr")):
                     # Some keys have units hanging on them (i.e. 'year_ad', 'depth_cm'). We don't want units on the keys
                     if re_pandas_x_und.match(k):
                         s = k.split('_')[0]
                     else:
                         s = k
-                    if s:
-                        try:
-                            self.ts_root[s] = v['values']
-                        except KeyError as e:
-                            # Values key was not found.
-                            logger_convert.warn("ts_extract_special: KeyError: 'values' not found, {}".format(e))
-                        try:
-                            self.ts_root[s + 'Units'] = v['units']
-                        except KeyError as e:
-                            # Values key was not found.
-                            logger_convert.warn("ts_extract_special: KeyError: 'units' not found, {}".format(e))
+
+                # create the entry in ts_root.
+                if s:
+                    try:
+                        self.ts_root[s] = v['values']
+                    except KeyError as e:
+                        # Values key was not found.
+                        logger_convert.warn("ts_extract_special: KeyError: 'values' not found, {}".format(e))
+                    try:
+                        self.ts_root[s + 'Units'] = v['units']
+                    except KeyError as e:
+                        # Values key was not found.
+                        logger_convert.warn("ts_extract_special: KeyError: 'units' not found, {}".format(e))
 
         except KeyError:
             logger_convert.debug("Convert: ts_extract_special: KeyError: didn't find 'columns'. Possible bad structure")
