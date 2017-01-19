@@ -97,7 +97,8 @@ class Convert(object):
         """
         logger_convert.info("enter ts_extract_geo")
         # May not need these if the key names are corrected in the future.
-        x = ['geo_meanLat', 'geo_meanLon', 'geo_meanElev']
+        # COORDINATE ORDER: [LON, LAT, ELEV]
+        x = ['geo_meanLon', 'geo_meanLat', 'geo_meanElev']
         # Iterate through geo dictionary
         for k, v in d.items():
             # Case 1: Coordinates special naming
@@ -109,7 +110,7 @@ class Convert(object):
                             if p.lower() in EMPTY:
                                 # If elevation is a string or 0, don't record it
                                 if idx != 2:
-                                    # If long ot lat is empty, set it as 0 instead
+                                    # If long or lat is empty, set it as 0 instead
                                     self.ts_root[x[idx]] = 0
                             else:
                                 # Set the value as a float into its entry.
@@ -399,11 +400,11 @@ class Convert(object):
 
                 elif 'geo' in k:
                     key = k.split('_')
-                    # Coordinates
+                    # Coordinates - [LON, LAT, ELEV]
                     if key[1] in c_keys:
-                        if key[1] == 'meanLat':
+                        if key[1] == 'meanLon':
                             c_vals[0] = v
-                        elif key[1] == 'meanLon':
+                        elif key[1] == 'meanLat':
                             c_vals[1] = v
                         elif key[1] == 'meanElev':
                             c_vals[2] = v
