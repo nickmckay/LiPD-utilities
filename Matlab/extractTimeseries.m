@@ -30,7 +30,7 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
             if ~isfield(PD.paleoMeasurementTable{pds},'paleoDataTableName')
                 PD.paleoMeasurementTable{pds}.paleoDataTableName=['data' num2str(pds)];
             end
-                
+            
             if pd==1 & pds==1
                 pdname = [PD.paleoMeasurementTable{pds}.paleoDataTableName];
             else
@@ -97,7 +97,7 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                     dcflag=0;
                     
                     pubNames=fieldnames(D.(dnames{d}).pub{pl});
-
+                    
                     for pn=1:length(pubNames)
                         if any(strcmp('type',pubNames))
                             if strcmp(D.(dnames{d}).pub{pl}.type,'dataCitation')
@@ -110,7 +110,7 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                         else
                             TS(1,ts).([ppnames{pp} num2str(pl) '_' pubNames{pn}])=D.(dnames{d}).pub{pl}.(pubNames{pn});
                             pflag=1;
-                                                   
+                            
                         end
                     end
                 end
@@ -207,13 +207,21 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                         error([dnames{d} '.' ppnames{pp} '.' l3names{l3} '.' l4structs{l4} ' is missing values'])
                                     end
                                     year=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).values;
-                                    yearUnits=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).units;
+                                    if isfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}),'units')
+                                        yearUnits=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).units;
+                                    else
+                                        yearUnits='AD (guessed based on variableName)';
+                                    end
                                 end
                                 if  any(strcmpi('age',l4structs{l4})) %age field, write to age
                                     ageFlag=1;
                                     agei=l4;
                                     age=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).values;
-                                    ageUnits=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).units;
+                                    if isfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}),'units')
+                                        ageUnits=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{l4}).units;
+                                    else
+                                        ageUnits='BP (guessed based on variableName)';
+                                    end
                                 end
                                 if  any(strcmpi('depth',l4structs{l4})) %depth field, write to depth
                                     depthFlag=1;
@@ -226,16 +234,21 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                     end
                                 end
                             end
+                            nonAgeCol=1:length(l4structs);
+
                             if yearFlag & ageFlag
-                                nonAgeCol=setdiff(1:length(l4structs),[yeari agei]);
+                                nonAgeCol=setdiff(nonAgeCol,[yeari agei]);
                                 
                             elseif yearFlag
-                                nonAgeCol=setdiff(1:length(l4structs),[yeari]);
+                                nonAgeCol=setdiff(nonAgeCol,[yeari]);
                             elseif ageFlag
-                                nonAgeCol=setdiff(1:length(l4structs),[agei]);
-                            else
+                                nonAgeCol=setdiff(nonAgeCol,[agei]);
+                                
+                            elseif ~depthFlag
                                 display(l4structs)
-                                error([dnames{d} ': ' l3names{l3} ': there dont appear to be any year or age columns'])
+                                warning([dnames{d} ': ' l3names{l3} ': there dont appear to be any year or age columns. Skipping..'])
+                                continue
+                                
                             end
                             
                             %exclude depth too
@@ -246,72 +259,73 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                             if allColumns%optionally, export all columns
                                 nonAgeCol=1:length(l4structs);
                             end
-                            
-                            for nAC=1:length(nonAgeCol)
-                                %store TS line when l3=1 so we can replicate if l3>1
-                                if nAC==1
-                                    TstempnAC=TS(1,ts);
-                                    tsAC=ts;
-                                elseif nAC>1 & tsAC~=ts
-                                    %create new empty fields
-                                    oldfn=fieldnames(TstempnAC);
-                                    newfn=fieldnames(TS(1,ts-1));
-                                    %changefn=setdiff(newfn,oldfn);
-                                    changefn=newfn(length(oldfn)+1:end);
-                                    C = reshape(changefn, 1, []); %// Field names
-                                    C(2, :) = {[]};                    %// Empty values
-                                    TS(1,ts)=mergestruct(TstempnAC,struct(C{:}));
-                                end
-                                %currently can't handle non-structure
-                                %fields at this level! Need to test for
-                                %structures and write those first
-                                if isstruct(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)})) %write non structure fields in column
-                                    %write age/year fields
-                                    if ageFlag
-                                        TS(1,ts).age=age;
-                                        TS(1,ts).ageUnits=ageUnits;
+                                for nAC=1:length(nonAgeCol)
+                                    %store TS line when l3=1 so we can replicate if l3>1
+                                    if nAC==1
+                                        TstempnAC=TS(1,ts);
+                                        tsAC=ts;
+                                    elseif nAC>1 & tsAC~=ts
+                                        %create new empty fields
+                                        oldfn=fieldnames(TstempnAC);
+                                        newfn=fieldnames(TS(1,ts-1));
+                                        %changefn=setdiff(newfn,oldfn);
+                                        changefn=newfn(length(oldfn)+1:end);
+                                        C = reshape(changefn, 1, []); %// Field names
+                                        C(2, :) = {[]};                    %// Empty values
+                                        TS(1,ts)=mergestruct(TstempnAC,struct(C{:}));
                                     end
-                                    if yearFlag
-                                        TS(1,ts).year=year;
-                                        TS(1,ts).yearUnits=yearUnits;
-                                    end
-                                    if depthFlag
-                                        TS(1,ts).depth=depth;
-                                        TS(1,ts).depthUnits=depthUnits;
-                                    end
-                                    l5names=fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}));
-                                    for l5=1:length(l5names)
-                                        %write paleoData fields
-                                        l5name=l5names{l5};
-                                        if isstruct(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}))%if it's a data column, not metadata
-                                            %determine whether it's a
-                                            %structure( like climate
-                                            %interp)
-                                            if isstruct(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5name))%if it's a structure
-                                                l6names=fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5name));
-                                                
-                                                for l6 = 1:length(l6names)
-                                                    l6name=l6names{l6};
-                                                    if ~iscell(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}))
-                                                        TS(1,ts).([l5name '_' l6name])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6});
-                                                    else
-                                                        %append a number and loop through cell
-                                                        for iiii = 1:length(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}));
-                                                            l7names = fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii});
-                                                            for l7 = 1:length(l7names)
-                                                                TS(1,ts).([l5name '_' l6name num2str(iiii) '_' l7names{l7}])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii}.(l7names{l7});
+                                    %currently can't handle non-structure
+                                    %fields at this level! Need to test for
+                                    %structures and write those first
+                     
+                                    if isstruct(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)})) %write non structure fields in column
+                                        %write age/year fields
+                                        if ageFlag
+                                            TS(1,ts).age=age;
+                                            TS(1,ts).ageUnits=ageUnits;
+                                        end
+                                        if yearFlag
+                                            TS(1,ts).year=year;
+                                            TS(1,ts).yearUnits=yearUnits;
+                                        end
+                                        if depthFlag
+                                            TS(1,ts).depth=depth;
+                                            TS(1,ts).depthUnits=depthUnits;
+                                        end
+                                        l5names=fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}));
+                                        for l5=1:length(l5names)
+                                            %write paleoData fields
+                                            l5name=l5names{l5};
+                                            if isstruct(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}))%if it's a data column, not metadata
+                                                %determine whether it's a
+                                                %structure( like climate
+                                                %interp)
+                                                if isstruct(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5name))%if it's a structure
+                                                    l6names=fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5name));
+                                                    
+                                                    for l6 = 1:length(l6names)
+                                                        l6name=l6names{l6};
+                                                        if ~iscell(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}))
+                                                            TS(1,ts).([l5name '_' l6name])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6});
+                                                        else
+                                                            %append a number and loop through cell
+                                                            for iiii = 1:length(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}));
+                                                                l7names = fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii});
+                                                                for l7 = 1:length(l7names)
+                                                                    TS(1,ts).([l5name '_' l6name num2str(iiii) '_' l7names{l7}])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii}.(l7names{l7});
+                                                                end
                                                             end
                                                         end
                                                     end
+                                                else %not a structure, write out the data
+                                                    TS(1,ts).(['paleoData_' l5name])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5});
                                                 end
-                                            else %not a structure, write out the data
-                                                TS(1,ts).(['paleoData_' l5name])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5});
                                             end
                                         end
+                                        ts=ts+1;
                                     end
-                                    ts=ts+1;
                                 end
-                            end
+                            
                         end
                     end
                 end

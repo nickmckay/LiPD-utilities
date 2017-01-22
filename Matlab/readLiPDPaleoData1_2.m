@@ -19,7 +19,9 @@ if ~isnan(toct) %if there are paleo tables, load em in
         cT=readLiPDTable(cT,dirname);
         cT=processLiPDColumns(cT);
         if size(I.paleoMeasMD5,1)>=i
+            if iscell(I.paleoMeasMD5)
             cT.paleoMeasurementTableMD5 = I.paleoMeasMD5{i,2};
+            end
         end
         C{i}.paleoMeasurementTable{pmt}=cT;
         end

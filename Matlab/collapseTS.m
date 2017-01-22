@@ -255,9 +255,9 @@ end
                     depthFlag=1;
                 end
             end
-            if ~ageFlag && ~yearFlag
+            if ~ageFlag && ~yearFlag && ~depthFlag
                 
-                error([makeValidName(udsn{i}) ': no age or year data. The linearity (and existence) of time are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors'])
+                error([makeValidName(udsn{i}) ': no age, year or depth data. The linearity (and existence) of time (or depth) are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors'])
             end
         end
         %check for climate interpretation

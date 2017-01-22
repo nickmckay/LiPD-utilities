@@ -32,7 +32,7 @@ if isfield(LiPDStruct,'chronData')
                     DT.chronMeasurementTableName=['measurementTable' num2str(cmt)];
                 end
                 if length(colnames)<2
-                    error('There don''t seem to be enough columns in this data table')
+                    warning('There don''t seem to be enough columns in this data table')
                 end
                 clear outTable
                 cN=0;

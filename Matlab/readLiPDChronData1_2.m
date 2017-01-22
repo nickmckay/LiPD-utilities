@@ -19,8 +19,10 @@ if ~isnan(toct) %if there are chron tables, load em in
         
         cT=readLiPDTable(cT,dirname);
         cT=processLiPDColumns(cT);
-        if size(I.chronMeasMD5,1)>=i        
+        if size(I.chronMeasMD5,1)>=i    
+            if iscell(I.chronMeasMD5)
             cT.chronMeasMD5 = I.chronMeasMD5{i,2};
+            end
         end
         C{i}.chronMeasurementTable{cmt}=cT;
         end
