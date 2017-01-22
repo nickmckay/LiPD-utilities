@@ -87,7 +87,7 @@ for c=1:size(metadata,2)
     end
 end
 
-GTS = renameTS(GTS);
+GTS = renameTS(GTS,0,1,0);
 
 %%
 %pull metadata from chronData
@@ -100,7 +100,7 @@ if isChron
             [GTSC.(value)]=toPop{:};
         end
     end
-    GTSC = renameTS(GTSC);
+    GTSC = renameTS(GTSC,0,1,0);
 end
 
 

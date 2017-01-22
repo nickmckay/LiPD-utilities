@@ -7,8 +7,9 @@ GLOBAL LIST OF REGEXES
 # EXCEL
 re_var_w_units = re.compile(r'([\w\s]+)\(?(\w+)?\)?', re.I)
 # todo write a regex for legacy sheet names
-re_sheet = re.compile(r'(paleo|chron)(\d+)(model[a-z]*\d+)?(measurement|ensemble|summary|distribution)[a-zA-Z]*(\d+)', re.I)
+re_sheet = re.compile(r'(paleo|chron)[a-zA-Z]*(\d+)(model)?[a-zA-Z]*(\d+)?(measurement|ensemble|summary|distribution)[a-zA-Z]*(\d+)?', re.I)
 # (paleo\d+|chron\d+)\.(?(?=measurement)(measurement[a-z]*\d+)|(model[a-z]*\d+)\.(distribution[a-z]*\d+|model[a-z]*|ensemble[a-z]*]))
+re_table = re.compile(r"(paleo|model|chron|ensemble|distribution|summary)(\d+)")
 
 # DOI
 re_doi = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'<>,])\S)+)\b')
@@ -49,4 +50,4 @@ re_filter_expr = re.compile(r"((\w+_?)\s*(is|in|greater than|equals|equal|less t
 
 # PANDAS
 re_pandas_x_num = re.compile(r"(year\d?|age\d?|depth\d?)\b")
-re_pandas_x_und = re.compile(r"(year|age|depth){1}[_]{1}.*")
+re_pandas_x_und = re.compile(r"(year|age|depth|yr){1}[_]{1}.*")

@@ -8,47 +8,54 @@ from ..helpers.loggers import create_logger
 logger_doi_main = create_logger("doi_main")
 
 
-def doi():
+def doi_main(files):
     """
     Main function that controls the script. Take in directory containing the .lpd file(s). Loop for each file.
     :return None:
     """
     logger_doi_main.info("enter doi_main")
-    # Find all .lpd files in current directory
-    # dir: ? -> dir_root
-    dir_root = os.getcwd()
-    f_list = list_files('.lpd')
-    print("Found {0} {1} file(s)".format(str(len(f_list)), 'LiPD'))
+
+    print("Found {0} {1} file(s)".format(str(len(files["lipd"])), 'LiPD'))
     force = prompt_force()
-    for name_ext in f_list:
-        # .lpd name w/o extension
-        name = os.path.splitext(name_ext)[0]
+    for file in files["lipd"]:
 
         # Unzip file and get tmp directory path
         dir_tmp = create_tmp_dir()
-        unzipper(name_ext, dir_tmp)
+        unzipper(file["filename_ext"], dir_tmp)
 
         # Force DOI update?
-        if not force:
-            # Unbag and check resolved flag. Don't run if flag exists.
-            if resolved_flag(open_bag(os.path.join(dir_tmp, name))):
-                print('skipping: {}'.format(name_ext))
-                logger_doi_main.info("skipping: {}".format(name_ext))
-                shutil.rmtree(dir_tmp)
-
-        # Process file if flag does not exist or force.
-        else:
-            print('processing: {}'.format(name_ext))
-            logger_doi_main.info("processing: {}".format(name_ext))
+        if force:
+            # Update file. Forcing updates for all files.
+            print('processing: {}'.format(file["filename_ext"]))
+            logger_doi_main.info("processing: {}".format(file["filename_ext"]))
             # dir: dir_root -> dir_tmp
-            process_lpd(name, dir_tmp)
+            process_lpd(file["filename_no_ext"], dir_tmp)
             # dir: dir_tmp -> dir_root
-            os.chdir(dir_root)
+            os.chdir(file["dir"])
             # Zip the directory containing the updated files. Created in dir_root directory
-            zipper(dir_tmp, name, name_ext)
-            os.rename(name_ext + '.zip', name_ext)
+            zipper(dir_tmp, file["filename_no_ext"], file["filename_ext"])
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
+
+        if not force:
+            # Don't Update File. Flag found and we're not forcing updates.
+            if resolved_flag(open_bag(os.path.join(dir_tmp, file["filename_no_ext"]))):
+                print('skipping: {}'.format(file["filename_ext"]))
+                logger_doi_main.info("skipping: {}".format(file["filename_ext"]))
+                shutil.rmtree(dir_tmp)
+
+            # Update File. No flag found and hasn't been processed before.
+            else:
+                print('processing: {}'.format(file["filename_ext"]))
+                logger_doi_main.info("processing: {}".format(file["filename_ext"]))
+                # dir: dir_root -> dir_tmp
+                process_lpd(file["filename_no_ext"], dir_tmp)
+                # dir: dir_tmp -> dir_root
+                os.chdir(file["dir"])
+                # Zip the directory containing the updated files. Created in dir_root directory
+                zipper(dir_tmp, file["filename_no_ext"], file["filename_ext"])
+                # Cleanup and remove tmp directory
+                shutil.rmtree(dir_tmp)
     logger_doi_main.info("exit doi_main")
     print("Process Complete")
     return
@@ -96,30 +103,26 @@ def prompt_force():
     :return bool: response
     """
     logger_doi_main.info("enter prompt_force")
-    force = False
     count = 0
     print("Do you want to force updates for previously resolved files? (y/n)")
     while True:
-        f = input("> ")
+        force = input("> ")
         try:
             if count == 2:
-                force = False
-                break
-            elif f.lower() in ('y', 'yes'):
-                force = True
-                break
-            elif f.lower() in ('n', 'no'):
-                force = False
-                break
+                return True
+            elif force.lower() in ('y', 'yes'):
+                return True
+            elif force.lower() in ('n', 'no'):
+                return False
             else:
                 print("invalid response")
         except AttributeError as e:
             print("invalid response")
-            logger_doi_main.warn("invalid response: {}, {}".format(f, e))
+            logger_doi_main.warn("invalid response: {}, {}".format(force, e))
         count += 1
     logger_doi_main.info("force update: {}".format(force))
     logger_doi_main.info("exit prompt_force")
-    return force
+    return True
 
 if __name__ == '__main__':
-    doi()
+    doi_main()

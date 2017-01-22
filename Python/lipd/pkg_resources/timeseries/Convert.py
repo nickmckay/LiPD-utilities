@@ -51,7 +51,7 @@ class Convert(object):
         logger_convert.info("enter ts_extract_main")
         # Reset these each run
         self.ts_root = {}
-        self.ts_tsos = {}
+        self.ts_tsos = []
 
         # Build the root level data.
         # This will serve as the template for which column data will be added onto later.
@@ -97,7 +97,8 @@ class Convert(object):
         """
         logger_convert.info("enter ts_extract_geo")
         # May not need these if the key names are corrected in the future.
-        x = ['geo_meanLat', 'geo_meanLon', 'geo_meanElev']
+        # COORDINATE ORDER: [LON, LAT, ELEV]
+        x = ['geo_meanLon', 'geo_meanLat', 'geo_meanElev']
         # Iterate through geo dictionary
         for k, v in d.items():
             # Case 1: Coordinates special naming
@@ -109,7 +110,7 @@ class Convert(object):
                             if p.lower() in EMPTY:
                                 # If elevation is a string or 0, don't record it
                                 if idx != 2:
-                                    # If long ot lat is empty, set it as 0 instead
+                                    # If long or lat is empty, set it as 0 instead
                                     self.ts_root[x[idx]] = 0
                             else:
                                 # Set the value as a float into its entry.
@@ -211,50 +212,72 @@ class Convert(object):
             for k, v in d['paleoData'].items():
                 # Get root items for this table
                 self.__ts_extract_paleo_table_root(v["paleoMeasurementTable"])
-                # Add age, depth, and year columns to ts_root if available
-                self.__ts_extract_special(v["paleoMeasurementTable"])
-                # Start creating TSOs with dictionary copies.
-                for i, e in v["paleoMeasurementTable"]["columns"].items():
-                    if not any(x in i for x in ('age', 'depth', 'year')):
-                        # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
-                        col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
-                        try:
-                            self.ts_tsos[d['dataSetName'] + '_' + k + '_' + i] = col
-                        except KeyError as e:
-                            self.ts_tsos['dataset' + '_' + k + '_' + i] = col
-                            logger_convert.warn("ts_extract_paleo: KeyError: datasetname not found, {}".format(e))
+                for table_name, table_data in v["paleoMeasurementTable"].items():
+                    # Add age, depth, and year columns to ts_root if available
+                    self.__ts_extract_special(table_data)
+                    # Start creating TSOs with dictionary copies.
+                    for i, e in table_data["columns"].items():
+                        if not any(x in i for x in ('age', 'depth', 'year')):
+                            # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
+                            col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
+                            try:
+                                self.ts_tsos.append(col)
+                            except Exception as e:
+                                logger_convert.warn("ts_extract_paleo: KeyError: unable to append TSO, {}".format(e))
+
         except KeyError as e:
             logger_convert.warn("ts_Extract_paleo: KeyError: paleoData/columns not found, {}".format(e))
         return
 
-    def __ts_extract_special(self, d):
+    def __ts_extract_special(self, table_data):
         """
         Extract year, age, and depth column. Add to self.ts_root
-        :param dict d: Column data
-        :return:
+        :param dict table_data: Data at the table level
+        :return none: Results set to object self
         """
         logger_convert.info("enter ts_extract_special")
-        # Add age, year, and depth columns to ts_root where possible
-        for i, e in d['columns'].items():
-            if any(x in i for x in ('age', 'depth', 'year')):
-                # Some keys have units hanging on them (i.e. 'year_ad', 'depth_cm'). We don't want units on the keys
-                if re_pandas_x_und.match(i):
-                    s = i.split('_')[0]
-                else:
-                    s = i
+        try:
+            # Add age, year, and depth columns to ts_root where possible
+            for k, v in table_data['columns'].items():
+                s = ""
+
+                # special case for year bp, or any variation of it. Translate key to "age""
+                if "bp" in k.lower():
+                    s = "age"
+
+                # all other normal cases. clean key and set key.
+                elif any(x in k.lower() for x in ('age', 'depth', 'year', "yr")):
+                    # Some keys have units hanging on them (i.e. 'year_ad', 'depth_cm'). We don't want units on the keys
+                    if re_pandas_x_und.match(k):
+                        s = k.split('_')[0]
+                    else:
+                        s = k
+
+                # create the entry in ts_root.
                 if s:
                     try:
-                        self.ts_root[s] = e['values']
-                        self.ts_root[s + 'Units'] = e['units']
+                        self.ts_root[s] = v['values']
                     except KeyError as e:
                         # Values key was not found.
-                        logger_convert.warn("ts_extract_special: KeyError: values/units not found, {}".format(e))
+                        logger_convert.warn("ts_extract_special: KeyError: 'values' not found, {}".format(e))
+                    try:
+                        self.ts_root[s + 'Units'] = v['units']
+                    except KeyError as e:
+                        # Values key was not found.
+                        logger_convert.warn("ts_extract_special: KeyError: 'units' not found, {}".format(e))
+
+        except KeyError:
+            logger_convert.debug("Convert: ts_extract_special: KeyError: didn't find 'columns'. Possible bad structure")
+        except AttributeError:
+            logger_convert.debug("Convert: ts_extract_special: AttributeError: 'columns' is not a dictionary. Possible bad structure")
+
         return
 
     def __ts_extract_paleo_table_root(self, d):
         """
         Extract data from the root level of a paleoData table.
         :param dict d: One paleoData table
+        :return none: Results set to object self
         """
         logger_convert.info("enter ts_extract_paleo_table_root")
         for k, v in d.items():
@@ -377,11 +400,11 @@ class Convert(object):
 
                 elif 'geo' in k:
                     key = k.split('_')
-                    # Coordinates
+                    # Coordinates - [LON, LAT, ELEV]
                     if key[1] in c_keys:
-                        if key[1] == 'meanLat':
+                        if key[1] == 'meanLon':
                             c_vals[0] = v
-                        elif key[1] == 'meanLon':
+                        elif key[1] == 'meanLat':
                             c_vals[1] = v
                         elif key[1] == 'meanElev':
                             c_vals[2] = v
@@ -569,7 +592,7 @@ class Convert(object):
         # Temp to store incorrect keys
         bad_keys = []
 
-        for name, tso in self.ts_tsos.items():
+        for tso in self.ts_tsos:
             # Build onto the "recent" dictionary so we have a list of keys to replace.
             for k, v in tso.items():
                 # @context needs to be ignored

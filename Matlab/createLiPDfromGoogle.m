@@ -1,4 +1,4 @@
-function L=createLiPDfromGoogle(spreadsheetkey)
+function [L,GTS]=createLiPDfromGoogle(spreadsheetkey)
 
 %get sheets metadata
 checkGoogleTokens;

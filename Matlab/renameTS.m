@@ -1,4 +1,4 @@
-function newTS=renameTS(TS,filter,useLocal)
+function newTS=renameTS(TS,filter,useLocal,ask)
 %update TS with current meta names
 %filter removes entries that don't match a name
 
@@ -14,6 +14,10 @@ if nargin<3
         else
             useLocal=0;
         end    
+end
+
+if nargin<4
+    ask=1;
 end
 
 if useLocal
@@ -72,12 +76,18 @@ for i=1:length(n)
                         if ~strcmp(name,'paleoData_parameter')%for now, don't check for paleoData_parameter
                             if ischar(TS(targeti(notEmpty(ne))).(name))
                                 if ~strcmp(TS(targeti(notEmpty(ne))).(n{i}),TS(targeti(notEmpty(ne))).(name)) && askOverwrite
-                                    
+                                    if ask
                                     warning([name ' is trying to overwrite entries in ' n{i} '(entry ' num2str(targeti(notEmpty(ne))) ')'])
                                       answ=input(['Allow ' name ' to overwrite entries in ' n{i} '?']);
+                                    else
+                                        answ='y';
+                                    end
                                       if ~strncmpi(answ,'y',1)
+                                          if ask
                                           ans2=input(['Write ' n{i} ' into ' name ' first?']);
-                                          
+                                          else
+                                              ans2='y';
+                                          end
                                           if ~strncmpi(answ,'y',1)
                                               [TS(targeti).(name)]=TS(targeti).(n{i});
                                               

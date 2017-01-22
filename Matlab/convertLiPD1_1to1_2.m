@@ -21,10 +21,11 @@ if L.LiPDVersion == 1.1 | forceConvert
         for i = 1:length(L.chronData);
             C=L.chronData{i};
             
+            if ~iscell(C.chronMeasurementTable)
             %convert measurement table to set
             newCM{1}=C.chronMeasurementTable;
             C.chronMeasurementTable=newCM;
-            
+            end
             
             if isfield(C,'chronModel')
                 for j=1:length(C.chronModel)

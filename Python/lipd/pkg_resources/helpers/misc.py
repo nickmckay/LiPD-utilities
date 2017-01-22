@@ -4,11 +4,42 @@ import os
 import datetime as dt
 import numpy as np
 import unicodedata
+import re
 
 from ..helpers.loggers import create_logger
 from ..helpers.blanks import EMPTY
 
 logger_misc = create_logger("misc")
+
+
+def generate_timestamp(fmt=None):
+    """
+    Generate a timestamp to mark when this file was last modified.
+    :param str fmt: Special format instructions
+    :return str: YYYY-MM-DD format, or specified format
+    """
+    if fmt:
+        time = dt.datetime.now().strftime(fmt)
+    else:
+        time = dt.date.today()
+    return str(time)
+
+
+def clean_doi(doi_string):
+    """
+    Use regex to extract all DOI ids from string (i.e. 10.1029/2005pa001215)
+    :param str doi_string: Raw DOI string value from input file. Often not properly formatted.
+    :return list: DOI ids. May contain 0, 1, or multiple ids.
+    """
+    regex = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*/(?:(?!["&\'<>,])\S)+)\b')
+    try:
+        # Returns a list of matching strings
+        m = re.findall(regex, doi_string)
+    except TypeError as e:
+        # If doi_string is None type, return empty list
+        logger_misc.warn("TypeError cleaning DOI: {}, {}".format(doi_string, e))
+        m = []
+    return m
 
 
 def normalize_name(s):
@@ -102,7 +133,7 @@ def pickle_data(path, d, ans):
     os.chdir(path)
 
     # get a timestamp to append to the filename, to make it unique
-    filename = 'lipd_data_{}.p'.format( dt.datetime.now().strftime('%Y%m%d%H%M%S'))
+    filename = 'lipd_data_{}.p'.format(generate_timestamp('%Y%m%d%H%M%S'))
 
     # Store data (serialize)
     try:

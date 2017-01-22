@@ -1,11 +1,13 @@
-import re
 import urllib.error
 from collections import OrderedDict
+import json
 
 import requests
 
-from ..helpers.jsons import *
+from ..helpers.blanks import EMPTY
+from ..helpers.jsons import remove_empty_fields
 from ..helpers.loggers import create_logger
+from ..helpers.misc import clean_doi
 
 
 logger_doi_resolver = create_logger("doi_resolver")
@@ -42,7 +44,7 @@ class DOIResolver(object):
             if doi_found:
                 logger_doi_resolver.info("doi found: {}".format(doi_string))
                 # Empty list for no match, or list of 1+ matching DOI id strings
-                doi_list = self.clean(doi_string)
+                doi_list = clean_doi(doi_string)
                 if not doi_list:
                     self.illegal_doi(doi_string)
                 else:
@@ -54,22 +56,6 @@ class DOIResolver(object):
         logger_doi_resolver.info("exit doi_resolver")
         return remove_empty_fields(self.root_dict)
 
-    @staticmethod
-    def clean(doi_string):
-        """
-        Use regex to extract all DOI ids from string (i.e. 10.1029/2005pa001215)
-        :param str doi_string: Raw DOI string value from input file. Often not properly formatted.
-        :return list: DOI ids. May contain 0, 1, or multiple ids.
-        """
-        regex = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*/(?:(?!["&\'<>,])\S)+)\b')
-        try:
-            # Returns a list of matching strings
-            m = re.findall(regex, doi_string)
-        except TypeError as e:
-            # If doi_string is None type, return empty list
-            logger_doi_resolver.warn("TypeError cleaning DOI: {}, {}".format(doi_string, e))
-            m = []
-        return m
 
     @staticmethod
     def compile_date(date_parts):

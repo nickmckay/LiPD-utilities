@@ -70,6 +70,10 @@ for d=1:length(fieldnames(D))
                     error([fnames{d} ': No recognized age units'])
                 end
             elseif any(isfield(PMT,'age'))
+                if ~isfield(PMT.age,'units')
+                    PMT.age.units = 'yr BP';%guess
+                end
+                    
                 if ~isempty(strfind(PMT.age.units,'AD'))
                     if ~isfield(PMT,'year')
                         PMT.year=PMT.age;

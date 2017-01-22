@@ -3,13 +3,13 @@ import copy
 from .pkg_resources.lipds.LiPD_Library import *
 from .pkg_resources.timeseries.Convert import *
 from .pkg_resources.timeseries.TimeSeries_Library import *
-from .pkg_resources.doi.doi_main import doi
+from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.excel.excel_main import excel_main
-from .pkg_resources.noaa.noaa_main import noaa
+from .pkg_resources.noaa.noaa_main import noaa_main
 from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
-from .pkg_resources.helpers.directory import get_src_or_dst
+from .pkg_resources.helpers.directory import get_src_or_dst, collect_files
 from .pkg_resources.helpers.loggers import create_logger
 from .pkg_resources.helpers.misc import pickle_data, unpickle_data, split_path_and_file, prompt_protocol
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
@@ -23,10 +23,11 @@ def run():
     :return:
     """
     # GLOBALS
-    global lipd_lib, ts_lib, convert
+    global lipd_lib, ts_lib, convert, files, path
     lipd_lib = LiPD_Library()
     ts_lib = TimeSeries_Library()
     convert = Convert()
+    files = {".txt": [], ".lpd": [], ".xls": []}
     return
 
 
@@ -36,13 +37,15 @@ def setDir():
     (ex. /Path/to/files)
     :param str path: Directory path
     """
-    global path, single_file, logger_start
-    path, single_file = get_src_or_dst("load")
-    lipd_lib.set_dir(path)
+    global cwd, logger_start, files, path
+    cwd, new_files = get_src_or_dst("load")
+    path = cwd
+    files = collect_files(cwd, new_files, files)
+    lipd_lib.set_dir(cwd)
     logger_start = create_logger("start")
-    logger_start.info("Working Directory: {}".format(path))
+    logger_start.info("Working Directory: {}".format(cwd))
     # print("Working Directory: {}".format(path))
-    return path
+    return cwd
 
 
 def loadLipd():
@@ -51,8 +54,8 @@ def loadLipd():
     (ex. loadLiPD NAm-ak000.lpd)
     :param str filename: LiPD filename
     """
-    global single_file
-    lipd_lib.load_lipd(single_file)
+    global files
+    lipd_lib.load_lipd(files)
     print("Process Complete")
     return
 
@@ -61,8 +64,8 @@ def loadLipds():
     """
     Load all LiPD files in the current working directory into the workspace.
     """
-    global single_file
-    lipd_lib.load_lipds(single_file)
+    global files
+    lipd_lib.load_lipds(files)
     print("Process Complete")
     return
 
@@ -76,6 +79,7 @@ def loadPickle():
     Load a pickle file into the workspace
     :return dict: Data loaded from pickle file
     """
+    global cwd
     # Ask where the file is
     _path = browse_dialog_file()
 
@@ -86,7 +90,7 @@ def loadPickle():
     d = unpickle_data(_path, _filename)
 
     # changed dir in unpickle_data, so move back to root
-    os.chdir(path)
+    os.chdir(cwd)
 
     # If this unpickled data reads in as an object, then refresh the global lipd_lib
     if type(d) not in (dict, str, int, float):
@@ -102,10 +106,30 @@ def loadPickle():
 def excel():
     """
     User facing call to the excel function
+    :return none:
+    """
+    global files
+    excel_main(files)
+    return
+
+
+def noaa():
+    """
+    User facing call to noaa function
+    :return none:
+    """
+    global files
+    noaa_main(files)
+    return
+
+
+def doi():
+    """
+    User facing call to doi function
     :return:
     """
-    global single_file
-    excel_main(single_file)
+    global files
+    doi_main(files)
     return
 
 # PUT
@@ -132,7 +156,7 @@ def addEnsemble(filename, ensemble):
             # Set meta into lipd object
             lib[filename].set_metadata(meta)
             # Set the new master data back into the lipd library
-            lipd_lib.set_master(lib)
+            lipd_lib.put_master(lib)
     else:
         print("Error: '{}' file not found in workspace. Please use showLipds() to see available files ".format(filename))
 
@@ -169,6 +193,7 @@ def lipdToDf(filename):
     return dfs
 
 
+# todo this function no longer works. time series objects are not referenced by name. TS is a list of TSOs
 def tsToDf(ts, filename):
     """
     Create Pandas DataFrame from TimeSeries object.
@@ -210,20 +235,22 @@ def filterDfs(expr):
 def extractTs():
     """
     Create a TimeSeries using the current files in LiPD_Library.
-    :return obj: TimeSeries_Library
+    :return list: TimeSeries_Library
     """
-    d = {}
+    l = []
     try:
         # Loop over the LiPD files in the LiPD_Library
         for k, v in lipd_lib.get_master().items():
-            # Get metadata from this LiPD object. Convert. Pass TSO metadata to time series dictionary output.
-            d.update(convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+            # Get metadata from this LiPD object. Convert.
+            # Receive a time series (list of time series objects) and add it to what we currently have.
+            # Continue building time series until all datasets are processed.
+            l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
     except KeyError as e:
         print("Error: Unable to extractTimeSeries")
         logger_start.debug("extractTimeSeries() failed at {}".format(e))
 
     print("Process Complete")
-    return d
+    return l
 
 
 def collapseTs():
@@ -367,6 +394,16 @@ def showDfs(dict_in):
 # GET
 
 
+def getLipdNames():
+    """
+    Get a list of all lipd dataset names in the library
+    :return list:
+    """
+    f_list = []
+    f_list = lipd_lib.get_lipd_names()
+    return f_list
+
+
 def getMetadata(filename):
     """
     Get metadata from LiPD file
@@ -424,7 +461,7 @@ def savePickle():
         lipd_lib.set_dir(tmp)
     else:
         # create a dictionary from lipd_lib
-        d = lipd_lib.lib_to_dict()
+        d = lipd_lib.get_lib_as_dict()
 
     # prompt for where to save the file
     _path = get_src_or_dst("save")
@@ -433,7 +470,7 @@ def savePickle():
     pickle_data(_path, d, ans)
 
     # changed dir in pickle_data, so move back to root
-    os.chdir(path)
+    os.chdir(_path)
     return
 
 
@@ -452,7 +489,11 @@ def saveLipds():
     """
     Save changes made to all LiPD files in the workspace.
     """
+    global files_by_type
     lipd_lib.save_lipds()
+    # Reload the newly saved LiPD files back into the library.
+    print("Re-loading workspace..")
+    lipd_lib.load_lipds(files_by_type)
     print("Process Complete")
     return
 
