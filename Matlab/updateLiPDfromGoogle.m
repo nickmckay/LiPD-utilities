@@ -2,6 +2,9 @@ function L=updateLiPDfromGoogle(L)
 
 checkGoogleTokens
 %what are the metadata worksheetKeys
+if ~isfield(L,'googleSpreadSheetKey')
+   warning([L.dataSetName ' doesnt have a spreadsheet key, skipping...']) 
+else
 wl = getWorksheetList(L.googleSpreadSheetKey,aTokenSpreadsheet);
 wknames = {wl.worksheetTitle}';
 wkKeys = {wl.worksheetKey}';
@@ -28,7 +31,7 @@ if ~isfield(L,'googleSpreadSheetKey')
 end
 
 %make a ts from the lipd file, that we will update
-LTS=renameTS(extractTimeseries(L,1));
+LTS=renameTS(extractTimeseries(L,1),0,1,0);%added 0,1,0
 
 %make a google version of the TS file
 %metadata first
@@ -266,4 +269,5 @@ end
     L=collapseTS(NTS,1);
     
     L = BibtexAuthorString2Cell(L);
+end
 

@@ -131,6 +131,12 @@ for i=1:length(udsn)
         elseif isfield(T,'paleoData_paleoDataTableName')
             pdName=T.paleoData_paleoDataTableName;
             
+        elseif isfield(T,'paleoData_paleoNumber') & isfield(T,'paleoData_paleoMeasurementTableNumber')
+            pdName =['pt' num2str(T.paleoData_paleoNumber) '_'  num2str(T.paleoData_paleoMeasurementTableNumber)] ;
+            TS(fts(f)).paleoData_paleoDataTableName=pdName;
+            T.paleoData_paleoDataTableName=pdName;
+
+
         else
             pdName='s1';
             T.paleoData_paleoDataTableName='s1';

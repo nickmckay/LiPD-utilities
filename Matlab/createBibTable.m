@@ -108,13 +108,54 @@ table5=table5(nPopulated>0,:);
 
 
 
+%data publications
+table6 = {gts.dataSetName}';
+
+for j=1:length(pf)
+    if isfield(gts,['dataPub1_' pf{j}])
+        table6 = [table6 {gts.(['dataPub1_' pf{j}])}'];
+    else
+        table6 = [table6 repmat({''},size(table6,1),1)];
+        
+    end
+end
+for j=1:length(others)
+    table6 = [table6 {gts.([others{j}])}'];
+end
+%append a 5
+table6 = [table6 num2cell(8+ones(length(table6),1))];
+
+%restrict to good records
+nPopulated = sum(~cellfun(@isempty,table6(:,2:(size(table6,2)-2))),2);
+%exclude empties.
+table6=table6(nPopulated>0,:);
+
+%data publications2
+table7 = {gts.dataSetName}';
+
+for j=1:length(pf)
+    if isfield(gts,['dataPub2_' pf{j}])
+        table7 = [table7 {gts.(['dataPub2_' pf{j}])}'];
+    else
+        table7 = [table7 repmat({''},size(table7,1),1)];
+        
+    end
+end
+for j=1:length(others)
+    table7 = [table7 {gts.([others{j}])}'];
+end
+%append a 5
+table7 = [table7 num2cell(8+ones(length(table7),1))];
+
+%restrict to good records
+nPopulated = sum(~cellfun(@isempty,table7(:,2:(size(table7,2)-2))),2);
+%exclude empties.
+table7=table7(nPopulated>0,:);
 
 
 
 
-
-
-table = [table1 ; table2 ; table3 ; table4 ; table5];
+table = [table1 ; table2 ; table3 ; table4 ; table5 ; table6 ; table7];
 
 %apply authorName conversion
 table(:,4) = cellfun(@authorCell2BibtexAuthorString,table(:,4),'UniformOutput',0);
@@ -140,7 +181,7 @@ keyTable = table(uk1,:);
 bigTable = [keyTable ; noKeyTable(b,:)];
 
 
-cell2csv('~/Dropbox/pages2kphase2/bibData0708.txt',bigTable,'|');
+cell2csv('~/Dropbox/pages2kphase2/bibData0112.txt',bigTable,'|');
 
 
 

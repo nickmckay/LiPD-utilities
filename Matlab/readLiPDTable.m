@@ -1,11 +1,13 @@
 function cT=readLiPDTable(cT,dirname)
 
+newMethod = 1;%use read table if possible
+
 %read in csv
         ncol=sum(cellfun(@(x) length(x.number),cT.columns));
         
         %try to read in as numeric data
         %[dirname cT.filename]
-        if ~verLessThan('matlab','8.2')
+        if ~verLessThan('matlab','8.2') & newMethod
             %use readtable! Requires matlab year >= 13b
             if ~strcmpi(cT.filename((end-3):end),'.csv')
                 cT.filename=[cT.filename '.csv'];
@@ -53,26 +55,28 @@ function cT=readLiPDTable(cT,dirname)
         %now assign data to columns
         
         for j=1:length(cT.columns)
-            
-            if iscell(pdTable)
-                cT.columns{j}.values=pdTable(:,cT.columns{j}.number);
-                if iscell(cT.columns{j}.values);
-                    try  cT.columns{j}.values=cell2num(cT.columns{j}.values);
-                    catch DO3
-                        try  cT.columns{j}.values=cell2mat(cT.columns{j}.values);
-                        catch DO4
-                        end
-                        
-                    end
-                end
-                %don't allow conversion to table of char
-                if ischar(cT.columns{j}.values)
+            if cT.columns{j}.number<=size(pdTable,2) %probably improve this in teh future
+                
+                if iscell(pdTable)
                     cT.columns{j}.values=pdTable(:,cT.columns{j}.number);
+                    if iscell(cT.columns{j}.values);
+                        try  cT.columns{j}.values=cell2num(cT.columns{j}.values);
+                        catch DO3
+                            try  cT.columns{j}.values=cell2mat(cT.columns{j}.values);
+                            catch DO4
+                            end
+                            
+                        end
+                    end
+                    %don't allow conversion to table of char
+                    if ischar(cT.columns{j}.values)
+                        cT.columns{j}.values=pdTable(:,cT.columns{j}.number);
+                    end
+                    
+                    
+                else
+                    cT.columns{j}.values=pdTable(:,j);
                 end
-                
-                
-            else
-                cT.columns{j}.values=pdTable(:,j);
             end
         end
         

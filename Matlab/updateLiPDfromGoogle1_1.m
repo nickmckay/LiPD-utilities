@@ -1,116 +1,79 @@
-function L=updateLiPDfromGoogle(L)
+function L=updateLiPDfromGoogle1_1(L)
 
 checkGoogleTokens
 %what are the metadata worksheetKeys
 wl = getWorksheetList(L.googleSpreadSheetKey,aTokenSpreadsheet);
+spreadsheetkey = L.googleSpreadSheetKey;
 wknames = {wl.worksheetTitle}';
 wkKeys = {wl.worksheetKey}';
 
 mki = find(strcmpi('metadata',wknames));
-pdi = find(strncmpi('paleo',wknames,5));
-cdi = find(strncmpi('chron',wknames,5));
+pdi = find(strncmpi('paleodata',wknames,9));
+cdi = find(strncmpi('chrondata',wknames,9));
 
 if length(mki)~=1
     error('There must be one, and only one, metadata worksheet, and it must be named "Metadata"')
 end
 
 if length(pdi)==0
-    error('There must be at least one paleodata worksheet, and it must start with "paleo"')
+    error('There must be at least one paleodata worksheet, and it must start with "Paleodata"')
 end
 
 for i = 1:length(pdi)
     fullName = wknames{pdi(i)};
-    
     dashin =min(strfind(fullName,'-'));
-    numbers=regexp(fullName,'[0-9]');
-    if length(numbers)~=2
-                error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where {x} and {y} are integers')
-    end
     if isempty(dashin)
-        error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where tableName is the type of table')
+        error('the paleodata worksheets must be named "paleoData-tableName", where tableName is whatever name you want')
     end
-    paleoTableNames{i} =  fullName((dashin+1):(end-1));
-    ptn(i,:)=numbers;
+    pdwknames{i} =  fullName((dashin+1):end);
     pdwkkeys{i} =  wkKeys{pdi(i)};
     
 end
 
-for i = 1:length(cdi)
-    fullName = wknames{cdi(i)};
-    
-    dashin =min(strfind(fullName,'-'));
-    numbers=regexp(fullName,'[0-9]');
-    if length(numbers)~=2
-                error('the chrondata worksheets must be named "chron{x}-tableName{y}", where {x} and {y} are integers')
+if length(cdi)>0
+    for i = 1:length(cdi)
+        fullName = wknames{cdi(i)};
+        dashin =min(strfind(fullName,'-'));
+        if isempty(dashin)
+            error('the chrondata worksheets must be named "chronData-tableName", where tableName is whatever name you want')
+        end
+        cdwknames{i} =  fullName((dashin+1):end);
+        cdwkkeys{i} =  wkKeys{cdi(i)};
+        
     end
-    if isempty(dashin)
-        error('the chrondata worksheets must be named "chron{x}-tableName{y}", where tableName is the type of table')
-    end
-    chronTableNames{i} =  fullName((dashin+1):(end-1));
-    ctn(i,:)=numbers;
-    cdwkkeys{i} =  wkKeys{cdi(i)};
-    
 end
 
 
 metadataKey = wkKeys{mki};
 
 
-%make sure it actually has a google file
-
-if ~isfield(L,'googleSpreadSheetKey')
-    error('This dataset does not appear to have a google file')
-end
-
-%make a ts from the lipd file, that we will update
-LTS=renameTS(extractTimeseries(L,1));
 
 %make a google version of the TS file
 %metadata first
-[GTS,GTSC]=getLiPDGoogleMetadata(L.googleSpreadSheetKey,L.googleMetadataWorksheet);
+[GTS,GTSC]=getLiPDGoogleMetadata(spreadsheetkey,metadataKey);
 
-
-
-check to see if the paleodata worksheet keys are stored
+%check to see if the paleodata worksheet keys are stored
 if ~isfield(GTS,'paleoData_googleWorkSheetKey')
     bc = cell(length(GTS),1);
     [GTS.paleoData_googleWorkSheetKey] = bc{:};
 end
 pdgwk={GTS.paleoData_googleWorkSheetKey}';
 if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
-    make sure there are names
-    if ~isfield(GTS,'paleoData_paleoNumber')
-        error('the TS metadata must include the paleoNumber (which paleo object - first number in table name)');
+    %make sure there are names
+    if ~isfield(GTS,'paleoData_paleoDataTableName')
+        error('the TS metadata must include at least paleoDataTableName or googleWorksheetKey')
     end
-    
-    figure out table types
-    gtsnames = fieldnames(GTS);
-    tni=find(~cellfun(@isempty,(strfind(gtsnames,'TableNumber'))));
-    tableType=cell(1,1);
-    for tn=1:length(tni)
-            gg=find(~cellfun(@isempty,{GTS.(gtsnames{tni})}));
-            usi=strfind(gtsnames{tni},'_');
-            tableType(gg,tn)={gtsnames{tni}((usi+6):(end-11))};
-            tableNumber(:,tn)={GTS.(gtsnames{tni})}';
-    end
-    if size(tableType,2)>1
-        if any(sum(~cellfun(@isempty,tableType),2)~=1)
-          error('There must be exactly 1 "tableNumber" entry in each row')  
+    pdtNames = {GTS.paleoData_paleoDataTableName}';
+    ie = find(cellfun(@isempty,pdgwk)); %identify which are missing keys
+    for pie = 1:length(ie)
+        %match the name to the
+        whichPDTsheet = find(strcmp(pdtNames{ie(pie)},pdwknames));
+        if isempty(whichPDTsheet)
+            error(['Cant find a paleoData worksheet named ' pdtNames{ie(pie)}])
+            
         end
-        tableType=tableType(~cellfun(@isempty,tableType));
-    end
-    
-    one=repmat({'paleo'},length(GTS),1);
-    two={GTS.paleoData_paleoNumber}';
-    three=tableType;
-    four=tableNumber;
-    tableName=strcat(one, two, repmat({'-'},length(GTS),1) ,three,repmat({'Table'},length(GTS),1), four);
-    
-    for pie = 1:length(GTS)
-        match the name to the
-        whichPDTsheet = find(strcmp(tableName{pie},wknames));
-        pdgwk{pie}=wkKeys{whichPDTsheet};
-        display(['Infilling worksheet key ' pdgwk{pie} ' for paleoData sheet ' tableName{pie} ])
+        pdgwk{ie(pie)}=pdwkkeys{whichPDTsheet};
+        display(['Infilling worksheet key ' pdgwk{ie(pie)} ' for paleoData sheet ' pdtNames{ie(pie)} ])
     end
     [GTS.paleoData_googleWorkSheetKey] = pdgwk{:};
 end
@@ -149,101 +112,107 @@ end
 %if there's a chronology, grab that too
 if isstruct(GTSC)
     
-%      %check to see if the chrondata worksheet keys are stored
-%     if ~isfield(GTS,'chronData_googleWorkSheetKey')
-%         bc = cell(length(GTSC),1);
-%         [GTSC.chronData_googleWorkSheetKey] = bc{:};
-%     end
-%     cdgwk={GTSC.chronData_googleWorkSheetKey}';
-%     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
-%         %make sure there are names
-%         if ~isfield(GTSC,'chronData_chronName')
-%             error([GTS.dataSetName ': the chron metadata must include at least chronName or googleWorksheetKey'])
-%         end
-%         cdtNames = {GTSC.chronData_chronName}';
-%         ie = find(cellfun(@isempty,cdgwk)); %identify which are missing keys
-%         for pie = 1:length(ie)
-%             %match the name to the
-%             whichCDTsheet = find(strcmp(cdtNames{ie(pie)},cdwknames));
-%             cdgwk{ie(pie)}=cdwkkeys{whichCDTsheet};
-%             display(['Infilling worksheet key ' cdgwk{ie(pie)} ' for chronData sheet ' cdtNames{ie(pie)} ])
-%         end
-%         [GTSC.chronData_googleWorkSheetKey] = cdgwk{:};
-%     end
-%     
-%     
-%     
-%     GTSC=getLiPDGoogleChronData(GTSC);
-%     
-%     %collapse the chron TS
-%     CD=collapseTSChron(GTSC);
-%          CD=rmfieldsoft(CD,'LiPDVersion');
-% 
-%     %CD should only inlcude one file... if it doesn't then thats a problem.
-%     cnames=fieldnames(CD);
-%     if length(cnames)>1
-%         error('there shouldnt be multiple "chronData" ithin one dataset')
-%     end
-%     
-%     %assign the chron structure. %Now operating for version 1.1
-%     for cm = 1:length(cnames)
-%         chronData=CD.chronData;
-%         
-%     end
+    %check to see if the chrondata worksheet keys are stored
+    if ~isfield(GTS,'chronData_googleWorkSheetKey')
+        bc = cell(length(GTSC),1);
+        [GTSC.chronData_googleWorkSheetKey] = bc{:};
+    end
+    cdgwk={GTSC.chronData_googleWorkSheetKey}';
+    if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
+        %make sure there are names
+        if ~isfield(GTSC,'chronData_chronName')
+            if isfield(GTSC,'chronData_chronDataTableName')
+                [GTSC.chronData_chronName]=GTSC.chronData_chronDataTableName;
+            else
+                
+                error([GTS.dataSetName ': the chron metadata must include at least chronName or googleWorksheetKey'])
+            end
+        end
+        cdtNames = {GTSC.chronData_chronName}';
+        ie = find(cellfun(@isempty,cdgwk)); %identify which are missing keys
+        for pie = 1:length(ie)
+            %match the name to the
+            whichCDTsheet = find(strcmp(cdtNames{ie(pie)},cdwknames));
+            if isempty(whichCDTsheet)
+                error(['Cant find a chronology worksheet named ' cdtNames{ie(pie)}])
+                
+            end
+            cdgwk{ie(pie)}=cdwkkeys{whichCDTsheet};
+            display(['Infilling worksheet key ' cdgwk{ie(pie)} ' for chronData sheet ' cdtNames{ie(pie)} ])
+        end
+        [GTSC.chronData_googleWorkSheetKey] = cdgwk{:};
+    end
+    
+    
+    GTSC=getLiPDGoogleChronData(GTSC);
+    
+    %collapse the chron TS
+    CD=collapseTSChron(GTSC);
+    CD=rmfieldsoft(CD,'LiPDVersion');
+    %CD should only inlcude one file... if it doesn't then thats a problem.
+    cnames=fieldnames(CD);
+    
+    
+    if length(cnames)>1
+        error('there shouldnt be multiple dataset Names within one dataset')
+    end
+    
+    %assign the chron structure.
+    chronData=CD.chronData;
     
 end
-    %new structure
-    %start with the old one
-    NTS=LTS;
-    
-    %are there any fields that are new?
-    newFields=setdiff(fieldnames(GTS),fieldnames(LTS));
-    
-    if length(newFields)>0
-        bc=repmat({''},length(NTS),1);
-        %then you have to deal with new fields...
-        for n=1:length(newFields)
-            [NTS.(newFields{n})]=bc{:};
-        end
-    end
-    
-    %are there more TSs?
-    if length(NTS)<length(GTS) %yep
-        Ln=length(NTS);
-        %then replicate some of them
-        while length(NTS)<length(GTS)
-            NTS(Ln+1)=NTS(Ln);
-            Ln=Ln+1;
-        end
-    end
-    
-    %are there less TSs?
-    if length(NTS)>length(GTS) %yep
-        %then truncate some of them
-        NTS=NTS(1:length(GTS));
-    end
-    
-    %now go through all the fields and replace with google if they changed
-    anyChanges=0;
-    gnames=fieldnames(GTS);
-    for g=1:length(gnames)
-        O={NTS.(gnames{g})}';
-        N={GTS.(gnames{g})}';
-        if ~isequal(O,N)%check to see if it changed,
-            anyChanges=1;
-            display(['updating ' (gnames{g})])
-            [NTS.(gnames{g})]=N{:};
-        end
-    end
-    
-    if isstruct(GTSC)
-        for tl=1:length(NTS)
-            NTS(tl).chronData=chronData;
-        end
-    end
-    
-    
-    L=collapseTS(NTS,1);
-    
-    L = BibtexAuthorString2Cell(L);
+%new structure
+%start with the old one
+LTS = extractTimeseries(L);
+NTS=LTS;
 
+%are there any fields that are new?
+newFields=setdiff(fieldnames(GTS),fieldnames(LTS));
+
+if length(newFields)>0
+    bc=repmat({''},length(NTS),1);
+    %then you have to deal with new fields...
+    for n=1:length(newFields)
+        [NTS.(newFields{n})]=bc{:};
+    end
+end
+
+%are there more TSs?
+if length(NTS)<length(GTS) %yep
+    Ln=length(NTS);
+    %then replicate some of them
+    while length(NTS)<length(GTS)
+        NTS(Ln+1)=NTS(Ln);
+        Ln=Ln+1;
+    end
+end
+
+%are there less TSs?
+if length(NTS)>length(GTS) %yep
+    %then truncate some of them
+NTS=NTS(1:length(GTS));
+end
+
+%now go through all the fields and replace with google if they changed
+anyChanges=0;
+gnames=fieldnames(GTS);
+for g=1:length(gnames)
+    O={NTS.(gnames{g})}';
+    N={GTS.(gnames{g})}';
+    if ~isequal(O,N)%check to see if it changed,
+        anyChanges=1;
+        display(['updating ' (gnames{g})])
+       [NTS.(gnames{g})]=N{:};
+    end
+end
+
+if isstruct(GTSC)
+    for tl=1:length(GTS)
+        NTS(tl).chronData=chronData;
+    end
+end
+
+
+L=collapseTS(NTS,1);
+
+L = BibtexAuthorString2Cell(L);
