@@ -9,7 +9,7 @@
 %
 % WHO/WHEN started Dec 5 2014 by Julien Emile-Geay (USC)
 %Adapted for LiPD Utilities by Nick McKay (NAU)
-
+inset = 0;
 % process options
 if nargin < 2
     options.export = 0;
@@ -40,7 +40,7 @@ emptyYearMax = find(cellfun(@isempty,yearMax));
 yearMax(emptyYearMax)=repmat({NaN},length(emptyYearMax),1);
 yearMax=cell2mat(yearMax);
 
-vers=0.1;
+vers='0.1';
 
 p_lon=cell2mat({TS.geo_meanLon}');
 p_lat=cell2mat({TS.geo_meanLat}');
@@ -57,17 +57,24 @@ p_lat=cell2mat({TS.geo_meanLat}');
 %archive(cellfun(@isempty,archive))={'n/a'};
 % Graphical Attributes of each proxy type
 archiveType = unique(lower(archive)); na = length(archiveType);
-Graph{1,1}=rgb('Gold');        Graph{1,2}= 'h'; % bivalve
-Graph{2,1}=rgb('DarkKhaki');   Graph{2,2}= 'h'; % borehole
-Graph{3,1}=rgb('DarkOrange');  Graph{3,2}= 'o'; % coral
-Graph{4,1}=rgb('Black');       Graph{4,2}= 'p'; % documents
-Graph{5,1}=rgb('LightSkyBlue');Graph{5,2}= 'd'; % glacier ice
-Graph{6,1}=rgb('DeepSkyBlue'); Graph{6,2}= '*'; % hybrid
-Graph{7,1}=rgb('RoyalBlue');   Graph{7,2}= 's'; % lake sediment
-Graph{8,1}=rgb('SaddleBrown'); Graph{8,2}= 's'; % marine sediment
-Graph{9,1}=rgb('Red');         Graph{9,2}= 'o'; % sclerosponge
-Graph{10,1}=rgb('DeepPink');   Graph{10,2}= 'd'; % speleothem
-Graph{11,1}=rgb('LimeGreen');  Graph{11,2}= '^'; %'tree'
+
+Graph{1,1}=rgb('DarkOrange');  Graph{1,2}= 'o'; 
+Graph{2,1}=rgb('LightSkyBlue');Graph{2,2}= 'd';
+Graph{3,1}=rgb('SaddleBrown'); Graph{3,2}= 's'; 
+Graph{4,1}=rgb('Red');         Graph{4,2}= 'o'; 
+Graph{5,1}=rgb('RoyalBlue');   Graph{5,2}= 's'; 
+Graph{6,1}=rgb('Black');       Graph{6,2}= 'p'; 
+Graph{7,1}=rgb('DarkKhaki');   Graph{7,2}= 'h'; 
+Graph{8,1}=rgb('DeepSkyBlue'); Graph{8,2}= '*'; 
+Graph{9,1}=rgb('Gold');        Graph{9,2}= 'h';
+Graph{10,1}=rgb('DeepPink');   Graph{10,2}= 'd';
+Graph{11,1}=rgb('LimeGreen');  Graph{11,2}= '^'; 
+
+if na>size(Graph,1)
+    error('More than 11 archive types. Beyond current functionality')
+end
+Graph=Graph(1:na,:);
+
 
 %%
 % DEFINE TIME AXIS AND AVAILABILITY
@@ -86,8 +93,9 @@ end
 % define edge color (black except for hybrids)
 edgec = cell(nr,1);
 edgec(1:nr) = {'none'};%{rgb('Black')};
+if na>=6
 edgec(p_code == 6) = {Graph{6,1}};
-
+end
 
 nproxy = zeros(ny,na); pind = zeros(na,1);
 for a = 1:na % loop over archive types
@@ -117,7 +125,7 @@ m_grid('xtick',6,'ytick',9,'xticklabel',[ ],'xlabeldir','middle', 'fontsize',4,'
 for r = 1:nr
     h(r) = m_line(p_lon(r),p_lat(r),'marker',Graph{p_code(r),2},'MarkerEdgeColor',edgec{r},'MarkerFaceColor',Graph{p_code(r),1},'linewidth',[1],'MarkerSize',[7],'linestyle','none');
 end
-text(-2,1.75,['PAGES2k network version ' versl ' (',int2str(nr) , ' records from ', int2str(ns), ' sites)'],style_t{:});
+text(-2,1.75,['Iso2k network version ' versl ' (',int2str(nr) , ' records from ', int2str(ns), ' sites)'],style_t{:});
 % legend
 hl = legend(h(pind),leg_lbl,'location',[.84 .6 .1 .2],style_l{:});
 set(hl, 'FontName', FontName,'box','off');
@@ -130,6 +138,7 @@ xlim([1 2000])
 fancyplot_deco('','Year (CE)','# proxies',14,'Helvetica');
 title('Temporal Availability',style_t{:})
 % inset
+if inset
 frac=.5;
 hstackin=axes('Position', [0.1 0.2 frac*.8 0.14]);
 area(year,nproxy,'EdgeColor','w')
@@ -138,11 +147,11 @@ set(hstackin,'xtick',[],'box','off','TickDir','out','TickLength',[.02 .02],'YMin
 set(hstackin,'YAxisLocation','Right')
 set(hstackin,'FontName',FontName,'YColor', [.3 .3 .3])
 title('First Millennium',style_l{:})
-
+end
 %pause; % manually adjust the size of the figure
 if options.export
    %figpath = [strrep(userpath,':','/') 'tempfigs/'];
-   fname = ['PAGES2k_' vers '_spacetime.pdf'];
+   fname = ['Iso2k_' vers '_spacetime.pdf'];
    export_fig([figpath fname],'-r200','-cmyk','-painters');
    %hepta_figprint(['../../figs/synopsis/PAGES2K_phase2_' vers '_spacetime']);
    %saveFigure([figpath fname '_saveFigure.pdf']); %'painters', true

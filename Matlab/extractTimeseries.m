@@ -183,6 +183,20 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                             ageFlag=0;
                             depthFlag=0;
                             l4structs=structFieldNames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}));
+                            %look for near matches to year, age and depth
+                            gnames={'year','age','depth'};
+                            for gn=1:length(gnames)
+                               goodColName=gnames{gn};
+                               shortmatches = find(strncmpi(goodColName,l4structs,length(goodColName)));
+                               if length(shortmatches)==1 & ~strcmpi(l4structs{shortmatches},goodColName);
+                                   D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName)=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{shortmatches});
+                                   D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName).variableName=goodColName;
+                                   D.(dnames{d}).(ppnames{pp}).(l3names{l3})=rmfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}),l4structs{shortmatches});
+                                   l4structs=structFieldNames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}));
+                               end
+                            end
+                            
+                            
                             l4nonStructs=setdiff(fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3})),l4structs);
                             %go through the nonStructs and write them in
                             for l4n=1:length(l4nonStructs)
@@ -248,7 +262,7 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                 
                             elseif ~depthFlag
                                 display(l4structs)
-                                warning([dnames{d} ': ' l3names{l3} ': there dont appear to be any year or age columns. Skipping..'])
+                                warning([dnames{d} ': ' l3names{l3} ': there dont appear to be any year, age, or depth columns. Skipping..'])
                                 continue
                                 
                             end

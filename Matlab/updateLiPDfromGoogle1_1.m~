@@ -135,12 +135,9 @@ if isstruct(GTSC)
             whichCDTsheet = find(strcmp(cdtNames{ie(pie)},cdwknames));
             
             if isempty(whichCDTsheet)
-                if length(cdwknames)==1
-                    warning(['Cant find a chronology worksheet named ' cdtNames{ie(pie)} '; but guessing that it is ' cdwknames{1}])
-                    whichCDTsheet=1;
-                else
+                if length
                 error(['Cant find a chronology worksheet named ' cdtNames{ie(pie)}])
-                end
+                
             end
             cdgwk{ie(pie)}=cdwkkeys{whichCDTsheet};
             display(['Infilling worksheet key ' cdgwk{ie(pie)} ' for chronData sheet ' cdtNames{ie(pie)} ])
