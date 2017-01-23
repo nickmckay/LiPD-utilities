@@ -69,9 +69,20 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
         %match the name to the
         whichPDTsheet = find(strcmp(pdtNames{ie(pie)},pdwknames));
         if isempty(whichPDTsheet)
-            error(['Cant find a paleoData worksheet named ' pdtNames{ie(pie)}])
-            
+                if length(pdwknames)==1
+                    warning(['Cant find a paleodata worksheet named ' pdtNames{ie(pie)} '; but guessing that it is ' pdwknames{1}])
+                    whichPDTsheet=1;
+                else
+                error(['Cant find a paleodata worksheet named ' pdtNames{ie(pie)}])
+                end            
         end
+        
+  
+        
+        
+        
+        
+        
         pdgwk{ie(pie)}=pdwkkeys{whichPDTsheet};
         display(['Infilling worksheet key ' pdgwk{ie(pie)} ' for paleoData sheet ' pdtNames{ie(pie)} ])
     end
