@@ -54,13 +54,21 @@ metadataKey = wkKeys{mki};
 
 %check to see if the paleodata worksheet keys are stored
 if ~isfield(GTS,'paleoData_googleWorkSheetKey')
-    bc = cell(length(GTS),1);
-    [GTS.paleoData_googleWorkSheetKey] = bc{:};
+    if ~isfield(GTS,'paleoData_paleoDataTableName')
+        if length(pdwkkeys)==1
+            repcells = repmat({pdwkkeys{1}},length(GTS),1);
+            [GTS.paleoData_googleWorkSheetKey] = repcells{:};
+        else
+            bc = cell(length(GTS),1);
+            [GTS.paleoData_googleWorkSheetKey] = bc{:};
+        end
+    end
 end
 pdgwk={GTS.paleoData_googleWorkSheetKey}';
 if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
     %make sure there are names
     if ~isfield(GTS,'paleoData_paleoDataTableName')
+        
         error('the TS metadata must include at least paleoDataTableName or googleWorksheetKey')
     end
     pdtNames = {GTS.paleoData_paleoDataTableName}';
@@ -69,15 +77,15 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
         %match the name to the
         whichPDTsheet = find(strcmp(pdtNames{ie(pie)},pdwknames));
         if isempty(whichPDTsheet)
-                if length(pdwknames)==1
-                    warning(['Cant find a paleodata worksheet named ' pdtNames{ie(pie)} '; but guessing that it is ' pdwknames{1}])
-                    whichPDTsheet=1;
-                else
+            if length(pdwknames)==1
+                warning(['Cant find a paleodata worksheet named ' pdtNames{ie(pie)} '; but guessing that it is ' pdwknames{1}])
+                whichPDTsheet=1;
+            else
                 error(['Cant find a paleodata worksheet named ' pdtNames{ie(pie)}])
-                end            
+            end
         end
         
-  
+        
         
         
         
@@ -124,10 +132,23 @@ end
 if isstruct(GTSC)
     
     %check to see if the chrondata worksheet keys are stored
-    if ~isfield(GTS,'chronData_googleWorkSheetKey')
-        bc = cell(length(GTSC),1);
-        [GTSC.chronData_googleWorkSheetKey] = bc{:};
+    if ~isfield(GTSC,'chronData_googleWorkSheetKey')
+        if length(cdwkkeys)==1
+            repcells = repmat({cdwkkeys{1}},length(GTSC),1);
+            [GTSC.chronData_googleWorkSheetKey] = repcells{:};
+        else
+            
+            bc = cell(length(GTSC),1);
+            [GTSC.chronData_googleWorkSheetKey] = bc{:};
+        end
     end
+    
+    
+    
+    
+    
+    
+    
     cdgwk={GTSC.chronData_googleWorkSheetKey}';
     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
         %make sure there are names
@@ -150,7 +171,7 @@ if isstruct(GTSC)
                     warning(['Cant find a chronology worksheet named ' cdtNames{ie(pie)} '; but guessing that it is ' cdwknames{1}])
                     whichCDTsheet=1;
                 else
-                error(['Cant find a chronology worksheet named ' cdtNames{ie(pie)}])
+                    error(['Cant find a chronology worksheet named ' cdtNames{ie(pie)}])
                 end
             end
             cdgwk{ie(pie)}=cdwkkeys{whichCDTsheet};
@@ -206,7 +227,7 @@ end
 %are there less TSs?
 if length(NTS)>length(GTS) %yep
     %then truncate some of them
-NTS=NTS(1:length(GTS));
+    NTS=NTS(1:length(GTS));
 end
 
 %now go through all the fields and replace with google if they changed
@@ -218,7 +239,7 @@ for g=1:length(gnames)
     if ~isequal(O,N)%check to see if it changed,
         anyChanges=1;
         display(['updating ' (gnames{g})])
-       [NTS.(gnames{g})]=N{:};
+        [NTS.(gnames{g})]=N{:};
     end
 end
 
