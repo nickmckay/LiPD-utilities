@@ -11,7 +11,7 @@ end
 
 %create a LiPD object for every unique dataSetName
 udsn=unique({TS.dataSetName}');
-        handle = waitbar(0,'Collapsing timeseries...');
+handle = waitbar(0,'Collapsing timeseries...');
 
 for i=1:length(udsn)
     
@@ -70,6 +70,7 @@ for i=1:length(udsn)
         
         
         %pub
+        clear pubNum %so that we don't get a bajillion dataPubs
         if f==1
             Dnew.(makeValidName(udsn{i})).pub=cell(1,1); %assign cell to pub
         end
@@ -80,8 +81,16 @@ for i=1:length(udsn)
             if isempty(pubNum)
                 pubNum=1;
             end
-            Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
-                T.(fT{p(pin)});
+            %don't overwrite what you've already written
+            if length(Dnew.(makeValidName(udsn{i})).pub) < pubNum % if this is a new publication
+               %write it
+                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
+                    T.(fT{p(pin)});
+            elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end))
+                %write it
+                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
+                    T.(fT{p(pin)});
+            end
         end
         
         %assign in something in case there's no other publications
@@ -96,7 +105,14 @@ for i=1:length(udsn)
         for dpin=1:length(dp)
             pubVarName=fT{dp(dpin)};
             pubNum=lastPub+str2num(pubVarName(8:(strfind(pubVarName,'_')-1)));
-            Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+            %don't overwrite what you've already written
+            if length(Dnew.(makeValidName(udsn{i})).pub) < pubNum % if this is a new publication
+                %write it
+                                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+            elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end)) %it's a new variable 
+                %write it
+                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+            end
         end
         
         
@@ -135,8 +151,8 @@ for i=1:length(udsn)
             pdName =['pt' num2str(T.paleoData_paleoNumber) '_'  num2str(T.paleoData_paleoMeasurementTableNumber)] ;
             TS(fts(f)).paleoData_paleoDataTableName=pdName;
             T.paleoData_paleoDataTableName=pdName;
-
-
+            
+            
         else
             pdName='s1';
             T.paleoData_paleoDataTableName='s1';
@@ -163,29 +179,29 @@ for i=1:length(udsn)
         end
         
         
-%which variables should be at the measurement table level?
-amt = {'paleoDataTableName','paleoMeasurementTableName',...
-'number','paleoNumber',...
-'paleoMeasurementTableNumber','paleoDataMD5',...
-'googleWorkSheetKey'};
-
-for am =1:length(amt)
-        if any(strcmp(['paleoData_' amt{am}],fT))
-            Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(amt{am})=T.(['paleoData_' amt{am}]);
-            pd=setdiff(pd,find(strcmp(fT,['paleoData_' amt{am}])));
+        %which variables should be at the measurement table level?
+        amt = {'paleoDataTableName','paleoMeasurementTableName',...
+            'number','paleoNumber',...
+            'paleoMeasurementTableNumber','paleoDataMD5',...
+            'googleWorkSheetKey'};
+        
+        for am =1:length(amt)
+            if any(strcmp(['paleoData_' amt{am}],fT))
+                Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(amt{am})=T.(['paleoData_' amt{am}]);
+                pd=setdiff(pd,find(strcmp(fT,['paleoData_' amt{am}])));
+            end
+            
         end
-
-end
-
-
+        
+        
         %assign in paleoData Table Name
         
         Dnew.(makeValidName(udsn{i})).paleoData.(pdName).paleoDataTableName=pdName;
         
-          
-  
-
-
+        
+        
+        
+        
         
         
         %get variablename name
@@ -253,7 +269,7 @@ end
                 if length(T.depth) == length(T.paleoData_values)
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.values=T.depth;
                     if isfield(T,'depthUnits')
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.units=T.depthUnits;
+                        Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.units=T.depthUnits;
                     end
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.description='depth';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.variableName='depth';
@@ -348,18 +364,18 @@ end
         end
         
     end
-
-%remove empty pub cells    
+    
+    %remove empty pub cells
     Dnew.(makeValidName(udsn{i}))=removeEmptyPub(Dnew.(makeValidName(udsn{i})));
     %force convert to new structure
     if isfield(Dnew.(makeValidName(udsn{i})),'chronData')
         if isstruct(Dnew.(makeValidName(udsn{i})).chronData)
             Dnew.(makeValidName(udsn{i}))=convertLiPD1_0to1_1(Dnew.(makeValidName(udsn{i})),1);
         end
-    end      
+    end
     Dnew.(makeValidName(udsn{i}))=convertLiPD1_1to1_2(Dnew.(makeValidName(udsn{i})),1);
-
-
+    
+    
     
     
 end

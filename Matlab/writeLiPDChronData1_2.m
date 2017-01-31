@@ -31,7 +31,7 @@ if isfield(LiPDStruct,'chronData')
                 if ~isfield(DT,'chronMeasurementTableName')
                     DT.chronMeasurementTableName=['measurementTable' num2str(cmt)];
                 end
-                if length(colnames)<2
+                if length(colnames)<1
                     warning('There don''t seem to be enough columns in this data table')
                 end
                 clear outTable
@@ -39,7 +39,11 @@ if isfield(LiPDStruct,'chronData')
                 for c=1:length(colnames)
                     if isstruct(DT.(colnames{c})) %ignore non structure components
                         if ~isfield(DT.(colnames{c}),'values')
+                            if exist('warnings')
                             warnings=[warnings {warning('No values field in structure, this shouldn''t be')}];
+                            else
+                                warnings=warning('No values field in structure, this shouldn''t be');
+                            end
                         else
                             DT.(colnames{c}).variableName=colnames{c};
                             cN=cN+1;
@@ -84,9 +88,9 @@ if isfield(LiPDStruct,'chronData')
                 
                 NLS{cmt}=DT;
             end
-            
+                    LiPDStruct.chronData{chr}.chronMeasurementTable=NLS;
+
         end
-        LiPDStruct.chronData{chr}.chronMeasurementTable=NLS;
         %%%%% END - CHRON MEASUREMENT TABLE
         
         %%%%% Start - CHRON MODEL
@@ -101,7 +105,7 @@ if isfield(LiPDStruct,'chronData')
                     colnames=structFieldNames(DT);
                     
                     
-                    if length(colnames)<2
+                    if length(colnames)<1
                         error('There don''t seem to be enough columns in this data table')
                     end
                     clear outTable
@@ -159,7 +163,7 @@ if isfield(LiPDStruct,'chronData')
                 if isfield(LiPDStruct.chronData{chr}.chronModel{cm},'ensembleTable')
                     DT=LiPDStruct.chronData{chr}.chronModel{cm}.ensembleTable;
                     colnames=structFieldNames(DT);
-                    if length(colnames)<2
+                    if length(colnames)<1
                         error('There don''t seem to be enough columns in this data table')
                     end
                     clear outTable
@@ -211,7 +215,7 @@ if isfield(LiPDStruct,'chronData')
                         
                         %I don't think it needs a name anymore
                         %DT.chronTableName=mnames{m};
-                        if length(colnames)<2
+                        if length(colnames)<1
                             error('There don''t seem to be enough columns in this data table')
                         end
                         clear outTable

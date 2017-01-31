@@ -24,6 +24,9 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
     
     %change for 1.2: pull all paleoMeasurmentTables to front. Name/Number
     %appropriately.
+    if ~isfield(D.(dnames{d}),'paleoData')
+        error([dnames{d} ' has no paleoData'])
+    end
     for pd=1:length(D.(dnames{d}).paleoData)
         PD=D.(dnames{d}).paleoData{pd};
         for pds= 1:length(PD)
@@ -186,14 +189,14 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                             %look for near matches to year, age and depth
                             gnames={'year','age','depth'};
                             for gn=1:length(gnames)
-                               goodColName=gnames{gn};
-                               shortmatches = find(strncmpi(goodColName,l4structs,length(goodColName)));
-                               if length(shortmatches)==1 & ~strcmpi(l4structs{shortmatches},goodColName);
-                                   D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName)=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{shortmatches});
-                                   D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName).variableName=goodColName;
-                                   D.(dnames{d}).(ppnames{pp}).(l3names{l3})=rmfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}),l4structs{shortmatches});
-                                   l4structs=structFieldNames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}));
-                               end
+                                goodColName=gnames{gn};
+                                shortmatches = find(strncmpi(goodColName,l4structs,length(goodColName)));
+                                if length(shortmatches)==1 & ~strcmpi(l4structs{shortmatches},goodColName);
+                                    D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName)=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{shortmatches});
+                                    D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName).variableName=goodColName;
+                                    D.(dnames{d}).(ppnames{pp}).(l3names{l3})=rmfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}),l4structs{shortmatches});
+                                    l4structs=structFieldNames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}));
+                                end
                             end
                             
                             

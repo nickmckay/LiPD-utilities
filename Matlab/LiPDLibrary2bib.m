@@ -28,4 +28,4 @@ keys = keys(good);
 %change @dataCitation to @misc
 allBib = cellfun(@(x) strrep(x,'@dataCitation','@online'),allBib,'UniformOutput',0);
 
-writeCell2Bib(allBib);
+%writeCell2Bib(allBib);

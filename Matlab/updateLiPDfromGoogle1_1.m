@@ -62,6 +62,9 @@ if ~isfield(GTS,'paleoData_googleWorkSheetKey')
             bc = cell(length(GTS),1);
             [GTS.paleoData_googleWorkSheetKey] = bc{:};
         end
+    else
+         bc = cell(length(GTS),1);
+            [GTS.paleoData_googleWorkSheetKey] = bc{:};
     end
 end
 pdgwk={GTS.paleoData_googleWorkSheetKey}';
@@ -84,12 +87,7 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
                 error(['Cant find a paleodata worksheet named ' pdtNames{ie(pie)}])
             end
         end
-        
-        
-        
-        
-        
-        
+      
         
         pdgwk{ie(pie)}=pdwkkeys{whichPDTsheet};
         display(['Infilling worksheet key ' pdgwk{ie(pie)} ' for paleoData sheet ' pdtNames{ie(pie)} ])
@@ -133,22 +131,26 @@ if isstruct(GTSC)
     
     %check to see if the chrondata worksheet keys are stored
     if ~isfield(GTSC,'chronData_googleWorkSheetKey')
-        if length(cdwkkeys)==1
-            repcells = repmat({cdwkkeys{1}},length(GTSC),1);
-            [GTSC.chronData_googleWorkSheetKey] = repcells{:};
-        else
+        if ~isfield(GTSC,'chronData_chronDataTableName')
             
+            if length(cdwkkeys)==1
+                repcells = repmat({cdwkkeys{1}},length(GTSC),1);
+                [GTSC.chronData_googleWorkSheetKey] = repcells{:};
+            else
+                
+                bc = cell(length(GTSC),1);
+                [GTSC.chronData_googleWorkSheetKey] = bc{:};
+            end
+        else
             bc = cell(length(GTSC),1);
             [GTSC.chronData_googleWorkSheetKey] = bc{:};
         end
+        
     end
     
     
     
-    
-    
-    
-    
+     
     cdgwk={GTSC.chronData_googleWorkSheetKey}';
     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
         %make sure there are names

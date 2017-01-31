@@ -20,6 +20,17 @@ end
 
 %read the csv file
 bacIn = readtable(filename);
+fnames = fieldnames(bacIn);
+
+
+%convert cells to double if necessary
+for f=2:length(fnames)
+    if iscell(bacIn.(fnames{f}))
+        bacIn.(fnames{f}) = cell2num(bacIn.(fnames{f}));
+    end
+end
+
+
 
 %separate 14c from calibrated ages
 c14In = find(bacIn.cc>0);

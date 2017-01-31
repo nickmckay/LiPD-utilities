@@ -14,7 +14,7 @@ for j=1:length(pf)
     if isfield(gts, ['pub1_' pf{j}]);
         table1 = [table1 {gts.(['pub1_' pf{j}])}'];
     else
-        table1 = [table1 repmat({''},size(table1,1),1)];
+        table1 = [table1 bc];
 
     end
 end
@@ -24,21 +24,21 @@ for j=1:length(others)
 end
 
 %append a 1
-table1 = [table1 num2cell(ones(size(table1,1),1))];
+table1 = [table1 num2cell(ones(length(table1),1))];
 
 table2 = {gts.dataSetName}';
 for j=1:length(pf)
     if isfield(gts, ['pub2_' pf{j}]);       
         table2 = [table2 {gts.(['pub2_' pf{j}])}'];
         else
-        table2 = [table2 repmat({''},size(table2,1),1)];
+        table2 = [table1 bc];
     end
 end
 for j=1:length(others)
     table2 = [table2 {gts.([others{j}])}'];
 end
 %append a 2
-table2 = [table2 num2cell(1+ones(size(table2,1),1))];
+table2 = [table2 num2cell(1+ones(length(table2),1))];
 
 %restrict to good records
 nPopulated = sum(~cellfun(@isempty,table2(:,2:(size(table2,2)-2))),2);
@@ -60,7 +60,7 @@ for j=1:length(others)
     table3 = [table3 {gts.([others{j}])}'];
 end
 %append a 3
-table3 = [table3 num2cell(2+ones(size(table3,1),1))];
+table3 = [table3 num2cell(2+ones(length(table3),1))];
 
 %restrict to good records
 nPopulated = sum(~cellfun(@isempty,table3(:,2:(size(table3,2)-2))),2);
@@ -84,7 +84,7 @@ for j=1:length(others)
     table4 = [table4 {gts.([others{j}])}'];
 end
 %append a 4
-table4 = [table4 num2cell(3+ones(size(table4,1),1))];
+table4 = [table4 num2cell(3+ones(length(table4),1))];
 
 
 %restrict to good records
@@ -109,7 +109,7 @@ for j=1:length(others)
     table5 = [table5 {gts.([others{j}])}'];
 end
 %append a 5
-table5 = [table5 num2cell(4+ones(size(table5,1),1))];
+table5 = [table5 num2cell(4+ones(length(table5),1))];
 
 %restrict to good records
 nPopulated = sum(~cellfun(@isempty,table5(:,2:(size(table5,2)-2))),2);
@@ -133,7 +133,7 @@ for j=1:length(others)
     table6 = [table6 {gts.([others{j}])}'];
 end
 %append a 5
-table6 = [table6 num2cell(8+ones(size(table6,1),1))];
+table6 = [table6 num2cell(8+ones(length(table6),1))];
 
 %restrict to good records
 nPopulated = sum(~cellfun(@isempty,table6(:,2:(size(table6,2)-2))),2);
@@ -155,7 +155,7 @@ for j=1:length(others)
     table7 = [table7 {gts.([others{j}])}'];
 end
 %append a 5
-table7 = [table7 num2cell(8+ones(size(table7,1),1))];
+table7 = [table7 num2cell(8+ones(length(table7),1))];
 
 %restrict to good records
 nPopulated = sum(~cellfun(@isempty,table7(:,2:(size(table7,2)-2))),2);
@@ -170,7 +170,7 @@ table = [table1 ; table2 ; table3 ; table4 ; table5 ; table6 ; table7];
 %apply authorName conversion
 table(:,4) = cellfun(@authorCell2BibtexAuthorString,table(:,4),'UniformOutput',0);
 
-for i = 1:size(table,1)
+for i = 1:length(table)
     if ischar(table{i,2})
         table{i,2} = unicode2alpha(table{i,2});
     end

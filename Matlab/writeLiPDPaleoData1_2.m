@@ -31,7 +31,7 @@ if isfield(LiPDStruct,'paleoData')
                 if ~isfield(DT,'paleoMeasurementTableName')
                     DT.paleoMeasurementTableName=['measurementTable' num2str(cmt)];
                 end
-                if length(colnames)<2
+                if length(colnames)<1
                     error('There don''t seem to be enough columns in this data table')
                 end
                 clear outTable
@@ -101,7 +101,7 @@ if isfield(LiPDStruct,'paleoData')
                     colnames=structFieldNames(DT);
                     
                     
-                    if length(colnames)<2
+                    if length(colnames)<1
                         error('There don''t seem to be enough columns in this data table')
                     end
                     clear outTable
@@ -159,7 +159,7 @@ if isfield(LiPDStruct,'paleoData')
                 if isfield(LiPDStruct.paleoData{chr}.paleoModel{cm},'ensembleTable')
                     DT=LiPDStruct.paleoData{chr}.paleoModel{cm}.ensembleTable;
                     colnames=structFieldNames(DT);
-                    if length(colnames)<2
+                    if length(colnames)<1
                         error('There don''t seem to be enough columns in this data table')
                     end
                     clear outTable
@@ -211,7 +211,7 @@ if isfield(LiPDStruct,'paleoData')
                         
                         %I don't think it needs a name anymore
                         %DT.paleoTableName=mnames{m};
-                        if length(colnames)<2
+                        if length(colnames)<1
                             error('There don''t seem to be enough columns in this data table')
                         end
                         clear outTable

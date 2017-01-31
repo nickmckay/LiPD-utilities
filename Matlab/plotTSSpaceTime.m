@@ -11,9 +11,9 @@
 %Adapted for LiPD Utilities by Nick McKay (NAU)
 inset = 0;
 % process options
-if nargin < 2
-    options.export = 0;
-end
+% if nargin < 2
+%     options.export = 0;
+% end
 year = [];
 % load data and packages
 %addpath(genpath('../utilities'));
@@ -151,8 +151,9 @@ end
 %pause; % manually adjust the size of the figure
 if options.export
    %figpath = [strrep(userpath,':','/') 'tempfigs/'];
-   fname = ['Iso2k_' vers '_spacetime.pdf'];
-   export_fig([figpath fname],'-r200','-cmyk','-painters');
+   fname = ['Iso2k_' vers '_spacetime.png'];
+   figpath = '~/Dropbox/LiPD/iso2k/';
+   export_fig([figpath fname]);
    %hepta_figprint(['../../figs/synopsis/PAGES2K_phase2_' vers '_spacetime']);
    %saveFigure([figpath fname '_saveFigure.pdf']); %'painters', true
    %plot2svg([figpath fname '.svg']);
