@@ -13,20 +13,21 @@ if ~isnan(toct) %if there are chron tables, load em in
     for i = toct; %go through each chronology
         %%%%%CHRON MEASUREMENT TABLE
         
-        %Go through chronMeasurementTable first
-        for cmt=1:length(I.chronData{i}.chronMeasurementTable)
-        cT = I.chronData{i}.chronMeasurementTable{cmt};
-        
-        cT=readLiPDTable(cT,dirname);
-        cT=processLiPDColumns(cT);
-        if size(I.chronMeasMD5,1)>=i    
-            if iscell(I.chronMeasMD5)
-            cT.chronMeasMD5 = I.chronMeasMD5{i,2};
+        if isfield(I.chronData{i},'chronMeasurementTable')
+            %Go through chronMeasurementTable first
+            for cmt=1:length(I.chronData{i}.chronMeasurementTable)
+                cT = I.chronData{i}.chronMeasurementTable{cmt};
+                
+                cT=readLiPDTable(cT,dirname);
+                cT=processLiPDColumns(cT);
+                if size(I.chronMeasMD5,1)>=i
+                    if iscell(I.chronMeasMD5)
+                        cT.chronMeasMD5 = I.chronMeasMD5{i,2};
+                    end
+                end
+                C{i}.chronMeasurementTable{cmt}=cT;
             end
         end
-        C{i}.chronMeasurementTable{cmt}=cT;
-        end
-        
         
         %%%%%%END CHRON MEASUREMENT TABLE
         
@@ -41,10 +42,10 @@ if ~isnan(toct) %if there are chron tables, load em in
                 if isfield(CMS,'summaryTable')
                     CMT=readLiPDTable(CMS.summaryTable,dirname);
                     CMT=processLiPDColumns(CMT);
-                            if size(I.chronSummaryTableMD5,1)>=i        
-                                CMT.summaryTableMD5=I.chronSummaryTableMD5{i,2};
-                            end
-
+                    if size(I.chronSummaryTableMD5,1)>=i
+                        CMT.summaryTableMD5=I.chronSummaryTableMD5{i,2};
+                    end
+                    
                     C{i}.chronModel{cm}.summaryTable=cT;
                 end
                 
@@ -52,9 +53,9 @@ if ~isnan(toct) %if there are chron tables, load em in
                 if isfield(CMS,'ensembleTable')
                     CME=readLiPDTable(CMS.ensembleTable,dirname);
                     CME=processLiPDColumns(CME);
-                            if size(I.chronEnsMD5,1)>=i        
-                                CME.chronEnsembleMD5=I.chronEnsMD5{i,2};
-                            end
+                    if size(I.chronEnsMD5,1)>=i
+                        CME.chronEnsembleMD5=I.chronEnsMD5{i,2};
+                    end
                     C{i}.chronModel{cm}.ensembleTable=CME;
                     
                 end
@@ -73,6 +74,6 @@ if ~isnan(toct) %if there are chron tables, load em in
         end
     end
 else
-C=NaN;
-
+    C=NaN;
+    
 end

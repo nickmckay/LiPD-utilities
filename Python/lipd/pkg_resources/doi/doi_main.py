@@ -15,9 +15,9 @@ def doi_main(files):
     """
     logger_doi_main.info("enter doi_main")
 
-    print("Found {0} {1} file(s)".format(str(len(files["lipd"])), 'LiPD'))
+    print("Found {0} {1} file(s)".format(str(len(files[".lpd"])), 'LiPD'))
     force = prompt_force()
-    for file in files["lipd"]:
+    for file in files[".lpd"]:
 
         # Unzip file and get tmp directory path
         dir_tmp = create_tmp_dir()
@@ -83,10 +83,10 @@ def process_lpd(name, dir_tmp):
     # Overwrite data with new data
     jld_data = DOIResolver(dir_root, name, jld_data).main()
     # Open the jld file and overwrite the contents with the new data.
-    write_json_to_file(os.path.join(dir_data, name + '.jsonld'), jld_data)
+    write_json_to_file(os.path.join(dir_data, name), jld_data)
 
     # Open changelog. timestamp it. Prompt user for short description of changes. Close and save
-    update_changelog()
+    # update_changelog()
 
     # Delete old bag files, and move files to bag root for re-bagging
     # dir : dir_data -> dir_bag
