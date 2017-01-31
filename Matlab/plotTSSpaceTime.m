@@ -65,7 +65,7 @@ Graph{4,1}=rgb('Red');         Graph{4,2}= 'o';
 Graph{5,1}=rgb('RoyalBlue');   Graph{5,2}= 's'; 
 Graph{6,1}=rgb('Black');       Graph{6,2}= 'p'; 
 Graph{7,1}=rgb('DarkKhaki');   Graph{7,2}= 'h'; 
-Graph{8,1}=rgb('DeepSkyBlue'); Graph{8,2}= '*'; 
+Graph{8,1}=rgb('DeepSkyBlue'); Graph{8,2}= 's'; 
 Graph{9,1}=rgb('Gold');        Graph{9,2}= 'h';
 Graph{10,1}=rgb('DeepPink');   Graph{10,2}= 'd';
 Graph{11,1}=rgb('LimeGreen');  Graph{11,2}= '^'; 
@@ -151,8 +151,8 @@ end
 %pause; % manually adjust the size of the figure
 if options.export
    %figpath = [strrep(userpath,':','/') 'tempfigs/'];
-   fname = ['Iso2k_' vers '_spacetime.pdf'];
-   export_fig([figpath fname],'-r200','-cmyk','-painters');
+   fname = ['Iso2k_' vers '_spacetime_realData.png'];
+   export_fig([fname],'-r300');
    %hepta_figprint(['../../figs/synopsis/PAGES2K_phase2_' vers '_spacetime']);
    %saveFigure([figpath fname '_saveFigure.pdf']); %'painters', true
    %plot2svg([figpath fname '.svg']);
