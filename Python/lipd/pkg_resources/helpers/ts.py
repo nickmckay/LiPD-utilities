@@ -34,14 +34,14 @@ def get_matches(expr_lst, ts):
     """
     Get a list of TimeSeries objects that match the given expression.
     :param list expr_lst: Expression
-    :param dict ts: TimeSeries
+    :param list ts: TimeSeries
     :return list names: Matched TimeSeries objects
     """
     logger_ts.info("enter get_matches")
-    names = []
+    new_ts = []
     match = False
     try:
-        for ts_name, ts_data in ts.items():
+        for ts_data in ts:
             for expr in expr_lst:
                 try:
                     val = ts_data[expr[0]]
@@ -64,12 +64,15 @@ def get_matches(expr_lst, ts):
                     logger_ts.warn("get_matches: IndexError: getting value from TimeSeries object, {}, {}".format(expr, e))
                     match = False
             if match:
-                names.append(ts_name)
+                new_ts.append(ts_data)
     except AttributeError as e:
-        logger_ts.debug("get_matches: AttributeError: invalid timeseries, {},  {}".format(type(ts), e))
-        print("Error: Invalid TimeSeries")
+        logger_ts.debug("get_matches: AttributeError: unable to get expression matches, {},  {}".format(type(ts), e))
+        print("Error: Timeseries is an invalid data type")
+    if not new_ts:
+        print("No matches found for that expression")
+
     logger_ts.info("exit get_matches")
-    return names
+    return new_ts
 
 
 def extract_time_series(lipd_library, timeseries_library, convert):

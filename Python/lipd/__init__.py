@@ -64,7 +64,7 @@ def loadPath(usr_path=""):
             else:
                 print("Error: Path given is not a valid file/directory. Please try again.")
         except Exception:
-            logger_start("")
+            print("Uncaught error when loading path and files.")
 
     # If path isn't given, then start browse for file/dir
     else:
@@ -321,31 +321,32 @@ def find(expression, ts):
     Find the names of the TimeSeries that match some criteria (expression)
     :return:
     """
-    names = []
-    filtered_ts = {}
+    new_ts = []
+    # filtered_ts = {}
     expr_lst = translate_expression(expression)
     if expr_lst:
-        names = get_matches(expr_lst, ts)
-        filtered_ts = _createTs(names, ts)
+        new_ts = get_matches(expr_lst, ts)
+        # filtered_ts = _createTs(names, ts)
     print("Process Complete")
-    return names, filtered_ts
+    return new_ts
 
 
-def _createTs(names, ts):
-    """
-    Create a new TS dictionary using
-    index = find(logical expression)
-    newTS = TS(index)
-    :param str expression:
-    :return dict:
-    """
-    d = {}
-    for name in names:
-        try:
-            d[name] = ts[name]
-        except KeyError as e:
-            logger_start.warn("TS: KeyError: {} not in timeseries, {}".format(name, e))
-    return d
+# DEPRECATED - TS no longer uses dictionaries or names.
+# def _createTs(names, ts):
+#     """
+#     Create a new TS dictionary using
+#     index = find(logical expression)
+#     newTS = TS(index)
+#     :param str expression:
+#     :return dict:
+#     """
+#     d = {}
+#     for name in names:
+#         try:
+#             d[name] = ts[name]
+#         except KeyError as e:
+#             logger_start.warn("TS: KeyError: {} not in timeseries, {}".format(name, e))
+#     return d
 
 
 # SHOW
