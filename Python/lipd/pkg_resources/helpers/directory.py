@@ -12,13 +12,13 @@ from .loggers import create_logger
 logger_directory = create_logger('directory')
 
 
-def collect_files(cwd, new_files, files_by_type):
+def collect_files(cwd, new_files, existing_files):
     """
     Collect all files from a given path. Separate by file type, and return one list for each type
     If 'files' contains specific
     :param str cwd: Directory w/ target files
     :param list new_files: Specific new files to load
-    :param dict files_by_type: Files currently loaded, separated by type
+    :param dict existing_files: Files currently loaded, separated by type
     :return list: All files separated by type
     """
     try:
@@ -27,15 +27,9 @@ def collect_files(cwd, new_files, files_by_type):
         # specific files: if there is a list of new files, go through this list and sort them.
         if new_files:
             for full_path in new_files:
-                fne = os.path.basename(full_path)
-                fn = os.path.splitext(fne)[0]
-                obj = {"full_path": full_path, "filename_ext": fne, "filename_no_ext": fn, "dir": os.path.dirname(full_path)}
-                if full_path.endswith(".lpd"):
-                    files_by_type[".lpd"].append(obj)
-                elif full_path.endswith(".xls") or full_path.endswith(".xlsx"):
-                    files_by_type[".xls"].append(obj)
-                elif full_path.endswith(".txt"):
-                    files_by_type[".txt"].append(obj)
+                # Create the file metadata for one file, and append it to the existing files.
+                existing_files = _create_file_metadata(full_path, existing_files)
+
         # directory: get all files in the directory and sort by type
         else:
             for file_type in [".lpd", ".xls", ".txt"]:
@@ -47,11 +41,40 @@ def collect_files(cwd, new_files, files_by_type):
                 # for each file found, build it's metadata and append it to files_by_type
                 for file in files_found:
                     fn = os.path.splitext(file)[0]
-                    files_by_type[file_type].append({"full_path": cwd + file, "filename_ext": file, "filename_no_ext": fn,"dir": cwd})
+                    existing_files[file_type].append({"full_path": cwd + file, "filename_ext": file, "filename_no_ext": fn, "dir": cwd})
     except Exception:
         logger_directory.info("directory: collect_files: there's a problem")
 
-    return files_by_type
+    return existing_files
+
+def collect_file(cwd, new_file, existing_files):
+    """
+    Create
+    :param str cwd: Directory w/ target files
+    :param list new_files: Specific new files to load
+    :param dict files_by_type: Files currently loaded, separated by type
+    :return list: All files separated by type
+    """
+
+
+
+def _create_file_metadata(full_path, existing_files):
+    """
+    Create the file metadata and add it to the appropriate section by file-type
+    :param str full_path:
+    :param dict existing_files:
+    :return dict existing files:
+    """
+    fne = os.path.basename(full_path)
+    fn = os.path.splitext(fne)[0]
+    obj = {"full_path": full_path, "filename_ext": fne, "filename_no_ext": fn, "dir": os.path.dirname(full_path)}
+    if full_path.endswith(".lpd"):
+        existing_files[".lpd"].append(obj)
+    elif full_path.endswith(".xls") or full_path.endswith(".xlsx"):
+        existing_files[".xls"].append(obj)
+    elif full_path.endswith(".txt"):
+        existing_files[".txt"].append(obj)
+    return existing_files
 
 
 def filename_from_path(path):
@@ -158,18 +181,21 @@ def browse_dialog_dir():
     path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
     logger_directory.info("chosen path: {}".format(path))
     root.destroy()
+    root.quit()
     logger_directory.info("exit browse_dialog")
     return path
 
 
 def browse_dialog_file():
     """
-    Open up a GUI browse dialog window and let to user pick a target directory.
-    :return str: Target directory path
-    :return:
+    Open up a GUI browse dialog window and let to user select one or more files
+    :return str _path: Target directory path
+    :return list _files: List of selected files
+
     """
     logger_directory.info("enter browse_dialog")
 
+    # We make files a list, because the user can multi-select files.
     _files = []
     _path = ""
     try:

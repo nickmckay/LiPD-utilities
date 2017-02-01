@@ -23,29 +23,74 @@ def run():
     :return:
     """
     # GLOBALS
-    global lipd_lib, ts_lib, convert, files, path
+    global cwd, lipd_lib, ts_lib, convert, files, path, logger_start
+    cwd = os.getcwd()
     lipd_lib = LiPD_Library()
+    lipd_lib.set_dir(cwd)
     ts_lib = TimeSeries_Library()
     convert = Convert()
+    logger_start = create_logger("start")
     files = {".txt": [], ".lpd": [], ".xls": []}
     return
 
 
-def setDir():
+def loadPath(usr_path=""):
     """
-    Set the current working directory by providing a directory path.
-    (ex. /Path/to/files)
-    :param str path: Directory path
+    Load all file(s) from a given directory, single file path, or
+    :param str path:
+    :return:
     """
     global cwd, logger_start, files, path
-    cwd, new_files = get_src_or_dst("load")
-    path = cwd
-    files = collect_files(cwd, new_files, files)
-    lipd_lib.set_dir(cwd)
-    logger_start = create_logger("start")
-    logger_start.info("Working Directory: {}".format(cwd))
-    # print("Working Directory: {}".format(path))
+
+    # If path given, Is it a dir or file ?
+    if usr_path:
+        try:
+            # should we swap directories or stay in the cwd?
+            # lipd_lib.set_dir(usr_path)
+
+            # if path is a dir, append all files in dir
+            if os.path.isdir(usr_path):
+                new_files = []
+                files = collect_files(usr_path, new_files, files)
+
+            # if path is a file, append single file
+            elif os.path.isfile(usr_path):
+                # There is only one file. Make a list, and add the path.
+                new_files = [usr_path]
+                to_dir = os.path.dirname(usr_path)
+                files = collect_files(to_dir, new_files, files)
+
+            # Path given is not a file or directory.
+            else:
+                print("Error: Path given is not a valid file/directory. Please try again.")
+        except Exception:
+            logger_start("")
+
+    # If path isn't given, then start browse for file/dir
+    else:
+        cwd, new_files = get_src_or_dst("load")
+        path = cwd
+        files = collect_files(cwd, new_files, files)
+        lipd_lib.set_dir(cwd)
+        logger_start.info("Working Directory: {}".format(cwd))
+
     return cwd
+
+# def setDir():
+#     """
+#     Set the current working directory by providing a directory path.
+#     (ex. /Path/to/files)
+#     :param str path: Directory path
+#     """
+#     global cwd, logger_start, files, path
+#     cwd, new_files = get_src_or_dst("load")
+#     path = cwd
+#     files = collect_files(cwd, new_files, files)
+#     lipd_lib.set_dir(cwd)
+#     logger_start = create_logger("start")
+#     logger_start.info("Working Directory: {}".format(cwd))
+#     # print("Working Directory: {}".format(path))
+#     return cwd
 
 
 def loadLipd():
@@ -527,6 +572,6 @@ def quit():
     return True
 
 
-# GLOBALS - run these on initialization
+# # GLOBALS - run these on initialization
 run()
-setDir()
+# setDir()
