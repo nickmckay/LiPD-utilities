@@ -46,11 +46,56 @@ end
 
 metadataKey = wkKeys{mki};
 
+LTS = extractTimeseries(L,1);
 
+if isfield(L,'chronData')
+    
+    CTS = flattenChronMeasurementTable(L);
+end
 
 %make a google version of the TS file
 %metadata first
 [GTS,GTSC]=getLiPDGoogleMetadata(spreadsheetkey,metadataKey);
+
+
+
+%look to see if there are missing fields that we can fill in from  LTS
+gnames = fieldnames(GTS);
+for g=1:length(gnames)
+    if all(cellfun(@isempty,{GTS.(gnames{g})}));
+        if isfield(LTS,gnames{g})
+            if all(~cellfun(@isempty,{LTS.(gnames{g})}));
+                if length(LTS)==length(GTS)
+                    [GTS.(gnames{g})] = LTS.(gnames{g});
+                else
+                    nc = repmat( {LTS(1).(gnames{g})},length(GTS),1);
+                    [GTS.(gnames{g})] = nc{:};
+                end
+            end
+        end
+    end
+end
+
+%repeat for chronData
+if isstruct(GTSC) && isfield(L,'chronData')
+    gnames = fieldnames(GTSC);
+    for g=1:length(gnames)
+        if all(cellfun(@isempty,{GTSC.(gnames{g})}));
+            if isfield(CTS,gnames{g})
+                if all(~cellfun(@isempty,{CTS.(gnames{g})}));
+                    if length(CTS)==length(GTSC)
+                        [GTSC.(gnames{g})] = CTS.(gnames{g});
+                    else
+                        nc = repmat( {CTS(1).(gnames{g})},length(GTSC),1);
+                        [GTSC.(gnames{g})] = nc{:};
+                    end
+                end
+            end
+        end
+    end
+    
+end
+
 
 %check to see if the paleodata worksheet keys are stored
 if ~isfield(GTS,'paleoData_googleWorkSheetKey')
@@ -63,8 +108,8 @@ if ~isfield(GTS,'paleoData_googleWorkSheetKey')
             [GTS.paleoData_googleWorkSheetKey] = bc{:};
         end
     else
-         bc = cell(length(GTS),1);
-            [GTS.paleoData_googleWorkSheetKey] = bc{:};
+        bc = cell(length(GTS),1);
+        [GTS.paleoData_googleWorkSheetKey] = bc{:};
     end
 end
 pdgwk={GTS.paleoData_googleWorkSheetKey}';
@@ -87,12 +132,42 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
                 error(['Cant find a paleodata worksheet named ' pdtNames{ie(pie)}])
             end
         end
-      
+        
         
         pdgwk{ie(pie)}=pdwkkeys{whichPDTsheet};
         display(['Infilling worksheet key ' pdgwk{ie(pie)} ' for paleoData sheet ' pdtNames{ie(pie)} ])
     end
     [GTS.paleoData_googleWorkSheetKey] = pdgwk{:};
+end
+
+%see if key missing fields are not in the GTS and are in the LTS
+diffFields = setdiff(fieldnames(LTS),fieldnames(GTS));
+hasUnderscore = find(~cellfun(@isempty,strfind(diffFields,'_')));
+for hu=1:length(hasUnderscore)
+                   if length(LTS)==length(GTS)
+                    [GTS.(diffFields{hasUnderscore(hu)})] = LTS.(diffFields{hasUnderscore(hu)});
+                else
+                    nc = repmat( {LTS(1).(diffFields{hasUnderscore(hu)})},length(GTS),1);
+                    [GTS.(diffFields{hasUnderscore(hu)})] = nc{:};
+                end 
+end
+GTS = rmfieldsoft(GTS,'paleoData_values');
+
+if isstruct(GTSC) && isfield(L,'chronData')
+    %see if key missing fields are not in the GTSC and are in the CTS
+    diffFields = setdiff(fieldnames(CTS),fieldnames(GTSC));
+    hasUnderscore = find(~cellfun(@isempty,strfind(diffFields,'_')));
+    for hu=1:length(hasUnderscore)
+        if length(CTS)==length(GTSC)
+            [GTSC.(diffFields{hasUnderscore(hu)})] = CTS.(diffFields{hasUnderscore(hu)});
+        else
+            nc = repmat( {CTS(1).(diffFields{hasUnderscore(hu)})},length(GTSC),1);
+            [GTSC.(diffFields{hasUnderscore(hu)})] = nc{:};
+        end
+    end
+    GTSC = rmfieldsoft(GTSC,'chronData_values');
+    
+    
 end
 
 
@@ -150,7 +225,7 @@ if isstruct(GTSC)
     
     
     
-     
+    
     cdgwk={GTSC.chronData_googleWorkSheetKey}';
     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
         %make sure there are names
@@ -181,7 +256,6 @@ if isstruct(GTSC)
         end
         [GTSC.chronData_googleWorkSheetKey] = cdgwk{:};
     end
-    
     
     GTSC=getLiPDGoogleChronData(GTSC);
     

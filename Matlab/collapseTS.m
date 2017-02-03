@@ -83,22 +83,32 @@ for i=1:length(udsn)
             end
             %don't overwrite what you've already written
             if length(Dnew.(makeValidName(udsn{i})).pub) < pubNum % if this is a new publication
-               %write it
+                %write it
                 Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
                     T.(fT{p(pin)});
             elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end))
                 %write it
                 Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
                     T.(fT{p(pin)});
+            elseif isempty(Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end)))
+                %if it's empty
+                %write it.
+                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
+                    T.(fT{p(pin)});
+                
             end
         end
         
-        %assign in something in case there's no other publications
-        if(~exist('pubNum'))
-            lastPub=0;
-        else
-            lastPub=pubNum;
-        end
+%         %assign in something in case there's no other publications
+%         if(~exist('pubNum'))
+%             lastPub=0;
+%         else
+%             lastPub=pubNum;
+%         end
+      
+
+%make all data pubs start at 20
+lastPub = 20;
         
         %handle Data citations
         dp=find(strncmp('dataPub',fT,7));
@@ -108,10 +118,15 @@ for i=1:length(udsn)
             %don't overwrite what you've already written
             if length(Dnew.(makeValidName(udsn{i})).pub) < pubNum % if this is a new publication
                 %write it
-                                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
-            elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end)) %it's a new variable 
+                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+            elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end)) %it's a new variable
                 %write it
                 Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+            elseif isempty(Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end)))
+                %if it's empty
+                %write it.
+                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+                
             end
         end
         
@@ -162,10 +177,10 @@ for i=1:length(udsn)
         
         
         
-        
-        %check if this name has been used before - make sure entries are same
-        %find all other TS with this dataSetName and paleoData_tableName
-        samei=find(strcmp(udsn{i},{TS.dataSetName}') & strcmp(T.paleoData_paleoDataTableName,{TS.paleoData_paleoDataTableName}'));
+      
+
+            
+        samei=find(strcmp(udsn{i},{TS.dataSetName}') & strcmp(pdName,{TS.paleoData_paleoDataTableName}'));
         if length(samei)>1
             clear dll
             for dl=1:length(samei)
