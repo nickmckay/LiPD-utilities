@@ -39,3 +39,5 @@ Python/lipd/files/examples/*
 Python/README.txt
 
 index.html
+
+Python/lipd/pkg_resources/.DS_Store
