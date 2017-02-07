@@ -68,6 +68,11 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
             tableType(gg,tn)={gtsnames{tni}((usi+6):(end-11))};
             tableNumber(:,tn)={GTS.(gtsnames{tni})}';
     end
+    
+    if size(tableNumber,1)~=length(gg)
+       error('There are inconsistencies in the number of columns in your paleodata table metadata. Could just be an extra empty row at the bottom (there should only be one)'); 
+    end
+    
     if size(tableType,2)>1
         if any(sum(~cellfun(@isempty,tableType),2)~=1)
           error('There must be exactly 1 "tableNumber" entry in each row')  

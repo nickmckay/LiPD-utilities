@@ -275,20 +275,8 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                 nonAgeCol=setdiff(nonAgeCol,[depthi]);
                             end
                             
-                            %look at all the nonAgeCol
-                            nacNames = l4structs;
-                            
-                            %look for variants that start with year, age or
-                            %depth
-                            ageVariant=find(strncmpi('age',nacNames,3));
-                            yearVariant=find(strncmpi('year',nacNames,4));
-                            depthVariant=find(strncmpi('depth',nacNames,5));
-                            allVariant = [ageVariant' yearVariant' depthVariant'];
-                            allVariant;
-                            
-                            if ~isempty(allVariant)
-                               nonAgeCol = setdiff(nonAgeCol,allVariant); 
-                            end
+                            %look for any additional columns that start
+                            %with age, year or depth
                             
                             
                             if allColumns%optionally, export all columns

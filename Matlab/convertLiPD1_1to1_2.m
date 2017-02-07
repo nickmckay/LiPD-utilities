@@ -20,11 +20,12 @@ if L.LiPDVersion == 1.1 | forceConvert
         
         for i = 1:length(L.chronData);
             C=L.chronData{i};
-            
-            if ~iscell(C.chronMeasurementTable)
-            %convert measurement table to set
-            newCM{1}=C.chronMeasurementTable;
-            C.chronMeasurementTable=newCM;
+            if isfield(C,'chronMeasurementTable')
+                if ~iscell(C.chronMeasurementTable)
+                    %convert measurement table to set
+                    newCM{1}=C.chronMeasurementTable;
+                    C.chronMeasurementTable=newCM;
+                end
             end
             
             if isfield(C,'chronModel')
@@ -48,21 +49,21 @@ if L.LiPDVersion == 1.1 | forceConvert
     
     %now PaleoData changes.
     if isfield(L,'paleoData')
-    pnames=fieldnames(L.paleoData);
-    for i = 1:length(pnames)
-        %for now force it.
-        if 1 % ~isfield(L.paleoData.(pnames{i}),'number') |  ~isfield(L.paleoData.(pnames{i}),'paleoMeasurementTableNumber') %assume each paleodatatable is a different record
+        pnames=fieldnames(L.paleoData);
+        for i = 1:length(pnames)
+            %for now force it.
+            if 1 % ~isfield(L.paleoData.(pnames{i}),'number') |  ~isfield(L.paleoData.(pnames{i}),'paleoMeasurementTableNumber') %assume each paleodatatable is a different record
                 newP{i}.paleoMeasurementTable{1}=L.paleoData.(pnames{i});
-            
-        else
+                
+            else
                 newP{L.paleoData.(pnames{i}).number}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber}=L.paleoData.(pnames{i});
                 newP{L.paleoData.(pnames{i}).number}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber}=rmfieldsoft(newP{L.paleoData.(pnames{i}).number}.paleoMeasurementTable{L.paleoData.(pnames{i}).paleoMeasurementTableNumber},{'paleoRecordNumber','paleoMeasurementTableNumber','number'});
-   
+                
+            end
         end
-    end
-    
-    
-    L.paleoData=newP;
+        
+        
+        L.paleoData=newP;
     end
     
     L.LiPDVersion = 1.2;

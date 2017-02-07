@@ -1,8 +1,18 @@
 function [GTS,GTSC]=getLiPDGoogleMetadata(skey,wkey)
 checkGoogleTokens;
 %get base metadata
-
 metadata=getWorksheet(skey,wkey,aTokenSpreadsheet);
+%remove all of the blank rows!
+br=zeros(size(metadata,1),1);
+for r=1:size(metadata,1)
+if all(cellfun(@isempty,metadata(r,:)));
+    br(r)=1;
+end
+end
+isbr = find(br);
+if ~isempty(isbr)
+    metadata=metadata(setdiff(1:size(metadata,1),isbr),:);
+end
 
 %how many paleodataTS entries?
 %where does it start?
@@ -17,7 +27,7 @@ if isempty(cds)
     GTSC=NaN;
 else
     isChron=1;
-    pde=cds-2;
+    pde=cds-1;
     cde=size(metadata,1);
     nTSC=cde-(cds+1);
 end
@@ -46,7 +56,7 @@ for c=toFindc
     
     while 1
         value=metadata{r,c};
-        if isempty(value)
+        if isempty(value) | strncmpi(value,'paleodata ',10)
             break
         end
         for ts=1:nTS
@@ -65,7 +75,7 @@ for c=toFindc
         
         while 1
             value=metadata{r,c};
-            if isempty(value)
+        if isempty(value) | strncmpi(value,'paleodata ',10)
                 break
             end
             for ts=1:nTSC
