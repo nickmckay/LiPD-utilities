@@ -109,7 +109,7 @@ marsicek2lipd = function(filename,writeLiPD = FALSE){
   }
   paleo  = list()
   
-  var.names = c("depth","age","temperature","temperature","temperature","precipitation")
+  var.names = c("depth","age","temperatureWarmest","temperatureColdest","temperatureAnnual","precipitation")
   units = c("cm","yr 14C BP","deg C","deg C","deg C","mm")
   ci.season = c(NA,NA,"warmest month","coldest month","annual","annual")
   ci.variable= c(NA,NA,"T","T","T","P")
