@@ -14,7 +14,7 @@ vignettes/*.pdf
 .Rproj.user
 
 #matlab temporary files
-.m~
+*.m~
 
 #google token files
 google_token*.mat
