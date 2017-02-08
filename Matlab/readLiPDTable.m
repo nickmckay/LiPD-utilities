@@ -4,16 +4,23 @@ newMethod = 1;%use read table if possible
 
 %read in csv
         ncol=sum(cellfun(@(x) length(x.number),cT.columns));
-        
-        %try to read in as numeric data
+         %try to read in as numeric data
         %[dirname cT.filename]
         if ~verLessThan('matlab','8.2') & newMethod
             %use readtable! Requires matlab year >= 13b
             if ~strcmpi(cT.filename((end-3):end),'.csv')
                 cT.filename=[cT.filename '.csv'];
             end
-                
-            pdTable=table2cell(readtable([dirname cT.filename],'ReadVariableNames',0),'TreatAsEmpty',{'NA','NaN'});
+            if isfield(cT,'missingValue')
+                missingValues = {'NA','NaN',cT.missingValue};
+            else
+                missingValues = {'NA','NaN'};
+            end
+
+            pdTable=table2cell(readtable([dirname cT.filename],'ReadVariableNames',0),'TreatAsEmpty',missingValues);
+            empties =~cellfun(@isempty,pdTable);
+            %remove any empty cols and rows
+            pdTable = pdTable(sum(empties,2)>0,sum(empties,1)>0);
         else
             try
                 pdTable=csvread([dirname cT.filename]);
@@ -47,8 +54,8 @@ newMethod = 1;%use read table if possible
         end
         %check for same number of columns
         if ncol~=size(pdTable,2)
-            'WARNING - METADATA and DATA disagree on number of columns!!!!'
-            'using minimum of the two'
+            warning('WARNING - METADATA and DATA disagree on number of columns!!!!');
+            display('using minimum of the two')
             I.warnings='METADATA and DATA disagree on number of columns!!!!';
             ncol = min( [length(cT.columns),size(pdTable,2)]);
         end

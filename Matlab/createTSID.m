@@ -4,9 +4,9 @@ function TSid=createTSID(variableName,dataSetName,spreadsheetKey,worksheetKey,al
 %in one session. Leaving checkWeb empty allows for smart choosing of when
 %to download (once an hour)
 %altName proposes a TSid, rather than generating randomly
-
+load LiPDUtilitiesPreferences
 if nargin<6
-   tsidPath='~/Dropbox/ml_scripts/';
+   tsidPath=githubPath;
 end
    
 if nargin<7

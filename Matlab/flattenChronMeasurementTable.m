@@ -16,33 +16,34 @@ for i = 1:length(L.chronData)
     if ~isfield(L.chronData{i},'chronName')
         L.chronData{i}.chronName  = ['chron' num2str(i)];
     end
-    
-    for j=1:length(L.chronData{i}.chronMeasurementTable)
-    %make sure there's an age column
-    colNames = structFieldNames(L.chronData{i}.chronMeasurementTable{j});
-    if all(~strcmp('age',colNames))
-        display('There are no columns named "age" - this is required.')
-        toShow = strcat(stringifyCells(num2cell(1:length(colNames))'),repmat({' - '},length(colNames),1),colNames);
-        display(toShow)
-        whichIsAge=input('Which column is the age column (this will overwrite the name to age); press 0 if none are');
-        if ~ismember(whichIsAge,1:length(colNames))
-            error('Your chronMeasurementTable must have an age column')
-        end
-        L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}).variableName = 'age';
-        if isfield(L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}),'notes')
-            L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}).notes = [ L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}).notes ; 'renamed from ' colNames{whichIsAge}];
+    if isfield(L.chronData{i},'chronMeasurementTable')
+        for j=1:length(L.chronData{i}.chronMeasurementTable)
+            %make sure there's an age column
+%             colNames = structFieldNames(L.chronData{i}.chronMeasurementTable{j});
+%             if all(~strcmp('age',colNames))
+%                 display('There are no columns named "age" - this is required.')
+%                 toShow = strcat(stringifyCells(num2cell(1:length(colNames))'),repmat({' - '},length(colNames),1),colNames);
+%                 display(toShow)
+%                 whichIsAge=input('Which column is the age column (this will overwrite the name to age); press 0 if none are');
+%                 if ~ismember(whichIsAge,1:length(colNames))
+%                     error('Your chronMeasurementTable must have an age column')
+%                 end
+%                 L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}).variableName = 'age';
+%                 if isfield(L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}),'notes')
+%                     L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}).notes = [ L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}).notes ; 'renamed from ' colNames{whichIsAge}];
+%                     
+%                 else
+%                     L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}).notes = ['renamed from ' colNames{whichIsAge}];
+%                     
+%                 end
+%                 L.chronData{i}.chronMeasurementTable{j}.age =L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge});
+%                 L.chronData{i}.chronMeasurementTable{j}=rmfield(L.chronData{i}.chronMeasurementTable{j},colNames{whichIsAge});
+%             end
             
-        else
-            L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge}).notes = ['renamed from ' colNames{whichIsAge}];
-            
+            LC.paleoData{i}.paleoMeasurementTable{j}=L.chronData{i}.chronMeasurementTable{j};
         end
-        L.chronData{i}.chronMeasurementTable{j}.age =L.chronData{i}.chronMeasurementTable{j}.(colNames{whichIsAge});
-        L.chronData{i}.chronMeasurementTable{j}=rmfield(L.chronData{i}.chronMeasurementTable{j},colNames{whichIsAge});
+        LC.paleoData{i}.paleoMeasurementTable{j}.paleoName=L.chronData{i}.chronName;
     end
-    
-    LC.paleoData{i}.paleoMeasurementTable{j}=L.chronData{i}.chronMeasurementTable{j};
-    end
-    LC.paleoData{i}.paleoMeasurementTable{j}.paleoName=L.chronData{i}.chronName;
 end
 
 hasChron = 0;
@@ -50,7 +51,8 @@ LC=rmfield(LC,'chronData');
 
 
 
-try CTS=extractTimeseries(LC,1);
+try 
+    CTS=extractTimeseries(LC,1);
     hasChron=1;
 catch me
     warning('chron extraction failed, skipping')
@@ -68,7 +70,7 @@ if hasChron
     %[CTS.chronData_chronName] = CTS.paleoData_paleoDataTableName;
     [CTS.chronData_chronNumber] = CTS.paleoData_paleoNumber;
     [CTS.chronData_chronMeasurementTableNumber] = CTS.paleoData_paleoMeasurementTableNumber;
-
+    
     CTS = rmfieldsoft(CTS,{'paleoData_paleoDataTableName','paleoData_paleoMeasurementTableNumber','paleoData_paleoNumber'});
     cfnames =fieldnames(CTS);
     pdi=(find(strncmpi('paleoData_',cfnames,10)));
@@ -79,7 +81,8 @@ if hasChron
         CTS=rmfield(CTS,curname);
     end
     
-    
+else
+    CTS=NaN;
     
 end
 

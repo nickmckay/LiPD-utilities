@@ -42,7 +42,7 @@ else
             display([L.dataSetName ': NO MD5 tag on google - updating spreadsheet'])
         end
         
-
+        
         
         %just make new ones
         %first delete all but metadata
@@ -231,64 +231,69 @@ else
         hasChron = 0;
         %Chron metadatdata
         if isfield(L,'chronData')
-            
-            CTS = flattenChronMeasurementTable(L);
-            
-            %remove all varaibles that follow this prefix
-            prefixTR = {'pub','geo','funding','paleoData','google'};
-            
-            %and also these variables
-            torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','chronData_values',...
-                'LiPDVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number'};
-            CTS=rmfieldsoft(CTS,torem);
-            
-            for ii = 1:length(prefixTR)
-                f=fieldnames(CTS);
-                pid = find(~cellfun(@isempty,(cellfun(@(x) x==1,strfind(f,prefixTR{ii}),'UniformOutput',0))));
-                if ~isempty(pid)%remove any pub identifiers, if there are any
-                    CTS=rmfield(CTS,f(pid));
+            if isfield(L.chronData{1},'chronMeasurementTable')
+                
+                
+                CTS = flattenChronMeasurementTable(L);
+                
+                %remove all variables that follow this prefix
+                prefixTR = {'pub','geo','funding','paleoData','google'};
+                
+                %and also these variables
+                torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','chronData_values',...
+                    'LiPDVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number'};
+                CTS=rmfieldsoft(CTS,torem);
+                
+                for ii = 1:length(prefixTR)
+                    f=fieldnames(CTS);
+                    pid = find(~cellfun(@isempty,(cellfun(@(x) x==1,strfind(f,prefixTR{ii}),'UniformOutput',0))));
+                    if ~isempty(pid)%remove any pub identifiers, if there are any
+                        CTS=rmfield(CTS,f(pid));
+                    end
                 end
+                
+                
+                
+                f=fieldnames(CTS);
+                
+                chronDatai=(find(strncmpi('chronData_',f,10)));
+                
+                
+                f = f(chronDatai);
+                
+                
+                %now make chron data chunk
+                tsi=find(strcmp('chronData_TSid',f));
+                %make variableName second
+                vni=find(strcmp('chronData_variableName',f));
+                %make description third
+                di=find(strcmp('chronData_description',f));
+                %make units fourth
+                ui=find(strcmp('chronData_units',f));
+                %make measurementMaterial fourth
+                mi=find(strcmp('chronData_measurementMaterial',f));
+                
+                
+                
+                
+                
+                pdCi=[tsi; vni; di; ui; mi;  setdiff((1:length(f))',[tsi vni di ui mi])];
+                botChunk=cell(length(CTS),length(pdCi));
+                
+                for p=1:length(pdCi)
+                    botChunk(:,p)={CTS.(f{pdCi(p)})};
+                end
+                
+                %add in the headers
+                h1=cell(1,size(botChunk,2));
+                h1{1}='chronData column metadata';
+                botChunk=[h1; f(pdCi)';botChunk];
+            else
+                %create an empty bottom chunk
+                
+                botChunk=cell(1,size(midChunk,2));
             end
-            
-            
-            
-            f=fieldnames(CTS);
-            
-            chronDatai=(find(strncmpi('chronData_',f,10)));
-            
-            
-            f = f(chronDatai);
-            
-            
-            %now make chron data chunk
-            tsi=find(strcmp('chronData_TSid',f));
-            %make variableName second
-            vni=find(strcmp('chronData_variableName',f));
-            %make description third
-            di=find(strcmp('chronData_description',f));
-            %make units fourth
-            ui=find(strcmp('chronData_units',f));
-            %make measurementMaterial fourth
-            mi=find(strcmp('chronData_measurementMaterial',f));
-            
-            
-            
-            
-            
-            pdCi=[tsi; vni; di; ui; mi;  setdiff((1:length(f))',[tsi vni di ui mi])];
-            botChunk=cell(length(CTS),length(pdCi));
-            
-            for p=1:length(pdCi)
-                botChunk(:,p)={CTS.(f{pdCi(p)})};
-            end
-            
-            %add in the headers
-            h1=cell(1,size(botChunk,2));
-            h1{1}='chronData column metadata';
-            botChunk=[h1; f(pdCi)';botChunk];
         else
-            %create an empty bottom chunk
-            
             botChunk=cell(1,size(midChunk,2));
             
         end
@@ -315,7 +320,7 @@ else
         %these include:  '
         toRemove = {''''};
         metadataCell4Goog=strRemoveCell(metadataCell4Goog,toRemove);
-
+        
         
         
         %now write this into the first worksheet

@@ -265,8 +265,9 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                 
                             elseif ~depthFlag
                                 display(l4structs)
-                                warning([dnames{d} ': ' l3names{l3} ': there dont appear to be any year, age, or depth columns. Skipping..'])
-                                continue
+                                warning([dnames{d} ': ' l3names{l3} ': there dont appear to be any year, age, or depth columns. Creating a fake year column of NaNs..'])
+                                TS(ts).year = nan(length(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(1)}).values),1);
+                                %continue
                                 
                             end
                             
@@ -275,21 +276,21 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                 nonAgeCol=setdiff(nonAgeCol,[depthi]);
                             end
                             
-                            %look at all the nonAgeCol
-                            nacNames = l4structs;
-                            
-                            %look for variants that start with year, age or
-                            %depth
-                            ageVariant=find(strncmpi('age',nacNames,3));
-                            yearVariant=find(strncmpi('year',nacNames,4));
-                            depthVariant=find(strncmpi('depth',nacNames,5));
-                            allVariant = [ageVariant' yearVariant' depthVariant'];
-                            allVariant;
-                            
-                            if ~isempty(allVariant)
-                               nonAgeCol = setdiff(nonAgeCol,allVariant); 
-                            end
-                            
+%                             %look at all the nonAgeCol
+%                             nacNames = l4structs;
+%                             
+%                             %look for variants that start with year, age or
+%                             %depth
+%                             ageVariant=find(strncmpi('age',nacNames,3));
+%                             yearVariant=find(strncmpi('year',nacNames,4));
+%                             depthVariant=find(strncmpi('depth',nacNames,5));
+%                             allVariant = [ageVariant' yearVariant' depthVariant'];
+%                             allVariant;
+%                             
+%                             if ~isempty(allVariant)
+%                                nonAgeCol = setdiff(nonAgeCol,allVariant); 
+%                             end
+%                             
                             
                             if allColumns%optionally, export all columns
                                 nonAgeCol=1:length(l4structs);
