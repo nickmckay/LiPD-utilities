@@ -79,7 +79,7 @@ marsicek2lipd = function(filename,writeLiPD = FALSE){
   }
   
   chron  = list()
-  var.names = c("ageType","sampleID","depth","age14CUncertainty","age14C","measurementMaterial","notes")
+  var.names = c("ageType","labID","depth","age14Cuncertainty","age14C","measurementMaterial","notes")
   units = c(NA,NA,"cm","yr 14C","yr 14C BP",NA,NA)
   for(i in 1:length(var.names)){
     chron[[i]]=list()
