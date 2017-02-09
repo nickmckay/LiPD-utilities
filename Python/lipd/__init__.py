@@ -9,12 +9,12 @@ from .pkg_resources.noaa.noaa_main import noaa_main
 from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
-from .pkg_resources.helpers.directory import get_src_or_dst, collect_files
+from .pkg_resources.helpers.directory import get_src_or_dst, collect_metadata_files, list_files
 from .pkg_resources.helpers.loggers import create_logger
-from .pkg_resources.helpers.misc import pickle_data, unpickle_data, split_path_and_file, prompt_protocol
+from .pkg_resources.helpers.misc import path_type
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
 
-# LOAD
+# READ
 
 
 def run():
@@ -23,10 +23,9 @@ def run():
     :return:
     """
     # GLOBALS
-    global cwd, lipd_lib, ts_lib, convert, files, path, logger_start
+    global cwd, lipd_lib, ts_lib, convert, files, logger_start
     cwd = os.getcwd()
     lipd_lib = LiPD_Library()
-    lipd_lib.set_dir(cwd)
     ts_lib = TimeSeries_Library()
     convert = Convert()
     logger_start = create_logger("start")
@@ -34,118 +33,85 @@ def run():
     return
 
 
-def loadPath(usr_path=""):
+def readLipd(usr_path=""):
     """
-    Load all file(s) from a given directory, single file path, or
-    :param str path:
-    :return:
-    """
-    global cwd, logger_start, files, path
-
-    # If path given, Is it a dir or file ?
-    if usr_path:
-        try:
-            # should we swap directories or stay in the cwd?
-            # lipd_lib.set_dir(usr_path)
-
-            # if path is a dir, append all files in dir
-            if os.path.isdir(usr_path):
-                new_files = []
-                files = collect_files(usr_path, new_files, files)
-
-            # if path is a file, append single file
-            elif os.path.isfile(usr_path):
-                # There is only one file. Make a list, and add the path.
-                new_files = [usr_path]
-                to_dir = os.path.dirname(usr_path)
-                files = collect_files(to_dir, new_files, files)
-
-            # Path given is not a file or directory.
-            else:
-                print("Error: Path given is not a valid file/directory. Please try again.")
-        except Exception:
-            print("Uncaught error when loading path and files.")
-
-    # If path isn't given, then start browse for file/dir
-    else:
-        cwd, new_files = get_src_or_dst("load")
-        path = cwd
-        files = collect_files(cwd, new_files, files)
-        lipd_lib.set_dir(cwd)
-        logger_start.info("Working Directory: {}".format(cwd))
-
-    return cwd
-
-# def setDir():
-#     """
-#     Set the current working directory by providing a directory path.
-#     (ex. /Path/to/files)
-#     :param str path: Directory path
-#     """
-#     global cwd, logger_start, files, path
-#     cwd, new_files = get_src_or_dst("load")
-#     path = cwd
-#     files = collect_files(cwd, new_files, files)
-#     lipd_lib.set_dir(cwd)
-#     logger_start = create_logger("start")
-#     logger_start.info("Working Directory: {}".format(cwd))
-#     # print("Working Directory: {}".format(path))
-#     return cwd
-
-
-def loadLipd():
-    """
-    Load a single LiPD file into the workspace. File must be located in the current working directory.
-    (ex. loadLiPD NAm-ak000.lpd)
-    :param str filename: LiPD filename
-    """
-    global files
-    lipd_lib.load_lipd(files)
-    print("Process Complete")
-    return
-
-
-def loadLipds():
-    """
-    Load all LiPD files in the current working directory into the workspace.
-    """
-    global files
-    lipd_lib.load_lipds(files)
-    print("Process Complete")
-    return
-
-
-def loadPickleObj():
-    pass
-
-
-def loadPickle():
-    """
-    Load a pickle file into the workspace
-    :return dict: Data loaded from pickle file
+    Wrapper function for LiPD file read.
+    :param str usr_path: Path to file
+    :return none:
     """
     global cwd
-    # Ask where the file is
-    _path = browse_dialog_file()
+    __read_file(usr_path, ".lpd")
+    return cwd
 
-    # Split the filename and the path into two
-    _path, _filename = split_path_and_file(_path)
 
-    # Unpickle the data
-    d = unpickle_data(_path, _filename)
+def readLipds(usr_path=""):
+    """
+    Wrapper function for LiPD directory read.
+    :param str usr_path: Path to directory
+    :return none:
+    """
+    global cwd
+    __read_directory(usr_path, ".lpd", "LiPD")
+    return cwd
 
-    # changed dir in unpickle_data, so move back to root
-    os.chdir(cwd)
 
-    # If this unpickled data reads in as an object, then refresh the global lipd_lib
-    if type(d) not in (dict, str, int, float):
-        global lipd_lib
-        lipd_lib = d
-    elif type(d) is dict:
-        return d
-    else:
-        print("Error: unpickled data was not a valid data type")
-    return
+def readExcel(usr_path=""):
+    """
+    Wrapper function for Excel file read.
+    :param str usr_path: Path to file
+    :return none:
+    """
+    global cwd
+    __read_file(usr_path, ".xls")
+    return cwd
+
+
+def readExcels(usr_path=""):
+    """
+    Wrapper function for Excel directory read.
+    :param str usr_path: Path to directory
+    :return none:
+    """
+    global cwd
+    __read_directory(usr_path, ".xls", "Excel")
+    return cwd
+
+
+def readNoaa(usr_path=""):
+    """
+    Wrapper function for NOAA file read.
+    :param str usr_path: Path to file
+    :return none:
+    """
+    global cwd
+    __read_file(usr_path, ".txt")
+    return cwd
+
+
+def readNoaas(usr_path=""):
+    """
+    Wrapper function for NOAA directory read.
+    :param str usr_path: Path to directory
+    :return none:
+    """
+    global cwd
+    __read_directory(usr_path, ".txt", "NOAA")
+    return cwd
+
+
+def readAll(usr_path=""):
+    """
+    Wrapper function for reading ALL file types in a given directory.
+    :param str usr_path: Path to directory
+    :return none:
+    """
+    global cwd
+    if not usr_path:
+        usr_path, src_files = get_src_or_dst("load", "directory")
+    __read_directory(usr_path, ".lpd", "LiPD")
+    __read_directory(usr_path, ".xls", "Excel")
+    __read_directory(usr_path, ".txt", "NOAA")
+    return cwd
 
 
 def excel():
@@ -289,7 +255,9 @@ def extractTs():
             # Get metadata from this LiPD object. Convert.
             # Receive a time series (list of time series objects) and add it to what we currently have.
             # Continue building time series until all datasets are processed.
+            print("extracting: {}".format(k))
             l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+        print("Finished time series: {} objects".format(len(l)))
     except KeyError as e:
         print("Error: Unable to extractTimeSeries")
         logger_start.debug("extractTimeSeries() failed at {}".format(e))
@@ -384,28 +352,18 @@ def showCsv(filename):
     return
 
 
-def showTso(name):
+def showTso(tso):
     """
     Show contents of one TimeSeries object.
     :param str name: TimeSeries Object name
     :return None:
     """
-    ts_lib.showTso(name)
-    print("Process Complete")
-    return
-
-
-def showTsos(dict_in):
-    """
-    Prints the names of all TimeSeries objects in the TimeSeries_Library
-    :return None:
-    """
     try:
-        s = collections.OrderedDict(sorted(dict_in.items()))
-        for k, v in s.items():
-            print(k)
-    except AttributeError:
-        print("ERROR: Invalid TimeSeries")
+        for key, value in sorted(tso.items()):
+            print("{0:20}: {1}".format(key, value))
+    except Exception as e:
+        print("Unable to list contents: {}".format(e))
+    print("Process Complete")
     return
 
 
@@ -438,7 +396,6 @@ def showDfs(dict_in):
 
 
 # GET
-
 
 def getLipdNames():
     """
@@ -482,64 +439,29 @@ def getCsv(filename):
     return d
 
 
-# SAVE
+# WRITE
 
 
-def savePickle():
-    """
-    Compile a single dictionary of all LiPD data, then Pickle it for later.
-    * maintain compatibility for python v2.7-3+
-    :return none:
-    """
-
-    # Ask user if they want to pickle the lipds library object, or create a stripped-down lipds library dictionary
-    ans = prompt_protocol()
-
-    # set the target data based on user answer
-    if ans == "o":
-        # hold the dir_root value.
-        tmp = lipd_lib.get_dir()
-        # wipe out the dir_root so it doesn't get passed to the next user
-        lipd_lib.set_dir("")
-        # set as the lipd_lib object
-        d = copy.deepcopy(lipd_lib)
-        # reinstate the dir_root now that the object is copied.
-        lipd_lib.set_dir(tmp)
-    else:
-        # create a dictionary from lipd_lib
-        d = lipd_lib.get_lib_as_dict()
-
-    # prompt for where to save the file
-    _path = get_src_or_dst("save")
-
-    # send the data to be pickled
-    pickle_data(_path, d, ans)
-
-    # changed dir in pickle_data, so move back to root
-    os.chdir(_path)
-    return
-
-
-def saveLipd(filename):
+def writeLipd(filename):
     """
     Saves changes made to the target LiPD file.
     (ex. saveLiPD NAm-ak000.lpd)
     :param str filename: LiPD filename
     """
-    lipd_lib.save_lipd(filename)
+    lipd_lib.write_lipd(filename)
     print("Process Complete")
     return
 
 
-def saveLipds():
+def writeLipds():
     """
     Save changes made to all LiPD files in the workspace.
     """
     global files_by_type
-    lipd_lib.save_lipds()
+    lipd_lib.write_lipds()
     # Reload the newly saved LiPD files back into the library.
     print("Re-loading workspace..")
-    lipd_lib.load_lipds(files_by_type)
+    lipd_lib.read_lipds(files_by_type)
     print("Process Complete")
     return
 
@@ -573,6 +495,112 @@ def quit():
     return True
 
 
-# # GLOBALS - run these on initialization
+# HELPERS
+
+
+def __universal_load(file_path, file_type):
+    """
+    Use a file path to create file metadata and load a file in the appropriate way, according to the provided file type.
+    :param str file_path: Path to file
+    :param str file_type: One of approved file types: xls, xlsx, txt, lpd
+    :return none:
+    """
+    global files, lipd_lib, cwd
+    valid_path = path_type(file_path, "file")
+
+    # is the path a file?
+    if valid_path:
+
+        # get file metadata for one file
+        file_meta = collect_metadata_file(file_path)
+        print("processing: {}".format(file_meta["filename_ext"]))
+
+        # append to global files, then load in lipd_lib
+        if file_type == ".lpd":
+            # add meta to global file meta
+            files[".lpd"].append(file_meta)
+            # yes, go ahead and load in the file
+            lipd_lib.read_lipd(file_meta)
+        # append to global files
+        elif file_type in (".xls", ".xlsx"):
+            files[".xls"].append(file_meta)
+        # append to global files
+        elif file_type in [".txt"]:
+            files[".txt"].append(file_meta)
+
+        # we want to move around with the files we load
+        # change dir into the dir of the target file
+        cwd = file_meta["dir"]
+        os.chdir(cwd)
+    else:
+        print("File path is not valid: {}".format(file_path))
+
+    return
+
+
+def __read_file(usr_path, file_type):
+    """
+    Universal read file. Given a path and a type, it will do the appropriate read actions
+    :param str usr_path: Path to file
+    :param str file_type: One of approved file types: xls, xlsx, txt, lpd
+    :return none:
+    """
+    global files
+
+    # assume the path is false.
+    valid_path = False
+    src_files = []
+
+    # no path provided. start gui browse
+    if not usr_path:
+        # src files could be a list of one, or a list of many. depending how many files the user selects
+        src_dir, src_files = get_src_or_dst("load", "file")
+        # check if src_files is a list of multiple files
+        if len(src_files) > 1:
+            for file_path in src_files:
+                __universal_load(file_path, file_type)
+        # one file chosen
+        elif src_files:
+            file_path = src_files[0]
+            __universal_load(file_path, file_type)
+        else:
+            print("No file(s) chosen")
+    else:
+        __universal_load(usr_path, file_type)
+
+    return
+
+
+def __read_directory(usr_path, file_type, file_type_print):
+    """
+    Universal read directory. Given a path and a type, it will do the appropriate read actions
+    :param str usr_path: Path to directory
+    :param str file_type: One of approved file types: xls, xlsx, txt, lpd
+    :return none:
+    """
+    # no path provided. start gui browse
+    if not usr_path:
+        # got dir path
+        usr_path, src_files = get_src_or_dst("load", "directory")
+
+    # Check if this is a valid directory path
+    valid_path = path_type(usr_path, "directory")
+
+    # If valid dir path
+    if valid_path:
+        # List all files of target type in dir
+        files_found = list_files(file_type, usr_path)
+        # notify how many files were found
+        print("Found: {} {} file(s)".format(len(files_found), file_type_print))
+        # Loop for each file found
+        for file_path in files_found:
+            # Call read lipd for each file found
+            __read_file(file_path, file_type)
+    else:
+        print("Directory path is not valid: {}".format(usr_path))
+    return
+
+
+# GLOBALS
 run()
-# setDir()
+

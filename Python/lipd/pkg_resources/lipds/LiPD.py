@@ -20,7 +20,7 @@ class LiPD(object):
     def __init__(self, dir_root, dir_tmp, name_ext):
         self.name_ext = name_ext  # Filename with .lpd extension
         self.name = os.path.splitext(name_ext)[0]  # Filename without .lpd extension
-        self.dir_root = dir_root  # Directory containing all original LiPD files.
+        self.dir_root = dir_root  # Directory where this file originated from
         self.dir_tmp = dir_tmp  # Directory containing unzipped files for this LiPD. Temporary workspace.
         self.dir_tmp_bag = os.path.join(dir_tmp, self.name)  # Bagit directory in temporary folder
         self.dir_tmp_bag_data = os.path.join(self.dir_tmp_bag, 'data')  # Data folder (json, csv) in Bagit directory.
