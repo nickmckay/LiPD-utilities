@@ -7,6 +7,7 @@ import re
 
 from ..helpers.loggers import create_logger
 from ..helpers.blanks import EMPTY
+from ..helpers.alternates import FILE_MAP
 
 logger_misc = create_logger("misc")
 
@@ -88,6 +89,48 @@ def generate_timestamp(fmt=None):
     else:
         time = dt.date.today()
     return str(time)
+
+
+def get_authors_as_str(x):
+    """
+    Take author or investigator data, and convert it to a concatenated string of names.
+    Author data structure has a few variations, so account for all.
+    :param any x: Author data
+    :return str: Author string
+    """
+    _authors = ""
+    # if it's a string already, we're done
+    if isinstance(x, str):
+        return x
+
+    # elif it's a list, keep going
+    elif isinstance(x, list):
+        # item in list is a str
+        if isinstance(x[0], str):
+            # loop and concat until the last item
+            for name in x[:-1]:
+                # all inner items get a semi-colon at the end
+                _authors += str(name) + "; "
+            # last item does not get a semi-colon at the end
+            _authors += str(x[-1])
+
+        # item in list is a dictionary
+        elif isinstance(x[0], dict):
+            # dictionary structure SHOULD have authors listed until the "name" key.
+            try:
+                # loop and concat until the last item
+                for entry in x[:-1]:
+                    # all inner items get a semi-colon at the end
+                    _authors += str(entry["name"]) + "; "
+                # last item does not get a semi-colon at the end
+                _authors += str(x[-1]["name"])
+            except KeyError:
+                logger_misc.warn("get_authors_as_str: KeyError: Authors incorrect data structure")
+
+    else:
+        logger_misc.debug("get_authors_as_str: TypeError: author/investigators isn't str or list: {}".format(type(x)))
+
+    return _authors
 
 
 def get_variable_name_col(d):
@@ -208,6 +251,26 @@ def lipd_v1_1_to_v1_2(d):
     return d
 
 
+def load_fn_matches_ext(file_path, file_type):
+    """
+    Check that the file extension matches the target extension given.
+    :param str file_path: Path to be checked
+    :param str file_type: Target extension
+    :return bool:
+    """
+    correct_ext = False
+    curr_ext = os.path.splitext(file_path)[1]
+    try:
+        if curr_ext == file_type:
+            correct_ext = True
+        else:
+            print("Use '{}' to load this file: {}".format(FILE_MAP[curr_ext]["load_fn"], os.path.basename(file_path)))
+    except Exception as e:
+        logger_misc.debug("load_fn_matches_ext: {}".format(e))
+
+    return correct_ext
+
+
 def match_operators(inp, relate, cut):
     """
     Compare two items. Match a string operator to an operator function
@@ -283,7 +346,7 @@ def path_type(path, target):
     elif os.path.isdir(path) and target == "directory":
         return True
     else:
-        print("Error: Path given is not a {}".format(target))
+        print("Error: Path given is not a {}: {}".format(target, path))
     return False
 
 
