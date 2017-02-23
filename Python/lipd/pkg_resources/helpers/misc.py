@@ -260,8 +260,12 @@ def load_fn_matches_ext(file_path, file_type):
     """
     correct_ext = False
     curr_ext = os.path.splitext(file_path)[1]
+    exts = [curr_ext, file_type]
     try:
-        if curr_ext == file_type:
+        # special case: if file type is excel, both extensions are valid.
+        if ".xlsx" in exts and ".xls" in exts:
+            correct_ext = True
+        elif curr_ext == file_type:
             correct_ext = True
         else:
             print("Use '{}' to load this file: {}".format(FILE_MAP[curr_ext]["load_fn"], os.path.basename(file_path)))
@@ -411,7 +415,7 @@ def remove_empty_fields(x):
     """
     # No logger here because the function is recursive.
     # Int types don't matter. Return as-is.
-    if not isinstance(x, int):
+    if not isinstance(x, int) and not isinstance(x, float):
         if isinstance(x, str) or x is None:
             try:
                 # Remove new line characters and carriage returns
@@ -426,9 +430,10 @@ def remove_empty_fields(x):
             # Recurse once for each item in the list
             for i, v in enumerate(x):
                 x[i] = remove_empty_fields(x[i])
-            # After substitutions, remove and empty entries.
+            # After substitutions, remove empty entries.
             for i in x:
-                if not i:
+                # In the case of coordinates, we cannot remove coordinates of "0"
+                if not i and i not in (0, 0.0):
                     x.remove(i)
         elif isinstance(x, dict):
             # First, go through and substitute "" (empty string) entry for any values in EMPTY

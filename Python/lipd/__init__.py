@@ -6,12 +6,11 @@ from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.excel.excel_main import excel_main
 from .pkg_resources.noaa.noaa_main import noaa_main
-from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst, collect_metadata_files, list_files
 from .pkg_resources.helpers.loggers import create_logger
-from .pkg_resources.helpers.misc import path_type
+from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
 
 # READ
@@ -73,7 +72,10 @@ def readExcels(usr_path=""):
     :return none:
     """
     global cwd
-    __read_directory(usr_path, ".xls", "Excel")
+    if not usr_path:
+        usr_path, src_files = get_src_or_dst("load", "directory")
+    __read_directory(usr_path, ".xls", "Excel (.xls)")
+    __read_directory(usr_path, ".xlsx", "Excel (.xlsx)")
     return cwd
 
 
@@ -109,7 +111,8 @@ def readAll(usr_path=""):
     if not usr_path:
         usr_path, src_files = get_src_or_dst("load", "directory")
     __read_directory(usr_path, ".lpd", "LiPD")
-    __read_directory(usr_path, ".xls", "Excel")
+    __read_directory(usr_path, ".xls", "Excel (xls)")
+    __read_directory(usr_path, ".xlsx", "Excel (xlsx)")
     __read_directory(usr_path, ".txt", "NOAA")
     return cwd
 
@@ -506,10 +509,15 @@ def __universal_load(file_path, file_type):
     :return none:
     """
     global files, lipd_lib, cwd
+
+    # check that we are using the correct function to load this file type. (i.e. readNoaa for a .txt file)
+    correct_ext = load_fn_matches_ext(file_path, file_type)
+
+    # Check that this path references a file
     valid_path = path_type(file_path, "file")
 
     # is the path a file?
-    if valid_path:
+    if valid_path and correct_ext:
 
         # get file metadata for one file
         file_meta = collect_metadata_file(file_path)
@@ -525,15 +533,13 @@ def __universal_load(file_path, file_type):
         elif file_type in (".xls", ".xlsx"):
             files[".xls"].append(file_meta)
         # append to global files
-        elif file_type in [".txt"]:
+        elif file_type == ".txt":
             files[".txt"].append(file_meta)
 
         # we want to move around with the files we load
         # change dir into the dir of the target file
         cwd = file_meta["dir"]
         os.chdir(cwd)
-    else:
-        print("File path is not valid: {}".format(file_path))
 
     return
 
