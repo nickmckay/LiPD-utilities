@@ -4,15 +4,24 @@ for ts=1:length(GTS)
     TSid=GTS(ts).chronData_TSid;
  
     TSids=getWorksheetRow(GTS(ts).googleSpreadSheetKey,GTS(ts).chronData_googleWorkSheetKey,2,aTokenSpreadsheet);
+        
     whichCol=find(strcmp(TSid,TSids));
+            
     if isempty(whichCol)
-        error(['can''t match the tsid ' TSid])
-    end
+        if exist('nObs')   
+        warning(['can''t match the tsid ' TSid '; filling the column with NaNs'])
+            GTS(ts).chronData_values=nan(nObs,1);
+        else
+            error('I cant do anything if I cant match the first TSid')
+        end
+    else
     colData=getWorksheetColumn(GTS(ts).googleSpreadSheetKey,GTS(ts).chronData_googleWorkSheetKey,whichCol,aTokenSpreadsheet);   
     v=convertCellStringToNumeric(colData(3:end));
     if ischar(v)
         v=cellstr(v);
     end
     GTS(ts).chronData_values=v;
+    nObs = length(v);
+    end
 end
 

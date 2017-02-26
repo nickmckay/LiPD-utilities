@@ -43,3 +43,7 @@ index.html
 Python/lipd/pkg_resources/.DS_Store
 
 .DS_Store
+
+*.m~
+
+*.m~

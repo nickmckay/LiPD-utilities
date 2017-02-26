@@ -63,7 +63,20 @@ pdgwk={GTS.paleoData_googleWorkSheetKey}';
 if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
  %   make sure there are names
     if ~isfield(GTS,'paleoData_paleoNumber')
+        if length(pdi)==1
+            pdnn= repmat({'1'},length(GTS),1);
+            [GTS.paleoData_paleoNumber] = pdnn{:};
+        else
         error('the TS metadata must include the paleoNumber (which paleo object - first number in table name)');
+        end
+    end
+    if ~isfield(GTS,'paleoData_paleoMeasurementTableNumber')
+        if length(pdi)==1
+            pdnn= repmat({'1'},length(GTS),1);
+            [GTS.paleoData_paleoMeasurementTableNumber] = pdnn{:};
+        else
+        error('the TS metadata must include the paleoMeasurementTableNumber (which paleo object - second number in table name)');
+        end
     end
     
 %    figure out table types
@@ -160,10 +173,23 @@ if isstruct(GTSC)
     end
     cdgwk={GTSC.chronData_googleWorkSheetKey}';
     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
-       % make sure there are names
-        if ~isfield(GTSC,'chronData_chronNumber')
-            error('the chron TS metadata must include the chronNumber (which chron object - first number in table name)');
+%   make sure there are names
+    if ~isfield(GTSC,'chronData_chronNumber')
+        if length(cdi)==1
+            pdnn= repmat({'1'},length(GTSC),1);
+            [GTSC.chronData_chronNumber] = pdnn{:};
+        else
+        error('the TS metadata must include the chronNumber (which chron object - first number in table name)');
         end
+    end
+    if ~isfield(GTSC,'chronData_chronMeasurementTableNumber')
+        if length(cdi)==1
+            pdnn= repmat({'1'},length(GTSC),1);
+            [GTSC.chronData_chronMeasurementTableNumber] = pdnn{:};
+        else
+        error('the TS metadata must include the chronMeasurementTableNumber (which chron object - second number in table name)');
+        end
+    end
         
       %  figure out table types
         gtsnames = fieldnames(GTSC);
