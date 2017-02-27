@@ -42,14 +42,16 @@ for i = 1:length(pdi)
     
     dashin =min(strfind(fullName,'-'));
     numbers=regexp(fullName,'[0-9]');
-    if length(numbers)~=2
-                error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where {x} and {y} are integers')
+    
+    
+    if length(numbers)<2
+        error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where {x} and {y} are integers')
     end
     if isempty(dashin)
         error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where tableName is the type of table')
     end
     paleoTableNames{i} =  fullName((dashin+1):(end-1));
-    ptn(i,:)=numbers;
+    ptn(i,:)=numbers(1:2);
     pdwkkeys{i} =  wkKeys{pdi(i)};
     
 end
@@ -102,8 +104,15 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
     two={GTS.paleoData_paleoNumber}';
     three=tableType;
     four=tableNumber;
-    tableName=strcat(one, two, repmat({'-'},length(GTS),1) ,three,repmat({'Table'},length(GTS),1), four);
-    
+    try 
+        tableName=strcat(one, two, repmat({'-'},length(GTS),1) ,three,repmat({'Table'},length(GTS),1), four);
+    catch DOO
+       if length(pdwkkeys)==1
+           tableName = repmat({'paleo1-MeasurementTable1'},length(GTS),1);
+       else
+           error('Theres and issue with the paleo and measurement numbers')
+       end
+    end
     for pie = 1:length(GTS)
 %        match the name to the
         whichPDTsheet = find(strcmp(tableName{pie},wknames));
@@ -154,7 +163,7 @@ if isstruct(GTSC)
         
         dashin =min(strfind(fullName,'-'));
         numbers=regexp(fullName,'[0-9]');
-        if length(numbers)~=2
+        if length(numbers)<2
             error('the chrondata worksheets must be named "chron{x}-tableName{y}", where {x} and {y} are integers')
         end
         if isempty(dashin)
@@ -213,8 +222,20 @@ if isstruct(GTSC)
         two={GTSC.chronData_chronNumber}';
         three=tableType;
         four=tableNumber;
-        tableName=strcat(one, two, repmat({'-'},length(GTSC),1) ,three,repmat({'Table'},length(GTSC),1), four);
         
+        
+        try
+            tableName=strcat(one, two, repmat({'-'},length(GTS),1) ,three,repmat({'Table'},length(GTS),1), four);
+        catch DOO
+            if length(cdwkkeys)==1
+                tableName = repmat({'chron1-MeasurementTable1'},length(GTS),1);
+            else
+                error('Theres and issue with the chron and measurement numbers')
+            end
+        end
+        
+        
+              
         for pie = 1:length(GTSC)
             %match the name to the
             whichCDTsheet = find(strcmp(tableName{pie},wknames));

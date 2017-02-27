@@ -27,6 +27,8 @@ for ts=1:length(GTS)
         else
             error('I cant do anything if I cant match the first TSid')
         end
+         elseif length(whichCol)>1
+        error('Duplicate TSids in dataTable')
     else
         colData=getWorksheetColumn(GTS(ts).googleSpreadSheetKey,GTS(ts).chronData_googleWorkSheetKey,whichCol,aTokenSpreadsheet);
         v=convertCellStringToNumeric(colData(3:end));
