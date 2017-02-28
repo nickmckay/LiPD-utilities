@@ -37,6 +37,20 @@ LTS=renameTS(extractTimeseries(L,1),0,1,0);%added 0,1,0
 %metadata first
 [GTS,GTSC]=getLiPDGoogleMetadata(L.googleSpreadSheetKey,L.googleMetadataWorksheet);
 
+
+%if there's not a google spreadsheet key, fill it in
+if ~isfield(GTS,'googleSpreadSheetKey')
+    nk = repmat({L.googleSpreadSheetKey},length(GTS),1);
+    [GTS.googleSpreadSheetKey] = nk{:};
+end
+if isstruct(GTSC)
+    if ~isfield(GTSC,'googleSpreadSheetKey')
+        nk = repmat({L.googleSpreadSheetKey},length(GTSC),1);
+        [GTSC.googleSpreadSheetKey] = nk{:};
+    end
+end
+
+
 for i = 1:length(pdi)
     fullName = wknames{pdi(i)};
     
@@ -225,10 +239,10 @@ if isstruct(GTSC)
         
         
         try
-            tableName=strcat(one, two, repmat({'-'},length(GTS),1) ,three,repmat({'Table'},length(GTS),1), four);
+            tableName=strcat(one, two, repmat({'-'},length(GTSC),1) ,three,repmat({'Table'},length(GTSC),1), four);
         catch DOO
             if length(cdwkkeys)==1
-                tableName = repmat({'chron1-MeasurementTable1'},length(GTS),1);
+                tableName = repmat({'chron1-MeasurementTable1'},length(GTSC),1);
             else
                 error('Theres and issue with the chron and measurement numbers')
             end

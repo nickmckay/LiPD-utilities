@@ -19,6 +19,9 @@ for ts=1:length(GTS)
     end
     whichCol=find(strcmp(TSid,TSids));
     if isempty(whichCol)
+        if length(TSids)==0
+            error('Not getting any TSids from paleoData sheet. Maybe wrong worksheet key?')
+        end
         if exist('nObs')
             warning(['can''t match the tsid ' TSid '; filling the column with NaNs'])
             GTS(ts).paleoData_values=nan(nObs,1);

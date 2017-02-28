@@ -19,6 +19,9 @@ vignettes/*.pdf
 #google token files
 google_token*.mat
 
+#Local preferences
+LiPDUtilitiesPreferences.mat
+
 .idea/*
 
 *.pyc
