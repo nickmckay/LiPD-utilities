@@ -8,11 +8,11 @@ from collections import OrderedDict
 
 from ..doi.doi_resolver import DOIResolver
 from ..helpers.bag import finish_bag
-from ..helpers.directory import dir_cleanup, create_tmp_dir, list_files
+from ..helpers.directory import dir_cleanup, create_tmp_dir
 from ..helpers.zips import zipper
 from ..helpers.loggers import create_logger
 from ..helpers.blanks import EMPTY
-from ..helpers.alternates import EXCEL_GEO, EXCEL_TEMPLATE, ALTS_MV, SHEETS, EXCEL_KEYS, EXCEL_HEADER
+from ..helpers.alternates import EXCEL_GEO, EXCEL_TEMPLATE, ALTS_MV, EXCEL_SHEET_TYPES, EXCEL_LIPD_MAP_FLAT, EXCEL_HEADER
 from ..helpers.regexes import re_sheet, re_var_w_units
 from ..helpers.misc import normalize_name
 from ..helpers.jsons import write_json_to_file
@@ -21,6 +21,7 @@ logger_excel = create_logger('excel_main')
 """
 VERSION: LiPD v1.2
 """
+
 
 def excel_main(files):
     """
@@ -146,7 +147,7 @@ def excel_main(files):
 
             # Zip dir_bag. Creates in dir_root directory
             logger_excel.info("re-zip and rename")
-            zipper(dir_tmp, name, name_lpd)
+            zipper(path_name_ext=name_lpd, root_dir=dir_tmp, name=name)
 
         # Move back to dir_root for next loop.
         os.chdir(file["dir"])
@@ -185,6 +186,7 @@ def _get_sheet_metadata(workbook, name):
     ct_chron = 1
     metadata_str = ""
     sheets = []
+    skip_sheets = ["example", "sample", "lists"]
 
     # Check what worksheets are available, so we know how to proceed.
     for sheet in workbook.sheet_names():
@@ -192,9 +194,8 @@ def _get_sheet_metadata(workbook, name):
         # Use this for when we are dealing with older naming styles of "data (qc), data, and chronology"
         old = "".join(sheet.lower().strip().split())
 
-        # Don't parse example sheets. For user use only.
-        if "example" not in sheet and "sample" not in sheet:
-
+        # Don't parse example sheets. If these words are in the sheet, assume we skip them.
+        if not any(word in sheet.lower() for word in skip_sheets):
             # Group the related sheets together, so it's easier to place in the metadata later.
             if 'metadata' in sheet.lower():
                 metadata_str = sheet
@@ -266,24 +267,24 @@ def _sheet_meta_from_prompts(sheets, old_name, name, ct_paleo, ct_chron):
             pc = input("Is this a (p)aleo or (c)hronology sheet?").lower()
             if pc in ("p", "c", "paleo", "chron", "chronology"):
                 tt = input("Is this a (d)istribution, (e)nsemble, (m)easurement, or (s)ummary sheet?").lower()
-                if tt in SHEETS["distribution"] or tt in SHEETS["ensemble"] \
-                        or tt in SHEETS["summary"] or tt in SHEETS["measurement"]:
+                if tt in EXCEL_SHEET_TYPES["distribution"] or tt in EXCEL_SHEET_TYPES["ensemble"] \
+                        or tt in EXCEL_SHEET_TYPES["summary"] or tt in EXCEL_SHEET_TYPES["measurement"]:
                     # valid answer, keep going
-                    if tt in SHEETS["distribution"]:
+                    if tt in EXCEL_SHEET_TYPES["distribution"]:
                         tt = "distribution"
-                    elif tt in SHEETS["summary"]:
+                    elif tt in EXCEL_SHEET_TYPES["summary"]:
                         tt = "summary"
-                    elif tt in SHEETS["ensemble"]:
+                    elif tt in EXCEL_SHEET_TYPES["ensemble"]:
                         tt = "ensemble"
-                    elif tt in SHEETS["measurement"]:
+                    elif tt in EXCEL_SHEET_TYPES["measurement"]:
                         tt = "measurement"
 
-                    if pc in SHEETS["paleo"]:
+                    if pc in EXCEL_SHEET_TYPES["paleo"]:
                         if tt in ["ensemble", "summary"]:
                             sheet = "{}{}{}{}".format("paleo", ct_paleo, tt, 1)
                         else:
                             sheet = "{}{}{}".format("paleo", ct_paleo, tt)
-                    elif pc in SHEETS["chron"]:
+                    elif pc in EXCEL_SHEET_TYPES["chron"]:
                         if tt in ["ensemble", "summary"]:
                             sheet = "{}{}{}{}".format("chron", ct_chron, tt, 1)
                         else:
@@ -645,7 +646,7 @@ def _parse_sheet(workbook, sheet):
     table_metadata = OrderedDict()
     table_metadata[table_name] = sheet["new_name"]
     table_metadata['filename'] = filename
-    table_metadata['missingValue'] = 'NaN'
+    table_metadata['missingValue'] = 'nan'
     if "ensemble" in sheet["new_name"]:
         ensemble_on = True
 
@@ -870,12 +871,12 @@ def _replace_mvs(row, mv):
     for idx, v in enumerate(row):
         try:
             if v.value.lower() in EMPTY or v.value.lower() == mv:
-                row[idx] = "NaN"
+                row[idx] = "nan"
             else:
                 row[idx] = v.value
         except AttributeError:
             if v.value == mv:
-                row[idx] = "NaN"
+                row[idx] = "nan"
             else:
                 row[idx] = v.value
 
@@ -889,8 +890,8 @@ def _get_header_keys(row):
     """
     # Swap out NOAA keys for LiPD keys
     for idx, key in enumerate(row):
-        if key.value.lower() in EXCEL_KEYS:
-            row[idx] = EXCEL_KEYS[key.value.lower()]
+        if key.value.lower() in EXCEL_LIPD_MAP_FLAT:
+            row[idx] = EXCEL_LIPD_MAP_FLAT[key.value.lower()]
         else:
             try:
                 row[idx] = key.value
@@ -1082,14 +1083,14 @@ def geometry_range(crd_range, elev, crd_type):
     # latitude
     if crd_type == "lat":
         for idx, i in enumerate(crd_range):
-            coordinates[idx] = [crd_range[idx], "NaN"]
+            coordinates[idx] = [crd_range[idx], "nan"]
             if elev:
                 coordinates[idx].append(elev)
 
     # longitude
     elif crd_type == "lon":
         for idx, i in enumerate(crd_range):
-            coordinates[idx] = ["NaN", crd_range[idx]]
+            coordinates[idx] = ["nan", crd_range[idx]]
             if elev:
                 coordinates[idx].append(elev)
 
@@ -1350,16 +1351,19 @@ def name_to_jsonld(title_in):
     title_out = ''
     try:
         title_in = title_in.lower()
-        title_out = EXCEL_KEYS[title_in]
+        title_out = EXCEL_LIPD_MAP_FLAT[title_in]
     except (KeyError, AttributeError) as e:
         if "(" in title_in:
             title_in = title_in.split("(")[0].strip()
         # try to find an exact match first.
-        for k, v in EXCEL_KEYS.items():
-            if title_in == k:
-                return v
+        try:
+            v = EXCEL_LIPD_MAP_FLAT[title_in]
+            return v
+        except KeyError:
+            pass
+
         # if no exact match, find whatever is a closest match
-        for k, v in EXCEL_KEYS.items():
+        for k, v in EXCEL_LIPD_MAP_FLAT.items():
             if k in title_in:
                 return v
     if not title_out:
@@ -1382,24 +1386,24 @@ def instance_str(cell):
     else:
         return 'unknown'
 
-
-def replace_mvs(cell_entry, missing_val):
-    """
-    The missing value standard is "NaN". If there are other missing values present, we need to swap them.
-    :param str cell_entry: Contents of target cell
-    :param str missing_val:
-    :return str:
-    """
-    if isinstance(cell_entry, str):
-        missing_val_list = ['none', 'na', '', '-', 'n/a']
-        if missing_val.lower() not in missing_val_list:
-            missing_val_list.append(missing_val)
-        try:
-            if cell_entry.lower() in missing_val_list:
-                cell_entry = 'NaN'
-        except (TypeError, AttributeError) as e:
-            logger_excel.debug("replace_missing_vals: Type/AttrError: cell: {}, mv: {} , {}".format(cell_entry, missing_val, e))
-    return cell_entry
+#
+# def replace_mvs(cell_entry, missing_val):
+#     """
+#     The missing value standard is "nan". If there are other missing values present, we need to swap them.
+#     :param str cell_entry: Contents of target cell
+#     :param str missing_val:
+#     :return str:
+#     """
+#     if isinstance(cell_entry, str):
+#         missing_val_list = ['none', 'na', '', '-', 'n/a']
+#         if missing_val.lower() not in missing_val_list:
+#             missing_val_list.append(missing_val)
+#         try:
+#             if cell_entry.lower() in missing_val_list:
+#                 cell_entry = 'nan'
+#         except (TypeError, AttributeError) as e:
+#             logger_excel.debug("replace_missing_vals: Type/AttrError: cell: {}, mv: {} , {}".format(cell_entry, missing_val, e))
+#     return cell_entry
 
 
 def extract_units(string_in):
@@ -1668,7 +1672,7 @@ def get_chron_data(temp_sheet, row, total_vars):
         if isinstance(cell, str):
             cell = cell.lower()
         if cell in missing_val_list:
-            cell = 'NaN'
+            cell = 'nan'
         data_row.append(cell)
     return data_row
 

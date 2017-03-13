@@ -188,7 +188,7 @@ class LiPD_Library(object):
         # create a lpd object
         lipd_obj = LiPD(file_meta["dir"], self.dir_tmp, file_meta["filename_ext"])
         # load in the data from the lipds file (unpack, and create a temp workspace)
-        lipd_obj.load()
+        lipd_obj.read()
         # add the lpd object to the master dictionary
         self.master[file_meta["filename_ext"]] = lipd_obj
         return
@@ -211,25 +211,31 @@ class LiPD_Library(object):
 
     # SAVE
 
-    def write_lipd(self, name):
+    def write_lipd(self, dir_dst, filename):
         """
         Overwrite LiPD files in OS with LiPD data in the current workspace.
+        :param str dir_dst: Directory destination
+        :param str filename: LiPD filename
         """
+        logger_lipd_lib.info("enter write_lipd: File: {}".format(filename))
         try:
-            self.master[name].save()
-            # Reload the newly saved LiPD file back into the library.
-            self.read_lipd(name)
-        except KeyError:
-            print("LiPD file not found")
+            print("writing file: {}".format(filename))
+            self.master[filename].write(dir_dst)
+        except Exception as e:
+            logger_lipd_lib.debug("write_lipd: File: {}, Error: {}".format(filename, e))
+            print("Error: Unable to write file: {}: {}".format(filename, e))
+        logger_lipd_lib.info("exit write_lipd: File: {}".format(filename))
         return
 
-    def write_lipds(self):
-        """
-        Overwrite target LiPD file in OS with LiPD data in the current workspace.
-        """
-        for k, v in self.master.items():
-            self.master[k].save()
-        return
+    # def write_lipds(self, dir_dst):
+    #     """
+    #     Overwrite target LiPD file in OS with LiPD data in the current workspace.
+    #     :param str dir_dst: Target directory destination
+    #     """
+    #     print("Found: {} LiPD file(s)".format(len(self.master)))
+    #     for k, v in self.master.items():
+    #         self.write_lipd(dir_dst, k)
+    #     return
 
     def remove_lipd(self, name):
         """
@@ -250,4 +256,23 @@ class LiPD_Library(object):
         self.master = {}
         return
 
+    def cleanup(self):
+        """
+        Remove the LiPD library and files from the tmp folder space.
+        :return:
+        """
+        try:
+            shutil.rmtree(self.dir_tmp)
+        except FileNotFoundError:
+            logger_directory.debug("lipd_lib: Unable to delete lipd_lib data from tmp filesystem")
+        return
 
+    def get_data_for_validator(self):
+        """
+        Get validator-formatted data for each LiPD file in the LiPD Library
+        :return list: List of file metadata
+        """
+        _lst = []
+        for name, obj in self.master.items():
+            _lst.append(obj.get_validator_formatted())
+        return _lst

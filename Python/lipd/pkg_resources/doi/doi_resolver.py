@@ -5,7 +5,7 @@ import json
 import requests
 
 from ..helpers.blanks import EMPTY
-from ..helpers.jsons import remove_empty_fields
+from ..helpers.misc import rm_empty_fields
 from ..helpers.loggers import create_logger
 from ..helpers.misc import clean_doi
 
@@ -54,8 +54,7 @@ class DOIResolver(object):
                 logger_doi_resolver.warn("doi not found: publication index: {}".format(self.name, idx))
                 self.root_dict['pub'][idx]['pubDataUrl'] = 'Manually Entered'
         logger_doi_resolver.info("exit doi_resolver")
-        return remove_empty_fields(self.root_dict)
-
+        return rm_empty_fields(self.root_dict)
 
     @staticmethod
     def compile_date(date_parts):

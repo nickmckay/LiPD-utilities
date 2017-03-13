@@ -1,7 +1,9 @@
 import csv
+import math
 
 from ..helpers.loggers import create_logger
-from ..helpers.misc import cast_values_csvs, cast_int
+from ..helpers.inferred_data import get_inferred_data_table
+from ..helpers.misc import cast_values_csvs, cast_int, get_missing_value_key, _replace_missing_values_table, rm_missing_values_table
 
 logger_csvs = create_logger("csvs")
 
@@ -117,13 +119,29 @@ def _add_csv_to_columns(table, crumbs):
         # Call read_csv_to_columns for this filename. csv_data is list of lists.
         csv_data = read_csv_from_file(filename)
 
+        # If all the data columns are non-numeric types, then a missing value is not necessary
+        _only_numerics = _is_numeric_data(csv_data)
+
+        if not _only_numerics:
+
+            # Get the Missing Value key from the table-level data
+            _mv = get_missing_value_key(table, filename)
+
+            if _mv:
+                # Use the Missing Value key to replace all current missing values with "nan"
+                csv_data = _replace_missing_values_table(csv_data, _mv)
+            # else:
+            #     # If there's not a missingValue key, and the user didn't enter one in the prompt, then skip reading
+            #     # this LiPD file.
+            #     raise KeyError("Cannot read CSV data without missingValue key. Skipping file...")
+
         # Start putting CSV data into corresponding column "values" key
         try:
             for col_name, col in table['columns'].items():
                 # The "number" entry in the ensemble table is a list of columns, instead of an int.
-                # In this case, just store all the csv data as a batch.
+                # In this case, just store all the csv data as a batch, starting at column 2.
                 if isinstance(col["number"], list):
-                    col["values"] = csv_data
+                    col["values"] = csv_data[1:]
                 # For all other cases, "number" is a single int, and "values" should hold one column list.
                 else:
                     col_num = cast_int(col["number"])
@@ -134,6 +152,15 @@ def _add_csv_to_columns(table, crumbs):
             logger_csvs.debug("add_csv_to_columns: KeyError: missing columns key")
         except Exception as e:
             logger_csvs.debug("add_csv_to_columns: Unknown Error:  {}".format(e))
+        # We want to keep one missing value ONLY at the table level. Remove MVs if they're still in column-level
+        table = rm_missing_values_table(table)
+        # Now that all missing values are changed to "nan", revise the key before we leave
+        table["missingValue"] = "nan"
+
+        # calculate inferred data before leaving this section! ONLY paleo data tables
+        if "paleo" in crumbs.lower():
+            table = get_inferred_data_table(table)
+
     return table
 
 
@@ -361,6 +388,25 @@ def _put_filename(table, filename):
 
 
 # HELPERS
+
+def _is_numeric_data(ll):
+    """
+    List of lists of csv values data
+    :param list ll:
+    :return bool: True, all lists are numeric lists, False, data contains at least one numeric list.
+    """
+    for l in ll:
+        try:
+            if any(math.isnan(float(i)) or isinstance(i, str) for i in l):
+                return False
+            # if not all(isinstance(i, (int, float)) or math.isnan(float(i)) for i in l):
+            #     # There is an entry that is a non-numeric entry in this list
+            #     return False
+        except ValueError:
+            # Trying to case a str as a float didnt work, and we got an error
+            return False
+    # All arrays are 100% numeric or "nan" entries.
+    return True
 
 
 def _search_table_for_vals(d, filename):
