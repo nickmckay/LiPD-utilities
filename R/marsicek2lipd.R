@@ -110,7 +110,7 @@ marsicek2lipd = function(filename,writeLiPD = FALSE){
   paleo  = list()
   
   var.names = c("depth","age","temperatureWarmest","temperatureColdest","temperatureAnnual","precipitation")
-  units = c("cm","yr 14C BP","deg C","deg C","deg C","mm")
+  units = c("cm","yr 14C BP","degC","degC","degC","mm")
   ci.season = c(NA,NA,"warmest month","coldest month","annual","annual")
   ci.variable= c(NA,NA,"T","T","T","P")
   ci.variableDetail= c(NA,NA,"air@surface","air@surface","air@surface","@surface")
@@ -128,7 +128,7 @@ marsicek2lipd = function(filename,writeLiPD = FALSE){
       #climate interpretation section
       paleo[[i]]$climateInterpretation$variable = ci.variable[i]
       paleo[[i]]$climateInterpretation$variableDetail = ci.variableDetail[i]
-      paleo[[i]]$climateInterpretation$season = ci.season[i]
+      paleo[[i]]$climateInterpretation$seasonality = ci.season[i]
       paleo[[i]]$climateInterpretation$interpDirection = ci.direction[i]
       #calibration info
       paleo[[i]]$calibration$method = calibration$method

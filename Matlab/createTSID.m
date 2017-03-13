@@ -10,7 +10,7 @@ if nargin<6
 end
    
 if nargin<7
-    checkWeb=1;
+    checkWeb=0;
     
     curdir=pwd;
     

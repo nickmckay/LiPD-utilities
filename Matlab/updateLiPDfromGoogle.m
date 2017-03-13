@@ -37,19 +37,35 @@ LTS=renameTS(extractTimeseries(L,1),0,1,0);%added 0,1,0
 %metadata first
 [GTS,GTSC]=getLiPDGoogleMetadata(L.googleSpreadSheetKey,L.googleMetadataWorksheet);
 
+
+%if there's not a google spreadsheet key, fill it in
+if ~isfield(GTS,'googleSpreadSheetKey')
+    nk = repmat({L.googleSpreadSheetKey},length(GTS),1);
+    [GTS.googleSpreadSheetKey] = nk{:};
+end
+if isstruct(GTSC)
+    if ~isfield(GTSC,'googleSpreadSheetKey')
+        nk = repmat({L.googleSpreadSheetKey},length(GTSC),1);
+        [GTSC.googleSpreadSheetKey] = nk{:};
+    end
+end
+
+
 for i = 1:length(pdi)
     fullName = wknames{pdi(i)};
     
     dashin =min(strfind(fullName,'-'));
     numbers=regexp(fullName,'[0-9]');
-    if length(numbers)~=2
-                error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where {x} and {y} are integers')
+    
+    
+    if length(numbers)<2
+        error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where {x} and {y} are integers')
     end
     if isempty(dashin)
         error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where tableName is the type of table')
     end
     paleoTableNames{i} =  fullName((dashin+1):(end-1));
-    ptn(i,:)=numbers;
+    ptn(i,:)=numbers(1:2);
     pdwkkeys{i} =  wkKeys{pdi(i)};
     
 end
@@ -63,7 +79,20 @@ pdgwk={GTS.paleoData_googleWorkSheetKey}';
 if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
  %   make sure there are names
     if ~isfield(GTS,'paleoData_paleoNumber')
+        if length(pdi)==1
+            pdnn= repmat({'1'},length(GTS),1);
+            [GTS.paleoData_paleoNumber] = pdnn{:};
+        else
         error('the TS metadata must include the paleoNumber (which paleo object - first number in table name)');
+        end
+    end
+    if ~isfield(GTS,'paleoData_paleoMeasurementTableNumber')
+        if length(pdi)==1
+            pdnn= repmat({'1'},length(GTS),1);
+            [GTS.paleoData_paleoMeasurementTableNumber] = pdnn{:};
+        else
+        error('the TS metadata must include the paleoMeasurementTableNumber (which paleo object - second number in table name)');
+        end
     end
     
 %    figure out table types
@@ -89,8 +118,15 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
     two={GTS.paleoData_paleoNumber}';
     three=tableType;
     four=tableNumber;
-    tableName=strcat(one, two, repmat({'-'},length(GTS),1) ,three,repmat({'Table'},length(GTS),1), four);
-    
+    try 
+        tableName=strcat(one, two, repmat({'-'},length(GTS),1) ,three,repmat({'Table'},length(GTS),1), four);
+    catch DOO
+       if length(pdwkkeys)==1
+           tableName = repmat({'paleo1-MeasurementTable1'},length(GTS),1);
+       else
+           error('Theres and issue with the paleo and measurement numbers')
+       end
+    end
     for pie = 1:length(GTS)
 %        match the name to the
         whichPDTsheet = find(strcmp(tableName{pie},wknames));
@@ -141,7 +177,7 @@ if isstruct(GTSC)
         
         dashin =min(strfind(fullName,'-'));
         numbers=regexp(fullName,'[0-9]');
-        if length(numbers)~=2
+        if length(numbers)<2
             error('the chrondata worksheets must be named "chron{x}-tableName{y}", where {x} and {y} are integers')
         end
         if isempty(dashin)
@@ -160,10 +196,23 @@ if isstruct(GTSC)
     end
     cdgwk={GTSC.chronData_googleWorkSheetKey}';
     if any(cellfun(@isempty,cdgwk)) %see if any are missing keys
-       % make sure there are names
-        if ~isfield(GTSC,'chronData_chronNumber')
-            error('the chron TS metadata must include the chronNumber (which chron object - first number in table name)');
+%   make sure there are names
+    if ~isfield(GTSC,'chronData_chronNumber')
+        if length(cdi)==1
+            pdnn= repmat({'1'},length(GTSC),1);
+            [GTSC.chronData_chronNumber] = pdnn{:};
+        else
+        error('the TS metadata must include the chronNumber (which chron object - first number in table name)');
         end
+    end
+    if ~isfield(GTSC,'chronData_chronMeasurementTableNumber')
+        if length(cdi)==1
+            pdnn= repmat({'1'},length(GTSC),1);
+            [GTSC.chronData_chronMeasurementTableNumber] = pdnn{:};
+        else
+        error('the TS metadata must include the chronMeasurementTableNumber (which chron object - second number in table name)');
+        end
+    end
         
       %  figure out table types
         gtsnames = fieldnames(GTSC);
@@ -187,8 +236,20 @@ if isstruct(GTSC)
         two={GTSC.chronData_chronNumber}';
         three=tableType;
         four=tableNumber;
-        tableName=strcat(one, two, repmat({'-'},length(GTSC),1) ,three,repmat({'Table'},length(GTSC),1), four);
         
+        
+        try
+            tableName=strcat(one, two, repmat({'-'},length(GTSC),1) ,three,repmat({'Table'},length(GTSC),1), four);
+        catch DOO
+            if length(cdwkkeys)==1
+                tableName = repmat({'chron1-MeasurementTable1'},length(GTSC),1);
+            else
+                error('Theres and issue with the chron and measurement numbers')
+            end
+        end
+        
+        
+              
         for pie = 1:length(GTSC)
             %match the name to the
             whichCDTsheet = find(strcmp(tableName{pie},wknames));

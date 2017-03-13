@@ -19,6 +19,9 @@ vignettes/*.pdf
 #google token files
 google_token*.mat
 
+#Local preferences
+LiPDUtilitiesPreferences.mat
+
 .idea/*
 
 *.pyc
@@ -43,3 +46,7 @@ index.html
 Python/lipd/pkg_resources/.DS_Store
 
 .DS_Store
+
+*.m~
+
+*.m~
