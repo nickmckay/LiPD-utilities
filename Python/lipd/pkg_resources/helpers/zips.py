@@ -6,19 +6,21 @@ from .loggers import create_logger
 
 logger_zips = create_logger("zips")
 
+# zipper(self.dir_tmp, self.name, self.name_ext)
 
-def zipper(dir_tmp, name, name_ext):
+
+def zipper(root_dir="", name="", path_name_ext=""):
     """
     Zips up directory back to the original location
-    :param str dir_tmp: Path to tmp directory
-    :param str name: Name of current file
-    :param str name_ext: Name of current file with '.lpd' extension
+    :param str root_dir: Root directory of the archive
+    :param str name: <datasetname>.lpd
+    :param str path_name_ext: /path/to/filename.lpd
     """
-    logger_zips.info("re_zip: name: {}, dir_tmp: {}".format(name_ext, dir_tmp))
+    logger_zips.info("re_zip: name: {}, dir_tmp: {}".format(path_name_ext, root_dir))
     # creates a zip archive in current directory. "somefile.lpd.zip"
-    shutil.make_archive(name_ext, format='zip', root_dir=dir_tmp, base_dir=name)
+    shutil.make_archive(path_name_ext, format='zip', root_dir=root_dir, base_dir=name)
     # drop the .zip extension. only keep .lpd
-    os.rename("{}.zip".format(name_ext), name_ext)
+    os.rename("{}.zip".format(path_name_ext), path_name_ext)
     return
 
 
@@ -39,3 +41,5 @@ def unzipper(name_ext, dir_tmp):
         shutil.rmtree(dir_tmp)
     logger_zips.info("exit unzip")
     return
+
+

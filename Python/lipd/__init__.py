@@ -6,13 +6,13 @@ from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.excel.excel_main import excel_main
 from .pkg_resources.noaa.noaa_main import noaa_main
-from .pkg_resources.helpers.alternates import COMPARISONS
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst, collect_metadata_files, list_files
 from .pkg_resources.helpers.loggers import create_logger
-from .pkg_resources.helpers.misc import path_type
+from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
+from .pkg_resources.helpers.validator_api import get_validator_results, display_results
 
 # READ
 
@@ -25,9 +25,12 @@ def run():
     # GLOBALS
     global cwd, lipd_lib, ts_lib, convert, files, logger_start
     cwd = os.getcwd()
+    # creating the LiPD Library also creates the Tmp sys folder where the files will be stored later.
     lipd_lib = LiPD_Library()
     ts_lib = TimeSeries_Library()
     convert = Convert()
+    # print(cwd)
+    # logger created in whatever directory lipd is called from
     logger_start = create_logger("start")
     files = {".txt": [], ".lpd": [], ".xls": []}
     return
@@ -52,6 +55,8 @@ def readLipds(usr_path=""):
     """
     global cwd
     __read_directory(usr_path, ".lpd", "LiPD")
+    # Turned off until LiPD.net is updated to accept Validator API requests
+    # validator()
     return cwd
 
 
@@ -73,7 +78,10 @@ def readExcels(usr_path=""):
     :return none:
     """
     global cwd
-    __read_directory(usr_path, ".xls", "Excel")
+    if not usr_path:
+        usr_path, src_files = get_src_or_dst("read", "directory")
+    __read_directory(usr_path, ".xls", "Excel (.xls)")
+    __read_directory(usr_path, ".xlsx", "Excel (.xlsx)")
     return cwd
 
 
@@ -107,9 +115,10 @@ def readAll(usr_path=""):
     """
     global cwd
     if not usr_path:
-        usr_path, src_files = get_src_or_dst("load", "directory")
+        usr_path, src_files = get_src_or_dst("read", "directory")
     __read_directory(usr_path, ".lpd", "LiPD")
-    __read_directory(usr_path, ".xls", "Excel")
+    __read_directory(usr_path, ".xls", "Excel (xls)")
+    __read_directory(usr_path, ".xlsx", "Excel (xlsx)")
     __read_directory(usr_path, ".txt", "NOAA")
     return cwd
 
@@ -142,6 +151,21 @@ def doi():
     global files
     doi_main(files)
     return
+
+
+def validator(detailed=False):
+    """
+    Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
+    Display the PASS/FAIL results. Display detailed results if the option is chosen.
+    :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors.
+    :return none:
+    """
+    # Get the validator-formatted data for each LiPD file in the LiPD Library. A list of lists of LiPD-content metadata
+    d = lipd_lib.get_data_for_validator()
+    results = get_validator_results(d)
+    display_results(results, detailed)
+    return
+
 
 # PUT
 
@@ -442,26 +466,31 @@ def getCsv(filename):
 # WRITE
 
 
-def writeLipd(filename):
+def writeLipd(usr_path, filename):
     """
     Saves changes made to the target LiPD file.
-    (ex. saveLiPD NAm-ak000.lpd)
+    (ex. writeLiPD("NAm-ak000.lpd", "/Users/bobsmith/Desktop")
     :param str filename: LiPD filename
+    :param str usr_path: Target directory destination (optional)
     """
-    lipd_lib.write_lipd(filename)
-    print("Process Complete")
+    __write_lipd(usr_path, filename)
     return
 
 
-def writeLipds():
+def writeLipds(usr_path=""):
     """
     Save changes made to all LiPD files in the workspace.
+    Files are created in current working directory if path is not provided.
+    :param str usr_path: Target directory destination (optional)
     """
-    global files_by_type
-    lipd_lib.write_lipds()
-    # Reload the newly saved LiPD files back into the library.
-    print("Re-loading workspace..")
-    lipd_lib.read_lipds(files_by_type)
+    # no path provided. start gui browse
+    if not usr_path:
+        # got dir path
+        usr_path, _ignore = get_src_or_dst("write", "directory")
+    _lib = list(lipd_lib.get_master().keys())
+    if _lib:
+        for filename in _lib:
+            writeLipd(usr_path, filename)
     print("Process Complete")
     return
 
@@ -472,7 +501,6 @@ def removeLipd(filename):
     :return None:
     """
     lipd_lib.remove_lipd(filename)
-    print("Process Complete")
     return
 
 
@@ -482,7 +510,6 @@ def removeLipds():
     :return None:
     """
     lipd_lib.remove_lipds()
-    print("Process Complete")
     return
 
 
@@ -490,9 +517,9 @@ def quit():
     """
     Quit and exit the program. (Does not save changes)
     """
-    # self.llib.close()
-    print("Quitting...")
-    return True
+    lipd_lib.cleanup()
+    print("Quitting LiPD Utilities...")
+    exit(0)
 
 
 # HELPERS
@@ -506,10 +533,15 @@ def __universal_load(file_path, file_type):
     :return none:
     """
     global files, lipd_lib, cwd
+
+    # check that we are using the correct function to load this file type. (i.e. readNoaa for a .txt file)
+    correct_ext = load_fn_matches_ext(file_path, file_type)
+
+    # Check that this path references a file
     valid_path = path_type(file_path, "file")
 
     # is the path a file?
-    if valid_path:
+    if valid_path and correct_ext:
 
         # get file metadata for one file
         file_meta = collect_metadata_file(file_path)
@@ -525,15 +557,13 @@ def __universal_load(file_path, file_type):
         elif file_type in (".xls", ".xlsx"):
             files[".xls"].append(file_meta)
         # append to global files
-        elif file_type in [".txt"]:
+        elif file_type == ".txt":
             files[".txt"].append(file_meta)
 
         # we want to move around with the files we load
         # change dir into the dir of the target file
         cwd = file_meta["dir"]
         os.chdir(cwd)
-    else:
-        print("File path is not valid: {}".format(file_path))
 
     return
 
@@ -547,14 +577,10 @@ def __read_file(usr_path, file_type):
     """
     global files
 
-    # assume the path is false.
-    valid_path = False
-    src_files = []
-
     # no path provided. start gui browse
     if not usr_path:
         # src files could be a list of one, or a list of many. depending how many files the user selects
-        src_dir, src_files = get_src_or_dst("load", "file")
+        src_dir, src_files = get_src_or_dst("read", "file")
         # check if src_files is a list of multiple files
         if len(src_files) > 1:
             for file_path in src_files:
@@ -581,12 +607,12 @@ def __read_directory(usr_path, file_type, file_type_print):
     # no path provided. start gui browse
     if not usr_path:
         # got dir path
-        usr_path, src_files = get_src_or_dst("load", "directory")
+        usr_path, src_files = get_src_or_dst("read", "directory")
 
     # Check if this is a valid directory path
     valid_path = path_type(usr_path, "directory")
 
-    # If valid dir path
+    # If dir path is valid
     if valid_path:
         # List all files of target type in dir
         files_found = list_files(file_type, usr_path)
@@ -598,6 +624,26 @@ def __read_directory(usr_path, file_type, file_type_print):
             __read_file(file_path, file_type)
     else:
         print("Directory path is not valid: {}".format(usr_path))
+    return
+
+
+def __write_lipd(usr_path, filename):
+    """
+    Write LiPD data to file, provided an output directory and filename.
+    :param str usr_path: Directory destination
+    :param str filename: Target file
+    :return none:
+    """
+    # no path provided. start gui browse
+    if not usr_path:
+        # got dir path
+        usr_path, _ignore = get_src_or_dst("write", "directory")
+    # Check if this is a valid directory path
+    valid_path = path_type(usr_path, "directory")
+    # If dir path is valid
+    if valid_path:
+        lipd_lib.write_lipd(usr_path, filename)
+
     return
 
 

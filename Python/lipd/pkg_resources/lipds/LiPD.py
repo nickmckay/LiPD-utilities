@@ -1,11 +1,19 @@
-from ..helpers.zips import *
-from ..helpers.directory import *
-from ..helpers.bag import *
-from ..helpers.csvs import *
-from ..helpers.jsons import *
-from ..helpers.lipd_lint import *
+from ..helpers.zips import unzipper, zipper
+from ..helpers.directory import rm_files_in_dir, rm_file_if_exists, get_filenames_in_lipd, get_filenames_generated
+from ..helpers.bag import create_bag
+from ..helpers.csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata
+from ..helpers.jsons import read_json_from_file, write_json_to_file, split_csv_json, idx_num_to_name, idx_name_to_num,\
+    rm_values_fields, rm_empty_doi, rm_empty_fields
+from ..helpers.lipd_lint import lipd_lint
 from ..helpers.loggers import create_logger
-from ..helpers.dataframes import *
+from ..helpers.dataframes import lipd_to_df
+from ..helpers.misc import put_tsids
+from ..helpers.validator_api import get_validator_format
+
+import json
+import os
+import copy
+import shutil
 
 
 logger_lipd = create_logger('LiPD')
@@ -28,12 +36,14 @@ class LiPD(object):
         self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}}
         self.data_json = {}  # Metadata without CSV values
         self.data_master = {}  # Metadata with CSV values
+        self.data_filenames = []  # filenames of all the files in the LiPD archive
         self.dfs = {}  # Pandas data frame objects
+        self.validator_results = {"brief": "", "detailed": ""}
         logger_lipd.info("object created: {}".format(self.name))
 
-    # LOADING
+    # READ
 
-    def load(self):
+    def read(self):
         """
         Loads a LiPD file from local path. Unpacks, processes, and sets data to object self.
         :return:
@@ -58,20 +68,24 @@ class LiPD(object):
             j = idx_num_to_name(t)
 
             # Clean metadata of empty fields and data before loading. Set metadata to self
-            self.data_master = remove_empty_fields(remove_empty_doi(j))
+            self.data_master = rm_empty_fields(rm_empty_doi(j))
 
             # Copy metadata to self before adding csv
             self.data_json = copy.deepcopy(self.data_master)
 
-            # Import csv into data_master
+            # Read CSV files into memory, and merge as "values" fields into data_master
             os.chdir(self.dir_tmp_bag_data)
             self.data_master = merge_csv_metadata(self.data_master)
 
             # Set CSV data to self
-            self.data_json, self.data_csv = get_csv_from_metadata(self.name, self.data_master)
+            self.data_master, self.data_csv = get_csv_from_metadata(self.name, self.data_master)
 
             # Create pandas data frames from metadata and csv
             self.dfs = lipd_to_df(self.data_master, self.data_csv)
+
+            # Get list of all filenames found in LiPD archive.
+            self.data_filenames = get_filenames_in_lipd(self.dir_tmp_bag, self.name)
+            self.data_filenames = get_filenames_generated(self.data_csv, self.name, self.data_filenames)
 
         except FileNotFoundError:
             print("LiPD file not found. Please make sure the filename includes the .lpd extension")
@@ -161,11 +175,12 @@ class LiPD(object):
         except KeyError:
             return {}
 
-    # CLOSING
+    # WRITE
 
-    def save(self):
+    def write(self, dir_dst):
         """
         Saves current state of LiPD object data. Outputs to a LiPD file.
+        :param str dir_dst: Target directory destination
         :return:
         """
         # Remove everything in the tmp directory. We'll be writing all new files.
@@ -180,7 +195,10 @@ class LiPD(object):
         write_csv_to_file(self.data_csv)
 
         # Remove CSV data from self.data_master and update self.data_json
-        self.data_json = remove_values_fields(self.data_master)
+        self.data_json = rm_values_fields(self.data_master)
+
+        # Add TSids to columns wherever necessary! Generate them and get back the new JSON.
+        self.data_json = put_tsids(self.data_json)
 
         # Switch JSON back to old structure
         self.data_json = idx_name_to_num(self.data_json)
@@ -191,17 +209,15 @@ class LiPD(object):
         # Call bagit
         create_bag(self.dir_tmp_bag)
 
-        # Change to dir_root, and delete the old lpd file if it's there.
-        os.chdir(self.dir_root)
-        if os.path.exists(self.name_ext):
-            os.remove(self.name_ext)
+        # Delete a LiPD file if it already exists in our destination location
+        rm_file_if_exists(dir_dst, self.name_ext)
 
         # Zip directory and overwrite LiPD file
-        zipper(self.dir_tmp, self.name, self.name_ext)
+        # zipper(name_ext=self.name_ext, root_dir=self.dir_tmp, name=self.name, dir_dst)
+        zipper(path_name_ext=os.path.join(dir_dst, self.name_ext), root_dir=self.dir_tmp, name=self.name)
 
         # Delete the LiPD directory from inside dir_tmp
-        shutil.rmtree(self.dir_tmp_bag)
-
+        # shutil.rmtree(self.dir_tmp_bag)
         return
 
     def remove(self):
@@ -239,6 +255,15 @@ class LiPD(object):
         :return: (str) Filename
         """
         return self.name_ext
+
+    def get_validator_formatted(self):
+        """
+        Format our LiPD data into the Validator format
+        :return list: LiPD metadata ready for the validator API
+        """
+        # Get our LiPD data into the Validator format.
+        _formatted = get_validator_format(self.data_json, self.data_csv, self.data_filenames)
+        return _formatted
 
 
 

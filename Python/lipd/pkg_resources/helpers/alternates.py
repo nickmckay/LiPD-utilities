@@ -3,13 +3,22 @@
 GLOBAL LIST OF ALTERNATES AND SYNONYMS
 """
 
-SHEETS = {
+# LiPD Excel Template expects these types of data sheets
+EXCEL_SHEET_TYPES = {
     "paleo": ["p", "paleo"],
     "chron": ["c", "chron"],
     "measurement": ["m", "meas", "measurement"],
     "ensemble": ["e", "ens", "ensemble"],
     "distribution": ["d", "dist", "distribution"],
     "summary": ["s", "sum", "summary"]
+}
+
+# LiPD Utilities currently supports the 4 file types listed below
+FILE_TYPE_MAP = {
+    ".xlsx": {"load_fn": "readExcel()", "file_type": "Excel"},
+    ".xls": {"load_fn": "readExcel()", "file_type": "Excel"},
+    ".txt": {"load_fn": "readNoaa()", "file_type": "NOAA"},
+    ".lpd": {"load_fn": "readLipd()", "file_type": "LiPD"}
 }
 
 # TABLES
@@ -24,24 +33,9 @@ DATA_FRAMES = [
     "measurement"
 ]
 
-# Allowable int and float fields
-NUMERIC_INTS = [
-    "maxYear",
-    "minYear",
-    "pubYear",
-    "number",
-    "year",
-    "age14c",
-    "sd14c"
-]
-
-NUMERIC_FLOATS = [
-    "LiPDVersion",
-    "coordinates",
-    "depth"
-]
 
 # FILTER
+# Used to parse user expressions
 COMPARISONS = {
     "==": "=",
     "is": "=",
@@ -74,15 +68,16 @@ ALTS_MV = [
     'missingvariables'
 ]
 
-FUNDING_LIST = [
+# NOAA: This does not include principal investigator or country.
+NOAA_FUNDING_LIST = [
     'funding_agency_name',
-    'grant'
+    'grant',
 ]
 
 # Use this list to sort the top level keys in the LiPD file.
 # Ex: if the LiPD has geo data, take the whole geo dictionary and put it into section 8.
 # reorganize(), create_blanks()
-NOAA_ALL = {
+NOAA_KEYS_BY_SECTION = {
     "Top": ['Study_Name', 'Online_Resource', "Online_Resource_Description", 'Original_Source_URL', 'Archive',
             "Dataset_DOI", "Parameter_Keywords"],
     "Contribution_Date": ['Date'],
@@ -90,7 +85,7 @@ NOAA_ALL = {
     "Title": ['Study_Name'],
     "Investigators": ['Investigators'],
     "Description_Notes_and_Keywords": ['Description'],
-    "Publication": ['Author', 'Published_Date_or_Year', 'Published_Title', 'Journal_Name', 'Volume', 'Edition',
+    "Publication": ['Authors', 'Published_Date_or_Year', 'Published_Title', 'Journal_Name', 'Volume', 'Edition',
                     'Issue', 'Pages', "Report", 'DOI', 'Online_Resource', 'Full_Citation', 'Abstract'],
     "Funding_Agency": ["Funding_Agency_Name", "Grant"],
     "Site_Information": ["Site_Name", "Location", "Country", "Northernmost_Latitude", "Southernmost_Latitude",
@@ -111,9 +106,9 @@ NOAA_ALL = {
 
 
 # LPD to NOAA keys mapped according to NOAA sections.
-NOAA_ALL_DICT = {
+LIPD_NOAA_MAP_BY_SECTION = {
     "Top": {
-        "studyName": "",
+        "studyName": "Study_Name",
         'onlineResource': 'Online_Resource',
         "onlineResourceDescription": "Online_Resource_Description",
         "url": "Original_Source_URL",
@@ -179,15 +174,15 @@ NOAA_ALL_DICT = {
     },
     "Data_Collection": {
         "collectionName": "Collection_Name",
-        "earliestYear": "Earliest_Year",
-        "mostRecentYear": "Most_Recent_Year",
+        "minYear": "Earliest_Year",
+        "maxYear": "Most_Recent_Year",
         "timeUnit": "Time_Unit",
         "coreLength": "Core_Length",
         "notes": "Notes"
     },
     "Species": {
-        "speciesName": "Species_Name",
-        "speciesCode": "Species_Code",
+        "sensorSpecies": "Species_Name",
+        "sensorGenus": "Species_Code",
         "commonName": "Common_Name",
     },
     "Chronology_Information": {
@@ -203,6 +198,7 @@ NOAA_ALL_DICT = {
         'measurementMaterial': 'material',
         'measurementMethod': 'method',
         'seasonality': 'seasonality',
+        "notes": "notes"
     },
     "Data": {
         "missingValue": "Missing_Value"
@@ -212,13 +208,9 @@ NOAA_ALL_DICT = {
         "date": "Date",
         "parameterKeywords": "Parameter_Keywords",
         "datasetName": "Dataset_Name",
-        "treeSpeciesCode": "Tree_Species_Code",
         "speciesName": "Species_Name",
         "commonName": "Common_Name",
         "coreLength": "Core_Length",
-        "timeUnit": "Time_Unit",
-        "mostRecentYear": "Most_Recent_Year",
-        "earliestYear": "Earliest_Year",
         "collectionName": "Collection_Name",
         "onlineResourceDescription": "Online_Resource_Description"
     }
@@ -235,9 +227,9 @@ UNITS = {
     "millimeters": "mm"
 }
 
-# LiPD on left, NOAA on right
+# LiPD terms on left, NOAA terms on right
 # Used to map LiPD to NOAA ontology (and vice versa)
-NOAA_KEYS = {
+LIPD_NOAA_MAP_FLAT = {
     # column 9-part-variables
     'description': 'what',
     'detail': 'detail',
@@ -250,6 +242,9 @@ NOAA_KEYS = {
     'seasonality': 'seasonality',
 
     # all other sections
+    "minYear": "Earliest_Year",
+    "maxYear": "Most_Recent_Year",
+    "timeUnit": "Time_Unit",
     'datasetDOI': "Dataset_DOI",
     'LiPDVersion': 'LiPD_Version',
     'abstract': 'Abstract',
@@ -262,6 +257,7 @@ NOAA_KEYS = {
     "geo": "Site_Information",
     'grant': 'Grant',
     'identifier': 'DOI',
+    'investigator': 'Investigators',
     'investigators': 'Investigators',
     'issue': 'Issue',
     'journal': 'Journal_Name',
@@ -303,8 +299,9 @@ NOAA_KEYS = {
 
 # Excel on left, LiPD on right
 # excel_main()
-EXCEL_KEYS = {
+EXCEL_LIPD_MAP_FLAT = {
     "archive type": "archiveType",
+    "archiveType": "archiveType",
     "dataset name": "dataSetName",
     "metadata": "metadata",
     "chronology": "chronology",
@@ -345,7 +342,7 @@ EXCEL_KEYS = {
     "error": "error",
     "units": "units",
     "seasonality": "seasonality",
-    "archive": "archive",
+    "archive": "archiveType",
     "detail": "detail",
     "method": "method",
     "data_type": "dataType",

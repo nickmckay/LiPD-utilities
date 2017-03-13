@@ -4,7 +4,7 @@ GLOBAL LIST OF EMPTIES AND IGNORED TERMS
 """
 
 # GENERAL
-EMPTY = ['', ' ', None, 'na', 'n/a', 'nan', '?', "'", "''", -999]
+EMPTY = ['', ' ', None, 'na', 'n/a', '?', "'", "''"]
 
 # NOAA
 NOAA_EMPTY = ['\n', '', '#\n', '# \n', ' ']

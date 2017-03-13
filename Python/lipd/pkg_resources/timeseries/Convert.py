@@ -217,13 +217,21 @@ class Convert(object):
                     self.__ts_extract_special(table_data)
                     # Start creating TSOs with dictionary copies.
                     for i, e in table_data["columns"].items():
-                        if not any(x in i for x in ('age', 'depth', 'year')):
-                            # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
-                            col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
-                            try:
-                                self.ts_tsos.append(col)
-                            except Exception as e:
-                                logger_convert.warn("ts_extract_paleo: KeyError: unable to append TSO, {}".format(e))
+                        # if not any(x in i for x in ('age', 'depth', 'year')):
+                        #     # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
+                        #     col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
+                        #     try:
+                        #         self.ts_tsos.append(col)
+                        #     except Exception as e:
+                        #         logger_convert.warn("ts_extract_paleo: KeyError: unable to append TSO, {}".format(e))
+
+                        # TODO: No longer excluding age, depth, year columns. Make ALL columns
+                        # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
+                        col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
+                        try:
+                            self.ts_tsos.append(col)
+                        except Exception as e:
+                            logger_convert.warn("ts_extract_paleo: KeyError: unable to append TSO, {}".format(e))
 
         except KeyError as e:
             logger_convert.warn("ts_Extract_paleo: KeyError: paleoData/columns not found, {}".format(e))
@@ -331,6 +339,9 @@ class Convert(object):
 
     # TIME SERIES to LiPD
 
+
+# todo NEEDS COMPLETE OVERHAUL now that TSOs are not named
+# todo Need a way to completely restore age/year/depth columns without losing any original column info
     def lipd_extract_main(self, lipd_tsos):
         """
         Main function to initiate TimeSeries to LiPD conversion

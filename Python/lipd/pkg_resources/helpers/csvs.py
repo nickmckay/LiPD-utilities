@@ -1,12 +1,14 @@
 import csv
+import math
 
-from ..helpers.loggers import *
-from ..helpers.misc import cast_values_csvs, cast_int
+from ..helpers.loggers import create_logger
+from ..helpers.inferred_data import get_inferred_data_table
+from ..helpers.misc import cast_values_csvs, cast_int, get_missing_value_key, _replace_missing_values_table, rm_missing_values_table
 
 logger_csvs = create_logger("csvs")
 
 
-# Merge CSV and Metadata
+# MERGE - CSV w/ Metadata
 
 
 def merge_csv_metadata(d):
@@ -115,15 +117,31 @@ def _add_csv_to_columns(table, crumbs):
     # If there's no filename, bypass whole process because there's no way to know which file to open
     if filename:
         # Call read_csv_to_columns for this filename. csv_data is list of lists.
-        csv_data = _read_csv_from_file(filename)
+        csv_data = read_csv_from_file(filename)
+
+        # If all the data columns are non-numeric types, then a missing value is not necessary
+        _only_numerics = _is_numeric_data(csv_data)
+
+        if not _only_numerics:
+
+            # Get the Missing Value key from the table-level data
+            _mv = get_missing_value_key(table, filename)
+
+            if _mv:
+                # Use the Missing Value key to replace all current missing values with "nan"
+                csv_data = _replace_missing_values_table(csv_data, _mv)
+            # else:
+            #     # If there's not a missingValue key, and the user didn't enter one in the prompt, then skip reading
+            #     # this LiPD file.
+            #     raise KeyError("Cannot read CSV data without missingValue key. Skipping file...")
 
         # Start putting CSV data into corresponding column "values" key
         try:
             for col_name, col in table['columns'].items():
                 # The "number" entry in the ensemble table is a list of columns, instead of an int.
-                # In this case, just store all the csv data as a batch.
+                # In this case, just store all the csv data as a batch, starting at column 2.
                 if isinstance(col["number"], list):
-                    col["values"] = csv_data
+                    col["values"] = csv_data[1:]
                 # For all other cases, "number" is a single int, and "values" should hold one column list.
                 else:
                     col_num = cast_int(col["number"])
@@ -134,10 +152,22 @@ def _add_csv_to_columns(table, crumbs):
             logger_csvs.debug("add_csv_to_columns: KeyError: missing columns key")
         except Exception as e:
             logger_csvs.debug("add_csv_to_columns: Unknown Error:  {}".format(e))
+        # We want to keep one missing value ONLY at the table level. Remove MVs if they're still in column-level
+        table = rm_missing_values_table(table)
+        # Now that all missing values are changed to "nan", revise the key before we leave
+        table["missingValue"] = "nan"
+
+        # calculate inferred data before leaving this section! ONLY paleo data tables
+        if "paleo" in crumbs.lower():
+            table = get_inferred_data_table(table)
+
     return table
 
 
-def _read_csv_from_file(filename):
+# READ
+
+
+def read_csv_from_file(filename):
     """
     Opens the target CSV file and creates a dictionary with one list for each CSV column.
     :param str filename:
@@ -171,7 +201,30 @@ def _read_csv_from_file(filename):
     return l
 
 
-# SKIM CSV
+# WRITE
+
+
+def write_csv_to_file(d):
+    """
+    Writes columns of data to a target CSV file.
+    :param dict d: A dictionary containing one list for every data column. Keys: int, Values: list
+    :return None:
+    """
+    logger_csvs.info("enter write_csv_to_file")
+    for filename, data in d.items():
+        l_columns = []
+        for k, v in data.items():
+            l_columns.append(v)
+        rows = zip(*l_columns)
+        with open(filename, 'w+') as f:
+            w = csv.writer(f)
+            for row in rows:
+                w.writerow(row)
+    logger_csvs.info("exit write_csv_to_file")
+    return
+
+
+# GET
 
 
 def get_csv_from_metadata(name, metadata):
@@ -231,7 +284,7 @@ def _get_csv_section(_meta, crumbs, pc):
                     # String together the final pieces of the crumbs filename
                     filename = "{}.{}{}.csv".format(crumbs_tmp, "measurementTable", idx)
                     # Set the filename inside the metadata also, so our _csv and _meta will match
-                    dat = _set_filename(dat, filename)
+                    dat = _put_filename(dat, filename)
                     # Get a nested list of table values
                     out = _search_table_for_vals(dat, filename)
                     # Set the table values to _csv using our filename.
@@ -245,7 +298,7 @@ def _get_csv_section(_meta, crumbs, pc):
                         # CA has an extra level of nesting
                         for name_ca, dat in item["calibratedAges"].items():
                             filename = "{}.distributionTable{}.csv".format(crumbs_tmp, idx)
-                            dat = _set_filename(dat, filename)
+                            dat = _put_filename(dat, filename)
                             out = _search_table_for_vals(dat, filename)
                             _csv[filename] = out
                             idx += 1
@@ -255,26 +308,26 @@ def _get_csv_section(_meta, crumbs, pc):
                         # CA has an extra level of nesting
                         for name_ca, dat in item["distributionTable"].items():
                             filename = "{}.distributionTable{}.csv".format(crumbs_tmp, idx)
-                            dat = _set_filename(dat, filename)
+                            dat = _put_filename(dat, filename)
                             out = _search_table_for_vals(dat, filename)
                             _csv[filename] = out
                             idx += 1
 
                     if "{}ModelTable".format(pc) in item:
                         filename = "{}.{}.csv".format(crumbs_tmp, "{}ModelTable".format(pc))
-                        item["{}ModelTable".format(pc)] = _set_filename(item["{}ModelTable".format(pc)], filename)
+                        item["{}ModelTable".format(pc)] = _put_filename(item["{}ModelTable".format(pc)], filename)
                         out = _search_table_for_vals(item["{}ModelTable".format(pc)], filename)
                         _csv[filename] = out
 
                     elif "summaryTable".format() in item:
                         filename = "{}.{}.csv".format(crumbs_tmp, "summaryTable".format(pc))
-                        item["summaryTable"] = _set_filename(item["summaryTable"], filename)
+                        item["summaryTable"] = _put_filename(item["summaryTable"], filename)
                         out = _search_table_for_vals(item["summaryTable"], filename)
                         _csv[filename] = out
 
                     if "ensembleTable" in item:
                         filename = "{}.{}.csv".format(crumbs_tmp, "ensembleTable")
-                        item["ensembleTable"] = _set_filename(item["ensembleTable"], filename)
+                        item["ensembleTable"] = _put_filename(item["ensembleTable"], filename)
                         out = _search_table_for_vals(item["ensembleTable"], filename)
                         _csv[filename] = out
             s_idx += 1
@@ -286,27 +339,74 @@ def _get_csv_section(_meta, crumbs, pc):
     return _meta, _csv
 
 
-def write_csv_to_file(d):
+def _get_filename(table, crumbs):
     """
-    Writes columns of data to a target CSV file.
-    :param dict d: A dictionary containing one list for every data column. Keys: int, Values: list
-    :return None:
+    Get the filename from a data table. If it doesn't exist, create a new one based on table hierarchy in metadata file.
+    format: <dataSetName>.<dataTableType><idx>.<dataTableName>.csv
+    example: ODP1098B.Chron1.ChronMeasurementTable.csv
+    :param dict table: Table data
+    :return str: Filename
     """
-    logger_csvs.info("enter write_csv_to_file")
-    for filename, data in d.items():
-        l_columns = []
-        for k, v in data.items():
-            l_columns.append(v)
-        rows = zip(*l_columns)
-        with open(filename, 'w+') as f:
-            w = csv.writer(f)
-            for row in rows:
-                w.writerow(row)
-    logger_csvs.info("exit write_csv_to_file")
-    return
+    try:
+        filename = table["filename"]
+    except KeyError:
+        logger_csvs.info("_get_filename: KeyError: missing filename key for {}".format(crumbs))
+        print("Error: Missing filename for: {} , cannot load this file".format(crumbs))
+        filename = ""
+    return filename
+
+
+def _get_dataset_name(d):
+    """
+    Get data set name from metadata
+    :param dict d: Metadata
+    :return str: Data set name
+    """
+    try:
+        s = d["dataSetName"]
+    except KeyError:
+        logger_csvs.warn("get_dataset_name: KeyError: missing dataSetName")
+        s = "lipds"
+    return s
+
+
+# PUT
+
+
+def _put_filename(table, filename):
+    """
+    Overwrite filename in table with our standardized filename
+    :param dict table: Metadata
+    :param str filename: Crumbs filename
+    :return dict: Metadata
+    """
+    try:
+        table["filename"] = filename
+    except KeyError:
+        logger_csvs.info("_set_filename: KeyError, Unable to set filename into table")
+    return table
 
 
 # HELPERS
+
+def _is_numeric_data(ll):
+    """
+    List of lists of csv values data
+    :param list ll:
+    :return bool: True, all lists are numeric lists, False, data contains at least one numeric list.
+    """
+    for l in ll:
+        try:
+            if any(math.isnan(float(i)) or isinstance(i, str) for i in l):
+                return False
+            # if not all(isinstance(i, (int, float)) or math.isnan(float(i)) for i in l):
+            #     # There is an entry that is a non-numeric entry in this list
+            #     return False
+        except ValueError:
+            # Trying to case a str as a float didnt work, and we got an error
+            return False
+    # All arrays are 100% numeric or "nan" entries.
+    return True
 
 
 def _search_table_for_vals(d, filename):
@@ -348,51 +448,6 @@ def _search_col_for_vals(data_col, filename):
                          "entry".format(filename, data_col["variableName"]))
 
     return val
-
-
-def _set_filename(table, filename):
-    """
-    Overwrite filename in table with our standardized filename
-    :param dict table: Metadata
-    :param str filename: Crumbs filename
-    :return dict: Metadata
-    """
-    try:
-        table["filename"] = filename
-    except KeyError:
-        logger_csvs.info("_set_filename: KeyError, Unable to set filename into table")
-    return table
-
-
-def _get_filename(table, crumbs):
-    """
-    Get the filename from a data table. If it doesn't exist, create a new one based on table hierarchy in metadata file.
-    format: <dataSetName>.<dataTableType><idx>.<dataTableName>.csv
-    example: ODP1098B.Chron1.ChronMeasurementTable.csv
-    :param dict table: Table data
-    :return str: Filename
-    """
-    try:
-        filename = table["filename"]
-    except KeyError:
-        logger_csvs.info("_get_filename: KeyError: missing filename key for {}".format(crumbs))
-        print("Error: Missing filename for: {} , cannot load this file".format(crumbs))
-        filename = ""
-    return filename
-
-
-def _get_dataset_name(d):
-    """
-    Get data set name from metadata
-    :param dict d: Metadata
-    :return str: Data set name
-    """
-    try:
-        s = d["dataSetName"]
-    except KeyError:
-        logger_csvs.warn("get_dataset_name: KeyError: missing dataSetName")
-        s = "lipds"
-    return s
 
 
 def _merge_ensemble(ensemble, col_nums, col_vals):

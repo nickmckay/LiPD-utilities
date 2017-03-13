@@ -1,11 +1,5 @@
-import copy
-import os
-import json
-
 import demjson
 
-from .blanks import *
-from .loggers import *
 from .misc import *
 
 logger_jsons = create_logger("jsons")
@@ -38,7 +32,7 @@ def read_json_from_file(filename):
             print("Error: unable to read jsonld file")
 
     if d:
-        d = remove_empty_fields(d)
+        d = rm_empty_fields(d)
     logger_jsons.info("exit read_json_from_file")
     return d
 
@@ -333,7 +327,7 @@ def write_json_to_file(filename, json_data):
     :return None:
     """
     logger_jsons.info("enter write_json_to_file")
-    json_data = remove_empty_fields(json_data)
+    json_data = rm_empty_fields(json_data)
     # Use demjson to maintain unicode characters in output
     json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
     # Write json to file
@@ -507,10 +501,14 @@ def _idx_col_by_num(d):
                     l.append(data)
                 # Place at list index based on its column number
                 else:
-                    l[data["number"] - 1] = data
+                    # cast number to int, just in case it's stored as a string.
+                    n = int(data["number"])
+                    l[n - 1] = data
             except KeyError:
                 print("Error: column is missing a 'number' key")
                 logger_jsons.debug("idx_col_by_num: KeyError: missing number key")
+            except Exception as e:
+                logger_jsons.debug("idx_col_by_num: Exception: {}".format(e))
     except AttributeError:
         logger_jsons.debug("idx_col_by_num: AttributeError: expected dict type, given {} type".format(type(d)))
     return l
