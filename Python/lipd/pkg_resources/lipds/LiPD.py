@@ -62,10 +62,10 @@ class LiPD(object):
 
             # Run the metadata through lint and correct any invalid keys
             os.chdir(self.dir_root)
-            t = lipd_lint(j)
+            # j = lipd_lint(j)
 
             # Read in metadata, and switch to idx-by-name
-            j = idx_num_to_name(t)
+            j = idx_num_to_name(j)
 
             # Clean metadata of empty fields and data before loading. Set metadata to self
             self.data_master = rm_empty_fields(rm_empty_doi(j))

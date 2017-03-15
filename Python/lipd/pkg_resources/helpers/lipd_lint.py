@@ -15,10 +15,14 @@ def lipd_lint(d):
     :return dict: Modified metadata
     """
     logger_lipd_lint.info("enter lipd_lint")
-    # Retrieve valid terms
-    full, sections = _fetch_lipdnames()
-    # Validate the metadata
-    metadata = _verify_sections(full, d, sections)
+    try:
+        # Retrieve valid terms
+        full, sections = _fetch_lipdnames()
+        # Validate the metadata
+        metadata = _verify_sections(full, d, sections)
+    except Exception as e:
+        logger_lipd_lint.warn("lipd_lint: Unable to finish LiPD Lint process."
+                              " Likely no internet connection to download file.")
     logger_lipd_lint.info("exit lipd_lint")
     return metadata
 
