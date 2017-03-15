@@ -219,23 +219,12 @@ class LiPD_Library(object):
         """
         logger_lipd_lib.info("enter write_lipd: File: {}".format(filename))
         try:
-            print("writing file: {}".format(filename))
             self.master[filename].write(dir_dst)
         except Exception as e:
             logger_lipd_lib.debug("write_lipd: File: {}, Error: {}".format(filename, e))
             print("Error: Unable to write file: {}: {}".format(filename, e))
         logger_lipd_lib.info("exit write_lipd: File: {}".format(filename))
         return
-
-    # def write_lipds(self, dir_dst):
-    #     """
-    #     Overwrite target LiPD file in OS with LiPD data in the current workspace.
-    #     :param str dir_dst: Target directory destination
-    #     """
-    #     print("Found: {} LiPD file(s)".format(len(self.master)))
-    #     for k, v in self.master.items():
-    #         self.write_lipd(dir_dst, k)
-    #     return
 
     def remove_lipd(self, name):
         """
@@ -262,6 +251,7 @@ class LiPD_Library(object):
         :return:
         """
         try:
+            print("Cleaning temporary workspace...")
             shutil.rmtree(self.dir_tmp)
         except FileNotFoundError:
             logger_directory.debug("lipd_lib: Unable to delete lipd_lib data from tmp filesystem")

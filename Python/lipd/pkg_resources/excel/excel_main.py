@@ -13,7 +13,7 @@ from ..helpers.zips import zipper
 from ..helpers.loggers import create_logger
 from ..helpers.blanks import EMPTY
 from ..helpers.alternates import EXCEL_GEO, EXCEL_TEMPLATE, ALTS_MV, EXCEL_SHEET_TYPES, EXCEL_LIPD_MAP_FLAT, EXCEL_HEADER
-from ..helpers.regexes import re_sheet, re_var_w_units
+from ..helpers.regexes import re_sheet, re_var_w_units, re_calibration, re_interpretation
 from ..helpers.misc import normalize_name
 from ..helpers.jsons import write_json_to_file
 
@@ -151,6 +151,8 @@ def excel_main(files):
 
         # Move back to dir_root for next loop.
         os.chdir(file["dir"])
+
+
 
         # Cleanup and remove tmp directory
         shutil.rmtree(dir_tmp)
@@ -670,7 +672,6 @@ def _parse_sheet(workbook, sheet):
     variable_keys_lower = []
     mv = ""
 
-
     try:
         # Loop for every row in the sheet
         for i in range(0, nrows):
@@ -890,14 +891,24 @@ def _get_header_keys(row):
     """
     # Swap out NOAA keys for LiPD keys
     for idx, key in enumerate(row):
-        if key.value.lower() in EXCEL_LIPD_MAP_FLAT:
-            row[idx] = EXCEL_LIPD_MAP_FLAT[key.value.lower()]
+        key_low = key.value.lower()
+
+        # Simple case: Nothing fancy here, just map to the LiPD key counterpart.
+        if key_low in EXCEL_LIPD_MAP_FLAT:
+            row[idx] = EXCEL_LIPD_MAP_FLAT[key_low]
+
+        # Nested data case: Check if this is a calibration, interpretation, or some other data that needs to be nested.
+        # elif key_low:
+        #     pass
+
+        # Unknown key case: Store the key as-is because we don't have a LiPD mapping for it.
         else:
             try:
                 row[idx] = key.value
             except AttributeError as e:
                 logger_excel.warn("excel_main: get_header_keys: unknown header key, unable to add: {}".format(e))
 
+    # Since we took a whole row of cells, we have to drop off the empty cells at the end of the row.
     header_keys = _rm_cells_reverse(row)
     return header_keys
 
@@ -939,6 +950,49 @@ def _rm_units_from_var_names_multi(row):
     return l2
 
 
+def _compile_interpretation(data):
+    """
+    Compile the interpretation data into a list of multiples, based on the keys provided.
+    Disassemble the key to figure out how to place the data
+    :param dict data: Interpretation data (unsorted)
+    :return dict: Interpretation data (sorted)
+    """
+    # KEY FORMAT : "interpretation1_somekey"
+    _count = 0
+
+    # Determine how many entries we are going to need, by checking the interpretation index in the string
+    for _key in data.keys():
+        _key_low = _key.lower()
+        # Get regex match
+        m = re.match(re_interpretation, _key_low)
+        # If regex match was successful..
+        if m:
+            # Check if this interpretation count is higher than what we have.
+            _curr_count = int(m.group(1))
+            if _curr_count > _count:
+                # New max count, record it.
+                _count = _curr_count
+
+    # Create the empty list with X entries for the interpretation data
+    _tmp = [{} for i in range(0, _count)]
+
+    # Loop over all the interpretation keys and data
+    for k,v in data.items():
+        # Get the resulting regex data.
+        # EXAMPLE ENTRY: "interpretation1_variable"
+        # REGEX RESULT: ["1", "variable"]
+        m = re.match(re_interpretation, k)
+        # Get the interpretation index number
+        idx = int(m.group(1))
+        # Get the field variable
+        key = m.group(2)
+        # Place this data in the _tmp array. Remember to adjust given index number for 0-indexing
+        _tmp[idx-1][key] = v
+
+    # Return compiled interpretation data
+    return _tmp
+
+
 def _compile_column_metadata(row, keys, number):
     """
     Compile column metadata from one excel row ("9 part data")
@@ -947,20 +1001,43 @@ def _compile_column_metadata(row, keys, number):
     :return dict: Column metadata
     """
     # Store the variable keys by index in a dictionary
-    column = {}
+    _column = {}
+    _interpretation = {}
+    _calibration = {}
 
     # Use the header keys to place the column data in the dictionary
     if keys:
         for idx, key in enumerate(keys):
-            try:
-                val = row[idx].value
-            except Exception:
-                logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
-                val = "n/a"
-            if key == "variableName":
-                val = _rm_units_from_var_name_single(row[idx].value)
-            column[key] = val
-        column["number"] = number
+            _key_low = key.lower()
+
+            # Special case: Calibration data
+            if re.match(re_calibration, _key_low):
+                m = re.match(re_calibration, _key_low)
+                if m:
+                    _key = m.group(1)
+                    _calibration[_key] = row[idx].value
+
+            # Special case: Calibration data
+            elif re.match(re_interpretation, _key_low):
+                # Put interpretation data in a tmp dictionary that we'll sort later.
+                _interpretation[_key_low] = row[idx].value
+
+            else:
+                try:
+                    val = row[idx].value
+                except Exception:
+                    logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
+                    val = "n/a"
+                if key == "variableName":
+                    val = _rm_units_from_var_name_single(row[idx].value)
+                _column[key] = val
+        _column["number"] = number
+
+        if _calibration:
+            _column["calibration"] = _calibration
+        if _interpretation:
+            _interpretation_data = _compile_interpretation(_interpretation)
+            _column["interpretation"] = _interpretation_data
 
     # If there are not keys, that means it's a header-less metadata section.
     else:
@@ -973,12 +1050,13 @@ def _compile_column_metadata(row, keys, number):
             logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
             val = "n/a"
         val = _rm_units_from_var_name_single(val)
-        column["variableName"] = val
-        column["number"] = number
+        _column["variableName"] = val
+        _column["number"] = number
 
-    # Add this column to the overall metadata
-    column = {k: v for k, v in column.items() if v}
-    return column
+    # Add this column to the overall metadata, but skip if there's no data present
+    _column = {k: v for k, v in _column.items() if v}
+
+    return _column
 
 
 def _rm_cells_reverse(l):
@@ -1326,15 +1404,26 @@ def compile_fund(workbook, sheet, row, col):
     while col < temp_sheet.ncols:
         col += 1
         try:
-            agency = temp_sheet.cell_value(row, col)
-            grant = temp_sheet.cell_value(row+1, col)
-            if (agency != xlrd.empty_cell and agency not in EMPTY) or (grant != xlrd.empty_cell and grant not in EMPTY):
-                if agency in EMPTY:
-                    l.append({'grant': grant})
-                elif grant in EMPTY:
-                    l.append({'agency': agency})
-                else:
-                    l.append({'agency': agency, 'grant': grant})
+            # Make a dictionary for this funding entry.
+            _curr = {
+                'agency': temp_sheet.cell_value(row, col),
+                'grant': temp_sheet.cell_value(row+1, col),
+                "principalInvestigator": temp_sheet.cell_value(row+2, col),
+                "country": temp_sheet.cell_value(row + 3, col)
+            }
+            # Make a list for all
+            _exist = [temp_sheet.cell_value(row, col), temp_sheet.cell_value(row+1, col),
+                       temp_sheet.cell_value(row+2, col), temp_sheet.cell_value(row+3, col)]
+
+            # Remove all empty items from the list
+            _exist = [i for i in _exist if i]
+            # If we have all empty entries, then don't continue. Quit funding and return what we have.
+            if not _exist:
+                return l
+
+            # We have funding data. Add this funding block to the growing list.
+            l.append(_curr)
+
         except IndexError as e:
             logger_excel.debug("compile_fund: IndexError: sheet:{} row:{} col:{}, {}".format(sheet, row, col, e))
     logger_excel.info("exit compile_fund")
@@ -1493,6 +1582,7 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
     pub_cases = ['id', 'year', 'author', 'journal', 'issue', 'volume', 'title', 'pages',
                  'reportNumber', 'abstract', 'alternateCitation']
     geo_cases = ['latMin', 'lonMin', 'lonMax', 'latMax', 'elevation', 'siteName', 'location']
+    funding_cases = ["agency", "grant", "principalInvestigator", "country"]
 
     # Temp
     pub_qty = 0
@@ -1543,8 +1633,9 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
                                 else:
                                     pub_temp[pub][title_json] = cell_data[pub]
                     # Funding
-                    elif title_json == 'agency':
-                        funding_temp = compile_fund(workbook, sheet, row, col)
+                    elif title_json in funding_cases:
+                        if title_json == "agency":
+                            funding_temp = compile_fund(workbook, sheet, row, col)
 
                     # All other cases do not need fancy structuring
                     else:

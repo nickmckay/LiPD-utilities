@@ -23,7 +23,8 @@ def run():
     :return:
     """
     # GLOBALS
-    global cwd, lipd_lib, ts_lib, convert, files, logger_start
+    global cwd, lipd_lib, ts_lib, convert, files, logger_start, verbose
+    verbose = True
     cwd = os.getcwd()
     # creating the LiPD Library also creates the Tmp sys folder where the files will be stored later.
     lipd_lib = LiPD_Library()
@@ -128,8 +129,21 @@ def excel():
     User facing call to the excel function
     :return none:
     """
-    global files
+    global files, cwd, verbose
     excel_main(files)
+    # Turn off verbose. We don't want to clutter the console with extra reading/writing output statements
+    verbose = False
+    for file in files[".xls"]:
+        try:
+            readLipd(os.path.join(file["dir"], file["filename_no_ext"] + ".lpd"))
+        except Exception as e:
+            logger_start.debug("excel: Converted excel to lipd file, but unable readLipd(): {}, {}".format(file["filename_ext"], e))
+    try:
+        writeLipds(cwd)
+    except Exception as e:
+        logger_start.debug("excel: Unable to writeLipds with new lipd files, {}".format(e))
+    # Turn on verbose. Back to normal mode when this function is finished.
+    verbose = True
     return
 
 
@@ -483,6 +497,7 @@ def writeLipds(usr_path=""):
     Files are created in current working directory if path is not provided.
     :param str usr_path: Target directory destination (optional)
     """
+    global verbose
     # no path provided. start gui browse
     if not usr_path:
         # got dir path
@@ -491,7 +506,8 @@ def writeLipds(usr_path=""):
     if _lib:
         for filename in _lib:
             writeLipd(usr_path, filename)
-    print("Process Complete")
+    if verbose:
+        print("Process Complete")
     return
 
 
@@ -532,7 +548,7 @@ def __universal_load(file_path, file_type):
     :param str file_type: One of approved file types: xls, xlsx, txt, lpd
     :return none:
     """
-    global files, lipd_lib, cwd
+    global files, lipd_lib, cwd, verbose
 
     # check that we are using the correct function to load this file type. (i.e. readNoaa for a .txt file)
     correct_ext = load_fn_matches_ext(file_path, file_type)
@@ -545,7 +561,8 @@ def __universal_load(file_path, file_type):
 
         # get file metadata for one file
         file_meta = collect_metadata_file(file_path)
-        print("processing: {}".format(file_meta["filename_ext"]))
+        if verbose:
+            print("processing: {}".format(file_meta["filename_ext"]))
 
         # append to global files, then load in lipd_lib
         if file_type == ".lpd":
@@ -634,6 +651,7 @@ def __write_lipd(usr_path, filename):
     :param str filename: Target file
     :return none:
     """
+    global verbose
     # no path provided. start gui browse
     if not usr_path:
         # got dir path
@@ -642,6 +660,8 @@ def __write_lipd(usr_path, filename):
     valid_path = path_type(usr_path, "directory")
     # If dir path is valid
     if valid_path:
+        if verbose:
+            print("writing file: {}".format(filename))
         lipd_lib.write_lipd(usr_path, filename)
 
     return

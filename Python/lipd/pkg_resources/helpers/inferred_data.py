@@ -134,7 +134,7 @@ def get_inferred_data_table(table):
             logger_inferred_data.warn("get_inferred_data_table: Exception: {}".format(e))
     else:
         try:
-            print("Unable to calculate inferred data for: {}".format(table["filename"]))
+            logger_inferred_data.info("Unable to calculate inferred data for: {}".format(table["filename"]))
         except KeyError:
             logger_inferred_data.warn("get_inferred_data_table: Unable to calculate inferred data for: unknown table")
 
