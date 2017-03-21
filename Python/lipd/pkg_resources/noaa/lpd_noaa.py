@@ -431,26 +431,31 @@ class LPD_NOAA(object):
                          "Westernmost_Longitude", "Elevation"]
             logger_lpd_noaa.info("coordinates: {} coordinates found".format(len(l)))
 
+            # Amount of coordinates in the list
+            _len_coords = len(l)
+
             # Odd number of coordinates. Elevation value exists
-            if len(l) % 2 == 1:
+            if _len_coords % 2 == 1:
                 # Store the elevation, which is always the last value in the list
                 self.noaa_geo["Elevation"] = l[-1]
+                # If elevation, then subtract one from the length
+                _len_coords -= 1
 
             # Start compiling the lat lon coordinates
 
             # 0 coordinate values. fill in locations with empty values
-            if len(l) == 0:
+            if _len_coords == 0:
                 for location in locations:
                     self.noaa_geo[location] = ' '
             # 2 coordinates values. duplicate to fill 4 location slots.
-            elif len(l) == 2:
+            elif _len_coords == 2:
                 self.noaa_geo[locations[0]] = l[1]
                 self.noaa_geo[locations[1]] = l[1]
                 self.noaa_geo[locations[2]] = l[0]
                 self.noaa_geo[locations[3]] = l[0]
 
             # 4 coordinate values. put each in its correct location slot.
-            elif len(l) == 4:
+            elif _len_coords == 4:
                 for index, location in enumerate(locations):
                     self.noaa_geo[locations[index]] = l[index]
             else:
