@@ -463,31 +463,40 @@ def put_tsids(x):
     :param any x: Recursive, so could be any data type.
     :return any x: Recursive, so could be any data type.
     """
-    if isinstance(x, dict):
-        for k, v in x.items():
-            # Is this the columns key?
-            if k == "columns":
-                # loop over each column of data. Sorted by variableName key
-                for var, data in v.items():
-                    try:
-                        # make a case-insensitive keys list for checking existence of "tsid"
-                        keys = [key.lower() for key in data.keys()]
-                        # If a TSid already exists, then we don't need to do anything.
-                        if "tsid" not in keys:
-                            # generate the TSid, and add it to the dictionary
-                            data["TSid"] = generate_tsid()
-                            logger_misc.info("put_tsids: Generated new TSid: {}".format(data["TSid"]))
-                    except AttributeError as e:
-                        logger_misc.debug("put_tsids: AttributeError: {}".format(e))
-                    except Exception as e:
-                        logger_misc.debug("put_tsids: Exception: {}".format(e))
-            # If it's not "columns", then dive deeper.
-            else:
-                x[k] = put_tsids(v)
-    # Item is a list, dive deeper for each item in the list
-    elif isinstance(x, list):
-        for idx, entry in enumerate(x):
-            x[idx] = put_tsids(entry)
+    try:
+        if isinstance(x, dict):
+            try:
+                for k, v in x.items():
+                    # Is this the columns key?
+                    if k == "columns":
+                        try:
+                            # loop over each column of data. Sorted by variableName key
+                            for var, data in v.items():
+                                try:
+                                    # make a case-insensitive keys list for checking existence of "tsid"
+                                    keys = [key.lower() for key in data.keys()]
+                                    # If a TSid already exists, then we don't need to do anything.
+                                    if "tsid" not in keys:
+                                        # generate the TSid, and add it to the dictionary
+                                        data["TSid"] = generate_tsid()
+                                        logger_misc.info("put_tsids: Generated new TSid: {}".format(data["TSid"]))
+                                except AttributeError as e:
+                                    logger_misc.debug("put_tsids: level 3: AttributeError: {}".format(e))
+                                except Exception as e:
+                                    logger_misc.debug("put_tsids: level 3: Exception: {}".format(e))
+                        except Exception as e:
+                            print("put_tsids: level 2: Exception: {}, {}".format(e, k))
+                    # If it's not "columns", then dive deeper.
+                    else:
+                        x[k] = put_tsids(v)
+            except Exception as e:
+                print("put_tsids: level 1: Exception: {}, {}".format(e, k))
+        # Item is a list, dive deeper for each item in the list
+        elif isinstance(x, list):
+            for idx, entry in enumerate(x):
+                x[idx] = put_tsids(entry)
+    except Exception as e:
+        print("put_tsids: root: Exception: {}, {}".format(e, k))
     return x
 
 

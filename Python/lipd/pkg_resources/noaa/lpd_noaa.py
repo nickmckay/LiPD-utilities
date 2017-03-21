@@ -22,23 +22,33 @@ class LPD_NOAA(object):
     :return none: Writes NOAA text to file in local storage
     """
 
-    def __init__(self, dir_root, name, lipd_dict):
+    def __init__(self, dir_root, name, lipd_dict, data_csv):
         """
         :param str dir_root: Path to dir containing all .lpd files
         :param str name: Name of current .lpd file
         :param dict root_dict: Full dict loaded from jsonld file
         """
+        # Directory where this LiPD file was read from
         self.dir_root = dir_root
+        # LiPD dataset name
         self.name = name
-        # output filename
+        # Dataset name with LiPD extension
         self.name_lpd = name + ".lpd"
+        # Dataset name with TXT extension
         self.name_txt = name + '.txt'
+        # List of filenames to write out. One .txt file per data table set.
         self.output_filenames = []
+        # Amount of .txt files to be written
         self.output_file_ct = 0
+        # The current .txt file writer object that is open.
         self.noaa_txt = None
+        # Archive type for this dataset, used in multiple locations
         self.archive_type = ""
+        # NOAA url, to landing page where this dataset will be stored on NOAA's servers
         self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/{}".format(self.name_txt)
+        # List of all DOIs found in this dataset
         self.doi = []
+        # Avoid writing identical pub citations. Store here as intermediate check.
         self.data_citation = {}
         # noaa dict has all metadata with noaa keys
         self.noaa_data = lipd_dict
@@ -67,6 +77,11 @@ class LPD_NOAA(object):
         }
         self.noaa_geo = {
         }
+        # CSV data for this LiPD file. Taken from LiPD object.
+        self.data_csv = data_csv
+        # Paleo and Chron tables
+        self.data_paleos = []
+        self.data_chrons = []
 
     # MAIN
 
@@ -82,8 +97,12 @@ class LPD_NOAA(object):
         # timestamp the conversion of the file
         self.noaa_data_sorted["File_Last_Modified_Date"]["Modified_Date"] = generate_timestamp()
 
+        # Get measurement tables from metadata, and sort into object self
+        self.__put_tables_in_self(["paleo","paleoData", "paleoMeasurementTable"])
+        self.__put_tables_in_self(["chron", "chronData", "chronMeasurementTable"])
+
         # how many measurement tables exist? this will tell use how many noaa files to create
-        self.__get_meas_tables()
+        self.__get_table_pairs()
 
         # reorganize data into noaa sections
         self.__reorganize()
@@ -456,21 +475,16 @@ class LPD_NOAA(object):
 
     # REMOVE
 
-    def __rm_duplicate_citations(self):
+    def __rm_duplicate_citation_2(self, key):
         """
-        If there are multiple publications, and there are two duplicate "Full_Citation" entries, then keep only one
-        of the Full_Citation entries and remove the others.
-        :return none:
+        Remove exact duplicate entries for abstract or citation fields. Check all publication entries.
+        :return:
         """
-        # Loop through and collect all citations
-        # Then, see if any citations are duplicates (excluding blank entry)
-        # Keep the first entry,
-        # then set subsequent duplicate citations to blank for corresponding publications indexes
         citations = []
         # Before writing, remove any duplicate "Full_Citations" that are found
         for idx, pub in enumerate(self.noaa_data_sorted["Publication"]):
             try:
-                citations.append(pub["citation"])
+                citations.append(pub[key])
             except KeyError:
                 # Key was not found. Enter a blank entry in citations list
                 citations.append("")
@@ -490,7 +504,21 @@ class LPD_NOAA(object):
                 # Loop for [1:], since we want to keep the first citation and remove the rest.
                 for idx in idxs[1:]:
                     # Set citation to blank
-                    self.noaa_data_sorted["Publication"][idx]["citation"] = ""
+                    self.noaa_data_sorted["Publication"][idx][key] = ""
+
+    def __rm_duplicate_citation_1(self):
+        """
+        If there are multiple publications, and there are two duplicate "Full_Citation" entries, then keep only one
+        of the Full_Citation entries and remove the others.
+        :return none:
+        """
+        # Loop through and collect all citations
+        # Then, see if any citations are duplicates (excluding blank entry)
+        # Keep the first entry,
+        # then set subsequent duplicate citations to blank for corresponding publications indexes
+        for key in ["abstract", "citation"]:
+            self.__rm_duplicate_citation_2(key)
+
         return
 
     # GET
@@ -629,40 +657,42 @@ class LPD_NOAA(object):
                 self.output_filenames.append(tmp_name)
         return
 
-    def __get_meas_table_chron(self, idx1, idx2):
+    def __get_table_pairs(self):
         """
-        Look for a chron meas table to match the paleo meas table we just added.
-        :param int idx1: chronData[idx1]
-        :param int idx2: chronData[idx1]["chronMeasurementTable"][idx2]
+        Use the tables in self.paleos and self.chrons (sorted by idx) to put in self.noaa_data_sorted.
         :return:
         """
         try:
-            # this will always be called right after a paleoData table
-            self.noaa_data_sorted["Data"][len(self.noaa_data_sorted["Data"]) - 1]["chron"] = self.lipd_data["chronData"][idx1]["chronMeasurementTable"][idx2]
-        except KeyError:
-            logger_lpd_noaa.info("lpd_noaa: get_meas_table_chron: No matching chron table")
-        except IndexError:
-            # there are more paleo tables than chron tables. this is okay, keep going
-            pass
-        return
-
-    def __get_meas_tables(self):
-        """
-        Count the number of measurement tables in the Paleo/Chron tables
-        :return:
-        """
-        # todo: is this going to be a problem if there is a chronData table but no paleoData table?
-        try:
-            for idx1, pd in enumerate(self.lipd_data["paleoData"]):
-                for idx2, pmt in enumerate(self.lipd_data["paleoData"][idx1]["paleoMeasurementTable"]):
-                    # create entry in self object collection of data tables
-                    self.noaa_data_sorted["Data"].append({"paleo": pmt, "chron": {}})
-                    # look for a matching chron table at the same index
-                    self.__get_meas_table_chron(idx1, idx2)
+            for _idx, _p in enumerate(self.data_paleos):
+                _c = {}
+                try:
+                    _c = self.data_chrons[_idx]
+                except IndexError:
+                    pass
+                # create entry in self object collection of data tables
+                self.noaa_data_sorted["Data"].append({"paleo": _p, "chron": _c})
         except KeyError:
             logger_lpd_noaa.warning("lpd_noaa: get_meas_table: 0 paleo data tables")
 
         self.output_file_ct = len(self.noaa_data_sorted["Data"])
+        return
+
+    def __put_tables_in_self(self, keys):
+        """
+        Metadata is sorted-by-name. Use this to put the table data into the object self.
+        :param list keys: Paleo or Chron keys
+        :return none:
+        """
+        try:
+            for pd_name, pd_data in self.lipd_data[keys[1]].items():
+                for table_name, table_data in pd_data[keys[2]].items():
+                    if keys[0] == "paleo":
+                        self.data_paleos.append(table_data)
+                    else:
+                        self.data_chrons.append(table_data)
+        except Exception:
+            pass
+
         return
 
     # WRITE
@@ -679,6 +709,7 @@ class LPD_NOAA(object):
         for idx, filename in enumerate(self.output_filenames):
             try:
                 self.noaa_txt = open(filename, "w+")
+                print("writing: {}".format(filename))
                 logger_lpd_noaa.info("write_file: opened output txt file")
             except Exception as e:
                 logger_lpd_noaa.debug("write_file: failed to open output txt file, {}".format(e))
@@ -699,7 +730,7 @@ class LPD_NOAA(object):
 
             self.noaa_txt.close()
             logger_lpd_noaa.info("closed output text file")
-            shutil.copy(os.path.join(os.getcwd(), filename), self.dir_root)
+            # shutil.copy(os.path.join(os.getcwd(), filename), self.dir_root)
             logger_lpd_noaa.info("exit write_file")
         return
 
@@ -753,6 +784,9 @@ class LPD_NOAA(object):
             # DOI  id is nested in "identifier" block. Retrieve it.
             if key == "DOI":
                 val = self.__get_doi(d)
+                # Don't write out an empty DOI list. Write out empty string instead.
+                if not val:
+                    val = ""
             elif key == "Investigators":
                 # Investigators is a section by itself. "d" should be a direct list
                 val = get_authors_as_str(d)
@@ -779,7 +813,7 @@ class LPD_NOAA(object):
         try:
 
             # Check all publications, and remove possible duplicate Full_Citations
-            self.__rm_duplicate_citations()
+            self.__rm_duplicate_citation_1()
 
             for idx, pub in enumerate(self.noaa_data_sorted["Publication"]):
                 logger_lpd_noaa.info("publication: {}".format(idx))
@@ -852,18 +886,18 @@ class LPD_NOAA(object):
 
             # Special NOAA Request: Write the "year" column first always, if available
             # write year data first, when available
-            for col in table["columns"]:
-                if col["variableName"] == "year":
+            for name, data in table["columns"].items():
+                if name == "year":
                     # write first line in variables section here
-                    self.__write_variables_2(col)
+                    self.__write_variables_2(data)
                     # leave the loop, because this is all we needed to accomplish
                     break
 
             # all other cases
-            for col in table['columns']:
+            for name, data in table["columns"].items():
                 # we already wrote out the year column, so don't duplicate.
-                if col["variableName"] != "year":
-                    self.__write_variables_2(col)
+                if name != "year":
+                    self.__write_variables_2(data)
 
         except KeyError as e:
             logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
@@ -923,34 +957,20 @@ class LPD_NOAA(object):
         logger_lpd_noaa.info("writing section: data, csv values from file")
         # get filename for this table's csv data
         filename = self.__get_filename(table)
+        # filename =
         logger_lpd_noaa.info("processing csv file: {}".format(filename))
         # get missing value for this table
-        mv = self.__get_mv(table)
+        # mv = self.__get_mv(table)
         # write template lines
-        self.__write_template_paleo(mv)
+        # self.__write_template_paleo(mv)
+        self.__write_template_paleo("NaN")
+
         # continue if csv exists
-        if self.__csv_found(filename):
-            logger_lpd_noaa.info("found csv file: {}".format(filename))
-            # Write variables line from dict_in
-            _names = []
-            for col in table["columns"]:
-                # convert keys lipd -> noaa for this column
-                col = self.__convert_keys_1("Variables", col)
-                try:
-                    # store the shortname. this will be the column header.
-                    _names.append(col['shortname'])
-                except KeyError:
-                    # no shortname found, default to N/A
-                    _names.append('N/A')
-
-            # read csv data as individual lists (one per column)
-            _csv_data = read_csv_from_file(filename)
-
-            # merge two lists (variableNames and column data) into a dictionary
-            _csv_data_by_name = self.__put_names_on_csv_cols(_names, _csv_data)
+        if filename in self.data_csv:
+            logger_lpd_noaa.info("_write_columns: csv data exists: {}".format(filename))
 
             # sort the dictionary so the year column is first
-            _csv_data_by_name = self.__put_year_col_first(_csv_data_by_name)
+            _csv_data_by_name = self.__put_year_col_first(self.data_csv[filename])
 
             # now split the sorted dictionary back into two lists (easier format to write to file)
             _names, _data = self.__rm_names_on_csv_cols(_csv_data_by_name)
