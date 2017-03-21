@@ -91,7 +91,9 @@ class LiPD(object):
             self.data_filenames = get_filenames_generated(self.data_csv, self.name, self.data_filenames)
 
         except FileNotFoundError:
-            print("LiPD file not found. Please make sure the filename includes the .lpd extension")
+            print("Error: LiPD file not found. Please make sure the filename includes the .lpd extension")
+        except Exception as e:
+            print("Error: unable to read LiPD: {}".format(e))
 
         os.chdir(self.dir_root)
         logger_lipd.info("object loaded: {}".format(self.name))

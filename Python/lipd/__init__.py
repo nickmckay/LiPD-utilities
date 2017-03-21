@@ -523,6 +523,22 @@ def getCsv(filename):
 # WRITE
 
 
+def writeLipd(filename, usr_path=""):
+    """
+    Write out one specific LiPD file
+    :param str filename: LiPD filename ("somefile.lpd")
+    :param str usr_path: Target directory destination (optional)
+    :return none:
+    """
+    global verbose
+    # no path provided. start gui browse
+    if not usr_path:
+        # got dir path
+        usr_path, _ignore = get_src_or_dst("write", "directory")
+    __write_lipd(usr_path, filename)
+    return
+
+
 def writeLipds(usr_path=""):
     """
     Save changes made to all LiPD files in the workspace.

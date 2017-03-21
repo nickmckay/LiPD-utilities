@@ -977,7 +977,7 @@ def _compile_interpretation(data):
     _tmp = [{} for i in range(0, _count)]
 
     # Loop over all the interpretation keys and data
-    for k,v in data.items():
+    for k, v in data.items():
         # Get the resulting regex data.
         # EXAMPLE ENTRY: "interpretation1_variable"
         # REGEX RESULT: ["1", "variable"]
