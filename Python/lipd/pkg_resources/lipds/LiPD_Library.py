@@ -16,6 +16,7 @@ class LiPD_Library(object):
         # dir used to unpack all LiPD files to
         self.dir_tmp = create_tmp_dir()
         # master dictionary that will hold all lipd data, organized by dataset name
+        # FORMAT: "{ Filename.lpd : <LiPD Object> } "
         self.master = {}
         logger_lipd_lib.info("LiPD Library created")
 
@@ -147,13 +148,13 @@ class LiPD_Library(object):
 
     # PUT
 
-    def put_master(self, dat):
+    def put_master(self, d):
         """
         Put new data as the master dictionary
-        :param dict dat:
+        :param dict d:
         :return none:
         """
-        self.master = dat
+        self.master = d
         return
 
     def set_dir(self, dir_root):

@@ -77,8 +77,11 @@ class LiPD(object):
             os.chdir(self.dir_tmp_bag_data)
             self.data_master = merge_csv_metadata(self.data_master)
 
-            # Set CSV data to self
+            # Set CSV data to self, and receive updated data_master as well
             self.data_master, self.data_csv = get_csv_from_metadata(self.name, self.data_master)
+
+            # A few things have changed in data_master metadata, so remove CSV data and update data_json
+            self.data_json = rm_values_fields(copy.deepcopy(self.data_master))
 
             # Create pandas data frames from metadata and csv
             self.dfs = lipd_to_df(self.data_master, self.data_csv)
@@ -116,6 +119,15 @@ class LiPD(object):
         :return none:
         """
         print(json.dumps(self.data_master, indent=2))
+
+    # GET
+
+    def get_whole_object(self):
+        """
+        Get object as a dictionary with all self attributes.
+        :return dict:
+        """
+        return
 
     def get_master(self):
         """
@@ -175,6 +187,22 @@ class LiPD(object):
         except KeyError:
             return {}
 
+    def put_metadata(self, d):
+        """
+        Replace self.data_json with the data provided
+        :return none:
+        """
+        self.data_json = d
+        return
+
+    def put_master(self, d):
+        """
+        Replace self.data_master with the data provided
+        :return none:
+        """
+        self.data_master = d
+        return
+
     # WRITE
 
     def write(self, dir_dst):
@@ -195,7 +223,7 @@ class LiPD(object):
         write_csv_to_file(self.data_csv)
 
         # Remove CSV data from self.data_master and update self.data_json
-        self.data_json = rm_values_fields(self.data_master)
+        self.data_json = rm_values_fields(copy.deepcopy(self.data_master))
 
         # Add TSids to columns wherever necessary! Generate them and get back the new JSON.
         self.data_json = put_tsids(self.data_json)
@@ -229,15 +257,6 @@ class LiPD(object):
         return
 
     # HELPERS
-
-    def set_metadata(self, dat):
-        """
-        Set the dictionary to the self metadata
-        :param dict dat: Metadata
-        :return none:
-        """
-        self.data_json = dat
-        return
 
     def load_tso(self, metadata):
         """

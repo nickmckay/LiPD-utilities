@@ -5,7 +5,7 @@ from .pkg_resources.timeseries.Convert import *
 from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.excel.excel_main import excel_main
-from .pkg_resources.noaa.noaa_main import noaa_main
+from .pkg_resources.noaa.noaa_main import noaa_prompt, noaa_to_lpd, lpd_to_noaa
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst, collect_metadata_files, list_files
@@ -152,8 +152,51 @@ def noaa():
     User facing call to noaa function
     :return none:
     """
-    global files
-    noaa_main(files)
+    global files, lipd_lib, cwd
+    # When going from NOAA to LPD, use the global "files" variable.
+    # When going from LPD to NOAA, use the data from the LiPD Library.
+
+    # Choose the mode
+    _mode = noaa_prompt()
+
+    # LiPD mode: Convert LiPD files to NOAA files
+    if _mode == "1":
+
+        _lib = lipd_lib.get_master()
+
+        # For each LiPD file in the LiPD Library
+        for filename, obj in _lib.items():
+            # Get the LiPD object data
+            # _obj = dict(obj)
+            # Process this data through the converter
+            _obj_modified = lpd_to_noaa(obj)
+            # Overwrite the data in the LiPD object with our new data.
+            _lib[filename] = _obj_modified
+        # Replace the data in the LiPD Library master
+        lipd_lib.put_master(_lib)
+        # Write out the new LiPD files, since they now contain the NOAA URL data
+        writeLipds(cwd)
+
+    # NOAA mode: Convert NOAA files to LiPD files
+    elif _mode == "2":
+        # For each NOAA txt file in the global "files" list, Run the converter
+        #todo This is just a concept of how it should work. Not currently working.
+        for file in files[".txt"]:
+            _data = noaa_to_lpd(files)
+            #todo Use the parsed NOAA data to create a LiPD object in the library
+            #todo Use writeLipd to create a LiPD file using the object.
+            pass
+
+    else:
+        print("Invalid input. Try again.")
+
+    # LIPD TO NOAA IS THE ONLY CONVERSION CURRENTLY WORKING.
+    # MAKE IT THE ONLY OPTION FOR NOW.
+    # For each LiPD file in the LiPD Library
+        # Get the LiPD object data
+        # Process this data through the converter
+        # Overwrite the data in the LiPD object with our new data.
+        # Write the new LiPD file back out to disk.
     return
 
 
@@ -203,7 +246,7 @@ def addEnsemble(filename, ensemble):
             # Insert the formatted ensemble data into the master lipd library
             meta = insert_ensemble(meta, ens)
             # Set meta into lipd object
-            lib[filename].set_metadata(meta)
+            lib[filename].put_metadata(meta)
             # Set the new master data back into the lipd library
             lipd_lib.put_master(lib)
     else:
@@ -480,17 +523,6 @@ def getCsv(filename):
 # WRITE
 
 
-def writeLipd(usr_path, filename):
-    """
-    Saves changes made to the target LiPD file.
-    (ex. writeLiPD("NAm-ak000.lpd", "/Users/bobsmith/Desktop")
-    :param str filename: LiPD filename
-    :param str usr_path: Target directory destination (optional)
-    """
-    __write_lipd(usr_path, filename)
-    return
-
-
 def writeLipds(usr_path=""):
     """
     Save changes made to all LiPD files in the workspace.
@@ -505,7 +537,7 @@ def writeLipds(usr_path=""):
     _lib = list(lipd_lib.get_master().keys())
     if _lib:
         for filename in _lib:
-            writeLipd(usr_path, filename)
+            __write_lipd(usr_path, filename)
     if verbose:
         print("Process Complete")
     return
@@ -562,7 +594,7 @@ def __universal_load(file_path, file_type):
         # get file metadata for one file
         file_meta = collect_metadata_file(file_path)
         if verbose:
-            print("processing: {}".format(file_meta["filename_ext"]))
+            print("reading: {}".format(file_meta["filename_ext"]))
 
         # append to global files, then load in lipd_lib
         if file_type == ".lpd":
@@ -661,7 +693,7 @@ def __write_lipd(usr_path, filename):
     # If dir path is valid
     if valid_path:
         if verbose:
-            print("writing file: {}".format(filename))
+            print("writing: {}".format(filename))
         lipd_lib.write_lipd(usr_path, filename)
 
     return
