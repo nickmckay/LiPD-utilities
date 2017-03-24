@@ -13,7 +13,7 @@ from ..helpers.zips import zipper
 from ..helpers.loggers import create_logger
 from ..helpers.blanks import EMPTY
 from ..helpers.alternates import EXCEL_GEO, EXCEL_TEMPLATE, ALTS_MV, EXCEL_SHEET_TYPES, EXCEL_LIPD_MAP_FLAT, EXCEL_HEADER
-from ..helpers.regexes import re_sheet, re_var_w_units, re_calibration, re_interpretation
+from ..helpers.regexes import re_sheet, re_var_w_units, re_calibration, re_interpretation, re_physical
 from ..helpers.misc import normalize_name
 from ..helpers.jsons import write_json_to_file
 
@@ -1004,6 +1004,7 @@ def _compile_column_metadata(row, keys, number):
     _column = {}
     _interpretation = {}
     _calibration = {}
+    _physical = {}
 
     # Use the header keys to place the column data in the dictionary
     if keys:
@@ -1017,7 +1018,14 @@ def _compile_column_metadata(row, keys, number):
                     _key = m.group(1)
                     _calibration[_key] = row[idx].value
 
-            # Special case: Calibration data
+            # Special case: PhysicalSample data
+            if re.match(re_physical, _key_low):
+                m = re.match(re_physical, _key_low)
+                if m:
+                    _key = m.group(1)
+                    _physical[_key] = row[idx].value
+
+            # Special case: Interpretation data
             elif re.match(re_interpretation, _key_low):
                 # Put interpretation data in a tmp dictionary that we'll sort later.
                 _interpretation[_key_low] = row[idx].value
@@ -1035,6 +1043,8 @@ def _compile_column_metadata(row, keys, number):
 
         if _calibration:
             _column["calibration"] = _calibration
+        if _physical:
+            _column["physicalSample"] = _calibration
         if _interpretation:
             _interpretation_data = _compile_interpretation(_interpretation)
             _column["interpretation"] = _interpretation_data
