@@ -4,10 +4,10 @@ import re
 import os
 import copy
 
-from ..helpers.misc import remove_empty_doi, remove_empty_fields
+from ..helpers.misc import rm_empty_doi, rm_empty_fields
 from ..helpers.jsons import write_json_to_file
 from ..helpers.bag import finish_bag
-from ..helpers.alternates import NOAA_SITE_INFO, NOAA_IGNORE_KEYS, FUNDING_LIST, NOAA_ORDERING, UNITS, ALTS_MV
+from ..helpers.alternates import NOAA_KEYS_BY_SECTION, UNITS, ALTS_MV
 from ..helpers.regexes import re_var, re_var_split, re_name_unit, re_name_unit_range, re_doi, re_var_w_units, re_tab_split
 from ..helpers.blanks import NOAA_EMPTY, NOAA_DATA_LINES, NOAA_VAR_LINES, EMPTY
 from ..helpers.loggers import create_logger
@@ -40,10 +40,8 @@ class NOAA_LPD(object):
         os.chdir(self.dir_root)
         self.__parse()
         os.chdir(self.dir_bag)
-
         # Dump Metadata JSON to dir_tmp
-        write_json_to_file(self.name + '.jsonld', self.metadata)
-
+        write_json_to_file(self.name, self.metadata)
         # Create a bagit bag
         finish_bag(self.dir_bag)
         logger_noaa_lpd.info("exit main")
@@ -100,389 +98,395 @@ class NOAA_LPD(object):
         data_dict_upper = OrderedDict()
         final_dict = OrderedDict()
 
-        # Open the text file in read mode. We'll read one line at a time until EOF
-        with open(self.name_txt, 'r') as f:
-            logger_noaa_lpd.info("opened noaa file: {}".format(self.name_txt))
-            for line in iter(f):
-                line_num += 1
+        try:
+            # Open the text file in read mode. We'll read one line at a time until EOF
+            with open(self.name_txt, 'r') as f:
+                logger_noaa_lpd.info("opened noaa file: {}".format(self.name_txt))
+                for line in iter(f):
+                    line_num += 1
 
-                # PUBLICATION
-                # There can be multiple publications. Create a dictionary for each one.
-                if publication_on:
-                    # End of the section. Add the dictionary for this one publication to the overall list
-                    if '-----' in line:
-                        temp_pub = self.__reorganize_doi(temp_pub)
-                        pub.append(temp_pub.copy())
-                        temp_abstract.clear()
-                        temp_pub.clear()
-                        publication_on = False
-                        logger_noaa_lpd.info("end section: Publication")
-                    elif abstract_on:
-                        # End of abstract: possibly more variables after.
-                        if "#" in line:
-                            abstract_on = False
-                            temp_pub['abstract'] = ''.join(temp_abstract)
-                            logger_noaa_lpd.info("end section: Abstract")
+                    # PUBLICATION
+                    # There can be multiple publications. Create a dictionary for each one.
+                    if publication_on:
+                        # End of the section. Add the dictionary for this one publication to the overall list
+                        if '-----' in line:
+                            temp_pub = self.__reorganize_doi(temp_pub)
+                            pub.append(temp_pub.copy())
+                            temp_abstract.clear()
+                            temp_pub.clear()
+                            publication_on = False
+                            logger_noaa_lpd.info("end section: Publication")
+                        elif abstract_on:
+                            # End of abstract: possibly more variables after.
+                            if "#" in line:
+                                abstract_on = False
+                                temp_pub['abstract'] = ''.join(temp_abstract)
+                                logger_noaa_lpd.info("end section: Abstract")
+                                line = self.__str_cleanup(line)
+                                key, value = self.__slice_key_val(line)
+                                temp_pub[self.__camel_case(key)] = value
+                            else:
+                                temp_abstract.append(self.__str_cleanup(line))
+
+                        # Add all info into the current publication dictionary
+                        else:
                             line = self.__str_cleanup(line)
                             key, value = self.__slice_key_val(line)
-                            temp_pub[self.__camel_case(key)] = value
-                        else:
-                            temp_abstract.append(self.__str_cleanup(line))
-
-                    # Add all info into the current publication dictionary
-                    else:
-                        line = self.__str_cleanup(line)
-                        key, value = self.__slice_key_val(line)
-                        if key in ("Author", "Authors"):
-                            temp_pub["author"] = self.__reorganize_authors(value)
-                        else:
-                            temp_pub[self.__camel_case(key)] = value
-                            if key == 'Abstract':
-                                logger_noaa_lpd.info("reading section: Abstract")
-                                abstract_on = True
-                                temp_abstract.append(value)
-
-                # DESCRIPTION AND NOTES
-                # Descriptions are often long paragraphs spanning multiple lines, but don't follow the key/value format
-                elif description_on:
-
-                    # End of the section. Turn marker off and combine all the lines in the section
-                    if '-------' in line:
-                        description_on = False
-                        value = ''.join(temp_description)
-                        final_dict['description'] = value
-                        logger_noaa_lpd.info("end section: Description_and_Notes")
-
-                    # The first line in the section. Split into key, value
-                    elif 'Description:' in line:
-                        key, val = self.__slice_key_val(line)
-                        temp_description.append(val)
-
-                    # Keep a running list of all lines in the section
-                    else:
-                        line = self.__str_cleanup(line)
-                        temp_description.append(line)
-
-                # SITE INFORMATION (Geo)
-                elif site_info_on:
-
-                    if '-------' in line:
-                        site_info_on = False
-                        logger_noaa_lpd.info("end section: Site_Information")
-
-                    else:
-                        line = self.__str_cleanup(line)
-                        key, value = self.__slice_key_val(line)
-                        if key.lower() in NOAA_SITE_INFO['lat']:
-                            lat.append(self.__convert_num(value))
-
-                        elif key.lower() in NOAA_SITE_INFO['lon']:
-                            lon.append(self.__convert_num(value))
-
-                        elif key.lower() in NOAA_SITE_INFO['properties']:
-                            if key.lower() == 'elevation':
-                                val, unit = self.__split_name_unit(value)
-                                elev.append(val)
+                            if key in ("Author", "Authors"):
+                                temp_pub["author"] = self.__reorganize_authors(value)
                             else:
-                                geo_properties[self.__camel_case(key)] = value
+                                temp_pub[self.__camel_case(key)] = value
+                                if key == 'Abstract':
+                                    logger_noaa_lpd.info("reading section: Abstract")
+                                    abstract_on = True
+                                    temp_abstract.append(value)
 
-                # CHRONOLOGY
-                elif chronology_on:
-                    """
-                    HOW IT WORKS:
-                    Chronology will be started at "Chronology:" section header
-                    Every line starting with a "#" will be ignored
-                    The first line without a "#" is considered the variable header line. Variable names are parsed.
-                    Each following line will be considered column data and sorted accordingly.
-                    Once the "-----" barrier is reached, we exit the chronology section.
-                    """
-                    # When reaching the end of the chron section, set the marker to off and close the CSV file
-                    if '-------' in line:
-                        # Turn off markers to exit section
-                        chronology_on = False
-                        chron_vals_on = False
-                        try:
-                            # If nothing between the chronology start and the end barrier, then there won't be a CSV
-                            if chron_start_line != line_num - 1:
-                                try:
-                                    chron_csv.close()
-                                    logger_noaa_lpd.info("parse: chronology: no data found in chronology section")
-                                except NameError:
-                                    logger_noaa_lpd.debug(
-                                        "parse: chronology_on: NameError: chron_csv ref before assignment, {}".format(
-                                            self.name_txt))
-                                    print(
-                                        "Chronology section is incorrectly formatted. "
-                                        "Section data will not be converted")
+                    # DESCRIPTION AND NOTES
+                    # Descriptions are often long paragraphs spanning multiple lines, but don't follow the key/value format
+                    elif description_on:
 
-                            logger_noaa_lpd.info("end section: Chronology")
-                        except NameError:
-                            logger_noaa_lpd.debug(
-                                "parse: chronology_on: NameError: chron_start_line ref before assignment, {}".format(
-                                    self.name_txt))
-                            print("Chronology section is incorrectly formatted. Section data will not be converted")
+                        # End of the section. Turn marker off and combine all the lines in the section
+                        if '-------' in line:
+                            description_on = False
+                            value = ''.join(temp_description)
+                            final_dict['description'] = value
+                            logger_noaa_lpd.info("end section: Description_and_Notes")
 
-                    # Data values line. Split, then write to CSV file
-                    elif chron_vals_on:
-                        values = line.split()
-                        try:
-                            cw.writerow(values)
-                        except NameError:
-                            logger_noaa_lpd.debug(
-                                "parse: chronology_on: NameError: csv writer ref before assignment, {}".format(
-                                    self.name_txt))
-                            print("Chronology section is incorrectly formatted. Section data will not be converted")
+                        # The first line in the section. Split into key, value
+                        elif 'Description:' in line:
+                            key, val = self.__slice_key_val(line)
+                            temp_description.append(val)
 
-                    else:
-                        try:
-                            # Chron variable headers line
-                            if line and line[0] != "#":
-                                chron_filename = self.name + '.chron1.measurementTable1.csv'
-                                # Organize the var header into a dictionary
-                                variables = self.__reorganize_chron_header(line)
-
-                                # Create a dictionary of info for each column
-                                chron_col_list = self.__create_chron_cols(variables)
-                                chron_dict['filename'] = chron_filename
-                                chron_dict['chronTableName'] = 'Chronology'
-                                chron_dict['columns'] = chron_col_list
-
-                                # Open CSV for writing
-                                csv_path = os.path.join(self.dir_bag, chron_filename)
-                                chron_csv = open(csv_path, 'w+', newline='')
-                                logger_noaa_lpd.info("opened csv file: {}".format(chron_filename))
-                                cw = csv.writer(chron_csv)
-                                # Turn the marker on to start processing the values columns
-                                chron_vals_on = True
-                        except IndexError:
-                            logger_noaa_lpd.debug("parse: chronology: IndexError when attempting chron var header")
-
-                # VARIABLES
-                elif variables_on:
-                    """
-                    HOW IT WORKS:
-                    Variable lines are the only lines that have a "##" in front of them.
-                    Ignore all lines that don't match the "##" regex.
-                    Once there's a match, start parsing the variable lines, and create a column entry for each line.
-                    """
-                    process_line = False
-                    # End of the section. Turn marker off
-                    if "------" in line:
-                        variables_on = False
-                        logger_noaa_lpd.info("end section: Variables")
-                    for item in NOAA_VAR_LINES:
-                        if item.lower() in line.lower():
-                            process_line = False
-                    for item in NOAA_EMPTY:
-                        if item == line:
-                            process_line = False
-                    m = re.match(re_var, line)
-                    if m:
-                        process_line = True
-
-                    # If the line isn't in the ignore list, then it's a variable line
-                    if process_line:
-
-                        # Split the line items, and cleanup
-                        cleaned_line = self.__separate_data_vars(line)
-
-                        # Add the items into a column dictionary
-                        data_col_dict = self.__create_paleo_col(cleaned_line, data_col_ct)
-
-                        # Keep a list of all variable names
-                        try:
-                            # Use this list later to cross check with the variable line in the Data section
-                            data_var_names.append(data_col_dict['variableName'])
-                        except KeyError:
-                            data_var_names.append('')
-                            logger_noaa_lpd.warn("parse: variables: "
-                                                 "KeyError: {} not found in {}".format("variableName", "data_col_dict"))
-                        # Add the column dictionary into a final dictionary
-                        data_col_list.append(data_col_dict)
-                        data_col_ct += 1
-
-                # DATA
-                # Missing Value, Create data columns, and output Data CSV
-                elif data_on:
-                    """
-                    HOW IT WORKS:
-                    Capture the "Missing Value" entry, if it exists.
-                    Data lines should not have a "#" in front of them.
-                    The first line without a "#" should be the variable header line
-                    All lines that follow should have column data.
-                    """
-                    # Do not process blank or template lines
-                    process_line = True
-                    for item in NOAA_DATA_LINES:
-                        if item in line:
-                            process_line = False
-                    for item in NOAA_EMPTY:
-                        if item == line:
-                            process_line = False
-                    for item in ALTS_MV:
-                        # Missing value found. Store entry
-                        if item in line.lower():
-                            process_line = False
+                        # Keep a running list of all lines in the section
+                        else:
                             line = self.__str_cleanup(line)
-                            key, missing_str = self.__slice_key_val(line)
+                            temp_description.append(line)
 
-                    if process_line:
-                        # Split the line at each space (There SHOULD one space between each variable. Not always true)
-                        values = line.split()
-                        # Write all data values to CSV
-                        if data_vals_on:
+                    # SITE INFORMATION (Geo)
+                    elif site_info_on:
+
+                        if '-------' in line:
+                            site_info_on = False
+                            logger_noaa_lpd.info("end section: Site_Information")
+
+                        else:
+                            line = self.__str_cleanup(line)
+                            key, value = self.__slice_key_val(line)
+                            if key.lower() in ["northernmost_latitude", "southernmost_latitude"]:
+                                lat.append(self.__convert_num(value))
+
+                            elif key.lower() in ["easternmost_longitude", "westernmost_longitude"]:
+                                lon.append(self.__convert_num(value))
+
+                            elif key.lower() in ["site_name", "location", "country", "elevation"]:
+                                if key.lower() == 'elevation':
+                                    val, unit = self.__split_name_unit(value)
+                                    elev.append(val)
+                                else:
+                                    geo_properties[self.__camel_case(key)] = value
+
+                    # CHRONOLOGY
+                    elif chronology_on:
+                        """
+                        HOW IT WORKS:
+                        Chronology will be started at "Chronology:" section header
+                        Every line starting with a "#" will be ignored
+                        The first line without a "#" is considered the variable header line. Variable names are parsed.
+                        Each following line will be considered column data and sorted accordingly.
+                        Once the "-----" barrier is reached, we exit the chronology section.
+                        """
+                        # When reaching the end of the chron section, set the marker to off and close the CSV file
+                        if '-------' in line:
+                            # Turn off markers to exit section
+                            chronology_on = False
+                            chron_vals_on = False
                             try:
-                                dw.writerow(values)
+                                # If nothing between the chronology start and the end barrier, then there won't be a CSV
+                                if chron_start_line != line_num - 1:
+                                    try:
+                                        chron_csv.close()
+                                        logger_noaa_lpd.info("parse: chronology: no data found in chronology section")
+                                    except NameError:
+                                        logger_noaa_lpd.debug(
+                                            "parse: chronology_on: NameError: chron_csv ref before assignment, {}".format(
+                                                self.name_txt))
+                                        print(
+                                            "Chronology section is incorrectly formatted. "
+                                            "Section data will not be converted")
+
+                                logger_noaa_lpd.info("end section: Chronology")
                             except NameError:
                                 logger_noaa_lpd.debug(
-                                    "parse: data_on: NameError: csv writer ref before assignment, {}".format(
+                                    "parse: chronology_on: NameError: chron_start_line ref before assignment, {}".format(
                                         self.name_txt))
+                                print("Chronology section is incorrectly formatted. Section data will not be converted")
 
-                        # Check for the line of variables
-                        else:
-                            var = self.__str_cleanup(values[0].lstrip())
-                            # Check if a variable name is in the current line
-                            if var.lower() in line.lower():
-                                data_vals_on = True
-                                logger_noaa_lpd.info("start section: Data_Values")
-                                # Open CSV for writing
-                                data_filename = self.name + 'paleoData1.measurementTable1.csv'
-                                csv_path = os.path.join(self.dir_bag, data_filename)
-                                data_csv = open(csv_path, 'w+', newline='')
-                                logger_noaa_lpd.info("opened csv file: {}".format(data_filename))
-                                dw = csv.writer(data_csv)
-
-                # METADATA
-                else:
-                    # Line Continuation: Sometimes there are items that span a few lines.
-                    # If this happens, we want to combine them all properly into one entry.
-                    if '#' not in line and line not in NOAA_EMPTY and old_val:
-                        if old_key in ('funding', 'agency'):
+                        # Data values line. Split, then write to CSV file
+                        elif chron_vals_on:
+                            values = line.split()
                             try:
-                                temp_funding[old_key] = old_val + line
-                            except KeyError as e:
+                                cw.writerow(values)
+                            except NameError:
                                 logger_noaa_lpd.debug(
-                                    "parse: metadata: line continuation: {} not found in {}, {}".format(old_key,
-                                                                                                        "temp_funding",
-                                                                                                        e))
+                                    "parse: chronology_on: NameError: csv writer ref before assignment, {}".format(
+                                        self.name_txt))
+                                print("Chronology section is incorrectly formatted. Section data will not be converted")
+
                         else:
                             try:
-                                final_dict[old_key] = old_val + line
-                            except KeyError as e:
-                                logger_noaa_lpd.debug(
-                                    "parse: metadata: line continuation: {} not found in {}, {}".format(old_key,
-                                                                                                        "temp_funding",
-                                                                                                        e))
+                                # Chron variable headers line
+                                if line and line[0] != "#":
+                                    chron_filename = self.name + '.chron1.measurementTable1.csv'
+                                    # Organize the var header into a dictionary
+                                    variables = self.__reorganize_chron_header(line)
 
-                    # No Line Continuation: This is the start or a new entry
-                    else:
-                        line = self.__str_cleanup(line)
+                                    # Create a dictionary of info for each column
+                                    chron_col_list = self.__create_chron_cols(variables)
+                                    chron_dict['filename'] = chron_filename
+                                    chron_dict['chronTableName'] = 'Chronology'
+                                    chron_dict['columns'] = chron_col_list
 
-                        # Grab the key and value from the current line
-                        try:
-                            # Split the line into key, value pieces
-                            key, value = self.__slice_key_val(line)
-                            l_key = key.lower()
-                            cc_key= self.__camel_case(key)
+                                    # Open CSV for writing
+                                    csv_path = os.path.join(self.dir_bag, chron_filename)
+                                    chron_csv = open(csv_path, 'w+', newline='')
+                                    logger_noaa_lpd.info("opened csv file: {}".format(chron_filename))
+                                    cw = csv.writer(chron_csv)
+                                    # Turn the marker on to start processing the values columns
+                                    chron_vals_on = True
+                            except IndexError:
+                                logger_noaa_lpd.debug("parse: chronology: IndexError when attempting chron var header")
 
-                            # If there is no value, then we are at a section header.
-                            # Data often has a blank value, so that is a special check.
-                            if not value or l_key == 'data':
-                                # Turn on markers if we run into section headers
-                                if l_key == 'description_and_notes':
-                                    description_on = True
-                                    logger_noaa_lpd.info("reading section: Description_and_Notes")
-                                elif l_key == 'publication':
-                                    publication_on = True
-                                    logger_noaa_lpd.info("reading section: Publication")
-                                elif l_key == 'site_information':
-                                    site_info_on = True
-                                    logger_noaa_lpd.info("reading section: Site_Information")
-                                elif l_key == 'chronology':
-                                    chronology_on = True
-                                    logger_noaa_lpd.info("reading section: Chronology")
-                                    chron_start_line = line_num
-                                elif l_key == 'variables':
-                                    variables_on = True
-                                    logger_noaa_lpd.info("reading section: Variables")
-                                elif l_key == 'data':
-                                    data_on = True
-                                    logger_noaa_lpd.info("reading section: Data")
-                            # For all
+                    # VARIABLES
+                    elif variables_on:
+                        """
+                        HOW IT WORKS:
+                        Variable lines are the only lines that have a "##" in front of them.
+                        Ignore all lines that don't match the "##" regex.
+                        Once there's a match, start parsing the variable lines, and create a column entry for each line.
+                        """
+                        process_line = False
+                        # End of the section. Turn marker off
+                        if "------" in line:
+                            variables_on = False
+                            logger_noaa_lpd.info("end section: Variables")
+                        for item in NOAA_VAR_LINES:
+                            if item.lower() in line.lower():
+                                process_line = False
+                        for item in NOAA_EMPTY:
+                            if item == line:
+                                process_line = False
+                        m = re.match(re_var, line)
+                        if m:
+                            process_line = True
+
+                        # If the line isn't in the ignore list, then it's a variable line
+                        if process_line:
+
+                            # Split the line items, and cleanup
+                            cleaned_line = self.__separate_data_vars(line)
+
+                            # Add the items into a column dictionary
+                            data_col_dict = self.__create_paleo_col(cleaned_line, data_col_ct)
+
+                            # Keep a list of all variable names
+                            try:
+                                # Use this list later to cross check with the variable line in the Data section
+                                data_var_names.append(data_col_dict['variableName'])
+                            except KeyError:
+                                data_var_names.append('')
+                                logger_noaa_lpd.warn("parse: variables: "
+                                                     "KeyError: {} not found in {}".format("variableName", "data_col_dict"))
+                            # Add the column dictionary into a final dictionary
+                            data_col_list.append(data_col_dict)
+                            data_col_ct += 1
+
+                    # DATA
+                    # Missing Value, Create data columns, and output Data CSV
+                    elif data_on:
+                        """
+                        HOW IT WORKS:
+                        Capture the "Missing Value" entry, if it exists.
+                        Data lines should not have a "#" in front of them.
+                        The first line without a "#" should be the variable header line
+                        All lines that follow should have column data.
+                        """
+                        # Do not process blank or template lines
+                        process_line = True
+                        for item in NOAA_DATA_LINES:
+                            if item in line:
+                                process_line = False
+                        for item in NOAA_EMPTY:
+                            if item == line:
+                                process_line = False
+                        for item in ALTS_MV:
+                            # Missing value found. Store entry
+                            if item in line.lower():
+                                process_line = False
+                                line = self.__str_cleanup(line)
+                                key, missing_str = self.__slice_key_val(line)
+
+                        if process_line:
+                            # Split the line at each space (There SHOULD one space between each variable. Not always true)
+                            values = line.split()
+                            # Write all data values to CSV
+                            if data_vals_on:
+                                try:
+                                    dw.writerow(values)
+                                except NameError:
+                                    logger_noaa_lpd.debug(
+                                        "parse: data_on: NameError: csv writer ref before assignment, {}".format(
+                                            self.name_txt))
+
+                            # Check for the line of variables
                             else:
-                                # Ignore any entries that are specified in the skip list
-                                if l_key not in NOAA_IGNORE_KEYS:
-                                    # There can be multiple funding agencies and grants. Keep a list of dict entries
-                                    if l_key in FUNDING_LIST:
-                                        if l_key == 'funding_agency_name':
-                                            funding_id += 1
-                                            key = 'agency'
-                                        elif l_key == 'grant':
-                                            grant_id += 1
-                                            key = 'grant'
-                                        temp_funding[key] = value
-                                        # If both counters are matching, we are ready to add content to the funding list
-                                        if grant_id == funding_id:
-                                            funding.append(temp_funding.copy())
-                                            temp_funding.clear()
-                                    else:
-                                        # There's likely two "Online_Resource"s, and we need both, so check and concat
-                                        if cc_key == "onlineResource":
-                                            # If it exists, append. If not, add entry as a list
-                                            if cc_key in final_dict:
-                                                final_dict[cc_key].append(value)
-                                            else:
-                                                final_dict[cc_key] = [value]
+                                var = self.__str_cleanup(values[0].lstrip())
+                                # Check if a variable name is in the current line
+                                if var.lower() in line.lower():
+                                    data_vals_on = True
+                                    logger_noaa_lpd.info("start section: Data_Values")
+                                    # Open CSV for writing
+                                    data_filename = "{}.paleoData1.measurementTable1.csv".format(self.name)
+                                    csv_path = os.path.join(self.dir_bag, data_filename)
+                                    data_csv = open(csv_path, 'w+', newline='')
+                                    logger_noaa_lpd.info("opened csv file: {}".format(data_filename))
+                                    dw = csv.writer(data_csv)
+
+                    # METADATA
+                    else:
+                        # Line Continuation: Sometimes there are items that span a few lines.
+                        # If this happens, we want to combine them all properly into one entry.
+                        if '#' not in line and line not in NOAA_EMPTY and old_val:
+                            if old_key in ('funding', 'agency'):
+                                try:
+                                    temp_funding[old_key] = old_val + line
+                                except KeyError as e:
+                                    logger_noaa_lpd.debug(
+                                        "parse: metadata: line continuation: {} not found in {}, {}".format(old_key,
+                                                                                                            "temp_funding",
+                                                                                                            e))
+                            else:
+                                try:
+                                    final_dict[old_key] = old_val + line
+                                except KeyError as e:
+                                    logger_noaa_lpd.debug(
+                                        "parse: metadata: line continuation: {} not found in {}, {}".format(old_key,
+                                                                                                            "temp_funding",
+                                                                                                            e))
+
+                        # No Line Continuation: This is the start or a new entry
+                        else:
+                            line = self.__str_cleanup(line)
+
+                            # Grab the key and value from the current line
+                            try:
+                                # Split the line into key, value pieces
+                                key, value = self.__slice_key_val(line)
+                                l_key = key.lower()
+                                cc_key= self.__camel_case(key)
+
+                                # If there is no value, then we are at a section header.
+                                # Data often has a blank value, so that is a special check.
+                                if not value or l_key == 'data':
+                                    # Turn on markers if we run into section headers
+                                    if l_key == 'description_and_notes':
+                                        description_on = True
+                                        logger_noaa_lpd.info("reading section: Description_and_Notes")
+                                    elif l_key == 'publication':
+                                        publication_on = True
+                                        logger_noaa_lpd.info("reading section: Publication")
+                                    elif l_key == 'site_information':
+                                        site_info_on = True
+                                        logger_noaa_lpd.info("reading section: Site_Information")
+                                    elif l_key == 'chronology':
+                                        chronology_on = True
+                                        logger_noaa_lpd.info("reading section: Chronology")
+                                        chron_start_line = line_num
+                                    elif l_key == 'variables':
+                                        variables_on = True
+                                        logger_noaa_lpd.info("reading section: Variables")
+                                    elif l_key == 'data':
+                                        data_on = True
+                                        logger_noaa_lpd.info("reading section: Data")
+                                # For all
+                                else:
+                                    # Ignore any entries that are specified in the skip list
+                                    _ignore = [item.lower() for item in NOAA_KEYS_BY_SECTION["Ignore"]]
+                                    if l_key not in _ignore:
+                                        # There can be multiple funding agencies and grants. Keep a list of dict entries
+                                        _funding = [item.lower() for item in NOAA_KEYS_BY_SECTION["Funding_Agency"]]
+                                        if l_key in _funding:
+                                            if l_key == 'funding_agency_name':
+                                                funding_id += 1
+                                                key = 'agency'
+                                            elif l_key == 'grant':
+                                                grant_id += 1
+                                                key = 'grant'
+                                            temp_funding[key] = value
+                                            # If both counters are matching, we are ready to add content to the funding list
+                                            if grant_id == funding_id:
+                                                funding.append(temp_funding.copy())
+                                                temp_funding.clear()
                                         else:
-                                            final_dict[cc_key] = value
-                                    # Keep track of old key in case we have a line continuation
-                                    old_key = key
-                                    old_val = value.strip()
-                        except TypeError as e:
-                            logger_noaa_lpd.warn(
-                                "parse: TypeError: none type received from slice_key_val, {}".format(e))
+                                            # There's likely two "Online_Resource"s, and we need both, so check and concat
+                                            if cc_key == "onlineResource":
+                                                # If it exists, append. If not, add entry as a list
+                                                if cc_key in final_dict:
+                                                    final_dict[cc_key].append(value)
+                                                else:
+                                                    final_dict[cc_key] = [value]
+                                            else:
+                                                final_dict[cc_key] = value
+                                        # Keep track of old key in case we have a line continuation
+                                        old_key = key
+                                        old_val = value.strip()
+                            except TypeError as e:
+                                logger_noaa_lpd.warn(
+                                    "parse: TypeError: none type received from slice_key_val, {}".format(e))
 
-        # Wait to close the data CSV until we reached the end of the text file
-        try:
-            data_csv.close()
-            logger_noaa_lpd.info("end section: Data_Values")
-            logger_noaa_lpd.info("end section: Data")
-        except NameError as e:
-            print("Error: NOAA text file is contains format errors. Unable to process.")
-            logger_noaa_lpd.debug(
-                "parse: NameError: failed to close csv, invalid formatting in NOAA txt file, {}".format(e))
+            # Wait to close the data CSV until we reached the end of the text file
+            try:
+                data_csv.close()
+                logger_noaa_lpd.info("end section: Data_Values")
+                logger_noaa_lpd.info("end section: Data")
+            except NameError as e:
+                print("Error: NOAA text file is contains format errors. Unable to process.")
+                logger_noaa_lpd.debug(
+                    "parse: NameError: failed to close csv, invalid formatting in NOAA txt file, {}".format(e))
 
-        # Piece together measurements block
-        logger_noaa_lpd.info("compiling final paleoData")
-        data_dict_upper['filename'] = data_filename
-        data_dict_upper['paleoDataTableName'] = 'Data'
-        data_dict_upper['missingValue'] = missing_str
-        data_dict_upper['columns'] = data_col_list
-        data_tables.append(data_dict_upper)
+            # Piece together measurements block
+            logger_noaa_lpd.info("compiling final paleoData")
+            data_dict_upper['filename'] = data_filename
+            data_dict_upper['paleoDataTableName'] = 'Data'
+            data_dict_upper['missingValue'] = missing_str
+            data_dict_upper['columns'] = data_col_list
+            data_tables.append(data_dict_upper)
 
-        # Piece together geo block
-        logger_noaa_lpd.info("compiling final geo")
-        geo = self.__create_coordinates(lat, lon, elev)
-        geo['properties'] = geo_properties
+            # Piece together geo block
+            logger_noaa_lpd.info("compiling final geo")
+            geo = self.__create_coordinates(lat, lon, elev)
+            geo['properties'] = geo_properties
 
-        # Piece together final dictionary
-        logger_noaa_lpd.info("compiling final master")
-        final_dict['pub'] = pub
-        final_dict['funding'] = funding
-        final_dict['geo'] = geo
-        final_dict['coreLength'] = core_len
-        final_dict['chronData'] = [{"chronMeasurementTable": chron_dict}]
-        final_dict['paleoData'] = data_tables
-        self.metadata = final_dict
-        logger_noaa_lpd.info("final dictionary compiled")
+            # Piece together final dictionary
+            logger_noaa_lpd.info("compiling final master")
+            final_dict['pub'] = pub
+            final_dict['funding'] = funding
+            final_dict['geo'] = geo
+            final_dict['coreLength'] = core_len
+            final_dict['chronData'] = [{"chronMeasurementTable": chron_dict}]
+            final_dict['paleoData'] = data_tables
+            self.metadata = final_dict
+            logger_noaa_lpd.info("final dictionary compiled")
 
-        # Start cleaning up the metadata
-        logger_noaa_lpd.info("removing empty fields")
-        self.metadata = remove_empty_fields(self.metadata)
-        logger_noaa_lpd.info("removing empty doi")
-        self.metadata = remove_empty_doi(self.metadata)
-        logger_noaa_lpd.info("removing irrelevant keys")
-        self.__remove_irr_fields()
+            # Start cleaning up the metadata
+            logger_noaa_lpd.info("removing empty fields")
+            self.metadata = rm_empty_fields(self.metadata)
+            logger_noaa_lpd.info("removing empty doi")
+            self.metadata = rm_empty_doi(self.metadata)
+            logger_noaa_lpd.info("removing irrelevant keys")
+            self.__remove_irr_fields()
+
+        except Exception as e:
+            logger_noaa_lpd.debug("parse: {}".format(e))
 
         logger_noaa_lpd.info("exit parse")
         return
@@ -499,7 +503,7 @@ class NOAA_LPD(object):
         # C or N for Character or Numeric data, direction of relation to climate (positive or negative)
         d = OrderedDict()
         d['number'] = col_count
-        for idx, var_name in enumerate(NOAA_ORDERING[11]):
+        for idx, var_name in enumerate(NOAA_KEYS_BY_SECTION["Variables"]):
             try:
                 value = l[idx]
                 # These two cases are nested in the column, so treat them special
@@ -833,7 +837,7 @@ class NOAA_LPD(object):
         Remove NOAA keys that don't have a place in the LiPD schema
         :return:
         """
-        for key in NOAA_IGNORE_KEYS:
+        for key in NOAA_KEYS_BY_SECTION["Ignore"]:
             try:
                 del self.metadata[key]
             except KeyError:

@@ -4,7 +4,7 @@ import shutil
 from ..helpers.directory import create_tmp_dir
 from ..helpers.zips import zipper
 from .lpd_noaa import LPD_NOAA
-# from .noaa_lpd import NOAA_LPD
+from .noaa_lpd import NOAA_LPD
 from ..helpers.loggers import create_logger
 
 
@@ -28,8 +28,7 @@ def noaa_prompt():
 def noaa_to_lpd(files):
     """
     Convert NOAA format to LiPD format
-    :param dict file: File metadata
-    :param str dir_tmp: Path to tmp directory
+    :param dict files: Files metadata
     :return None:
     """
     logger_noaa.info("enter process_noaa")
@@ -46,12 +45,13 @@ def noaa_to_lpd(files):
 
             # Unzip file and get tmp directory path
             dir_tmp = create_tmp_dir()
+            try:
+                NOAA_LPD(file["dir"], dir_tmp, file["filename_no_ext"]).main()
+            except Exception as e:
+                print("Error: Unable to convert file: {}, {}".format(file["filename_no_ext"], e))
 
-            # NOAA_LPD(dir_root, dir_tmp, name).main()
-            os.chdir(file["dir"])
-
-            zipper(path_name_ext=file["filename_ext"], root_dir=dir_tmp, name=file["filename_no_ext"])
-
+            # Create the lipd archive in the original file's directory.
+            zipper(path_name_ext=os.path.join(file["dir"], file["filename_no_ext"] + ".lpd"), root_dir=dir_tmp, name=file["filename_no_ext"])
             # Delete tmp folder and all contents
             os.chdir(file["dir"])
             try:

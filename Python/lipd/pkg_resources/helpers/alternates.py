@@ -68,11 +68,11 @@ ALTS_MV = [
     'missingvariables'
 ]
 
-# NOAA: This does not include principal investigator or country.
-NOAA_FUNDING_LIST = [
-    'funding_agency_name',
-    'grant',
-]
+# # NOAA: This does not include principal investigator or country.
+# NOAA_FUNDING_LIST = [
+#     'funding_agency_name',
+#     'grant',
+# ]
 
 # Use this list to sort the top level keys in the LiPD file.
 # Ex: if the LiPD has geo data, take the whole geo dictionary and put it into section 8.

@@ -179,24 +179,11 @@ def noaa():
 
     # NOAA mode: Convert NOAA files to LiPD files
     elif _mode == "2":
-        # For each NOAA txt file in the global "files" list, Run the converter
-        #todo This is just a concept of how it should work. Not currently working.
-        for file in files[".txt"]:
-            _data = noaa_to_lpd(files)
-            #todo Use the parsed NOAA data to create a LiPD object in the library
-            #todo Use writeLipd to create a LiPD file using the object.
-            pass
+        # Pass through the global files list. Use NOAA files directly on disk.
+        noaa_to_lpd(files)
 
     else:
         print("Invalid input. Try again.")
-
-    # LIPD TO NOAA IS THE ONLY CONVERSION CURRENTLY WORKING.
-    # MAKE IT THE ONLY OPTION FOR NOW.
-    # For each LiPD file in the LiPD Library
-        # Get the LiPD object data
-        # Process this data through the converter
-        # Overwrite the data in the LiPD object with our new data.
-        # Write the new LiPD file back out to disk.
     return
 
 
