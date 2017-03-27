@@ -1019,7 +1019,7 @@ def _compile_column_metadata(row, keys, number):
                     _calibration[_key] = row[idx].value
 
             # Special case: PhysicalSample data
-            if re.match(re_physical, _key_low):
+            elif re.match(re_physical, _key_low):
                 m = re.match(re_physical, _key_low)
                 if m:
                     _key = m.group(1)
@@ -1044,7 +1044,7 @@ def _compile_column_metadata(row, keys, number):
         if _calibration:
             _column["calibration"] = _calibration
         if _physical:
-            _column["physicalSample"] = _calibration
+            _column["physicalSample"] = _physical
         if _interpretation:
             _interpretation_data = _compile_interpretation(_interpretation)
             _column["interpretation"] = _interpretation_data
