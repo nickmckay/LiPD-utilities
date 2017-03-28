@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 from ..helpers.loggers import create_logger
 
@@ -78,14 +79,16 @@ def _get_inferred_data_column(column, age):
         # If we have values, keep going
         if values:
             # Turn the values into a numpy array
-            values = np.asarray(values)
+            _values = np.array(copy.copy(values), dtype=float)
+            _values = _values[np.where(~np.isnan(_values))[0]]
+
             # Use the values to create new entries and data
-            column["hasMinValue"] = np.min(values).tolist()
-            column["hasMaxValue"] = np.max(values).tolist()
-            column["hasMedianValue"] = np.median(values).tolist()
-            column["hasMeanValue"] = np.mean(values).tolist()
+            column["hasMinValue"] = np.min(_values).tolist()
+            column["hasMaxValue"] = np.max(_values).tolist()
+            column["hasMedianValue"] = np.median(_values).tolist()
+            column["hasMeanValue"] = np.mean(_values).tolist()
             # Get the resolution for this age and column values data
-            res = _get_resolution(age, values)
+            res = _get_resolution(age, _values)
             # If we have successful resolution data, keep going
             if len(res) != 0:
                 # Use the resolution values to create new entries and data

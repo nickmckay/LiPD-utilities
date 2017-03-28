@@ -1043,7 +1043,8 @@ def _compile_column_metadata(row, keys, number):
 
         if _calibration:
             _column["calibration"] = _calibration
-        if _physical:
+        # Only allow physicalSample on measured variableTypes. duh.
+        if _physical and _column["variableType"] == "measured":
             _column["physicalSample"] = _physical
         if _interpretation:
             _interpretation_data = _compile_interpretation(_interpretation)
