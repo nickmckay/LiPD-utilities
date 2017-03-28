@@ -55,8 +55,16 @@ def _get_resolution(age, values):
     res = []
     try:
         # Get the nan index from the values and remove from age
+        # age2 = age[np.where(~np.isnan(values))[0]]
+        # res = np.diff(age2)
+
+        # Make sure that age and values are numpy arrays
+        # age = np.array(age, dtype=float)
+        # values = np.array(values, dtype=float)
+        # Get the nan index from the values and remove from age
         age2 = age[np.where(~np.isnan(values))[0]]
         res = np.diff(age2)
+
     except IndexError as e:
         print("get_resolution: IndexError: {}".format(e))
     except Exception as e:
@@ -72,23 +80,16 @@ def _get_inferred_data_column(column, age):
     :return dict column: Column data - modified
     """
     try:
-        # Make sure that age and values are numpy arrays
-        age = np.asarray(age)
         # Get the values for this column
         values = column["values"]
-        # If we have values, keep going
-        if values:
-            # Turn the values into a numpy array
-            _values = np.array(copy.copy(values), dtype=float)
-            _values = _values[np.where(~np.isnan(_values))[0]]
+        # Make sure that age and values are numpy arrays
+        _values = np.array(copy.copy(values), dtype=float)
+        _age = np.array(age, dtype=float)
 
-            # Use the values to create new entries and data
-            column["hasMinValue"] = np.min(_values).tolist()
-            column["hasMaxValue"] = np.max(_values).tolist()
-            column["hasMedianValue"] = np.median(_values).tolist()
-            column["hasMeanValue"] = np.mean(_values).tolist()
+        # If we have values, keep going
+        if len(_values) != 0:
             # Get the resolution for this age and column values data
-            res = _get_resolution(age, _values)
+            res = _get_resolution(_age, _values)
             # If we have successful resolution data, keep going
             if len(res) != 0:
                 # Use the resolution values to create new entries and data
@@ -99,6 +100,14 @@ def _get_inferred_data_column(column, age):
                     "hasMedianValue": np.median(res).tolist(),
                     "values": res.tolist()
                 }
+
+            # Remove the NaNs from the values list.
+            _values = _values[np.where(~np.isnan(_values))[0]]
+            # Use the values to create new entries and data
+            column["hasMinValue"] = np.min(_values).tolist()
+            column["hasMaxValue"] = np.max(_values).tolist()
+            column["hasMedianValue"] = np.median(_values).tolist()
+            column["hasMeanValue"] = np.mean(_values).tolist()
     except KeyError as e:
         logger_inferred_data.debug("get_inferred_data_column: KeyError: {}".format(e))
     except Exception as e:
