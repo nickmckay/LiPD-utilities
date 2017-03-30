@@ -80,8 +80,8 @@ def display_results(data, detailed=False):
     :param bool detailed: Detailed results on or off
     :return none:
     """
-    print("\nVALIDATOR RESULTS")
-    print("======================\n")
+    # print("\nVALIDATOR RESULTS")
+    # print("======================\n")
 
     if not detailed:
         print('FILENAME......................................... STATUS..........')
@@ -111,7 +111,7 @@ def get_validator_results(data):
     for file in data:
         # Add this single results to the growing list of results.
         result = _call_validator_api(file)
-        results.append(result[0])
+        results.append(result)
 
     return results
 
@@ -143,15 +143,15 @@ def _call_validator_api(data):
     try:
         # Contact server and send LiPD metadata as the payload
         # print("Sending request to LiPD.net validator...\n")
-        data = json.dumps([data])
+        data = json.dumps(data)
 
         # The payload that is going to be sent with the JSON request
         payload = {'json_payload': data, 'apikey': 'YOUR_API_KEY_HERE'}
         # Development Link
+        # response = requests.post('http://localhost:3000/api/validator', data=payload)
 
-        response = requests.get('http://localhost:3000/api/validator', data=payload)
         # Production Link
-        # response = requests.get('http://www.lipd.net/api/validate', data=payload)
+        response = requests.post('http://www.lipd.net/api/validator', data=payload)
 
         # For an example of the JSON Response, reference the "sample_data_response" below
 
@@ -161,15 +161,15 @@ def _call_validator_api(data):
 
     except TypeError as e:
         logger_validator_api.warning("get_validator_results: TypeError: {}".format(e))
-        result = [{"dat": {}, "feedback": {}, "filename": _filename, "status": "DECODE ERROR"}]
+        result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "DECODE ERROR, FOREIGN SYMBOLS OR CHARACTERS"}
     except requests.exceptions.ConnectionError as e:
         logger_validator_api.warning("get_validator_results: ConnectionError: {}".format(e))
-        result = [{"dat": {}, "feedback": {}, "filename": _filename, "status": "UNABLE TO REACH SERVER"}]
+        result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "UNABLE TO REACH SERVER"}
     except Exception as e:
         logger_validator_api.debug("get_validator_results: Exception: {}".format(e))
-        result = [{"dat": {}, "feedback": {}, "filename": _filename, "status": "ERROR BEFORE VALIDATION"}]
+        result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "ERROR BEFORE VALIDATION"}
     if not result:
-        result = [{"dat": {}, "feedback": {}, "filename": _filename, "status": "EMPTY RESPONSE"}]
+        result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "EMPTY RESPONSE"}
 
     return result
 
@@ -964,8 +964,7 @@ sample_data_request = [
             },
             "pretty": "{\n  \"data\": [\n    [\n      \"5.0\",\n      \"0.0\",\n      \"-2.828\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"7.5\",\n      \"96.2\",\n      \"-2.793\",\n      \"0.169\",\n      \"5.366\",\n      \"29.42\"\n    ],\n    [\n      \"10.0\",\n      \"192.3\",\n      \"-2.785\",\n      \"0.154\",\n      \"5.315\",\n      \"29.31\"\n    ],\n    [\n      \"12.5\",\n      \"288.5\",\n      \"-2.565\",\n      \"0.415\",\n      \"5.412\",\n      \"29.51\"\n    ],\n    [\n      \"15.0\",\n      \"384.6\",\n      \"-2.925\",\n      \"0.005\",\n      \"5.296\",\n      \"29.27\"\n    ],\n    [\n      \"17.5\",\n      \"480.8\",\n      \"-2.796\",\n      \"0.139\",\n      \"5.304\",\n      \"29.29\"\n    ],\n    [\n      \"20.0\",\n      \"576.9\",\n      \"-2.931\",\n      \"-0.005\",\n      \"5.284\",\n      \"29.25\"\n    ],\n    [\n      \"22.5\",\n      \"673.1\",\n      \"-2.955\",\n      \"0.021\",\n      \"5.401\",\n      \"29.49\"\n    ],\n    [\n      \"25.0\",\n      \"769.2\",\n      \"-2.879\",\n      \"0.039\",\n      \"5.266\",\n      \"29.21\"\n    ],\n    [\n      \"30.0\",\n      \"961.5\",\n      \"-2.983\",\n      \"0.018\",\n      \"5.458\",\n      \"29.61\"\n    ],\n    [\n      \"40.0\",\n      \"1346.2\",\n      \"-2.899\",\n      \"0.058\",\n      \"5.356\",\n      \"29.4\"\n    ],\n    [\n      \"50.0\",\n      \"1730.8\",\n      \"-2.756\",\n      \"0.254\",\n      \"5.477\",\n      \"29.65\"\n    ],\n    [\n      \"65.0\",\n      \"2307.7\",\n      \"-2.918\",\n      \"-0.004\",\n      \"5.258\",\n      \"29.19\"\n    ],\n    [\n      \"80.0\",\n      \"2884.6\",\n      \"-2.799\",\n      \"0.177\",\n      \"5.402\",\n      \"29.49\"\n    ],\n    [\n      \"90.0\",\n      \"3269.2\",\n      \"-2.808\",\n      \"0.174\",\n      \"5.413\",\n      \"29.52\"\n    ],\n    [\n      \"100.0\",\n      \"3653.8\",\n      \"-2.763\",\n      \"0.072\",\n      \"5.079\",\n      \"28.81\"\n    ],\n    [\n      \"110.0\",\n      \"4038.5\",\n      \"-2.81\",\n      \"0.108\",\n      \"5.264\",\n      \"29.21\"\n    ],\n    [\n      \"120.0\",\n      \"4423.1\",\n      \"-2.936\",\n      \"0.061\",\n      \"5.448\",\n      \"29.59\"\n    ],\n    [\n      \"130.0\",\n      \"4807.7\",\n      \"-2.583\",\n      \"0.212\",\n      \"4.996\",\n      \"28.62\"\n    ],\n    [\n      \"154.0\",\n      \"5730.8\",\n      \"-2.865\",\n      \"0.138\",\n      \"5.463\",\n      \"29.62\"\n    ],\n    [\n      \"162.0\",\n      \"6038.5\",\n      \"-2.757\",\n      \"0.23\",\n      \"5.426\",\n      \"29.54\"\n    ],\n    [\n      \"168.0\",\n      \"6269.2\",\n      \"-2.911\",\n      \"0.122\",\n      \"5.534\",\n      \"29.76\"\n    ],\n    [\n      \"174.0\",\n      \"6500.0\",\n      \"-2.78\",\n      \"0.25\",\n      \"5.53\",\n      \"29.75\"\n    ],\n    [\n      \"180.0\",\n      \"6730.8\",\n      \"NaN\",\n      \"NaN\",\n      \"5.494\",\n      \"29.68\"\n    ],\n    [\n      \"183.0\",\n      \"6846.2\",\n      \"-2.877\",\n      \"0.122\",\n      \"5.456\",\n      \"29.6\"\n    ],\n    [\n      \"200.0\",\n      \"7203.0\",\n      \"-2.833\",\n      \"0.093\",\n      \"5.288\",\n      \"29.25\"\n    ],\n    [\n      \"221.0\",\n      \"7897.8\",\n      \"-2.518\",\n      \"0.481\",\n      \"5.452\",\n      \"29.6\"\n    ],\n    [\n      \"240.0\",\n      \"8558.3\",\n      \"-2.667\",\n      \"0.416\",\n      \"5.655\",\n      \"30.0\"\n    ],\n    [\n      \"258.0\",\n      \"9212.1\",\n      \"-2.642\",\n      \"0.374\",\n      \"5.493\",\n      \"29.68\"\n    ],\n    [\n      \"283.0\",\n      \"10165.1\",\n      \"-2.563\",\n      \"0.553\",\n      \"5.736\",\n      \"30.16\"\n    ],\n    [\n      \"302.0\",\n      \"10670.6\",\n      \"-2.585\",\n      \"0.477\",\n      \"5.605\",\n      \"29.9\"\n    ],\n    [\n      \"308.0\",\n      \"10961.6\",\n      \"-2.588\",\n      \"0.503\",\n      \"5.676\",\n      \"30.04\"\n    ],\n    [\n      \"321.0\",\n      \"11469.9\",\n      \"-2.368\",\n      \"0.598\",\n      \"5.376\",\n      \"29.44\"\n    ],\n    [\n      \"327.0\",\n      \"11728.6\",\n      \"-2.552\",\n      \"0.383\",\n      \"5.305\",\n      \"29.29\"\n    ],\n    [\n      \"333.0\",\n      \"12034.3\",\n      \"-2.355\",\n      \"0.6\",\n      \"5.353\",\n      \"29.39\"\n    ],\n    [\n      \"340.0\",\n      \"12299.5\",\n      \"-2.107\",\n      \"0.759\",\n      \"5.151\",\n      \"28.96\"\n    ],\n    [\n      \"346.0\",\n      \"12567.8\",\n      \"-1.901\",\n      \"0.909\",\n      \"5.027\",\n      \"28.69\"\n    ],\n    [\n      \"358.0\",\n      \"13159.4\",\n      \"-1.868\",\n      \"0.996\",\n      \"5.146\",\n      \"28.95\"\n    ],\n    [\n      \"365.0\",\n      \"13437.3\",\n      \"-1.894\",\n      \"0.778\",\n      \"4.734\",\n      \"28.03\"\n    ],\n    [\n      \"377.0\",\n      \"14002.0\",\n      \"-1.756\",\n      \"0.849\",\n      \"4.601\",\n      \"27.71\"\n    ],\n    [\n      \"383.0\",\n      \"14288.9\",\n      \"-1.527\",\n      \"1.072\",\n      \"4.587\",\n      \"27.68\"\n    ],\n    [\n      \"389.0\",\n      \"14578.9\",\n      \"-1.024\",\n      \"1.502\",\n      \"4.447\",\n      \"27.33\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\",\n      \"NaN\"\n    ],\n    [\n      \"\"\n    ]\n  ],\n  \"errors\": [],\n  \"meta\": {\n    \"delimiter\": \",\",\n    \"linebreak\": \"\\r\\n\",\n    \"aborted\": false,\n    \"truncated\": false,\n    \"cursor\": 1825\n  },\n  \"rows\": 52,\n  \"cols\": 6,\n  \"delimiter\": \",\"\n}"
         }
-    ],
-    []
+    ]
 ]
 
 sample_data_response = [

@@ -57,7 +57,7 @@ def readLipds(usr_path=""):
     global cwd
     __read_directory(usr_path, ".lpd", "LiPD")
     # Turned off until LiPD.net is updated to accept Validator API requests
-    # validator()
+    # validate()
     return cwd
 
 
@@ -140,6 +140,8 @@ def excel():
             logger_start.debug("excel: Converted excel to lipd file, but unable readLipd(): {}, {}".format(file["filename_ext"], e))
     try:
         writeLipds(cwd)
+        print("Reminder! Use lipd.validate() or www.LiPD.net/validator "
+              "to ensure that your new LiPD file(s) are valid")
     except Exception as e:
         logger_start.debug("excel: Unable to writeLipds with new lipd files, {}".format(e))
     # Turn on verbose. Back to normal mode when this function is finished.
@@ -197,17 +199,29 @@ def doi():
     return
 
 
-def validator(detailed=False):
+def validate(detailed=False, fetch_new_results=True):
     """
     Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
     Display the PASS/FAIL results. Display detailed results if the option is chosen.
     :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors.
     :return none:
     """
-    # Get the validator-formatted data for each LiPD file in the LiPD Library. A list of lists of LiPD-content metadata
-    d = lipd_lib.get_data_for_validator()
-    results = get_validator_results(d)
-    display_results(results, detailed)
+    print("\n")
+    # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
+    if fetch_new_results:
+        print("Fetching results from validator at lipd.net/validator... this may take a few minutes.\n")
+        # Get the validator-formatted data for each LiPD file in the LiPD Library.
+        # A list of lists of LiPD-content metadata
+        d = lipd_lib.get_data_for_validator()
+        results = get_validator_results(d)
+        display_results(results, detailed)
+        # Set the results inside of each LiPD object
+        for entry in results:
+            lipd_lib.put_validator_results(entry)
+    # Check for previous validator results. Display those rather than running the validator again. (faster)
+    else:
+        results = lipd_lib.get_validator_results()
+        display_results(results, detailed)
     return
 
 
@@ -239,7 +253,7 @@ def addEnsemble(filename, ensemble):
     else:
         print("Error: '{}' file not found in workspace. Please use showLipds() to see available files ".format(filename))
 
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -268,7 +282,7 @@ def lipdToDf(filename):
         print("Error: Unable to find LiPD file")
         logger_start.warn("lipd_to_df: KeyError: missing lipds {}".format(filename))
         dfs = None
-    print("Process Complete")
+    # print("Process Complete")
     return dfs
 
 
@@ -287,7 +301,7 @@ def tsToDf(ts, filename):
     except KeyError as e:
         print("Error: LiPD file not found")
         logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
-    print("Process Complete")
+    # print("Process Complete")
     return dfs
 
 
@@ -299,13 +313,14 @@ def filterDfs(expr):
     """
     try:
         dfs = get_filtered_dfs(lipd_lib.get_master(), expr)
-        print("Process Complete")
+        # print("Process Complete")
         return dfs
 
     except Exception:
         logger_dataframes.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
         print("Unable to filter data frames")
-        print("Process Complete")
+        # print("Process Complete")
+    return
 
 
 # ANALYSIS - TIME SERIES
@@ -330,7 +345,7 @@ def extractTs():
         print("Error: Unable to extractTimeSeries")
         logger_start.debug("extractTimeSeries() failed at {}".format(e))
 
-    print("Process Complete")
+    # print("Process Complete")
     return l
 
 
@@ -348,7 +363,7 @@ def collapseTs():
     except Exception:
         print("ERROR: Converting TSOs to LiPD")
         logger_start.debug("exportTimeSeries() failed")
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -363,7 +378,7 @@ def find(expression, ts):
     if expr_lst:
         new_ts = get_matches(expr_lst, ts)
         # filtered_ts = _createTs(names, ts)
-    print("Process Complete")
+    # print("Process Complete")
     return new_ts
 
 
@@ -394,7 +409,7 @@ def showLipds():
     :return None:
     """
     lipd_lib.show_lipds()
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -405,7 +420,7 @@ def showMetadata(filename):
     :param str filename: LiPD filename
     """
     lipd_lib.show_metadata(filename)
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -416,7 +431,7 @@ def showCsv(filename):
     :return None:
     """
     lipd_lib.show_csv(filename)
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -431,7 +446,7 @@ def showTso(tso):
             print("{0:20}: {1}".format(key, value))
     except Exception as e:
         print("Unable to list contents: {}".format(e))
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -459,7 +474,7 @@ def showDfs(dict_in):
             pass
         except AttributeError:
             pass
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -487,7 +502,7 @@ def getMetadata(filename):
     except KeyError:
         print("Error: Unable to find LiPD file")
         logger_start.warn("KeyError: Unable to find record {}".format(filename))
-    print("Process Complete")
+    # print("Process Complete")
     return d
 
 
@@ -503,7 +518,7 @@ def getCsv(filename):
     except KeyError:
         print("Error: Unable to find record")
         logger_start.warn("Unable to find record {}".format(filename))
-    print("Process Complete")
+    # print("Process Complete")
     return d
 
 
@@ -541,8 +556,8 @@ def writeLipds(usr_path=""):
     if _lib:
         for filename in _lib:
             __write_lipd(usr_path, filename)
-    if verbose:
-        print("Process Complete")
+    # if verbose:
+    #     print("Process Complete")
     return
 
 

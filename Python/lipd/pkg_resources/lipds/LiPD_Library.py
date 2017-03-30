@@ -98,6 +98,32 @@ class LiPD_Library(object):
             f_list.append(k)
         return f_list
 
+    def get_validator_results(self):
+        """
+        Get validator results from each LiPD object and compile it into a list
+        :return list _l: Results
+        """
+        _l = []
+        try:
+            # Loop over lipd objects
+            for k, v in self.master.items():
+                # Append to output results list
+                _l.append(v.get_validator_results())
+        except Exception as e:
+            logger_lipd_lib.debug("get_validator_results: Exception: {}".format(e))
+
+        return _l
+
+    def get_data_for_validator(self):
+        """
+        Get validator-formatted data for each LiPD file in the LiPD Library
+        :return list: List of file metadata
+        """
+        _lst = []
+        for name, obj in self.master.items():
+            _lst.append(obj.get_validator_formatted())
+        return _lst
+
     # SHOW
 
     def show_csv(self, name):
@@ -168,6 +194,19 @@ class LiPD_Library(object):
             os.chdir(self.dir_root)
         except FileNotFoundError as e:
             logger_lipd_lib.debug("setDir: FileNotFound: invalid directory: {}, {}".format(self.dir_root, e))
+        return
+
+    def put_validator_results(self, d):
+        """
+        Put the validate results in the LiPD object
+        :param dict d: Validator results
+        :return none:
+        """
+        try:
+            self.master[d["filename"]].put_validator_results(d)
+        except Exception as e:
+            logger_lipd_lib.debug("put_validator_results: Exception: {}".format(e))
+
         return
 
     # LOAD
@@ -258,12 +297,3 @@ class LiPD_Library(object):
             logger_directory.debug("lipd_lib: Unable to delete lipd_lib data from tmp filesystem")
         return
 
-    def get_data_for_validator(self):
-        """
-        Get validator-formatted data for each LiPD file in the LiPD Library
-        :return list: List of file metadata
-        """
-        _lst = []
-        for name, obj in self.master.items():
-            _lst.append(obj.get_validator_formatted())
-        return _lst
