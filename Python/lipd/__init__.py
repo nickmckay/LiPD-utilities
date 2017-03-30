@@ -209,7 +209,7 @@ def validate(detailed=False, fetch_new_results=True):
     print("\n")
     # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
     if fetch_new_results:
-        print("Fetching results from validator at lipd.net/validator... this may take a few minutes.\n")
+        print("Fetching results from validator at lipd.net/validator... this may take a few moments.\n")
         # Get the validator-formatted data for each LiPD file in the LiPD Library.
         # A list of lists of LiPD-content metadata
         d = lipd_lib.get_data_for_validator()
@@ -335,11 +335,15 @@ def extractTs():
     try:
         # Loop over the LiPD files in the LiPD_Library
         for k, v in lipd_lib.get_master().items():
-            # Get metadata from this LiPD object. Convert.
-            # Receive a time series (list of time series objects) and add it to what we currently have.
-            # Continue building time series until all datasets are processed.
-            print("extracting: {}".format(k))
-            l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+            try:
+                # Get metadata from this LiPD object. Convert.
+                # Receive a time series (list of time series objects) and add it to what we currently have.
+                # Continue building time series until all datasets are processed.
+                print("extracting: {}".format(k))
+                l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+            except Exception as e:
+                print("Error: Skipping {}: {}".format(k, e))
+                logger_start.debug("extractTs: Exception: {}".format(e))
         print("Finished time series: {} objects".format(len(l)))
     except KeyError as e:
         print("Error: Unable to extractTimeSeries")

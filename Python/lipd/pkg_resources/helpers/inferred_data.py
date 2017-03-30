@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import warnings
 
 from ..helpers.loggers import create_logger
 
@@ -80,34 +81,35 @@ def _get_inferred_data_column(column, age):
     :return dict column: Column data - modified
     """
     try:
-        # Get the values for this column
-        values = column["values"]
-        # Make sure that age and values are numpy arrays
-        _values = np.array(copy.copy(values), dtype=float)
-        _age = np.array(age, dtype=float)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # Get the values for this column
+            values = column["values"]
+            # Make sure that age and values are numpy arrays
+            _values = np.array(copy.copy(values), dtype=float)
+            _age = np.array(age, dtype=float)
+            # If we have values, keep going
+            if len(_values) != 0:
+                # Get the resolution for this age and column values data
+                res = _get_resolution(_age, _values)
+                # If we have successful resolution data, keep going
+                if len(res) != 0:
+                    # Use the resolution values to create new entries and data
+                    column["hasResolution"] = {
+                        "hasMinValue": np.min(res).tolist(),
+                        "hasMaxValue": np.max(res).tolist(),
+                        "hasMeanValue": np.mean(res).tolist(),
+                        "hasMedianValue": np.median(res).tolist(),
+                        "values": res.tolist()
+                    }
 
-        # If we have values, keep going
-        if len(_values) != 0:
-            # Get the resolution for this age and column values data
-            res = _get_resolution(_age, _values)
-            # If we have successful resolution data, keep going
-            if len(res) != 0:
-                # Use the resolution values to create new entries and data
-                column["hasResolution"] = {
-                    "hasMinValue": np.min(res).tolist(),
-                    "hasMaxValue": np.max(res).tolist(),
-                    "hasMeanValue": np.mean(res).tolist(),
-                    "hasMedianValue": np.median(res).tolist(),
-                    "values": res.tolist()
-                }
-
-            # Remove the NaNs from the values list.
-            _values = _values[np.where(~np.isnan(_values))[0]]
-            # Use the values to create new entries and data
-            column["hasMinValue"] = np.min(_values).tolist()
-            column["hasMaxValue"] = np.max(_values).tolist()
-            column["hasMedianValue"] = np.median(_values).tolist()
-            column["hasMeanValue"] = np.mean(_values).tolist()
+                # Remove the NaNs from the values list.
+                _values = _values[np.where(~np.isnan(_values))[0]]
+                # Use the values to create new entries and data
+                column["hasMinValue"] = np.min(_values).tolist()
+                column["hasMaxValue"] = np.max(_values).tolist()
+                column["hasMedianValue"] = np.median(_values).tolist()
+                column["hasMeanValue"] = np.mean(_values).tolist()
     except KeyError as e:
         logger_inferred_data.debug("get_inferred_data_column: KeyError: {}".format(e))
     except Exception as e:

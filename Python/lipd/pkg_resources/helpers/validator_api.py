@@ -2,7 +2,6 @@
 import json
 import requests
 import os
-
 from .loggers import create_logger
 
 logger_validator_api = create_logger('validator_api')
@@ -80,9 +79,6 @@ def display_results(data, detailed=False):
     :param bool detailed: Detailed results on or off
     :return none:
     """
-    # print("\nVALIDATOR RESULTS")
-    # print("======================\n")
-
     if not detailed:
         print('FILENAME......................................... STATUS..........')
 
@@ -108,6 +104,7 @@ def get_validator_results(data):
     """
     # results = {"detailed": "", "raw": {}, "status": "", "filename":""}
     results = []
+
     for file in data:
         # Add this single results to the growing list of results.
         result = _call_validator_api(file)
@@ -148,26 +145,37 @@ def _call_validator_api(data):
         # The payload that is going to be sent with the JSON request
         payload = {'json_payload': data, 'apikey': 'YOUR_API_KEY_HERE'}
         # Development Link
-        # response = requests.post('http://localhost:3000/api/validator', data=payload)
+        response = requests.post('http://localhost:3000/api/validator', data=payload)
 
         # Production Link
-        response = requests.post('http://www.lipd.net/api/validator', data=payload)
+        # response = requests.post('http://www.lipd.net/api/validator', data=payload)
+
+        if response.status_code == 413:
+            result = {"dat": {}, "feedback": {}, "filename": _filename,
+                      "status": "HTTP 413: Request Entity Too Large"}
+        elif response.status_code == 404:
+            result = {"dat": {}, "feedback": {}, "filename": _filename,
+                      "status": "HTTP 404: Not Found"}
+        elif response.status_code == 400:
+            result = {"dat": {}, "feedback": {}, "filename": _filename,
+                      "status": response.text}
 
         # For an example of the JSON Response, reference the "sample_data_response" below
 
         # Convert JSON string into a Python dictionary
         # print("Converting response to json...\n")
-        result = json.loads(response.text)
+        else:
+            result = json.loads(response.text)
 
     except TypeError as e:
         logger_validator_api.warning("get_validator_results: TypeError: {}".format(e))
-        result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "DECODE ERROR, FOREIGN SYMBOLS OR CHARACTERS"}
+        result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "JSON DECODE ERROR"}
     except requests.exceptions.ConnectionError as e:
         logger_validator_api.warning("get_validator_results: ConnectionError: {}".format(e))
         result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "UNABLE TO REACH SERVER"}
     except Exception as e:
         logger_validator_api.debug("get_validator_results: Exception: {}".format(e))
-        result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "ERROR BEFORE VALIDATION"}
+        result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "ERROR BEFORE VALIDATION, {}".format(e)}
     if not result:
         result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "EMPTY RESPONSE"}
 
