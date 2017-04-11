@@ -86,7 +86,7 @@ class LiPD(object):
 
             # Switch JSON back to old structure
             self.data_json_raw = copy.deepcopy(self.data_json)
-            self.data_json_raw = idx_name_to_num(self.data_json)
+            self.data_json_raw = idx_name_to_num(self.data_json_raw)
 
             # Create pandas data frames from metadata and csv
             self.dfs = lipd_to_df(self.data_master, self.data_csv)
