@@ -188,7 +188,7 @@ def _get_sheet_metadata(workbook, name):
     ct_chron = 1
     metadata_str = ""
     sheets = []
-    skip_sheets = ["example", "sample", "lists"]
+    skip_sheets = ["example", "sample", "lists", "guidelines"]
 
     # Check what worksheets are available, so we know how to proceed.
     for sheet in workbook.sheet_names():
