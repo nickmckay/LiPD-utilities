@@ -111,7 +111,7 @@ def _add_csv_to_columns(table, crumbs):
     :param str crumbs: Hierarchy crumbs
     :return dict: Table metadata with csv "values" entry
     """
-    # Get the filename or this table
+    # Get the filename of this table
     filename = _get_filename(table, crumbs)
 
     # If there's no filename, bypass whole process because there's no way to know which file to open
@@ -157,9 +157,8 @@ def _add_csv_to_columns(table, crumbs):
         # Now that all missing values are changed to "nan", revise the key before we leave
         table["missingValue"] = "nan"
 
-        # calculate inferred data before leaving this section! ONLY paleo data tables
-        if "paleo" in crumbs.lower():
-            table = get_inferred_data_table(table)
+        # calculate inferred data before leaving this section! paleo AND chron tables
+        table = get_inferred_data_table(table)
 
     return table
 
@@ -211,15 +210,18 @@ def write_csv_to_file(d):
     :return None:
     """
     logger_csvs.info("enter write_csv_to_file")
+
     for filename, data in d.items():
-        l_columns = []
-        for k, v in data.items():
-            l_columns.append(v)
+        # l_columns = []
+        # for k, v in data.items():
+        #     l_columns.append(v)
+        l_columns = _reorder_csv(data)
         rows = zip(*l_columns)
         with open(filename, 'w+') as f:
             w = csv.writer(f)
             for row in rows:
                 w.writerow(row)
+
     logger_csvs.info("exit write_csv_to_file")
     return
 
@@ -389,6 +391,22 @@ def _put_filename(table, filename):
 
 # HELPERS
 
+def _reorder_csv(d):
+    """
+    Preserve the csv column ordering before writing back out to CSV file. Keep column data consistent with JSONLD
+    column number alignment.
+    { "var1" : {"number": 1, "values": [] }, "var2": {"number": 1, "values": [] } }
+
+    :param dict d: csv data
+    :return dict: csv data
+    """
+    _d2 = [None for i in range(0, len(d))]
+
+    for key, data in d.items():
+        _d2[data["number"]-1] = data["values"]
+    return _d2
+
+
 def _is_numeric_data(ll):
     """
     List of lists of csv values data
@@ -423,7 +441,7 @@ def _search_table_for_vals(d, filename):
             for name_col, data_col in d["columns"].items():
                 vals = _search_col_for_vals(data_col, filename)
                 if vals:
-                    cols[name_col] = vals
+                    cols[name_col] = {"number": data_col["number"], "values": vals}
         except AttributeError:
             print("Error: Table 'columns' entries must be a dictionary type")
             logger_csvs.debug("search_table_for_vals: AttributeError: expected type dict, given type {}".format(type(d)))

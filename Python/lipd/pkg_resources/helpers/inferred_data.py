@@ -100,7 +100,7 @@ def _get_inferred_data_column(column, age):
                         "hasMaxValue": np.max(res).tolist(),
                         "hasMeanValue": np.mean(res).tolist(),
                         "hasMedianValue": np.median(res).tolist(),
-                        "values": res.tolist()
+                        # "values": res.tolist()
                     }
 
                 # Remove the NaNs from the values list.

@@ -22,7 +22,7 @@ class Convert(object):
 
         # LiPD to TS (One file at a time)
         self.ts_root = {}  # Root metadata for current LiPD.
-        self.ts_tsos = {}  # Individual columns. One entry represents one TSO (to be created later)
+        self.ts_tsos = []  # Individual columns. One entry represents one TSO (to be created later)
 
         # TS to LiPD (Batch Process)
         self.lipd_tsos = []  # One entry for each TSO metadata dictionary

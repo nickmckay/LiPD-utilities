@@ -299,14 +299,14 @@ class LiPD(object):
 
     # HELPERS
 
-    def load_tso(self, metadata):
+    def load_tso(self, d):
         """
         Overwrite LiPD self.data_master with metadata from TSO.
-        :param metadata: (dict) Metadata from TSO
+        :param dict d: Metadata from TSO
         """
-        self.data_master = metadata
+        self.data_master = d
         # Split the JSON metadata from the CSV values. Update values to self.
-        self.data_json, self.data_csv = split_csv_json(metadata)
+        self.data_json, self.data_csv = get_csv_from_metadata(self.name, self.data_master)
         return
 
 

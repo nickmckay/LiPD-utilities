@@ -152,12 +152,9 @@ def excel_main(files):
         # Move back to dir_root for next loop.
         os.chdir(file["dir"])
 
-
-
         # Cleanup and remove tmp directory
         shutil.rmtree(dir_tmp)
 
-    print("Process Complete")
     return
 
 

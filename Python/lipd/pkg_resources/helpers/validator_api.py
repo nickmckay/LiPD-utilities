@@ -79,6 +79,9 @@ def display_results(data, detailed=False):
     :param bool detailed: Detailed results on or off
     :return none:
     """
+    # print("\nVALIDATOR RESULTS")
+    # print("======================\n")
+
     if not detailed:
         print('FILENAME......................................... STATUS..........')
 
@@ -144,6 +147,7 @@ def _call_validator_api(data):
 
         # The payload that is going to be sent with the JSON request
         payload = {'json_payload': data, 'apikey': 'YOUR_API_KEY_HERE'}
+
         # Development Link
         # response = requests.post('http://localhost:3000/api/validator', data=payload)
 
@@ -151,7 +155,7 @@ def _call_validator_api(data):
         response = requests.post('http://www.lipd.net/api/validator', data=payload)
 
         if response.status_code == 413:
-            result = {"dat": {}, "feedback": {}, "filename": _filename,
+            result = {"dat": {}, "feedback": {}, "fi lename": _filename,
                       "status": "HTTP 413: Request Entity Too Large"}
         elif response.status_code == 404:
             result = {"dat": {}, "feedback": {}, "filename": _filename,

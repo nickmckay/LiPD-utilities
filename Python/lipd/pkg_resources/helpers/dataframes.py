@@ -154,8 +154,8 @@ def _get_dfs(csvs):
     try:
         for filename, cols in csvs.items():
             tmp = {}
-            for var, vals in cols.items():
-                tmp[var] = pd.Series(vals)
+            for var, data in cols.items():
+                tmp[var] = pd.Series(data["values"])
             if "chron" in filename.lower():
                 dfs["chronData"][filename] = pd.DataFrame(tmp)
             elif "paleo" in filename.lower():
