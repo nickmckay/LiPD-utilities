@@ -13,8 +13,14 @@ def _get_age(columns):
     :param dict columns: Column data
     :return list age: Age values
     """
+
+    # Need to check multiple places for age, year, or yrbp
+    # 1. Check the column variable name
+    # 2. Check for an "inferredVariableType
+
     age = []
     try:
+        # Step 1:
         # Check for age first (exact match)
         if "age" in columns:
             # Save the values
@@ -23,18 +29,38 @@ def _get_age(columns):
         elif "year" in columns:
             # Save the values
             age = columns["year"]["values"]
-        # No year or age found, start searching more intently.
-        else:
+        elif "yrbp" in columns:
+            # Save the values
+            age = columns["yrbp"]["values"]
+
+        # Step 2: No year or age found, start searching for a loose match
+        if not age:
             # Loop through column variableNames
             for k, v in columns.items():
+                k_low = k.lower()
                 # Check for age in the variableName (loose match)
-                if "age" in k:
+                if "age" in k_low:
                     # Save the values
                     age = v["values"]
                 # Check for year in variableName (loose match)
-                elif "year" in k:
+                elif "year" in k_low:
                     # Save the values
                     age = v["values"]
+                elif "yrbp" in k_low:
+                    # Save the values
+                    age = v["values"]
+
+        # Step 3: No loose matches, check for an "inferredVariableType" : "Age"
+        if not age:
+            # Loop through column variableNames
+            for k, v in columns.items():
+                try:
+                    if v["inferredVariableType"].lower() == "age":
+                        age = v["values"]
+                except Exception:
+                    # Not too concerned if we error here.
+                    pass
+
     # If we expected a dictionary, and didn't get one
     except AttributeError as e:
         logger_inferred_data.warn("get_age: AttributeError: {}".format(e))
@@ -73,9 +99,9 @@ def _get_resolution(age, values):
     return res
 
 
-def _get_inferred_data_column(column, age):
+def _get_inferred_data_res(column, age):
     """
-    Column level: Start creating the new fields and calculating the new data.
+    Calculate Resolution and m/m/m/m for column values.
     :param dict column: Column data
     :param list age: Age values
     :return dict column: Column data - modified
@@ -118,38 +144,80 @@ def _get_inferred_data_column(column, age):
     return column
 
 
-def get_inferred_data_table(table):
+def _get_inferred_data_column(column):
+    """
+    Calculate the m/m/m/m for column values.
+    :param dict column: Column data
+    :return dict column: Column data - modified
+    """
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # Get the values for this column
+            values = column["values"]
+            # Make sure that age and values are numpy arrays
+            _values = np.array(copy.copy(values), dtype=float)
+            # If we have values, keep going
+            if len(_values) != 0:
+                # Remove the NaNs from the values list.
+                _values = _values[np.where(~np.isnan(_values))[0]]
+                # Use the values to create new entries and data
+                column["hasMinValue"] = np.min(_values).tolist()
+                column["hasMaxValue"] = np.max(_values).tolist()
+                column["hasMedianValue"] = np.median(_values).tolist()
+                column["hasMeanValue"] = np.mean(_values).tolist()
+    except KeyError as e:
+        logger_inferred_data.debug("get_inferred_data_column: KeyError: {}".format(e))
+    except Exception as e:
+        logger_inferred_data.debug("get_inferred_data_column: Exception: {}".format(e))
+
+    return column
+
+
+def get_inferred_data_table(pc, table):
     """
     Table level: Dive down, calculate data, then return the new table with the inferred data.
+    :param str pc: Paleo or Chron table type
     :param dict table: Table data
     :return dict table: Table with new data
     """
+    age = None
+    if pc == "paleo":
+        # Get the age values data first, since it's needed to calculate the other column data.
+        age = _get_age(table["columns"])
 
-    # Get the age values data first, since it's needed to calculate the other column data.
-    age = _get_age(table["columns"])
-
-    # If age values were not found, then don't continue. There's no point!
-    if age:
-        try:
+    try:
+        # If age values were not found, then skip resolution.
+        if age:
             # Loop for all the columns in the table
             for var, col in table["columns"].items():
                 # Special cases
                 # We do not calculate data for each of the keys below, and we cannot calculate any "string" data
-                if var not in ["depth", "age", "year"] and not all(isinstance(i, str) for i in col["values"]):
-                    # Send this particular column down to be calculated. Set the returned data in-place in the table.
-                    table["columns"][var] = _get_inferred_data_column(col, age)
-                # If we want to know which columns aren't being calculated...they end up here.
-                # else:
-                #     logger_inferred_data.info("get_inferred_data_table: "
-                #                               "Not calculating inferred data for variableName: {}".format(var))
-        except AttributeError as e:
-            logger_inferred_data.warn("get_inferred_data_table: AttributeError: {}".format(e))
-        except Exception as e:
-            logger_inferred_data.warn("get_inferred_data_table: Exception: {}".format(e))
-    else:
-        try:
-            logger_inferred_data.info("Unable to calculate inferred data for: {}".format(table["filename"]))
-        except KeyError:
-            logger_inferred_data.warn("get_inferred_data_table: Unable to calculate inferred data for: unknown table")
+                if var in ["age", "year"]:
+                    # Calculate m/m/m/m, but not resolution
+                    table["columns"][var] = _get_inferred_data_column(col)
+                elif not all(isinstance(i, str) for i in col["values"]):
+                    # Calculate m/m/m/m and resolution
+                    table["columns"][var] = _get_inferred_data_res(col, age)
+                else:
+                    # Fall through case. No calculations made.
+                    logger_inferred_data.info("get_inferred_data_table: "
+                                              "Not calculating inferred data for variableName: {}".format(var))
+
+        # If there isn't an age, still calculate the m/m/m/m for the column values.
+        else:
+            for var, col in table["columns"].items():
+                if not all(isinstance(i, str) for i in col["values"]):
+                    # Calculate m/m/m/m and resolution
+                    table["columns"][var] = _get_inferred_data_column(col)
+                else:
+                    # Fall through case. No calculations made.
+                    logger_inferred_data.info("get_inferred_data_table: "
+                                              "Not calculating inferred data for variableName: {}".format(var))
+
+    except AttributeError as e:
+        logger_inferred_data.warn("get_inferred_data_table: AttributeError: {}".format(e))
+    except Exception as e:
+        logger_inferred_data.warn("get_inferred_data_table: Exception: {}".format(e))
 
     return table

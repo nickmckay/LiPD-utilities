@@ -376,7 +376,11 @@ def collapseTs():
 def find(expression, ts):
     """
     Find the names of the TimeSeries that match some criteria (expression)
-    :return:
+    ex: find("geo_elevation == 1500", ts)
+    ex: find("paleoData_variablename == sst", ts)
+    :param str expression: The filter expression to apply to the time series
+    :param list ts: Time series
+    :return list new_ts: A filtered time series of objects that match the criteria
     """
     new_ts = []
     # filtered_ts = {}

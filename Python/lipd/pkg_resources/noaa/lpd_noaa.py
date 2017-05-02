@@ -98,7 +98,7 @@ class LPD_NOAA(object):
         self.noaa_data_sorted["File_Last_Modified_Date"]["Modified_Date"] = generate_timestamp()
 
         # Get measurement tables from metadata, and sort into object self
-        self.__put_tables_in_self(["paleo","paleoData", "paleoMeasurementTable"])
+        self.__put_tables_in_self(["paleo", "paleoData", "paleoMeasurementTable"])
         self.__put_tables_in_self(["chron", "chronData", "chronMeasurementTable"])
 
         # how many measurement tables exist? this will tell use how many noaa files to create
@@ -720,7 +720,7 @@ class LPD_NOAA(object):
                 logger_lpd_noaa.debug("write_file: failed to open output txt file, {}".format(e))
                 return
 
-            self.__write_top()
+            self.__write_top(filename)
             self.__write_generic('Contribution_Date')
             self.__write_generic('File_Last_Modified_Date')
             self.__write_generic('Title')
@@ -739,7 +739,7 @@ class LPD_NOAA(object):
             logger_lpd_noaa.info("exit write_file")
         return
 
-    def __write_top(self):
+    def __write_top(self, filename):
         """
         Write the top section of the txt file.
         :param int section_num: Section number
@@ -752,7 +752,9 @@ class LPD_NOAA(object):
         self.noaa_txt.write("# {}".format(self.noaa_data_sorted["Top"]['Study_Name']))
         self.__write_template_top()
         # We don't know what the full online resource path will be yet, so leave the base path only
-        self.__write_k_v("Online_Resource", "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/{}".format(self.name_txt), top=True)
+        # todo  issue #9:  this needs to be changed so that whenever we create multiple NOAA files for the same record, they need to have the "-1.txt" added to the ONLINE RESOURCE
+        # todo IE when we have "dataset-1.txt" and "dataset-2.txt", we need those unique filenames put here V
+        self.__write_k_v("Online_Resource", "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/{}".format(filename), top=True)
         self.__write_k_v("Online_Resource_Description", "Online_Resource_Description: NOAA WDS Paleo formatted metadata and data", indent=True)
         self.__write_k_v("Online_Resource", "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/supplemental/{}".format(self.name_lpd), top=True)
         self.__write_k_v("Online_Resource_Description", "Linked Paleo Data (LiPD) file", indent=True)
@@ -883,7 +885,7 @@ class LPD_NOAA(object):
         logger_lpd_noaa.info("writing section: {}".format("Variables"))
 
         # Write the template lines first
-        self.__write_template_variable(self.__get_filename(table))
+        # self.__write_template_variable(self.__get_filename(table))
 
         # Start going through columns and writing out data
         try:

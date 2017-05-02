@@ -48,7 +48,7 @@ def _merge_csv_section(section_data, pc):
                 # Send whole table_data through. Adds csv data to columns
                 for table_name2, table_data2 in table_data["{}MeasurementTable".format(pc)].items():
                     crumbs = "{}.{}.{}.{}".format(pc, table_name, "MeasurementTable", table_name2)
-                    table_data["{}MeasurementTable".format(pc)][table_name2] = _add_csv_to_columns(table_data2, crumbs)
+                    table_data["{}MeasurementTable".format(pc)][table_name2] = _add_csv_to_columns(table_data2, crumbs, pc)
 
             if "{}Model".format(pc) in table_data:
                 crumbs = "".format(pc, table_name, "Model")
@@ -76,15 +76,15 @@ def _merge_csv_model(models, pc, crumbs):
 
             if "summaryTable" in model:
                 crumbs2 = "{}.{}".format(crumbs, "summaryTable")
-                model["summaryTable"] = _add_csv_to_columns(model["summaryTable"], crumbs2)
+                model["summaryTable"] = _add_csv_to_columns(model["summaryTable"], crumbs2, pc)
 
             if "{}ModelTable".format(pc) in model:
                 crumbs2 = "{}.{}".format(crumbs, "ModelTable")
-                model["{}ModelTable".format(pc)] = _add_csv_to_columns(model["{}ModelTable".format(pc)], crumbs2)
+                model["{}ModelTable".format(pc)] = _add_csv_to_columns(model["{}ModelTable".format(pc)], crumbs2, pc)
 
             if "ensembleTable" in model:
                 crumbs2 = "{}.{}".format(crumbs, "ensembleTable")
-                model["ensembleTable"] = _add_csv_to_columns(model["ensembleTable"], crumbs2)
+                model["ensembleTable"] = _add_csv_to_columns(model["ensembleTable"], crumbs2, pc)
 
             # Check for calibratedAges (old format) and distributionTable (current format)
             if "calibratedAges" in model:
@@ -92,11 +92,11 @@ def _merge_csv_model(models, pc, crumbs):
                 # Calibrated age tables are nested. Go down an extra layer.
                 for k, v in model["calibratedAges"].items():
                     crumbs2 = "{}.{}.{}".format(crumbs, "distributionTable", k)
-                    model["distributionTable"][k] = _add_csv_to_columns(v, crumbs2)
+                    model["distributionTable"][k] = _add_csv_to_columns(v, crumbs2, pc)
             elif "distributionTable" in model:
                 for k, v in model["distributionTable"].items():
                     crumbs2 = "{}.{}.{}".format(crumbs, "distributionTable", k)
-                    model["distributionTable"][k] = _add_csv_to_columns(v, crumbs2)
+                    model["distributionTable"][k] = _add_csv_to_columns(v, crumbs2, pc)
     except AttributeError:
         print("Error: Model section must be a list data type")
 
@@ -104,11 +104,12 @@ def _merge_csv_model(models, pc, crumbs):
     return models
 
 
-def _add_csv_to_columns(table, crumbs):
+def _add_csv_to_columns(table, crumbs, pc):
     """
     Add csv data to each column in a list of columns
     :param dict table: Table metadata
     :param str crumbs: Hierarchy crumbs
+    :param str pc: Paleo or Chron table type
     :return dict: Table metadata with csv "values" entry
     """
     # Get the filename of this table
@@ -158,7 +159,7 @@ def _add_csv_to_columns(table, crumbs):
         table["missingValue"] = "nan"
 
         # calculate inferred data before leaving this section! paleo AND chron tables
-        table = get_inferred_data_table(table)
+        table = get_inferred_data_table(pc, table)
 
     return table
 

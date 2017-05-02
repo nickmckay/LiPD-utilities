@@ -155,7 +155,7 @@ def _call_validator_api(data):
         response = requests.post('http://www.lipd.net/api/validator', data=payload)
 
         if response.status_code == 413:
-            result = {"dat": {}, "feedback": {}, "fi lename": _filename,
+            result = {"dat": {}, "feedback": {}, "filename": _filename,
                       "status": "HTTP 413: Request Entity Too Large"}
         elif response.status_code == 404:
             result = {"dat": {}, "feedback": {}, "filename": _filename,
