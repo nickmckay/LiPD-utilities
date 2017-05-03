@@ -33,7 +33,20 @@ def _get_age(columns):
             # Save the values
             age = columns["yrbp"]["values"]
 
-        # Step 2: No year or age found, start searching for a loose match
+        # Step 2 No exact matches, check for an "inferredVariableType" : "Age" or "Year"
+        if not age:
+            # Loop through column variableNames
+            for k, v in columns.items():
+                try:
+                    if v["inferredVariableType"].lower() == "age":
+                        age = v["values"]
+                    elif v["inferredVariableType"].lower() == "year":
+                        age = v["values"]
+                except Exception:
+                    # Not too concerned if we error here.
+                    pass
+
+        # Step 3: No year or age found, start searching for a loose match with "age" or "year" in the variableName.
         if not age:
             # Loop through column variableNames
             for k, v in columns.items():
@@ -50,16 +63,7 @@ def _get_age(columns):
                     # Save the values
                     age = v["values"]
 
-        # Step 3: No loose matches, check for an "inferredVariableType" : "Age"
-        if not age:
-            # Loop through column variableNames
-            for k, v in columns.items():
-                try:
-                    if v["inferredVariableType"].lower() == "age":
-                        age = v["values"]
-                except Exception:
-                    # Not too concerned if we error here.
-                    pass
+
 
     # If we expected a dictionary, and didn't get one
     except AttributeError as e:

@@ -254,8 +254,11 @@ class LiPD(object):
         """
         # Remove everything in the tmp directory. We'll be writing all new files.
         os.chdir(self.dir_tmp_bag)
-        shutil.rmtree(self.dir_tmp_bag_data)
-        rm_files_in_dir(self.dir_tmp_bag)
+        try:
+            shutil.rmtree(self.dir_tmp_bag_data)
+            rm_files_in_dir(self.dir_tmp_bag)
+        except Exception as e:
+            logger_lipd.warn("lipd: write: tmp dir files already removed, don't exist: {}".format(e))
 
         # Collect all the csv data from the data_master
         self.data_json, self.data_csv = get_csv_from_metadata(self.name, self.data_master)
@@ -287,6 +290,7 @@ class LiPD(object):
 
         # Delete the LiPD directory from inside dir_tmp
         # shutil.rmtree(self.dir_tmp_bag)
+
         return
 
     def remove(self):

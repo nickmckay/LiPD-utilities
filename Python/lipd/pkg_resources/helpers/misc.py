@@ -243,6 +243,21 @@ def get_lipd_version(d):
     return version
 
 
+def is_ensemble(d):
+    """
+    Check if a table of data is an ensemble table. Is the first values index a list? ensemble. Int/float? not ensemble.
+    :param dict d: Table data
+    :return bool: Ensemble or not ensemble
+    """
+    for var, data in d.items():
+        try:
+            if isinstance(data["values"][0], list):
+                return True
+        except Exception as e:
+            logger_misc.debug("misc: is_ensemble: {}".format(e))
+    return False
+
+
 def lipd_v1_0_to_v1_1(d):
     """
     Update LiPD version 1.0 to version 1.1.  See LiPD Version changelog for details.

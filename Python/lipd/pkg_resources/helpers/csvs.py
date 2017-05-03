@@ -3,7 +3,7 @@ import math
 
 from ..helpers.loggers import create_logger
 from ..helpers.inferred_data import get_inferred_data_table
-from ..helpers.misc import cast_values_csvs, cast_int, get_missing_value_key, _replace_missing_values_table, rm_missing_values_table
+from ..helpers.misc import cast_values_csvs, cast_int, get_missing_value_key, _replace_missing_values_table, rm_missing_values_table, is_ensemble
 
 logger_csvs = create_logger("csvs")
 
@@ -212,16 +212,16 @@ def write_csv_to_file(d):
     """
     logger_csvs.info("enter write_csv_to_file")
 
-    for filename, data in d.items():
-        # l_columns = []
-        # for k, v in data.items():
-        #     l_columns.append(v)
-        l_columns = _reorder_csv(data)
-        rows = zip(*l_columns)
-        with open(filename, 'w+') as f:
-            w = csv.writer(f)
-            for row in rows:
-                w.writerow(row)
+    try:
+        for filename, data in d.items():
+            l_columns = _reorder_csv(data)
+            rows = zip(*l_columns)
+            with open(filename, 'w+') as f:
+                w = csv.writer(f)
+                for row in rows:
+                    w.writerow(row)
+    except Exception as e:
+        logger_csvs.debug("csvs: write_csv_to_file: {}".format(e))
 
     logger_csvs.info("exit write_csv_to_file")
     return
@@ -245,7 +245,7 @@ def get_csv_from_metadata(name, metadata):
 
     if "paleoData" in metadata:
         # start building crumbs. This will be used to create new filenames.
-        crumbs_tmp = "{}.Paleo".format(name)
+        crumbs_tmp = "{}.paleo".format(name)
         # Process paleoData section
         pd_meta, pd_csv = _get_csv_section(metadata["paleoData"], crumbs_tmp, "paleo")
         # Build up out master csv output data with our skimmed values
@@ -254,7 +254,7 @@ def get_csv_from_metadata(name, metadata):
         _meta["paleoData"] = pd_meta
 
     if "chronData" in metadata:
-        crumbs_tmp = "{}.Chron".format(name)
+        crumbs_tmp = "{}.chron".format(name)
         cd_meta, cd_csv = _get_csv_section(metadata["chronData"], crumbs_tmp, "chron")
         _csv.update(cd_csv)
         _meta["chronData"] = cd_meta
@@ -285,7 +285,7 @@ def _get_csv_section(_meta, crumbs, pc):
                 idx = 1
                 for name_pmt, dat in data_table["{}MeasurementTable".format(pc)].items():
                     # String together the final pieces of the crumbs filename
-                    filename = "{}.{}{}.csv".format(crumbs_tmp, "measurementTable", idx)
+                    filename = "{}{}{}.csv".format(crumbs_tmp, "measurement", idx)
                     # Set the filename inside the metadata also, so our _csv and _meta will match
                     dat = _put_filename(dat, filename)
                     # Get a nested list of table values
@@ -295,12 +295,12 @@ def _get_csv_section(_meta, crumbs, pc):
                     idx += 1
 
             if "{}Model".format(pc) in data_table:
-                for item in data_table["{}Model".format(pc)]:
+                for m_idx, item in enumerate(data_table["{}Model".format(pc)]):
                     if "calibratedAges" in item:
                         idx = 1
                         # CA has an extra level of nesting
                         for name_ca, dat in item["calibratedAges"].items():
-                            filename = "{}.distributionTable{}.csv".format(crumbs_tmp, idx)
+                            filename = "{}model{}distribution{}.csv".format(crumbs_tmp, m_idx+1, idx)
                             dat = _put_filename(dat, filename)
                             out = _search_table_for_vals(dat, filename)
                             _csv[filename] = out
@@ -310,26 +310,26 @@ def _get_csv_section(_meta, crumbs, pc):
                         idx = 1
                         # CA has an extra level of nesting
                         for name_ca, dat in item["distributionTable"].items():
-                            filename = "{}.distributionTable{}.csv".format(crumbs_tmp, idx)
+                            filename = "{}model{}distribution{}.csv".format(crumbs_tmp, m_idx+1, idx)
                             dat = _put_filename(dat, filename)
                             out = _search_table_for_vals(dat, filename)
                             _csv[filename] = out
                             idx += 1
 
                     if "{}ModelTable".format(pc) in item:
-                        filename = "{}.{}.csv".format(crumbs_tmp, "{}ModelTable".format(pc))
+                        filename = "{}model{}{}.csv".format(crumbs_tmp, m_idx+1, "{}Model".format(pc))
                         item["{}ModelTable".format(pc)] = _put_filename(item["{}ModelTable".format(pc)], filename)
                         out = _search_table_for_vals(item["{}ModelTable".format(pc)], filename)
                         _csv[filename] = out
 
                     elif "summaryTable".format() in item:
-                        filename = "{}.{}.csv".format(crumbs_tmp, "summaryTable".format(pc))
+                        filename = "{}model{}{}.csv".format(crumbs_tmp, m_idx+1, "summary".format(pc))
                         item["summaryTable"] = _put_filename(item["summaryTable"], filename)
                         out = _search_table_for_vals(item["summaryTable"], filename)
                         _csv[filename] = out
 
                     if "ensembleTable" in item:
-                        filename = "{}.{}.csv".format(crumbs_tmp, "ensembleTable")
+                        filename = "{}model{}{}.csv".format(crumbs_tmp, m_idx+1, "ensemble")
                         item["ensembleTable"] = _put_filename(item["ensembleTable"], filename)
                         out = _search_table_for_vals(item["ensembleTable"], filename)
                         _csv[filename] = out
@@ -401,10 +401,51 @@ def _reorder_csv(d):
     :param dict d: csv data
     :return dict: csv data
     """
-    _d2 = [None for i in range(0, len(d))]
+    _ensemble = is_ensemble(d)
+    _d2 = []
+    try:
+        if _ensemble:
+            # 1 column ensemble: realizations
+            if len(d) == 1:
+                for var, data in d.items():
+                    if "values" in data:
+                        _d2 = data["values"]
+            # 2 column ensemble: depth and realizations
+            else:
+                _count = 0
+                # count up how many columns total, and how many placeholders to make in our list
+                for var, data in d.items():
+                    if isinstance(data["number"], (int, float)):
+                        _count += 1
+                    elif isinstance(data["number"], list):
+                        _curr_count = len(data["number"])
+                        _count += _curr_count
+                # make a list with X number of placeholders
+                _d2 = [None for i in range(0, _count)]
+                # Loop again and start combining all columns into one list of lists
+                for var, data in d.items():
+                    # realizations: insert at (hopefully) index 1,2...1001
+                    if isinstance(data["number"], list):
+                        for idx, number in enumerate(data["number"]):
+                            # we can't trust the number entries. sometimes they start at "number 1",
+                            # which isn't true, because DEPTH is number 1. Use enumerate index instead.
+                            _insert_at = idx + 1
+                            # Insert at one above the index. Grab values at exact index
+                            _d2[_insert_at] = data["values"][idx]
+                    # depth column: insert at (hopefully) index 0
+                    else:
+                        # we can trust to use the number entry as an index placement
+                        _insert_at = data["number"] - 1
+                        # insert at one below number, to compensate for 0-index
+                        _d2[_insert_at] = data["values"]
+        else:
+            _count = len(d)
+            _d2 = [None for i in range(0, _count)]
+            for key, data in d.items():
+                _d2[data["number"]-1] = data["values"]
 
-    for key, data in d.items():
-        _d2[data["number"]-1] = data["values"]
+    except Exception as e:
+        logger_csvs.debug("csvs: reorder_csvs: {}".format(e))
     return _d2
 
 
