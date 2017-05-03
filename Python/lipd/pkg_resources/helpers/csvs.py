@@ -114,6 +114,7 @@ def _add_csv_to_columns(table, crumbs, pc):
     """
     # Get the filename of this table
     filename = _get_filename(table, crumbs)
+    ensemble = False
 
     # If there's no filename, bypass whole process because there's no way to know which file to open
     if filename:
@@ -138,15 +139,24 @@ def _add_csv_to_columns(table, crumbs, pc):
 
         # Start putting CSV data into corresponding column "values" key
         try:
-            for col_name, col in table['columns'].items():
-                # The "number" entry in the ensemble table is a list of columns, instead of an int.
-                # In this case, just store all the csv data as a batch, starting at column 2.
-                if isinstance(col["number"], list):
-                    col["values"] = csv_data[1:]
-                # For all other cases, "number" is a single int, and "values" should hold one column list.
-                else:
-                    col_num = cast_int(col["number"])
-                    col['values'] = csv_data[col_num - 1]
+            ensemble = is_ensemble(table["columns"])
+            if ensemble:
+                # realization columns
+                if len(table["columns"]) == 1:
+                    for col_name, col_data in table["columns"].items():
+                        col_data["values"] = csv_data
+                # depth column + realization columns
+                elif len(table["columns"]) == 2:
+                    for col_name, col_data in table["columns"].items():
+                        if isinstance(col_data["number"], (int, float)):
+                            col_num = cast_int(col_data["number"])
+                            col_data['values'] = csv_data[col_num - 1]
+                        elif isinstance(col_data["number"], list):
+                            col_data["values"] = csv_data[2:]
+            else:
+                for col_name, col_data in table['columns'].items():
+                    col_num = cast_int(col_data["number"])
+                    col_data['values'] = csv_data[col_num - 1]
         except IndexError:
             logger_csvs.warning("add_csv_to_columns: IndexError: index out of range of csv_data list")
         except KeyError:
@@ -158,8 +168,9 @@ def _add_csv_to_columns(table, crumbs, pc):
         # Now that all missing values are changed to "nan", revise the key before we leave
         table["missingValue"] = "nan"
 
-        # calculate inferred data before leaving this section! paleo AND chron tables
-        table = get_inferred_data_table(pc, table)
+        if not ensemble:
+            # calculate inferred data before leaving this section! paleo AND chron tables
+            table = get_inferred_data_table(pc, table)
 
     return table
 
@@ -214,14 +225,14 @@ def write_csv_to_file(d):
 
     try:
         for filename, data in d.items():
-            l_columns = _reorder_csv(data)
+            l_columns = _reorder_csv(data, filename)
             rows = zip(*l_columns)
             with open(filename, 'w+') as f:
                 w = csv.writer(f)
                 for row in rows:
                     w.writerow(row)
     except Exception as e:
-        logger_csvs.debug("csvs: write_csv_to_file: {}".format(e))
+        logger_csvs.debug("csvs: write_csv_to_file: Unable to write CSV File:{}, {}".format(filename, e))
 
     logger_csvs.info("exit write_csv_to_file")
     return
@@ -392,13 +403,14 @@ def _put_filename(table, filename):
 
 # HELPERS
 
-def _reorder_csv(d):
+def _reorder_csv(d, filename=""):
     """
     Preserve the csv column ordering before writing back out to CSV file. Keep column data consistent with JSONLD
     column number alignment.
     { "var1" : {"number": 1, "values": [] }, "var2": {"number": 1, "values": [] } }
 
     :param dict d: csv data
+    :param str filename: Filename
     :return dict: csv data
     """
     _ensemble = is_ensemble(d)
@@ -431,7 +443,8 @@ def _reorder_csv(d):
                             # which isn't true, because DEPTH is number 1. Use enumerate index instead.
                             _insert_at = idx + 1
                             # Insert at one above the index. Grab values at exact index
-                            _d2[_insert_at] = data["values"][idx]
+                            _d2[_insert_at] = data["values"][idx-1]
+
                     # depth column: insert at (hopefully) index 0
                     else:
                         # we can trust to use the number entry as an index placement
@@ -445,7 +458,7 @@ def _reorder_csv(d):
                 _d2[data["number"]-1] = data["values"]
 
     except Exception as e:
-        logger_csvs.debug("csvs: reorder_csvs: {}".format(e))
+        logger_csvs.debug("csvs: reorder_csvs: Unable to write CSV file: {}, {}".format(filename, e))
     return _d2
 
 

@@ -251,7 +251,7 @@ def is_ensemble(d):
     """
     for var, data in d.items():
         try:
-            if isinstance(data["values"][0], list):
+            if isinstance(data["number"], list):
                 return True
         except Exception as e:
             logger_misc.debug("misc: is_ensemble: {}".format(e))
