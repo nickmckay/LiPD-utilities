@@ -5,11 +5,14 @@ GLOBAL LIST OF REGEXES
 """
 
 # EXCEL
-re_var_w_units = re.compile(r'([\w\s]+)\(?(\w+)?\)?', re.I)
+re_var_w_units = re.compile(r'([\w\s\.\-\_\/\\]+)\(?(\w+)?\)?', re.I)
 # todo write a regex for legacy sheet names
 re_sheet = re.compile(r'(paleo|chron)[a-zA-Z]*(\d+)(model)?[a-zA-Z]*(\d+)?(measurement|ensemble|summary|distribution)[a-zA-Z]*(\d+)?', re.I)
 # (paleo\d+|chron\d+)\.(?(?=measurement)(measurement[a-z]*\d+)|(model[a-z]*\d+)\.(distribution[a-z]*\d+|model[a-z]*|ensemble[a-z]*]))
 re_table = re.compile(r"(paleo|model|chron|ensemble|distribution|summary)(\d+)")
+re_calibration = re.compile(r"calibration_(\w+)")
+re_physical = re.compile(r"physicalsample_(\w+)")
+re_interpretation = re.compile(r"interpretation(\d)_(\w+)")
 
 # DOI
 re_doi = re.compile(r'\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'<>,])\S)+)\b')

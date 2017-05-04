@@ -217,10 +217,52 @@ def filename_from_path(path):
     return head, tail or ntpath.basename(head)
 
 
+def get_filenames_generated(d, name="", csvs=""):
+    """
+    Get the filenames that the LiPD utilities has generated (per naming standard), as opposed to the filenames that
+    originated in the LiPD file (that possibly don't follow the naming standard)
+    :param dict d: Data
+    :param str name: LiPD dataset name to prefix
+    :param list csvs: Filenames list to merge with
+    :return list: Filenames
+    """
+    filenames = []
+    try:
+        filenames = d.keys()
+        if name:
+            filenames = [os.path.join(name, "data", filename) for filename in filenames]
+        if csvs:
+            lst = [i for i in csvs if not i.endswith("csv")]
+            filenames = lst + filenames
+    except Exception as e:
+        logger_directory.debug("get_filenames_generated: Exception: {}".format(e))
+    return filenames
+
+
+def get_filenames_in_lipd(path, name=""):
+    """
+    List all the files contained in the LiPD archive. Bagit, JSON, and CSV
+    :param str path: Directory to be listed
+    :param str name: LiPD dataset name, if you want to prefix it to show file hierarchy
+    :return list: Filenames found
+    """
+    _filenames = []
+    try:
+        # in the top level, list all files and skip the "data" directory
+        _top = [os.path.join(name, f) for f in os.listdir(path) if f != "data"]
+        # in the data directory, list all files
+        _dir_data = [os.path.join(name, "data", f) for f in os.listdir(os.path.join(path, "data"))]
+        # combine the two lists
+        _filenames = _top + _dir_data
+    except Exception:
+        pass
+    return _filenames
+
+
 def get_src_or_dst(mode, path_type):
     """
     User sets the path to a LiPD source location
-    :param str mode: "load" or "save" mode
+    :param str mode: "read" or "write" mode
     :param str path_type: "directory" or "file"
     :return str path: dir path to files
     :return list files: files chosen
@@ -231,69 +273,87 @@ def get_src_or_dst(mode, path_type):
     invalid = True
     count = 0
 
-    if mode == "save":
-        prompt = "Where would you like to save your file(s)?\n" \
-                 "1. Current ({})\n" \
-                 "2. Browse\n" \
-                 "3. Downloads ({})\n" \
-                 "4. Desktop ({})\n".format(os.getcwd(),
-                                            os.path.expanduser('~/Downloads'),
-                                            os.path.expanduser('~/Desktop'))
-    elif mode == "load":
-        # ask user if they are loading one or more files
-        # batch = _askHowMany()
-        # only do multiple files if no path was received from askHowMany
-        if path_type == "directory":
-            prompt = "Where are your file(s) stored?\n" \
-                 "1. Current ({})\n" \
-                 "2. Browse\n" \
-                 "3. Downloads ({})\n" \
-                 "4. Desktop ({})\n".format(os.getcwd(),
-                                            os.path.expanduser('~/Downloads'),
-                                            os.path.expanduser('~/Desktop'))
-        elif path_type == "file":
-            # browse for single file
-            _path, _files = browse_dialog_file()
-            # return early to skip the batch steps below
-            return _path, _files
-
-    else:
-        # did you forget to enter a mode? silly
+    # Did you forget to enter a mode?
+    if not mode:
         invalid = False
-    while invalid:
-        print(prompt)
-        option = input("Option: ")
-        if option == '1':
-            # Current directory
-            logger_directory.info("1: current")
-            _path = os.getcwd()
-        elif option == '2':
-            # Open up the GUI browse dialog
-            logger_directory.info("2: browse")
-            _path = browse_dialog_dir()
-            # Set the path to the local files in CLI and lipd_lib
-        elif option == '3':
-            # Set the path to the system downloads folder.
-            logger_directory.info("3: downloads")
-            _path = os.path.expanduser('~/Downloads')
-        elif option == '4':
-            # Set path to the Notebook folder
-            logger_directory.info("4: desktop ")
-            _path = os.path.expanduser('~/Desktop')
-        else:
-            # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
-            if count == 2:
-                logger_directory.warn("too many attempts")
-                print("Too many failed attempts. Defaulting to Downloads Folder.")
-                _path = os.path.expanduser('~/Downloads')
-            else:
-                count += 1
-                logger_directory.warn("failed attempts: {}".format(count))
-                print("Invalid option. Try again.")
+
+    # Special case for gui reading a single or multi-select file(s).
+    elif mode == "read" and path_type == "file":
+        _path, _files = browse_dialog_file()
+        # Return early to skip prompts, since they're not needed
+        return _path, _files
+
+    # All other cases, prompt user to choose directory
+    else:
+        prompt = get_src_or_dst_prompt(mode)
+
+    # Loop max of 3 times, then default to Downloads folder if too many failed attempts
+    while invalid and prompt:
+        # Prompt user to choose target path
+        _path, count = get_src_or_dst_path(prompt, count)
         if _path:
             invalid = False
+
     logger_directory.info("exit set_src_or_dst")
     return _path, _files
+
+
+def get_src_or_dst_prompt(mode):
+    """
+    String together the proper prompt based on the mode
+    :param str mode: "read" or "write"
+    :return str prompt: The prompt needed
+    """
+    _words = {"read": "from", "write": "to"}
+    print(os.getcwd())
+    prompt = "Where would you like to {} your file(s) {}?\n" \
+             "1. Current ({})\n" \
+             "2. Browse\n" \
+             "3. Downloads ({})\n" \
+             "4. Desktop ({})\n".format(mode, _words[mode], os.getcwd(),
+                                        os.path.expanduser('~/Downloads'),
+                                        os.path.expanduser('~/Desktop'))
+    return prompt
+
+
+def get_src_or_dst_path(prompt, count):
+    """
+    Let the user choose a path, and store the value.
+    :return str _path: Target directory
+    :return str count: Counter for attempted prompts
+    """
+    _path = ""
+    print(prompt)
+    option = input("Option: ")
+    if option == '1':
+        # Current directory
+        logger_directory.info("1: current")
+        _path = os.getcwd()
+    elif option == '2':
+        # Open up the GUI browse dialog
+        logger_directory.info("2: browse")
+        _path = browse_dialog_dir()
+        # Set the path to the local files in CLI and lipd_lib
+    elif option == '3':
+        # Set the path to the system downloads folder.
+        logger_directory.info("3: downloads")
+        _path = os.path.expanduser('~/Downloads')
+    elif option == '4':
+        # Set path to the Notebook folder
+        logger_directory.info("4: desktop ")
+        _path = os.path.expanduser('~/Desktop')
+    else:
+        # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
+        if count == 2:
+            logger_directory.warn("too many attempts")
+            print("Too many failed attempts. Defaulting to current working directory.")
+            _path = os.getcwd()
+        else:
+            count += 1
+            logger_directory.warn("failed attempts: {}".format(count))
+            print("Invalid option. Try again.")
+
+    return _path, count
 
 
 def list_files(x, path=""):
@@ -340,3 +400,15 @@ def rm_files_in_dir(path):
                 pass
     return
 
+
+def rm_file_if_exists(path, filename):
+    """
+    Remove a file if it exists. Useful for when we want to write a file, but it already exists in that locaiton.
+    :param str filename: Filename
+    :param str path: Directory
+    :return none:
+    """
+    _full_path = os.path.join(path, filename)
+    if os.path.exists(_full_path):
+        os.remove(_full_path)
+    return

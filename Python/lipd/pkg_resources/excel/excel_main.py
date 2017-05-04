@@ -8,12 +8,12 @@ from collections import OrderedDict
 
 from ..doi.doi_resolver import DOIResolver
 from ..helpers.bag import finish_bag
-from ..helpers.directory import dir_cleanup, create_tmp_dir, list_files
+from ..helpers.directory import dir_cleanup, create_tmp_dir
 from ..helpers.zips import zipper
 from ..helpers.loggers import create_logger
 from ..helpers.blanks import EMPTY
-from ..helpers.alternates import EXCEL_GEO, EXCEL_TEMPLATE, ALTS_MV, SHEETS, EXCEL_KEYS, EXCEL_HEADER
-from ..helpers.regexes import re_sheet, re_var_w_units
+from ..helpers.alternates import EXCEL_GEO, EXCEL_TEMPLATE, ALTS_MV, EXCEL_SHEET_TYPES, EXCEL_LIPD_MAP_FLAT, EXCEL_HEADER
+from ..helpers.regexes import re_sheet, re_var_w_units, re_calibration, re_interpretation, re_physical
 from ..helpers.misc import normalize_name
 from ..helpers.jsons import write_json_to_file
 
@@ -21,6 +21,7 @@ logger_excel = create_logger('excel_main')
 """
 VERSION: LiPD v1.2
 """
+
 
 def excel_main(files):
     """
@@ -146,7 +147,7 @@ def excel_main(files):
 
             # Zip dir_bag. Creates in dir_root directory
             logger_excel.info("re-zip and rename")
-            zipper(dir_tmp, name, name_lpd)
+            zipper(path_name_ext=name_lpd, root_dir=dir_tmp, name=name)
 
         # Move back to dir_root for next loop.
         os.chdir(file["dir"])
@@ -154,7 +155,6 @@ def excel_main(files):
         # Cleanup and remove tmp directory
         shutil.rmtree(dir_tmp)
 
-    print("Process Complete")
     return
 
 
@@ -185,6 +185,7 @@ def _get_sheet_metadata(workbook, name):
     ct_chron = 1
     metadata_str = ""
     sheets = []
+    skip_sheets = ["example", "sample", "lists", "guidelines"]
 
     # Check what worksheets are available, so we know how to proceed.
     for sheet in workbook.sheet_names():
@@ -192,9 +193,8 @@ def _get_sheet_metadata(workbook, name):
         # Use this for when we are dealing with older naming styles of "data (qc), data, and chronology"
         old = "".join(sheet.lower().strip().split())
 
-        # Don't parse example sheets. For user use only.
-        if "example" not in sheet and "sample" not in sheet:
-
+        # Don't parse example sheets. If these words are in the sheet, assume we skip them.
+        if not any(word in sheet.lower() for word in skip_sheets):
             # Group the related sheets together, so it's easier to place in the metadata later.
             if 'metadata' in sheet.lower():
                 metadata_str = sheet
@@ -266,24 +266,24 @@ def _sheet_meta_from_prompts(sheets, old_name, name, ct_paleo, ct_chron):
             pc = input("Is this a (p)aleo or (c)hronology sheet?").lower()
             if pc in ("p", "c", "paleo", "chron", "chronology"):
                 tt = input("Is this a (d)istribution, (e)nsemble, (m)easurement, or (s)ummary sheet?").lower()
-                if tt in SHEETS["distribution"] or tt in SHEETS["ensemble"] \
-                        or tt in SHEETS["summary"] or tt in SHEETS["measurement"]:
+                if tt in EXCEL_SHEET_TYPES["distribution"] or tt in EXCEL_SHEET_TYPES["ensemble"] \
+                        or tt in EXCEL_SHEET_TYPES["summary"] or tt in EXCEL_SHEET_TYPES["measurement"]:
                     # valid answer, keep going
-                    if tt in SHEETS["distribution"]:
+                    if tt in EXCEL_SHEET_TYPES["distribution"]:
                         tt = "distribution"
-                    elif tt in SHEETS["summary"]:
+                    elif tt in EXCEL_SHEET_TYPES["summary"]:
                         tt = "summary"
-                    elif tt in SHEETS["ensemble"]:
+                    elif tt in EXCEL_SHEET_TYPES["ensemble"]:
                         tt = "ensemble"
-                    elif tt in SHEETS["measurement"]:
+                    elif tt in EXCEL_SHEET_TYPES["measurement"]:
                         tt = "measurement"
 
-                    if pc in SHEETS["paleo"]:
+                    if pc in EXCEL_SHEET_TYPES["paleo"]:
                         if tt in ["ensemble", "summary"]:
                             sheet = "{}{}{}{}".format("paleo", ct_paleo, tt, 1)
                         else:
                             sheet = "{}{}{}".format("paleo", ct_paleo, tt)
-                    elif pc in SHEETS["chron"]:
+                    elif pc in EXCEL_SHEET_TYPES["chron"]:
                         if tt in ["ensemble", "summary"]:
                             sheet = "{}{}{}{}".format("chron", ct_chron, tt, 1)
                         else:
@@ -645,7 +645,7 @@ def _parse_sheet(workbook, sheet):
     table_metadata = OrderedDict()
     table_metadata[table_name] = sheet["new_name"]
     table_metadata['filename'] = filename
-    table_metadata['missingValue'] = 'NaN'
+    table_metadata['missingValue'] = 'nan'
     if "ensemble" in sheet["new_name"]:
         ensemble_on = True
 
@@ -668,7 +668,6 @@ def _parse_sheet(workbook, sheet):
     variable_keys = []
     variable_keys_lower = []
     mv = ""
-
 
     try:
         # Loop for every row in the sheet
@@ -870,12 +869,12 @@ def _replace_mvs(row, mv):
     for idx, v in enumerate(row):
         try:
             if v.value.lower() in EMPTY or v.value.lower() == mv:
-                row[idx] = "NaN"
+                row[idx] = "nan"
             else:
                 row[idx] = v.value
         except AttributeError:
             if v.value == mv:
-                row[idx] = "NaN"
+                row[idx] = "nan"
             else:
                 row[idx] = v.value
 
@@ -889,14 +888,24 @@ def _get_header_keys(row):
     """
     # Swap out NOAA keys for LiPD keys
     for idx, key in enumerate(row):
-        if key.value.lower() in EXCEL_KEYS:
-            row[idx] = EXCEL_KEYS[key.value.lower()]
+        key_low = key.value.lower()
+
+        # Simple case: Nothing fancy here, just map to the LiPD key counterpart.
+        if key_low in EXCEL_LIPD_MAP_FLAT:
+            row[idx] = EXCEL_LIPD_MAP_FLAT[key_low]
+
+        # Nested data case: Check if this is a calibration, interpretation, or some other data that needs to be nested.
+        # elif key_low:
+        #     pass
+
+        # Unknown key case: Store the key as-is because we don't have a LiPD mapping for it.
         else:
             try:
                 row[idx] = key.value
             except AttributeError as e:
                 logger_excel.warn("excel_main: get_header_keys: unknown header key, unable to add: {}".format(e))
 
+    # Since we took a whole row of cells, we have to drop off the empty cells at the end of the row.
     header_keys = _rm_cells_reverse(row)
     return header_keys
 
@@ -938,6 +947,49 @@ def _rm_units_from_var_names_multi(row):
     return l2
 
 
+def _compile_interpretation(data):
+    """
+    Compile the interpretation data into a list of multiples, based on the keys provided.
+    Disassemble the key to figure out how to place the data
+    :param dict data: Interpretation data (unsorted)
+    :return dict: Interpretation data (sorted)
+    """
+    # KEY FORMAT : "interpretation1_somekey"
+    _count = 0
+
+    # Determine how many entries we are going to need, by checking the interpretation index in the string
+    for _key in data.keys():
+        _key_low = _key.lower()
+        # Get regex match
+        m = re.match(re_interpretation, _key_low)
+        # If regex match was successful..
+        if m:
+            # Check if this interpretation count is higher than what we have.
+            _curr_count = int(m.group(1))
+            if _curr_count > _count:
+                # New max count, record it.
+                _count = _curr_count
+
+    # Create the empty list with X entries for the interpretation data
+    _tmp = [{} for i in range(0, _count)]
+
+    # Loop over all the interpretation keys and data
+    for k, v in data.items():
+        # Get the resulting regex data.
+        # EXAMPLE ENTRY: "interpretation1_variable"
+        # REGEX RESULT: ["1", "variable"]
+        m = re.match(re_interpretation, k)
+        # Get the interpretation index number
+        idx = int(m.group(1))
+        # Get the field variable
+        key = m.group(2)
+        # Place this data in the _tmp array. Remember to adjust given index number for 0-indexing
+        _tmp[idx-1][key] = v
+
+    # Return compiled interpretation data
+    return _tmp
+
+
 def _compile_column_metadata(row, keys, number):
     """
     Compile column metadata from one excel row ("9 part data")
@@ -946,20 +998,54 @@ def _compile_column_metadata(row, keys, number):
     :return dict: Column metadata
     """
     # Store the variable keys by index in a dictionary
-    column = {}
+    _column = {}
+    _interpretation = {}
+    _calibration = {}
+    _physical = {}
 
     # Use the header keys to place the column data in the dictionary
     if keys:
         for idx, key in enumerate(keys):
-            try:
-                val = row[idx].value
-            except Exception:
-                logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
-                val = "n/a"
-            if key == "variableName":
-                val = _rm_units_from_var_name_single(row[idx].value)
-            column[key] = val
-        column["number"] = number
+            _key_low = key.lower()
+
+            # Special case: Calibration data
+            if re.match(re_calibration, _key_low):
+                m = re.match(re_calibration, _key_low)
+                if m:
+                    _key = m.group(1)
+                    _calibration[_key] = row[idx].value
+
+            # Special case: PhysicalSample data
+            elif re.match(re_physical, _key_low):
+                m = re.match(re_physical, _key_low)
+                if m:
+                    _key = m.group(1)
+                    _physical[_key] = row[idx].value
+
+            # Special case: Interpretation data
+            elif re.match(re_interpretation, _key_low):
+                # Put interpretation data in a tmp dictionary that we'll sort later.
+                _interpretation[_key_low] = row[idx].value
+
+            else:
+                try:
+                    val = row[idx].value
+                except Exception:
+                    logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
+                    val = "n/a"
+                if key == "variableName":
+                    val = _rm_units_from_var_name_single(row[idx].value)
+                _column[key] = val
+        _column["number"] = number
+
+        if _calibration:
+            _column["calibration"] = _calibration
+        # Only allow physicalSample on measured variableTypes. duh.
+        if _physical and _column["variableType"] == "measured":
+            _column["physicalSample"] = _physical
+        if _interpretation:
+            _interpretation_data = _compile_interpretation(_interpretation)
+            _column["interpretation"] = _interpretation_data
 
     # If there are not keys, that means it's a header-less metadata section.
     else:
@@ -972,12 +1058,13 @@ def _compile_column_metadata(row, keys, number):
             logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
             val = "n/a"
         val = _rm_units_from_var_name_single(val)
-        column["variableName"] = val
-        column["number"] = number
+        _column["variableName"] = val
+        _column["number"] = number
 
-    # Add this column to the overall metadata
-    column = {k: v for k, v in column.items() if v}
-    return column
+    # Add this column to the overall metadata, but skip if there's no data present
+    _column = {k: v for k, v in _column.items() if v}
+
+    return _column
 
 
 def _rm_cells_reverse(l):
@@ -1082,14 +1169,14 @@ def geometry_range(crd_range, elev, crd_type):
     # latitude
     if crd_type == "lat":
         for idx, i in enumerate(crd_range):
-            coordinates[idx] = [crd_range[idx], "NaN"]
+            coordinates[idx] = [crd_range[idx], "nan"]
             if elev:
                 coordinates[idx].append(elev)
 
     # longitude
     elif crd_type == "lon":
         for idx, i in enumerate(crd_range):
-            coordinates[idx] = ["NaN", crd_range[idx]]
+            coordinates[idx] = ["nan", crd_range[idx]]
             if elev:
                 coordinates[idx].append(elev)
 
@@ -1325,15 +1412,26 @@ def compile_fund(workbook, sheet, row, col):
     while col < temp_sheet.ncols:
         col += 1
         try:
-            agency = temp_sheet.cell_value(row, col)
-            grant = temp_sheet.cell_value(row+1, col)
-            if (agency != xlrd.empty_cell and agency not in EMPTY) or (grant != xlrd.empty_cell and grant not in EMPTY):
-                if agency in EMPTY:
-                    l.append({'grant': grant})
-                elif grant in EMPTY:
-                    l.append({'agency': agency})
-                else:
-                    l.append({'agency': agency, 'grant': grant})
+            # Make a dictionary for this funding entry.
+            _curr = {
+                'agency': temp_sheet.cell_value(row, col),
+                'grant': temp_sheet.cell_value(row+1, col),
+                "principalInvestigator": temp_sheet.cell_value(row+2, col),
+                "country": temp_sheet.cell_value(row + 3, col)
+            }
+            # Make a list for all
+            _exist = [temp_sheet.cell_value(row, col), temp_sheet.cell_value(row+1, col),
+                       temp_sheet.cell_value(row+2, col), temp_sheet.cell_value(row+3, col)]
+
+            # Remove all empty items from the list
+            _exist = [i for i in _exist if i]
+            # If we have all empty entries, then don't continue. Quit funding and return what we have.
+            if not _exist:
+                return l
+
+            # We have funding data. Add this funding block to the growing list.
+            l.append(_curr)
+
         except IndexError as e:
             logger_excel.debug("compile_fund: IndexError: sheet:{} row:{} col:{}, {}".format(sheet, row, col, e))
     logger_excel.info("exit compile_fund")
@@ -1350,16 +1448,19 @@ def name_to_jsonld(title_in):
     title_out = ''
     try:
         title_in = title_in.lower()
-        title_out = EXCEL_KEYS[title_in]
+        title_out = EXCEL_LIPD_MAP_FLAT[title_in]
     except (KeyError, AttributeError) as e:
         if "(" in title_in:
             title_in = title_in.split("(")[0].strip()
         # try to find an exact match first.
-        for k, v in EXCEL_KEYS.items():
-            if title_in == k:
-                return v
+        try:
+            v = EXCEL_LIPD_MAP_FLAT[title_in]
+            return v
+        except KeyError:
+            pass
+
         # if no exact match, find whatever is a closest match
-        for k, v in EXCEL_KEYS.items():
+        for k, v in EXCEL_LIPD_MAP_FLAT.items():
             if k in title_in:
                 return v
     if not title_out:
@@ -1382,24 +1483,24 @@ def instance_str(cell):
     else:
         return 'unknown'
 
-
-def replace_mvs(cell_entry, missing_val):
-    """
-    The missing value standard is "NaN". If there are other missing values present, we need to swap them.
-    :param str cell_entry: Contents of target cell
-    :param str missing_val:
-    :return str:
-    """
-    if isinstance(cell_entry, str):
-        missing_val_list = ['none', 'na', '', '-', 'n/a']
-        if missing_val.lower() not in missing_val_list:
-            missing_val_list.append(missing_val)
-        try:
-            if cell_entry.lower() in missing_val_list:
-                cell_entry = 'NaN'
-        except (TypeError, AttributeError) as e:
-            logger_excel.debug("replace_missing_vals: Type/AttrError: cell: {}, mv: {} , {}".format(cell_entry, missing_val, e))
-    return cell_entry
+#
+# def replace_mvs(cell_entry, missing_val):
+#     """
+#     The missing value standard is "nan". If there are other missing values present, we need to swap them.
+#     :param str cell_entry: Contents of target cell
+#     :param str missing_val:
+#     :return str:
+#     """
+#     if isinstance(cell_entry, str):
+#         missing_val_list = ['none', 'na', '', '-', 'n/a']
+#         if missing_val.lower() not in missing_val_list:
+#             missing_val_list.append(missing_val)
+#         try:
+#             if cell_entry.lower() in missing_val_list:
+#                 cell_entry = 'nan'
+#         except (TypeError, AttributeError) as e:
+#             logger_excel.debug("replace_missing_vals: Type/AttrError: cell: {}, mv: {} , {}".format(cell_entry, missing_val, e))
+#     return cell_entry
 
 
 def extract_units(string_in):
@@ -1489,6 +1590,7 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
     pub_cases = ['id', 'year', 'author', 'journal', 'issue', 'volume', 'title', 'pages',
                  'reportNumber', 'abstract', 'alternateCitation']
     geo_cases = ['latMin', 'lonMin', 'lonMax', 'latMax', 'elevation', 'siteName', 'location']
+    funding_cases = ["agency", "grant", "principalInvestigator", "country"]
 
     # Temp
     pub_qty = 0
@@ -1539,8 +1641,9 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
                                 else:
                                     pub_temp[pub][title_json] = cell_data[pub]
                     # Funding
-                    elif title_json == 'agency':
-                        funding_temp = compile_fund(workbook, sheet, row, col)
+                    elif title_json in funding_cases:
+                        if title_json == "agency":
+                            funding_temp = compile_fund(workbook, sheet, row, col)
 
                     # All other cases do not need fancy structuring
                     else:
@@ -1668,7 +1771,7 @@ def get_chron_data(temp_sheet, row, total_vars):
         if isinstance(cell, str):
             cell = cell.lower()
         if cell in missing_val_list:
-            cell = 'NaN'
+            cell = 'nan'
         data_row.append(cell)
     return data_row
 

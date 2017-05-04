@@ -33,7 +33,7 @@ def doi_main(files):
             # dir: dir_tmp -> dir_root
             os.chdir(file["dir"])
             # Zip the directory containing the updated files. Created in dir_root directory
-            zipper(dir_tmp, file["filename_no_ext"], file["filename_ext"])
+            zipper(path_name_ext=file["filename_ext"], root_dir=dir_tmp, name=file["filename_no_ext"])
             # Cleanup and remove tmp directory
             shutil.rmtree(dir_tmp)
 
@@ -53,7 +53,7 @@ def doi_main(files):
                 # dir: dir_tmp -> dir_root
                 os.chdir(file["dir"])
                 # Zip the directory containing the updated files. Created in dir_root directory
-                zipper(dir_tmp, file["filename_no_ext"], file["filename_ext"])
+                zipper(path_name_ext=file["filename_ext"], root_dir=dir_tmp, name=file["filename_no_ext"])
                 # Cleanup and remove tmp directory
                 shutil.rmtree(dir_tmp)
     logger_doi_main.info("exit doi_main")

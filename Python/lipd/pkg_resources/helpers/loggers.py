@@ -52,8 +52,8 @@ def create_logger(name):
                 "class": "logging.handlers.RotatingFileHandler",
                 "filename": "debug.log",
                 'mode': 'a',
-                'maxBytes': 10485760,
-                'backupCount': 3
+                'maxBytes': 30000,
+                'backupCount': 1
             }
         },
         'loggers': {

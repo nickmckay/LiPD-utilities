@@ -11,11 +11,14 @@
 %Adapted for LiPD Utilities by Nick McKay (NAU)
 inset = 0;
 % process options
-if nargin < 2
-    options.export = 0;
-end
+% if nargin < 2
+%     options.export = 0;
+% end
 year = [];
-% load data and packages
+% load data and packages% if nargin < 2
+%     options.export = 0;
+% end
+
 %addpath(genpath('../utilities'));
 %load(['../../data/proxy_db/pages2kTSv' vers '_unpack.mat'])
 FontName = 'Helvetica';

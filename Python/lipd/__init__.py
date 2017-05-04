@@ -5,14 +5,15 @@ from .pkg_resources.timeseries.Convert import *
 from .pkg_resources.timeseries.TimeSeries_Library import *
 from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.excel.excel_main import excel_main
-from .pkg_resources.noaa.noaa_main import noaa_main
-from .pkg_resources.helpers.alternates import COMPARISONS
+from .pkg_resources.noaa.noaa_main import noaa_prompt, noaa_to_lpd, lpd_to_noaa
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst, collect_metadata_files, list_files
 from .pkg_resources.helpers.loggers import create_logger
-from .pkg_resources.helpers.misc import path_type
+from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
+from .pkg_resources.helpers.validator_api import get_validator_results, display_results
+
 
 # READ
 
@@ -23,13 +24,18 @@ def run():
     :return:
     """
     # GLOBALS
-    global cwd, lipd_lib, ts_lib, convert, files, logger_start
+    global cwd, lipd_lib, ts_lib, convert, files, logger_start, verbose
+    verbose = True
     cwd = os.getcwd()
+    # creating the LiPD Library also creates the Tmp sys folder where the files will be stored later.
     lipd_lib = LiPD_Library()
     ts_lib = TimeSeries_Library()
     convert = Convert()
+    # print(cwd)
+    # logger created in whatever directory lipd is called from
     logger_start = create_logger("start")
     files = {".txt": [], ".lpd": [], ".xls": []}
+
     return
 
 
@@ -52,6 +58,8 @@ def readLipds(usr_path=""):
     """
     global cwd
     __read_directory(usr_path, ".lpd", "LiPD")
+    # Turned off until LiPD.net is updated to accept Validator API requests
+    # validate()
     return cwd
 
 
@@ -73,7 +81,10 @@ def readExcels(usr_path=""):
     :return none:
     """
     global cwd
-    __read_directory(usr_path, ".xls", "Excel")
+    if not usr_path:
+        usr_path, src_files = get_src_or_dst("read", "directory")
+    __read_directory(usr_path, ".xls", "Excel (.xls)")
+    __read_directory(usr_path, ".xlsx", "Excel (.xlsx)")
     return cwd
 
 
@@ -107,9 +118,10 @@ def readAll(usr_path=""):
     """
     global cwd
     if not usr_path:
-        usr_path, src_files = get_src_or_dst("load", "directory")
+        usr_path, src_files = get_src_or_dst("read", "directory")
     __read_directory(usr_path, ".lpd", "LiPD")
-    __read_directory(usr_path, ".xls", "Excel")
+    __read_directory(usr_path, ".xls", "Excel (xls)")
+    __read_directory(usr_path, ".xlsx", "Excel (xlsx)")
     __read_directory(usr_path, ".txt", "NOAA")
     return cwd
 
@@ -119,8 +131,23 @@ def excel():
     User facing call to the excel function
     :return none:
     """
-    global files
+    global files, cwd, verbose
     excel_main(files)
+    # Turn off verbose. We don't want to clutter the console with extra reading/writing output statements
+    verbose = False
+    for file in files[".xls"]:
+        try:
+            readLipd(os.path.join(file["dir"], file["filename_no_ext"] + ".lpd"))
+        except Exception as e:
+            logger_start.debug("excel: Converted excel to lipd file, but unable readLipd(): {}, {}".format(file["filename_ext"], e))
+    try:
+        writeLipds(cwd)
+        print("Reminder! Use lipd.validate() or www.LiPD.net/validator "
+              "to ensure that your new LiPD file(s) are valid")
+    except Exception as e:
+        logger_start.debug("excel: Unable to writeLipds with new lipd files, {}".format(e))
+    # Turn on verbose. Back to normal mode when this function is finished.
+    verbose = True
     return
 
 
@@ -129,8 +156,38 @@ def noaa():
     User facing call to noaa function
     :return none:
     """
-    global files
-    noaa_main(files)
+    global files, lipd_lib, cwd
+    # When going from NOAA to LPD, use the global "files" variable.
+    # When going from LPD to NOAA, use the data from the LiPD Library.
+
+    # Choose the mode
+    _mode = noaa_prompt()
+
+    # LiPD mode: Convert LiPD files to NOAA files
+    if _mode == "1":
+
+        _lib = lipd_lib.get_master()
+
+        # For each LiPD file in the LiPD Library
+        for filename, obj in _lib.items():
+            # Get the LiPD object data
+            # _obj = dict(obj)
+            # Process this data through the converter
+            _obj_modified = lpd_to_noaa(obj)
+            # Overwrite the data in the LiPD object with our new data.
+            _lib[filename] = _obj_modified
+        # Replace the data in the LiPD Library master
+        lipd_lib.put_master(_lib)
+        # Write out the new LiPD files, since they now contain the NOAA URL data
+        writeLipds(cwd)
+
+    # NOAA mode: Convert NOAA files to LiPD files
+    elif _mode == "2":
+        # Pass through the global files list. Use NOAA files directly on disk.
+        noaa_to_lpd(files)
+
+    else:
+        print("Invalid input. Try again.")
     return
 
 
@@ -142,6 +199,33 @@ def doi():
     global files
     doi_main(files)
     return
+
+
+def validate(detailed=False, fetch_new_results=True):
+    """
+    Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
+    Display the PASS/FAIL results. Display detailed results if the option is chosen.
+    :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors.
+    :return none:
+    """
+    print("\n")
+    # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
+    if fetch_new_results:
+        print("Fetching results from validator at lipd.net/validator... this may take a few moments.\n")
+        # Get the validator-formatted data for each LiPD file in the LiPD Library.
+        # A list of lists of LiPD-content metadata
+        d = lipd_lib.get_data_for_validator()
+        results = get_validator_results(d)
+        display_results(results, detailed)
+        # Set the results inside of each LiPD object
+        for entry in results:
+            lipd_lib.put_validator_results(entry)
+    # Check for previous validator results. Display those rather than running the validator again. (faster)
+    else:
+        results = lipd_lib.get_validator_results()
+        display_results(results, detailed)
+    return
+
 
 # PUT
 
@@ -165,13 +249,13 @@ def addEnsemble(filename, ensemble):
             # Insert the formatted ensemble data into the master lipd library
             meta = insert_ensemble(meta, ens)
             # Set meta into lipd object
-            lib[filename].set_metadata(meta)
+            lib[filename].put_metadata(meta)
             # Set the new master data back into the lipd library
             lipd_lib.put_master(lib)
     else:
         print("Error: '{}' file not found in workspace. Please use showLipds() to see available files ".format(filename))
 
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -200,7 +284,7 @@ def lipdToDf(filename):
         print("Error: Unable to find LiPD file")
         logger_start.warn("lipd_to_df: KeyError: missing lipds {}".format(filename))
         dfs = None
-    print("Process Complete")
+    # print("Process Complete")
     return dfs
 
 
@@ -219,7 +303,7 @@ def tsToDf(ts, filename):
     except KeyError as e:
         print("Error: LiPD file not found")
         logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
-    print("Process Complete")
+    # print("Process Complete")
     return dfs
 
 
@@ -231,13 +315,14 @@ def filterDfs(expr):
     """
     try:
         dfs = get_filtered_dfs(lipd_lib.get_master(), expr)
-        print("Process Complete")
+        # print("Process Complete")
         return dfs
 
     except Exception:
         logger_dataframes.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
         print("Unable to filter data frames")
-        print("Process Complete")
+        # print("Process Complete")
+    return
 
 
 # ANALYSIS - TIME SERIES
@@ -252,17 +337,21 @@ def extractTs():
     try:
         # Loop over the LiPD files in the LiPD_Library
         for k, v in lipd_lib.get_master().items():
-            # Get metadata from this LiPD object. Convert.
-            # Receive a time series (list of time series objects) and add it to what we currently have.
-            # Continue building time series until all datasets are processed.
-            print("extracting: {}".format(k))
-            l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+            try:
+                # Get metadata from this LiPD object. Convert.
+                # Receive a time series (list of time series objects) and add it to what we currently have.
+                # Continue building time series until all datasets are processed.
+                print("extracting: {}".format(k))
+                l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+            except Exception as e:
+                print("Error: Skipping {}: {}".format(k, e))
+                logger_start.debug("extractTs: Exception: {}".format(e))
         print("Finished time series: {} objects".format(len(l)))
     except KeyError as e:
         print("Error: Unable to extractTimeSeries")
         logger_start.debug("extractTimeSeries() failed at {}".format(e))
 
-    print("Process Complete")
+    # print("Process Complete")
     return l
 
 
@@ -280,14 +369,18 @@ def collapseTs():
     except Exception:
         print("ERROR: Converting TSOs to LiPD")
         logger_start.debug("exportTimeSeries() failed")
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
 def find(expression, ts):
     """
     Find the names of the TimeSeries that match some criteria (expression)
-    :return:
+    ex: find("geo_elevation == 1500", ts)
+    ex: find("paleoData_variablename == sst", ts)
+    :param str expression: The filter expression to apply to the time series
+    :param list ts: Time series
+    :return list new_ts: A filtered time series of objects that match the criteria
     """
     new_ts = []
     # filtered_ts = {}
@@ -295,7 +388,7 @@ def find(expression, ts):
     if expr_lst:
         new_ts = get_matches(expr_lst, ts)
         # filtered_ts = _createTs(names, ts)
-    print("Process Complete")
+    # print("Process Complete")
     return new_ts
 
 
@@ -326,7 +419,7 @@ def showLipds():
     :return None:
     """
     lipd_lib.show_lipds()
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -337,7 +430,7 @@ def showMetadata(filename):
     :param str filename: LiPD filename
     """
     lipd_lib.show_metadata(filename)
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -348,7 +441,7 @@ def showCsv(filename):
     :return None:
     """
     lipd_lib.show_csv(filename)
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -363,7 +456,7 @@ def showTso(tso):
             print("{0:20}: {1}".format(key, value))
     except Exception as e:
         print("Unable to list contents: {}".format(e))
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -391,7 +484,7 @@ def showDfs(dict_in):
             pass
         except AttributeError:
             pass
-    print("Process Complete")
+    # print("Process Complete")
     return
 
 
@@ -419,7 +512,7 @@ def getMetadata(filename):
     except KeyError:
         print("Error: Unable to find LiPD file")
         logger_start.warn("KeyError: Unable to find record {}".format(filename))
-    print("Process Complete")
+    # print("Process Complete")
     return d
 
 
@@ -435,34 +528,46 @@ def getCsv(filename):
     except KeyError:
         print("Error: Unable to find record")
         logger_start.warn("Unable to find record {}".format(filename))
-    print("Process Complete")
+    # print("Process Complete")
     return d
 
 
 # WRITE
 
 
-def writeLipd(filename):
+def writeLipd(filename, usr_path=""):
     """
-    Saves changes made to the target LiPD file.
-    (ex. saveLiPD NAm-ak000.lpd)
-    :param str filename: LiPD filename
+    Write out one specific LiPD file
+    :param str filename: LiPD filename ("somefile.lpd")
+    :param str usr_path: Target directory destination (optional)
+    :return none:
     """
-    lipd_lib.write_lipd(filename)
-    print("Process Complete")
+    global verbose
+    # no path provided. start gui browse
+    if not usr_path:
+        # got dir path
+        usr_path, _ignore = get_src_or_dst("write", "directory")
+    __write_lipd(usr_path, filename)
     return
 
 
-def writeLipds():
+def writeLipds(usr_path=""):
     """
     Save changes made to all LiPD files in the workspace.
+    Files are created in current working directory if path is not provided.
+    :param str usr_path: Target directory destination (optional)
     """
-    global files_by_type
-    lipd_lib.write_lipds()
-    # Reload the newly saved LiPD files back into the library.
-    print("Re-loading workspace..")
-    lipd_lib.read_lipds(files_by_type)
-    print("Process Complete")
+    global verbose
+    # no path provided. start gui browse
+    if not usr_path:
+        # got dir path
+        usr_path, _ignore = get_src_or_dst("write", "directory")
+    _lib = list(lipd_lib.get_master().keys())
+    if _lib:
+        for filename in _lib:
+            __write_lipd(usr_path, filename)
+    # if verbose:
+    #     print("Process Complete")
     return
 
 
@@ -472,7 +577,6 @@ def removeLipd(filename):
     :return None:
     """
     lipd_lib.remove_lipd(filename)
-    print("Process Complete")
     return
 
 
@@ -482,7 +586,6 @@ def removeLipds():
     :return None:
     """
     lipd_lib.remove_lipds()
-    print("Process Complete")
     return
 
 
@@ -490,9 +593,9 @@ def quit():
     """
     Quit and exit the program. (Does not save changes)
     """
-    # self.llib.close()
-    print("Quitting...")
-    return True
+    lipd_lib.cleanup()
+    print("Quitting LiPD Utilities...")
+    exit(0)
 
 
 # HELPERS
@@ -505,15 +608,21 @@ def __universal_load(file_path, file_type):
     :param str file_type: One of approved file types: xls, xlsx, txt, lpd
     :return none:
     """
-    global files, lipd_lib, cwd
+    global files, lipd_lib, cwd, verbose
+
+    # check that we are using the correct function to load this file type. (i.e. readNoaa for a .txt file)
+    correct_ext = load_fn_matches_ext(file_path, file_type)
+
+    # Check that this path references a file
     valid_path = path_type(file_path, "file")
 
     # is the path a file?
-    if valid_path:
+    if valid_path and correct_ext:
 
         # get file metadata for one file
         file_meta = collect_metadata_file(file_path)
-        print("processing: {}".format(file_meta["filename_ext"]))
+        if verbose:
+            print("reading: {}".format(file_meta["filename_ext"]))
 
         # append to global files, then load in lipd_lib
         if file_type == ".lpd":
@@ -525,15 +634,13 @@ def __universal_load(file_path, file_type):
         elif file_type in (".xls", ".xlsx"):
             files[".xls"].append(file_meta)
         # append to global files
-        elif file_type in [".txt"]:
+        elif file_type == ".txt":
             files[".txt"].append(file_meta)
 
         # we want to move around with the files we load
         # change dir into the dir of the target file
         cwd = file_meta["dir"]
         os.chdir(cwd)
-    else:
-        print("File path is not valid: {}".format(file_path))
 
     return
 
@@ -547,14 +654,10 @@ def __read_file(usr_path, file_type):
     """
     global files
 
-    # assume the path is false.
-    valid_path = False
-    src_files = []
-
     # no path provided. start gui browse
     if not usr_path:
         # src files could be a list of one, or a list of many. depending how many files the user selects
-        src_dir, src_files = get_src_or_dst("load", "file")
+        src_dir, src_files = get_src_or_dst("read", "file")
         # check if src_files is a list of multiple files
         if len(src_files) > 1:
             for file_path in src_files:
@@ -581,12 +684,12 @@ def __read_directory(usr_path, file_type, file_type_print):
     # no path provided. start gui browse
     if not usr_path:
         # got dir path
-        usr_path, src_files = get_src_or_dst("load", "directory")
+        usr_path, src_files = get_src_or_dst("read", "directory")
 
     # Check if this is a valid directory path
     valid_path = path_type(usr_path, "directory")
 
-    # If valid dir path
+    # If dir path is valid
     if valid_path:
         # List all files of target type in dir
         files_found = list_files(file_type, usr_path)
@@ -598,6 +701,29 @@ def __read_directory(usr_path, file_type, file_type_print):
             __read_file(file_path, file_type)
     else:
         print("Directory path is not valid: {}".format(usr_path))
+    return
+
+
+def __write_lipd(usr_path, filename):
+    """
+    Write LiPD data to file, provided an output directory and filename.
+    :param str usr_path: Directory destination
+    :param str filename: Target file
+    :return none:
+    """
+    global verbose
+    # no path provided. start gui browse
+    if not usr_path:
+        # got dir path
+        usr_path, _ignore = get_src_or_dst("write", "directory")
+    # Check if this is a valid directory path
+    valid_path = path_type(usr_path, "directory")
+    # If dir path is valid
+    if valid_path:
+        if verbose:
+            print("writing: {}".format(filename))
+        lipd_lib.write_lipd(usr_path, filename)
+
     return
 
 
