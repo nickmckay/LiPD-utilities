@@ -11,11 +11,14 @@
 %Adapted for LiPD Utilities by Nick McKay (NAU)
 inset = 0;
 % process options
-if nargin < 2
-    options.export = 0;
-end
+% if nargin < 2
+%     options.export = 0;
+% end
 year = [];
-% load data and packages
+% load data and packages% if nargin < 2
+%     options.export = 0;
+% end
+
 %addpath(genpath('../utilities'));
 %load(['../../data/proxy_db/pages2kTSv' vers '_unpack.mat'])
 FontName = 'Helvetica';
@@ -40,7 +43,7 @@ emptyYearMax = find(cellfun(@isempty,yearMax));
 yearMax(emptyYearMax)=repmat({NaN},length(emptyYearMax),1);
 yearMax=cell2mat(yearMax);
 
-vers='0.2';
+vers='0.2.1';
 
 p_lon=cell2mat({TS.geo_meanLon}');
 p_lat=cell2mat({TS.geo_meanLat}');

@@ -1,11 +1,13 @@
-function [P,I,C]=readLiPD(lpdname)
+function [P,I,C]=readLiPD(lpdname,weirdThing)
 
 %ui selection
 if nargin<1
     [lpdfile, lpdpath] = uigetfile('.lpd');
     lpdname = [lpdpath lpdfile];
 end
-
+if nargin<2
+    weirdThing = 0;
+end
 
 
 %deal with slashes and location
@@ -16,8 +18,11 @@ headerName=lpdname((starti+1):(end-4));
 display(['Reading ' headerName '.lpd ...'])
 
 %unzip the bagged file
-unzip(lpdname,tempdir);
-
+if weirdThing
+    unzip(lpdname,[tempdir '/' headerName]);
+else
+    unzip(lpdname,tempdir);
+end
 
 %check for bagging...
 
@@ -72,8 +77,8 @@ V=vi{wvi,2};
 %get MD5 sums from bag
 eval(['grabMD5s' V.MD5v])
 
-    
-   %look for directories
+
+%look for directories
 if isunix
     slashfind=strfind(filename,'/');
 elseif ispc

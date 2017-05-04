@@ -261,6 +261,9 @@ lastPub = 20;
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.description='Year AD';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.variableName='year';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.dataType='float';
+                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.variableType='inferred';
+                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.inferredObservationType='year';
+
                     yearFlag=1;
                 end
             end
@@ -274,6 +277,10 @@ lastPub = 20;
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.description='Years before present (1950) BP';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.variableName='age';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.dataType='float';
+                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.variableType='inferred';
+                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.inferredObservationType='age';
+
+
                     ageFlag=1;
                 end
             end
@@ -289,6 +296,8 @@ lastPub = 20;
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.description='depth';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.variableName='depth';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.dataType='float';
+                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.variableType='measured';
+
                     depthFlag=1;
                 end
             end
