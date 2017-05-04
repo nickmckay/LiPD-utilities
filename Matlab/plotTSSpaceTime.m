@@ -40,7 +40,7 @@ emptyYearMax = find(cellfun(@isempty,yearMax));
 yearMax(emptyYearMax)=repmat({NaN},length(emptyYearMax),1);
 yearMax=cell2mat(yearMax);
 
-vers='0.2';
+vers='0.3';
 
 p_lon=cell2mat({TS.geo_meanLon}');
 p_lat=cell2mat({TS.geo_meanLat}');

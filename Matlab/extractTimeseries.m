@@ -1,6 +1,5 @@
 
 function TS=extractTimeseries(D,allColumns)
-
 %extract timeseries
 %iteratively go through columns, adding year/value pairs and metadata to
 %rows in a structure
@@ -19,7 +18,6 @@ dnames=fieldnames(D);
 %start at database level
 ts=1;
 for d=1:length(fieldnames(D)) %for every paleoarchive in database
-    
     ppnames=fieldnames(D.(dnames{d})); % get PP level fieldnames
     
     %change for 1.2: pull all paleoMeasurmentTables to front. Name/Number
@@ -346,11 +344,12 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                                     else
                                                         %append a number and loop through cell
                                                         for iiii = 1:length(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}));
-                                                            l7names = fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii});
-                                                            for l7 = 1:length(l7names)
-                                                                TS(1,ts).([l5name '_' l6name num2str(iiii) '_' l7names{l7}])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii}.(l7names{l7});
+                                                            if isstruct((D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii}))
+                                                                l7names = fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii});
+                                                                for l7 = 1:length(l7names)
+                                                                    TS(1,ts).([l5name '_' l6name num2str(iiii) '_' l7names{l7}])=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{nonAgeCol(nAC)}).(l5names{l5}).(l6names{l6}){iiii}.(l7names{l7});
+                                                                end
                                                             end
-                                                            
                                                         end
                                                     end
                                                 end
