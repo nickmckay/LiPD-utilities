@@ -262,7 +262,7 @@ lastPub = 20;
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.variableName='year';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.dataType='float';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.variableType='inferred';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.inferredObservationType='year';
+                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.inferredVariableType='year';
 
                     yearFlag=1;
                 end
@@ -278,7 +278,7 @@ lastPub = 20;
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.variableName='age';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.dataType='float';
                     Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.variableType='inferred';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.inferredObservationType='age';
+                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.inferredVariableType='age';
 
 
                     ageFlag=1;
