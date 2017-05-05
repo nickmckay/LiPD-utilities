@@ -150,6 +150,42 @@ def get_authors_as_str(x):
     return _authors
 
 
+def get_ensemble_counts(d):
+    """
+    Determine if this is a 1 or 2 column ensemble. Then determine how many columns and rows it has.
+    :param d:
+    :return:
+    """
+    _rows_cols = {"rows": 0, "cols": 0}
+    try:
+
+        if len(d) == 1:
+            for var, data in d.items():
+                # increment columns by one
+                _rows_cols["cols"] += len(data["values"])
+                # get row count by getting len of column (since it's only one list
+                _rows_cols["rows"] = len(data["values"][0])
+                break
+
+        elif len(d) == 2:
+            for var, data in d.items():
+                # multiple columns in one. list of lists
+                if isinstance(data["number"], list):
+                    # add total amount of columns to the running total
+                    _rows_cols["cols"] += len(data["values"])
+                # single column. one list
+                else:
+                    # increment columns by one
+                    _rows_cols["cols"] += 1
+                    # get row count by getting len of column (since it's only one list
+                    _rows_cols["rows"] = len(data["values"])
+
+    except Exception as e:
+        logger_misc.warn("get_ensemble_counts: {}".format(e))
+
+    return _rows_cols
+
+
 def get_missing_value_key(d, filename=""):
     """
     Get the Missing Value entry from a table of data. If none is found, try the columns. If still none found, prompt user.

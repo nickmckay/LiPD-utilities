@@ -3,6 +3,7 @@ import json
 import requests
 import os
 from .loggers import create_logger
+from .misc import is_ensemble, get_ensemble_counts
 
 logger_validator_api = create_logger('validator_api')
 
@@ -41,13 +42,23 @@ def get_validator_format(data_json, data_csv, filenames):
 
         # CSV files
         elif filename.endswith(".csv"):
-            _cols = len(data_csv[os.path.basename(filename)])
-            _rows = 0
-            for k, v in data_csv[_short].items():
-                _rows = len(v)
-                break
+            _cols_rows = {"cols": 0, "rows": 0}
+            ensemble = is_ensemble(data_csv[_short])
+            # special case for calculating ensemble rows and columns
+            if ensemble:
+                _cols_rows = get_ensemble_counts(data_csv[_short])
+
+            # all other non-ensemble csv files.
+            else:
+                _cols_rows["cols"] = len(data_csv[_short])
+                for k, v in data_csv[_short].items():
+                    _cols_rows["rows"] = len(v["values"])
+                    break
+
+            # take what we've gathered for this file, and add it to the list.
             _file = {"type": "csv", "filenameFull": filename, "filenameShort": _short,
-                     "data": {"cols": _cols, "rows": _rows}}
+                     "data": _cols_rows}
+
         _file_lst.append(_file)
 
     return _file_lst
@@ -149,10 +160,10 @@ def _call_validator_api(data):
         payload = {'json_payload': data, 'apikey': 'YOUR_API_KEY_HERE'}
 
         # Development Link
-        # response = requests.post('http://localhost:3000/api/validator', data=payload)
+        response = requests.post('http://localhost:3000/api/validator', data=payload)
 
         # Production Link
-        response = requests.post('http://www.lipd.net/api/validator', data=payload)
+        # response = requests.post('http://www.lipd.net/api/validator', data=payload)
 
         if response.status_code == 413:
             result = {"dat": {}, "feedback": {}, "filename": _filename,

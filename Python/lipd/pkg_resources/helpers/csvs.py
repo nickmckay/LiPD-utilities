@@ -232,7 +232,7 @@ def write_csv_to_file(d):
                 for row in rows:
                     w.writerow(row)
     except Exception as e:
-        logger_csvs.debug("csvs: write_csv_to_file: Unable to write CSV File:{}, {}".format(filename, e))
+        logger_csvs.debug("write_csv_to_file: Unable to write CSV File:{}, {}".format(filename, e))
 
     logger_csvs.info("exit write_csv_to_file")
     return
@@ -458,7 +458,7 @@ def _reorder_csv(d, filename=""):
                 _d2[data["number"]-1] = data["values"]
 
     except Exception as e:
-        logger_csvs.debug("csvs: reorder_csvs: Unable to write CSV file: {}, {}".format(filename, e))
+        logger_csvs.debug("reorder_csvs: Unable to write CSV file: {}, {}".format(filename, e))
     return _d2
 
 
