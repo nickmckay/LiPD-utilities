@@ -75,7 +75,7 @@ def lpd_to_noaa(obj):
     try:
         os.chdir(obj.dir_root)
         # Get the json data from the lipd object
-        d = obj.get_metadata()
+        d = obj.get_master()
         # Create the conversion object, and start the conversion process
         _convert_obj = LPD_NOAA(obj.dir_root, obj.name, d, obj.data_csv)
         _convert_obj.main()
@@ -89,5 +89,8 @@ def lpd_to_noaa(obj):
     except FileNotFoundError:
         logger_noaa.debug("process_lpd: FileNotFound: tmp directory not found")
         print("Error: Unable to process {}".format(obj.name))
+
+
+
     logger_noaa.info("exit process_lpd")
     return obj
