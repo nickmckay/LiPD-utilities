@@ -241,7 +241,7 @@ class LPD_NOAA(object):
                 _author = self.__get_author_last_name(_author)
                 study_name = "{}.{}.{}".format(_author, _site,  _year)
                 study_name = study_name.replace(" ", "_").replace(",", "_")
-            except KeyError:
+            except (KeyError, Exception):
                 pass
             self.noaa_data_sorted["Top"]["Study_Name"] = study_name
             self.noaa_data_sorted["Title"]["Study_Name"] = study_name
@@ -1097,11 +1097,13 @@ class LPD_NOAA(object):
             self.__reorganize_author()
             # Check all publications, and remove possible duplicate Full_Citations
             self.__rm_duplicate_citation_1()
+            if not self.noaa_data_sorted["Publication"]:
+                self.noaa_data_sorted["Publication"].append({"pubYear": ""})
             for idx, pub in enumerate(self.noaa_data_sorted["Publication"]):
                 logger_lpd_noaa.info("publication: {}".format(idx))
                 # Do not write out Data Citation publications. Check, and skip if necessary
                 is_data_citation = self.__get_pub_type(pub)
-                if not is_data_citation:
+                if not is_data_citation or is_data_citation and len(self.noaa_data_sorted["Publication"]) == 1:
                     pub = self.__convert_keys_1("Publication", pub)
                     self.__write_generic('Publication', pub)
         except KeyError:
