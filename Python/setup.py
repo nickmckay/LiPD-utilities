@@ -76,7 +76,6 @@ setup(
         "xlrd>=0.9.3",
         "pandas>=0.18.0",
         "requests>=2.9.1",
-        "google-api-python-client>=1.4.2",
     ],
     include_package_data=True,
     package_data={

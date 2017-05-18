@@ -288,22 +288,19 @@ def lipdToDf(filename):
     return dfs
 
 
-# todo this function no longer works. time series objects are not referenced by name. TS is a list of TSOs
-def tsToDf(ts, filename):
+def tsToDf(tso):
     """
     Create Pandas DataFrame from TimeSeries object.
     Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
-    :param dict ts: TimeSeries
-    :param str filename:
+    :param dict tso: Time series object
     :return dict: Pandas data frames
     """
     dfs = {}
     try:
-        dfs = ts_to_df(ts[filename])
-    except KeyError as e:
-        print("Error: LiPD file not found")
-        logger_start.warn("ts_to_df: KeyError: LiPD file not found: {}".format(filename, e))
-    # print("Process Complete")
+        dfs = ts_to_df(tso)
+    except Exception as e:
+        print("Error: Unable to create data frame")
+        logger_start.warn("ts_to_df: tso malformed: {}".format(e))
     return dfs
 
 
@@ -351,7 +348,6 @@ def extractTs():
         print("Error: Unable to extractTimeSeries")
         logger_start.debug("extractTimeSeries() failed at {}".format(e))
 
-    # print("Process Complete")
     return l
 
 
@@ -367,9 +363,8 @@ def collapseTs():
     try:
         lipd_lib.load_tsos(convert.lipd_extract_main(l))
     except Exception:
-        print("ERROR: Converting TSOs to LiPD")
-        logger_start.debug("exportTimeSeries() failed")
-    # print("Process Complete")
+        print("Error: Unable to convert time series to LiPD")
+        logger_start.debug("collapseTs failed")
     return
 
 
@@ -383,12 +378,9 @@ def find(expression, ts):
     :return list new_ts: A filtered time series of objects that match the criteria
     """
     new_ts = []
-    # filtered_ts = {}
     expr_lst = translate_expression(expression)
     if expr_lst:
         new_ts = get_matches(expr_lst, ts)
-        # filtered_ts = _createTs(names, ts)
-    # print("Process Complete")
     return new_ts
 
 
@@ -496,7 +488,10 @@ def getLipdNames():
     :return list:
     """
     f_list = []
-    f_list = lipd_lib.get_lipd_names()
+    try:
+        f_list = lipd_lib.get_lipd_names()
+    except Exception:
+        pass
     return f_list
 
 
@@ -530,6 +525,20 @@ def getCsv(filename):
         logger_start.warn("Unable to find record {}".format(filename))
     # print("Process Complete")
     return d
+
+
+def getLibrary():
+    """
+    Get LiPD Library as a simpler dictionary. Intended for use in pickling library data.
+    :return none:
+    """
+    D = {}
+    try:
+        D = lipd_lib.get_lib_as_dict()
+    except Exception as e:
+        print("Error: Unable to retrieve library: {}".format(e))
+        logger_start.debug("getLibrary: {}".format(e))
+    return D
 
 
 # WRITE

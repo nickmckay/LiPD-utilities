@@ -18,7 +18,7 @@ def noaa_prompt():
     """
     logger_noaa.info("enter noaa")
     # Run lpd_noaa or noaa_lpd ?
-    print("Which conversion?\n1. LPD to NOAA\n2. NOAA to LPD (under construction!)\n")
+    print("Which conversion?\n1. LPD to NOAA\n2. NOAA to LPD\n")
     mode = input("Option: ")
     logger_noaa.info("chose option: {}".format(mode))
 

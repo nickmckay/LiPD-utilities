@@ -70,7 +70,8 @@ def get_matches(expr_lst, ts):
         print("Error: Timeseries is an invalid data type")
     if not new_ts:
         print("No matches found for that expression")
-
+    else:
+        print("Found {} matches".format(len(new_ts)))
     logger_ts.info("exit get_matches")
     return new_ts
 

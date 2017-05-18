@@ -5,7 +5,7 @@
 #                     NOAA Paleoclimatology Program 
 #             National Centers for Environmental Information (NCEI)
 #----------------------------------------------------------------------- 
-# Template Version 2.0
+# Template Version 2.3
 # NOTE: Please cite Publication, and Online_Resource and date accessed when using these data. 
 # If there is no publication information, please cite Investigators, Title, and Online_Resource and date accessed. 
 #
@@ -13,48 +13,50 @@
 # Online_Resource: http://www1.ncdc.noaa.gov/pub/data/paleo/ (assigned by WDC Paleo)
 #
 # Original_Source_URL: (URL to original source of data, if applicable)
+#
+# Dataset_DOI:
 # 
 # Description/Documentation lines begin with #
 # Data lines have no #
 #
-# Archive: 
+# Archive: (i.e proxy type or reconstruction - ice core, paleoceanography, etc)
 #
-# Parameter_Keywords: 
+# Parameter_Keywords: (Select from controlled list in http://www1.ncdc.noaa.gov/pub/data/paleo/templates/parameter-keywords.txt. Keyword list is separated by commas, e.g. "oxygen isotopes, geochemistry, physical properties" )
 #--------------------
 # Contribution_Date
-#	Date:  
+#	Date:  YYYY-MM-DD
 #--------------------
 # Title
-#	Study_Name: 
+#	Study_Name: Where, When and What - e.g. Fort Stanton Cave, New Mexico 55-11kY Speleothem d18O Data 
 #--------------------
 # Investigators
-#       Investigators: 
+#	Investigators:  Last_name, first_initial.Middle_initial.; ... Last_name, first_initial.Middle_initial.
 #--------------------
 # Description_Notes_and_Keywords
 #	Description: 
 #--------------------
 # Publication 
-#       Authors: 
-#       Published_Date_or_Year:     
-#       Published_Title: 
-#       Journal_Name: 
-#       Volume: 
-#       Edition: 
-#       Issue: 
-#       Pages:
-#       Report_Number: 
-#       DOI: 
-#       Online_Resource: 
-#       Full_Citation: 
-#       Abstract: 
+#	Authors: 
+#	Published_Date_or_Year:  YYYY-MM-DD or YYYY      
+#	Published_Title: 
+#	Journal_Name: 
+#	Volume: 
+#	Edition: 
+#	Issue: 
+#	Pages:
+#	Report_Number: 
+#	DOI: 
+#	Online_Resource: 
+#	Full_Citation: 
+#	Abstract: 
 #------------------
 # Funding_Agency 
-#       Funding_Agency_Name: 
-#       Grant: 
+#	Funding_Agency_Name: 
+#	Grant: 
 #------------------
 # Site_Information 
 #	Site_Name: 
-#	Location: 
+#	Location: e.g. Africa>Eastern Africa>Mozambique
 #	Country:  
 #	Northernmost_Latitude:  
 # 	Southernmost_Latitude:  
@@ -70,10 +72,10 @@
 #	Core_Length: m
 #	Notes: 
 #------------------
-# Species
-#	Species_Name: 
-#	Common_Name: 
-#	Tree_Species_Code: 
+# Species - this section exists only for tree ring and fire history archive/proxy.
+#	Species_Name: (e.g. Pinus ponderosa, See http:/www1.ncdc.noaa.gov/pub/data/paleo/templates/Tree-species-code.txt for list of possible values)
+#	Common_Name: (e.g. Ponderosa Pine, See http://www1.ncdc.noaa.gov/pub/data/paleo/templates/Tree-species-code.txt for list of possible values)
+#	Tree_Species_Code: (e.g. PIPO, See http://www1.ncdc.noaa.gov/pub/data/paleo/templates/Tree-species-code.txt for list of possible values)
 #------------------
 # Chronology_Information
 #	Chronology: 
@@ -84,11 +86,15 @@
 # Data variables follow are preceded by "##" in columns one and two.
 # Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components (9 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or Numeric data) 
 #
-## 	
+## depth_cm	depth, , , cm, , , , ,N
+## age_calBP	age, , , calendar years before present, , , , ,N
+## d18OcarbVPDB	delta18O, calcium carbonate, , per mil VPDB, ,speleothem, , ,N 
+## notes	,,,,,,,,C		
 #
 #----------------
 # Data:
 # Data lines follow (have no #)
 # Data line format - tab-delimited text, variable short name as header
-# Missing Values:   
+# Missing Values:  (Value used to flag missing data in the table below) 
 #
+depth_cm	age_calBP	d18OcarbVPDB	notes
