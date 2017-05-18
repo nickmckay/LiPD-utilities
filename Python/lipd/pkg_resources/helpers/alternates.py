@@ -78,7 +78,7 @@ ALTS_MV = [
 # Ex: if the LiPD has geo data, take the whole geo dictionary and put it into section 8.
 # reorganize(), create_blanks()
 NOAA_KEYS_BY_SECTION = {
-    "Top": ['Study_Name', 'Online_Resource', "Online_Resource_Description", 'Original_Source_URL', 'Archive',
+    "Top": ["Study_Name", 'Online_Resource', "Online_Resource_Description", 'Original_Source_URL', 'Archive',
             "Dataset_DOI", "Parameter_Keywords"],
     "Contribution_Date": ['Date'],
     "File_Last_Modified_Date": ["Modified_Date"],
@@ -93,7 +93,8 @@ NOAA_KEYS_BY_SECTION = {
     "Data_Collection": ['Collection_Name', 'Earliest_Year', 'Most_Recent_Year', 'Time_Unit', 'Core_Length', 'Notes'],
     "Species": ['Species_Name', 'Species_Code', "Common_Name"],
     "Chronology_Information": ['Chronology'],
-    "Variables": ["shortname", "what", "material", "error", "units", "seasonality", "archive", "detail", "method", "dataType"],
+    "Variables": ["shortname", "what", "material", "error", "units", "seasonality", "archive", "detail", "method",
+                  "dataType", "additional"],
     "Data": ["Missing_Value"],
     # OTHERS. These are not sections, but they are important for parsing
     "Pub_Data_Citation": [""],
@@ -192,13 +193,14 @@ LIPD_NOAA_MAP_BY_SECTION = {
         'description': 'what',
         'detail': 'detail',
         'dataType': 'dataType',
-        'uncertainty': 'error',
+        'error': 'error',
         'units': 'units',
         'variableName': 'shortname',
         'measurementMaterial': 'material',
         'measurementMethod': 'method',
         'seasonality': 'seasonality',
-        "notes": "notes"
+        "notes": "notes",
+        "additional": "additional"
     },
     "Data": {
         "missingValue": "Missing_Value"
@@ -234,12 +236,14 @@ LIPD_NOAA_MAP_FLAT = {
     'description': 'what',
     'detail': 'detail',
     'dataType': 'dataType',
-    'uncertainty': 'error',
+    'uncertainty': 'uncertainty',
+    "error": "error",
     'units': 'units',
     'variableName': 'shortname',
     'measurementMaterial': 'material',
     'measurementMethod': 'method',
     'seasonality': 'seasonality',
+    "notes": "notes",
 
     # all other sections
     "minYear": "Earliest_Year",

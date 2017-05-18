@@ -312,13 +312,12 @@ def filterDfs(expr):
     """
     try:
         dfs = get_filtered_dfs(lipd_lib.get_master(), expr)
-        # print("Process Complete")
         return dfs
 
     except Exception:
         logger_dataframes.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
         print("Unable to filter data frames")
-        # print("Process Complete")
+
     return
 
 
