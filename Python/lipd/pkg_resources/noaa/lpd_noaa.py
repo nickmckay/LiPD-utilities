@@ -1,10 +1,10 @@
 import os
 import shutil
+import re
 from collections import defaultdict, OrderedDict
 
 # NOAA SECTIONS is for writing keys in order, and for mapping keys to their proper sections
 # NOAA KEYS is for converting keys from LPD to NOAA
-from ..helpers.csvs import read_csv_from_file
 from ..helpers.alternates import NOAA_KEYS_BY_SECTION, LIPD_NOAA_MAP_FLAT, LIPD_NOAA_MAP_BY_SECTION
 from ..helpers.loggers import create_logger
 from ..helpers.misc import clean_doi, generate_timestamp, get_authors_as_str
@@ -22,7 +22,7 @@ class LPD_NOAA(object):
     :return none: Writes NOAA text to file in local storage
     """
 
-    def __init__(self, dir_root, name, lipd_dict, data_csv):
+    def __init__(self, dir_root, name, lipd_dict):
         """
         :param str dir_root: Path to dir containing all .lpd files
         :param str name: Name of current .lpd file
@@ -50,7 +50,7 @@ class LPD_NOAA(object):
             "qc": []
         }
         # NOAA url, to landing page where this dataset will be stored on NOAA's servers
-        self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/{}".format(self.name_txt)
+        self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}".format(self.name_txt)
         # List of all DOIs found in this dataset
         self.doi = []
         # Avoid writing identical pub citations. Store here as intermediate check.
@@ -82,11 +82,11 @@ class LPD_NOAA(object):
         }
         self.noaa_geo = {
         }
-        # CSV data for this LiPD file. Taken from LiPD object.
-        self.data_csv = data_csv
         # Paleo and Chron tables
         self.data_paleos = []
         self.data_chrons = []
+        # Append filenames or not? Multiple output
+        self.append_filenames = False
 
     # MAIN
 
@@ -104,6 +104,8 @@ class LPD_NOAA(object):
         # MISC SETUP FUNCTIONS
 
         self.noaa_data_sorted["File_Last_Modified_Date"]["Modified_Date"] = generate_timestamp()
+
+        self.__get_table_count()
 
         # Get measurement tables from metadata, and sort into object self
         self.__put_tables_in_self(["paleo", "paleoData", "paleoMeasurementTable"])
@@ -132,6 +134,14 @@ class LPD_NOAA(object):
         return
 
     # MISC
+
+    def get_master(self):
+        """
+        Get the master json that has been modified
+        :return dict: self.lipd_data
+        """
+        return self.lipd_data
+
 
     def __check_time_unit(self):
         """
@@ -943,19 +953,56 @@ class LPD_NOAA(object):
         self.output_file_ct = len(self.noaa_data_sorted["Data"])
         return
 
+    def __get_table_count(self):
+        """
+        Check how many tables are in the json
+        :return int:
+        """
+        _count = 0
+        try:
+            keys = ["paleo", "paleoData", "paleoMeasurementTable"]
+            # get the count for how many tables we have. so we know to make appended filenames or not.
+            for pd_name, pd_data in self.lipd_data[keys[1]].items():
+                for table_name, table_data in pd_data[keys[2]].items():
+                    _count += 1
+
+        except Exception:
+            pass
+
+        if _count > 1:
+            self.append_filenames = True
+
+        return
+
     def __put_tables_in_self(self, keys):
         """
         Metadata is sorted-by-name. Use this to put the table data into the object self.
         :param list keys: Paleo or Chron keys
         :return none:
         """
+        _idx = 1
         try:
+            # start adding the filenames to the JSON and adding the tables to the self tables
             for pd_name, pd_data in self.lipd_data[keys[1]].items():
                 for table_name, table_data in pd_data[keys[2]].items():
-                    if keys[0] == "paleo":
-                        self.data_paleos.append(table_data)
+                    if self.append_filenames:
+                        _url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}-{}.txt".format(self.name, _idx)
+                        _url = re.sub("['{}@!$&*+,;?%#~`,\[\]=]", "", _url)
+                        self.lipd_data[keys[1]][pd_name][keys[2]][table_name]["WDSPaleoUrl"] = _url
+                        table_data["WDSPaleoUrl"] = _url
+                        if keys[0] == "paleo":
+                            self.data_paleos.append(table_data)
+                        else:
+                            self.data_chrons.append(table_data)
                     else:
-                        self.data_chrons.append(table_data)
+                        _url = re.sub("['{}@!$&*+,;?%#~`,\[\]=]", "", self.noaa_url)
+                        self.lipd_data[keys[1]][pd_name][keys[2]][table_name]["WDSPaleoUrl"] = _url
+                        table_data["WDSPaleoUrl"] = _url
+                        if keys[0] == "paleo":
+                            self.data_paleos.append(table_data)
+                        else:
+                            self.data_chrons.append(table_data)
+                    _idx += 1
         except Exception:
             pass
 
@@ -1025,10 +1072,10 @@ class LPD_NOAA(object):
         self.noaa_txt.write("# {}".format(self.noaa_data_sorted["Top"]['Study_Name']))
         self.__write_template_top()
         # We don't know what the full online resource path will be yet, so leave the base path only
-        self.__write_k_v("Online_Resource", "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/{}".format(filename), top=True)
-        self.__write_k_v("Online_Resource_Description", "Online_Resource_Description: NOAA WDS Paleo formatted metadata and data", indent=True)
-        self.__write_k_v("Online_Resource", "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/supplemental/{}".format(self.name_lpd), top=True)
-        self.__write_k_v("Online_Resource_Description", "Linked Paleo Data (LiPD) file", indent=True)
+        self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}".format(filename), top=True)
+        self.__write_k_v("Online_Resource_Description", " This file.  NOAA WDS Paleo formatted metadata and data for version 2.0.0 of this dataset.", indent=True)
+        self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}".format(self.name_lpd), top=True)
+        self.__write_k_v("Online_Resource_Description", " Linked Paleo Data (LiPD) formatted file containing the same metadata and data as this file, for version 2.0.0 of this dataset.", indent=True)
         self.__write_k_v("Original_Source_URL", self.noaa_data_sorted["Top"]['Original_Source_URL'], top=True)
         self.noaa_txt.write("\n# Description/Documentation lines begin with #\n# Data lines have no #\n#")
         self.__write_k_v("Archive", self.noaa_data_sorted["Top"]['Archive'])
@@ -1212,17 +1259,27 @@ class LPD_NOAA(object):
                     # Fluid spacing for variable names. Spacing dependent on length of variable names.
                     self.noaa_txt.write('{}\t'.format('#' + str(col[entry])))
                 # Last entry: No space or comma
-                elif entry == 'notes':
-                    self.noaa_txt.write('{} '.format(str(col[entry])))
+                elif entry == "additional":
+                    e = " "
+                    for item in ["notes", "uncertainty"]:
+                        try:
+                            if col[item]:
+                                e += str(col[item]).replace(",", ";") + "; "
+                        except KeyError:
+                            pass
+                    self.noaa_txt.write('{} '.format(e))
+
+                # elif entry == 'notes':
+                #     self.noaa_txt.write('{} '.format(str(col[entry])))
                 else:
                     # This is for any entry that is not first or last in the line ordering
                     # Account for nested entries.
-                    if entry == "uncertainty":
-                        try:
-                            e = str(col["calibration"][entry])
-                        except KeyError:
-                            e = ""
-                    elif entry == "seasonality":
+                    # if entry == "uncertainty":
+                    #     try:
+                    #         e = str(col["calibration"][entry])
+                    #     except KeyError:
+                    #         e = ""
+                    if entry == "seasonality":
                         try:
                             e = str(col["climateInterpretation"][entry])
                         except KeyError:
@@ -1313,8 +1370,8 @@ class LPD_NOAA(object):
         self.noaa_txt.write('# Variables\
         \n#\n# Data variables follow that are preceded by "##" in columns one and two.\
         \n# Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components '
-        '( 9 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or '
-        'Numeric data, notes)\n#\n')
+        '( 10 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or '
+        'Numeric data, additional_information)\n#\n')
         return
 
     def __write_template_chron(self):
@@ -1324,9 +1381,7 @@ class LPD_NOAA(object):
         :return:
         """
         self.noaa_txt.write('# Chronology:\
-        \n# Data lines follow (have no #)\
-        \n# Data line format - tab-delimited text, variable short name as header)\
-        \n# Missing_Values: NaN\n#')
+        \n')
         return
 
     def __write_template_paleo(self):
@@ -1338,7 +1393,7 @@ class LPD_NOAA(object):
         self.noaa_txt.write('# Data:\
         \n# Data lines follow (have no #)\
         \n# Data line format - tab-delimited text, variable short name as header)\
-        \n# Missing_Values: NaN\n#\n')
+        \n# Missing_Values: nan\n#\n')
         return
 
     def __write_k_v(self, k, v, top=False, bot=False, multi=False, indent=False):

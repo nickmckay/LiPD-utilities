@@ -77,12 +77,12 @@ def lpd_to_noaa(obj):
         # Get the json data from the lipd object
         d = obj.get_master()
         # Create the conversion object, and start the conversion process
-        _convert_obj = LPD_NOAA(obj.dir_root, obj.name, d, obj.data_csv)
+        _convert_obj = LPD_NOAA(obj.dir_root, obj.name, d)
         _convert_obj.main()
-        # add the URL to the json dict and master dict in the object.
-        d["WDCPaleoUrl"] = _convert_obj.get_wdc_paleo_url()
-        m = obj.get_master()
-        m["WDCPaleoUrl"] = _convert_obj.get_wdc_paleo_url()
+        # get our new, modified master JSON from the conversion object
+        m = _convert_obj.get_master()
+        # remove any root level urls that are deprecated
+        m = __rm_wdc_url(m)
         obj.put_master(m)
         obj.put_metadata(d)
 
@@ -90,7 +90,18 @@ def lpd_to_noaa(obj):
         logger_noaa.debug("process_lpd: FileNotFound: tmp directory not found")
         print("Error: Unable to process {}".format(obj.name))
 
-
-
     logger_noaa.info("exit process_lpd")
     return obj
+
+
+def __rm_wdc_url(d):
+    """
+    Remove the WDCPaleoUrl key. It's no longer used but still exists in some files.
+    :param dict d: Metadata
+    :return dict d: Metadata
+    """
+    if "WDCPaleoUrl" in d:
+        del d["WDCPaleoUrl"]
+    if "WDSPaleoUrl" in d:
+        del d["WDSPaleoUrl"]
+    return d
