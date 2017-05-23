@@ -1,4 +1,5 @@
 import demjson
+from collections import OrderedDict
 
 from .misc import *
 
@@ -15,7 +16,7 @@ def read_json_from_file(filename):
     :return dict: JSON data
     """
     logger_jsons.info("enter read_json_from_file")
-    d = {}
+    d = OrderedDict()
     try:
         # Load and decode
         d = demjson.decode_file(filename)
@@ -68,11 +69,11 @@ def _import_data(section_data, pc):
     :return dict: Modified paleoData
     """
     logger_jsons.info("enter import_data: {}".format(pc))
-    d = {}
+    d = OrderedDict()
     idx = 1
     try:
         for table in section_data:
-            tmp_table = {}
+            tmp_table = OrderedDict()
 
             # Get the table name from the first measurement table, and use that as the index name for this table
             tmp_table_name = get_variable_name_table("{}DataTableName".format(pc), table, pc)
@@ -146,7 +147,7 @@ def _import_meas(tables, pc):
     :return dict:
     """
     logger_jsons.info("enter import_meas: {}".format(pc))
-    table_new = {}
+    table_new = OrderedDict()
 
     for table in tables:
         # Get the table name
@@ -168,7 +169,7 @@ def _import_dist(model, key):
     :param key: calibratedAges or distributionTable
     :return: Modified table metadata
     """
-    tmp_calib = {}
+    tmp_calib = OrderedDict()
     for calibration in model[key]:
         # Use "name" as table name
         name_calib = get_variable_name_table("name", calibration)
@@ -200,7 +201,7 @@ def _idx_col_by_name(l):
     :param list l: Columns
     :return dict: New column indexed-by-name
     """
-    col_new = {}
+    col_new = OrderedDict()
 
     # Iter for each column in the list
     try:
@@ -242,7 +243,7 @@ def get_csv_from_json(d):
     :return dict: CSV values. (i.e. { CSVFilename1: { Column1: [Values], Column2: [Values] }, CSVFilename2: ... }
     """
     logger_jsons.info("enter get_csv_from_json")
-    csv_data = {}
+    csv_data = OrderedDict()
 
     if "paleoData" in d:
         csv_data = _get_csv_from_section(d, "paleoData", csv_data)
@@ -266,7 +267,7 @@ def _get_csv_from_section(d, pc, csv_data):
     for table, table_content in d[pc].items():
         # Create entry for this table/CSV file (i.e. Asia-1.measTable.PaleoData.csv)
         # Note: Each table has a respective CSV file.
-        csv_data[table_content['filename']] = {}
+        csv_data[table_content['filename']] = OrderedDict()
         for column, column_content in table_content['columns'].items():
             # Set the "values" into csv dictionary in order of column "number"
             csv_data[table_content['filename']][column_content['number']] = column_content['values']

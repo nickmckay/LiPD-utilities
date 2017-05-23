@@ -1105,7 +1105,6 @@ def _write_data_csv(csv_data):
     # Loop for each file and data that is stored
     for file in csv_data:
         for filename, data in file.items():
-
             # Make sure we're working with the right data types before trying to open and write a file
             if isinstance(filename, str) and isinstance(data, list):
                 try:

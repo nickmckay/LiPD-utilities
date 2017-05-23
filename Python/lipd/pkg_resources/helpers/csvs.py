@@ -1,5 +1,6 @@
 import csv
 import math
+from collections import OrderedDict
 
 from ..helpers.loggers import create_logger
 from ..helpers.inferred_data import get_inferred_data_table
@@ -225,15 +226,17 @@ def write_csv_to_file(d):
 
     try:
         for filename, data in d.items():
-            l_columns = _reorder_csv(data, filename)
-            rows = zip(*l_columns)
-            with open(filename, 'w+') as f:
-                w = csv.writer(f)
-                for row in rows:
-                    w.writerow(row)
-    except Exception as e:
-        logger_csvs.debug("write_csv_to_file: Unable to write CSV File:{}, {}".format(filename, e))
-
+            try:
+                l_columns = _reorder_csv(data, filename)
+                rows = zip(*l_columns)
+                with open(filename, 'w+') as f:
+                    w = csv.writer(f)
+                    for row in rows:
+                        w.writerow(row)
+            except Exception as e:
+                print("Error: CSV not written. Problem with column metadata: ".format(filename))
+    except AttributeError as e:
+        logger_csvs.debug("write_csv_to_file: Unable to write CSV File: {}".format(e))
     logger_csvs.info("exit write_csv_to_file")
     return
 
@@ -250,7 +253,7 @@ def get_csv_from_metadata(name, metadata):
     """
     logger_csvs.info("enter get_csv_from_metadata")
 
-    _csv = {}
+    _csv = OrderedDict()
     _meta = metadata
     # crumbs = _get_dataset_name(metadata)
 
@@ -283,7 +286,7 @@ def _get_csv_section(_meta, crumbs, pc):
     :return dict: Metadata
     """
     logger_csvs.info("enter get_csv_section: {}".format(pc))
-    _csv = {}
+    _csv = OrderedDict()
     s_idx = 1
     try:
         # Process the tables in section
@@ -488,7 +491,7 @@ def _search_table_for_vals(d, filename):
     :param dict d: Table data
     :return dict: Column values. ref by var name
     """
-    cols = {}
+    cols = OrderedDict()
     # if something goes wrong, we want a filename that we can track this data back to
     # however, if there's no "filename" entry, then we'll leave that data missing
     if "columns" in d:

@@ -10,6 +10,7 @@ from ..helpers.dataframes import lipd_to_df
 from ..helpers.misc import put_tsids
 from ..helpers.validator_api import get_validator_format
 
+from collections import OrderedDict
 import json
 import os
 import copy
@@ -33,7 +34,7 @@ class LiPD(object):
         self.dir_tmp_bag = os.path.join(dir_tmp, self.name)  # Bagit directory in temporary folder
         self.dir_tmp_bag_data = os.path.join(self.dir_tmp_bag, 'data')  # Data folder (json, csv) in Bagit directory.
         self.dir_save = dir_root # Optional: alternate location to save lipds files. Default to dir_root
-        self.data_csv = {}  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}}
+        self.data_csv = OrderedDict()  # CSV data in format: { 'table1': { column_number: [value1, value2, value3... ]}}
         self.data_json = {}  # Metadata without CSV values
         self.data_json_raw = {}  # The untouched raw json from the jsonld file. Use for validate() function
         self.data_master = {}  # Metadata with CSV values
@@ -94,6 +95,7 @@ class LiPD(object):
             # Get list of all filenames found in LiPD archive.
             self.data_filenames = get_filenames_in_lipd(self.dir_tmp_bag, self.name)
             self.data_filenames = get_filenames_generated(self.data_csv, self.name, self.data_filenames)
+
 
         except FileNotFoundError:
             print("Error: LiPD file not found. Please make sure the filename includes the .lpd extension")
