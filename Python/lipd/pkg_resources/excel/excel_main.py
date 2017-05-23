@@ -927,6 +927,7 @@ def _rm_units_from_var_name_single(var):
         # m.group(2): units in parenthesis (may not exist).
         try:
             var = m.group(1).strip().lower()
+            # var = m.group(1).strip().lower()
         except Exception:
             # This must be a malformed cell somehow. This regex should match every variableName cell.
             # It didn't work out. Return the original var as a fallback
@@ -1033,8 +1034,12 @@ def _compile_column_metadata(row, keys, number):
                 except Exception:
                     logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
                     val = "n/a"
-                if key == "variableName":
-                    val = _rm_units_from_var_name_single(row[idx].value)
+                try:
+                    if key == "variableName":
+                        val = _rm_units_from_var_name_single(row[idx].value)
+                except Exception:
+                    # when a variableName fails to split, keep the name as-is and move on.
+                    pass
                 _column[key] = val
         _column["number"] = number
 
