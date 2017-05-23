@@ -576,8 +576,8 @@ def rm_empty_fields(x):
                 x[i] = rm_empty_fields(x[i])
             # After substitutions, remove empty entries.
             for i in x:
-                # In the case of coordinates, we cannot remove coordinates of "0"
-                if not i and i not in (0, 0.0):
+                # Many 0 values are important (coordinates, m/m/m/m). Don't remove them.
+                if not i and i not in [0, 0.0]:
                     x.remove(i)
         elif isinstance(x, dict):
             # First, go through and substitute "" (empty string) entry for any values in EMPTY
@@ -586,7 +586,7 @@ def rm_empty_fields(x):
             # After substitutions, go through and delete the key-value pair.
             # This has to be done after we come back up from recursion because we cannot pass keys down.
             for key in list(x.keys()):
-                if not x[key]:
+                if not x[key] and x[key] not in [0, 0.0]:
                     del x[key]
     return x
 
