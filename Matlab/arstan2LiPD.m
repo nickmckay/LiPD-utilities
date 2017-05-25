@@ -1,6 +1,11 @@
 function L = arstan2LiPD(siteName,arstanDir,L,pd,wm)
 
 origDir = cd;
+
+
+if nargin<2
+    arstanDir = uigetdir('Select the directory that contains the ARSTAN output files')
+end
 cd(arstanDir)
 
 %get ITRDB translators
@@ -116,7 +121,7 @@ for i=1:length(alltab)
     MT.(sName).variableName=sName;
     MT.(sName).values=tabdata(:,2);
     MT.(sName).units='number of samples';
-    MT.variableType = 'inferred';
+    MT.variableType = 'measured';
     
     %segment
     sName='segment';

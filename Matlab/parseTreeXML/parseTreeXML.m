@@ -10,7 +10,7 @@ if nargin <1
     [toParse,pathToFiles] = uigetfile('*.xml','Select the NOAA-ITRDB XML file you want to parse')
 end
     
-if strncmp(toParse,'http://',7)
+if strncmp(toParse,'http',4)
     %then it's a url, download it.
     q_dir=find(toParse=='/');
         fileName=toParse(q_dir(end)+1:end);

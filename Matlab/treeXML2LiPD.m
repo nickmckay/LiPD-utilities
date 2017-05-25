@@ -88,6 +88,8 @@ for s = 1:length(sfields)
         MT.year.values = M.Time;
         MT.year.units = 'AD';
         MT.year.variableName = 'year';
+        MT.year.variableType = 'inferred';
+
         
         
         %now measurements
@@ -98,6 +100,8 @@ for s = 1:length(sfields)
             MT.(thisName).units = measUnits;
             MT.(thisName).description = measDesc;
             MT.(thisName).proxyObservationType = measPOT;
+            MT.(thisName).variableType = 'measured';
+
             MT.(thisName).values = M.Data(:,i);
         end
         MT.WDSPaleoUrl = [M.url];
@@ -122,6 +126,8 @@ for s = 1:length(sfields)
         chronName = [measName '_chronology'];
         ST.(chronName).values = C.Data;
         ST.(chronName).variableName = chronName;
+        ST.(chronName).variableType = 'inferred';
+
         ST.(chronName).units = 'unitless';
         ST.(chronName).proxyObservationType = measName;
         ST.WDSPaleoUrl = [C.url];
