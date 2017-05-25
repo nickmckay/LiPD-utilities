@@ -45,7 +45,9 @@ if isfield(LiPDStruct,'chronData')
                                 warnings=warning('No values field in structure, this shouldn''t be');
                             end
                         else
-                            DT.(colnames{c}).variableName=colnames{c};
+                            if ~isfield(DT.(colnames{c}),'variableName')
+                                DT.(colnames{c}).variableName=colnames{c};
+                            end
                             cN=cN+1;
                             DT.(colnames{c}).number=cN;
                             if exist('outTable')

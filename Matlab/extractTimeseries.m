@@ -26,22 +26,56 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
         error([dnames{d} ' has no paleoData'])
     end
     for pd=1:length(D.(dnames{d}).paleoData)
-        PD=D.(dnames{d}).paleoData{pd};
-        for pds= 1:length(PD)
-            if ~isfield(PD.paleoMeasurementTable{pds},'paleoDataTableName')
-                PD.paleoMeasurementTable{pds}.paleoDataTableName=['data' num2str(pds)];
+        if isfield(D.(dnames{d}).paleoData{pd},'paleoMeasurementTable')
+            
+            PD=D.(dnames{d}).paleoData{pd}.paleoMeasurementTable;
+            for pds= 1:length(PD)
+                if ~isfield(PD,'paleoDataTableName')
+                    PD{pds}.paleoDataTableName=['data' num2str(pds)];
+                end
+                
+                if pd==1 & pds==1
+                    pdname = [PD{pds}.paleoDataTableName];
+                else
+                    pdname = makeUniqueStrings([PD{pds}.paleoDataTableName],structFieldNames( D.(dnames{d}).paleoMeasurementTable));
+                end
+                
+                D.(dnames{d}).paleoMeasurementTable.(pdname) = PD{pds};
+                D.(dnames{d}).paleoMeasurementTable.(pdname).paleoNumber = pd;
+                D.(dnames{d}).paleoMeasurementTable.(pdname).paleoMeasurementTableNumber = pds;
             end
-            
-            if pd==1 & pds==1
-                pdname = [PD.paleoMeasurementTable{pds}.paleoDataTableName];
-            else
-                pdname = makeUniqueStrings([PD.paleoMeasurementTable{pds}.paleoDataTableName],structFieldNames(D.(dnames{d}).paleoMeasurementTable));
+        end
+        
+        if isfield(D.(dnames{d}).paleoData{pd},'paleoModel')
+            PMod = D.(dnames{d}).paleoData{pd}.paleoModel;
+            for pmo = 1:length(PMod)
+                if isfield(PMod{pmo},'summaryTable')
+                    ST = PMod{pmo}.summaryTable;
+                    
+                    if ~isfield(ST,'summaryTableName')
+                        ST.summaryTableName=['summary' num2str(pmo)];
+                    end
+                    
+                    if pd==1 & pmo==1
+                        pdname = [ST.summaryTableName];
+                    else
+                        pdname = makeUniqueStrings([ST.summaryTableName],structFieldNames( D.(dnames{d}).paleoMeasurementTable));
+                    end
+                    if isfield(PMod{pmo},'method')
+                        sfnames = structFieldNames(ST);
+                        for metcol = 1:length(sfnames)
+                        ST.(sfnames{metcol}).method = PMod{pmo}.method;
+                        end
+                    end
+                    
+                    
+                    D.(dnames{d}).paleoMeasurementTable.(pdname) = ST;
+                    D.(dnames{d}).paleoMeasurementTable.(pdname).paleoNumber = pd;
+                    D.(dnames{d}).paleoMeasurementTable.(pdname).paleoSummaryTableNumber = pmo;
+                    
+
+                end
             end
-            
-            D.(dnames{d}).paleoMeasurementTable.(pdname) = PD.paleoMeasurementTable{pds};
-            D.(dnames{d}).paleoMeasurementTable.(pdname).paleoNumber = pd;
-            D.(dnames{d}).paleoMeasurementTable.(pdname).paleoMeasurementTableNumber = pds;
-            
             
         end
     end
@@ -49,7 +83,6 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
     %THIS IS HACKY. Do better nick.
     D.(dnames{d}).paleoDataFull =  D.(dnames{d}).paleoData;
     D.(dnames{d}).paleoData= D.(dnames{d}).paleoMeasurementTable;
-    
     
     
     
@@ -186,17 +219,17 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                             l4structs=structFieldNames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}));
                             %look for near matches to year, age and depth
                             
-%                             gnames={'year','age','depth'};
-%                             for gn=1:length(gnames)
-%                                 goodColName=gnames{gn};
-%                                 shortmatches = find(strncmpi(goodColName,l4structs,length(goodColName)));
-%                                 if length(shortmatches)==1 & ~strcmpi(l4structs{shortmatches},goodColName);
-%                                     D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName)=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{shortmatches});
-%                                     D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName).variableName=goodColName;
-%                                     D.(dnames{d}).(ppnames{pp}).(l3names{l3})=rmfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}),l4structs{shortmatches});
-%                                     l4structs=structFieldNames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}));
-%                                 end
-%                             end
+                            %                             gnames={'year','age','depth'};
+                            %                             for gn=1:length(gnames)
+                            %                                 goodColName=gnames{gn};
+                            %                                 shortmatches = find(strncmpi(goodColName,l4structs,length(goodColName)));
+                            %                                 if length(shortmatches)==1 & ~strcmpi(l4structs{shortmatches},goodColName);
+                            %                                     D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName)=D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(l4structs{shortmatches});
+                            %                                     D.(dnames{d}).(ppnames{pp}).(l3names{l3}).(goodColName).variableName=goodColName;
+                            %                                     D.(dnames{d}).(ppnames{pp}).(l3names{l3})=rmfield(D.(dnames{d}).(ppnames{pp}).(l3names{l3}),l4structs{shortmatches});
+                            %                                     l4structs=structFieldNames(D.(dnames{d}).(ppnames{pp}).(l3names{l3}));
+                            %                                 end
+                            %                             end
                             
                             
                             l4nonStructs=setdiff(fieldnames(D.(dnames{d}).(ppnames{pp}).(l3names{l3})),l4structs);
@@ -275,21 +308,21 @@ for d=1:length(fieldnames(D)) %for every paleoarchive in database
                                 nonAgeCol=setdiff(nonAgeCol,[depthi]);
                             end
                             
-%                             %look at all the nonAgeCol
-%                             nacNames = l4structs;
-%                             
-%                             %look for variants that start with year, age or
-%                             %depth
-%                             ageVariant=find(strncmpi('age',nacNames,3));
-%                             yearVariant=find(strncmpi('year',nacNames,4));
-%                             depthVariant=find(strncmpi('depth',nacNames,5));
-%                             allVariant = [ageVariant' yearVariant' depthVariant'];
-%                             allVariant;
-%                             
-%                             if ~isempty(allVariant)
-%                                nonAgeCol = setdiff(nonAgeCol,allVariant); 
-%                             end
-%                             
+                            %                             %look at all the nonAgeCol
+                            %                             nacNames = l4structs;
+                            %
+                            %                             %look for variants that start with year, age or
+                            %                             %depth
+                            %                             ageVariant=find(strncmpi('age',nacNames,3));
+                            %                             yearVariant=find(strncmpi('year',nacNames,4));
+                            %                             depthVariant=find(strncmpi('depth',nacNames,5));
+                            %                             allVariant = [ageVariant' yearVariant' depthVariant'];
+                            %                             allVariant;
+                            %
+                            %                             if ~isempty(allVariant)
+                            %                                nonAgeCol = setdiff(nonAgeCol,allVariant);
+                            %                             end
+                            %
                             
                             if allColumns%optionally, export all columns
                                 nonAgeCol=1:length(l4structs);

@@ -41,7 +41,9 @@ if isfield(LiPDStruct,'paleoData')
                         if ~isfield(DT.(colnames{c}),'values')
                             warnings=[warnings {warning('No values field in structure, this shouldn''t be')}];
                         else
+                            if ~isfield(DT.(colnames{c}),'variableName')
                             DT.(colnames{c}).variableName=colnames{c};
+                            end
                             cN=cN+1;
                             DT.(colnames{c}).number=cN;
                             if exist('outTable')
@@ -84,9 +86,9 @@ if isfield(LiPDStruct,'paleoData')
                 
                 NLS{cmt}=DT;
             end
-            
+                    LiPDStruct.paleoData{chr}.paleoMeasurementTable=NLS;
+
         end
-        LiPDStruct.paleoData{chr}.paleoMeasurementTable=NLS;
         %%%%% END - paleo MEASUREMENT TABLE
         
         %%%%% Start - paleo MODEL

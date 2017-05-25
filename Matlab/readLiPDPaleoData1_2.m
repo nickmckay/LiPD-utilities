@@ -11,19 +11,21 @@ end
 
 if ~isnan(toct) %if there are paleo tables, load em in
     for i = toct; %go through each paleoology
-        %%%%%paleo MEASUREMENT TABLE
-        %Go through paleoMeasurementTable first
-        for pmt=1:length(I.paleoData{i}.paleoMeasurementTable)
-        cT = I.paleoData{i}.paleoMeasurementTable{pmt};
-        
-        cT=readLiPDTable(cT,dirname);
-        cT=processLiPDColumns(cT);
-        if size(I.paleoMeasMD5,1)>=i
-            if iscell(I.paleoMeasMD5)
-            cT.paleoMeasurementTableMD5 = I.paleoMeasMD5{i,2};
+        if isfield(I.paleoData{i},'paleoMeasurementTable')
+            %%%%%paleo MEASUREMENT TABLE
+            %Go through paleoMeasurementTable first
+            for pmt=1:length(I.paleoData{i}.paleoMeasurementTable)
+                cT = I.paleoData{i}.paleoMeasurementTable{pmt};
+                
+                cT=readLiPDTable(cT,dirname);
+                cT=processLiPDColumns(cT);
+                if size(I.paleoMeasMD5,1)>=i
+                    if iscell(I.paleoMeasMD5)
+                        cT.paleoMeasurementTableMD5 = I.paleoMeasMD5{i,2};
+                    end
+                end
+                C{i}.paleoMeasurementTable{pmt}=cT;
             end
-        end
-        C{i}.paleoMeasurementTable{pmt}=cT;
         end
         %%%%%%END paleo MEASUREMENT TABLE
         
@@ -41,8 +43,8 @@ if ~isnan(toct) %if there are paleo tables, load em in
                     if size(I.paleoSummaryTableMD5,1)>=i
                         CMT.summaryTableMD5=I.paleoSummaryTableMD5{i,2};
                     end
-
-                    C{i}.paleoModel{cm}.summaryTable=cT;
+                    
+                    C{i}.paleoModel{cm}.summaryTable=CMT;
                 end
                 
                 %%%%% paleo ENS TABLE
@@ -50,7 +52,7 @@ if ~isnan(toct) %if there are paleo tables, load em in
                     CME=readLiPDTable(CMS.ensembleTable,dirname);
                     CME=processLiPDColumns(CME);
                     if size(I.paleoEnsTableMD5,1)>=i
-                    CME.paleoEnsembleMD5=I.paleoEnsMD5{i,2};
+                        CME.paleoEnsembleMD5=I.paleoEnsMD5{i,2};
                     end
                     C{i}.paleoModel{cm}.ensembleTable=CME;
                     
@@ -70,6 +72,6 @@ if ~isnan(toct) %if there are paleo tables, load em in
         end
     end
 else
-C=NaN;
-
+    C=NaN;
+    
 end
