@@ -233,8 +233,10 @@ def write_csv_to_file(d):
                     w = csv.writer(f)
                     for row in rows:
                         w.writerow(row)
+            except TypeError as e:
+                print("Error: CSV file not written, {}: Often caused by a data table that has two or more identical variables".format(filename))
             except Exception as e:
-                print("Error: CSV not written. Problem with column metadata: ".format(filename))
+                print("Error: CSV file not written, {}: {}".format(filename, e))
     except AttributeError as e:
         logger_csvs.debug("write_csv_to_file: Unable to write CSV File: {}".format(e))
     logger_csvs.info("exit write_csv_to_file")
