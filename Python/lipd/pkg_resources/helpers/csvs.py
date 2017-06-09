@@ -234,7 +234,8 @@ def write_csv_to_file(d):
                     for row in rows:
                         w.writerow(row)
             except TypeError as e:
-                print("Error: CSV file not written, {}: Often caused by a data table that has two or more identical variables".format(filename))
+                print("Error: CSV file not written, {}: Often caused by a data table that has two or more identical "
+                      "variables. Try parsing again after correcting the table.".format(filename))
             except Exception as e:
                 print("Error: CSV file not written, {}: {}".format(filename, e))
     except AttributeError as e:

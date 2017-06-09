@@ -105,7 +105,7 @@ def display_results(data, detailed=False):
                 print("{:<50}{}".format(lipd["filename"], lipd["status"]))
         except Exception as e:
             logger_validator_api.debug("display_results: Exception: {}".format(e))
-            print("skipping...")
+            print("Error: {}".format(e))
 
     return
 
@@ -127,17 +127,20 @@ def get_validator_results(data):
     return results
 
 
-def _get_failed_filename(file):
+def _get_failed_filename(files):
     """
     File has failed JSON dump. Find the filename so we can notify the user.
-    :param file:
+    :param list files:
     :return:
     """
+    for idx, file in enumerate(files):
+        try:
+            _filename = file["filenameFull"].split("/")[0]
+            if _filename:
+                return _filename + ".lpd"
+        except Exception:
+            pass
     _filename = "unknown file"
-    try:
-        _filename = file[0]["filenameFull"].split("/")[0] + ".lpd"
-    except IndexError:
-        pass
     return _filename
 
 
@@ -157,7 +160,7 @@ def _call_validator_api(data):
         data = json.dumps(data)
 
         # The payload that is going to be sent with the JSON request
-        payload = {'json_payload': data, 'apikey': 'YOUR_API_KEY_HERE'}
+        payload = {'json_payload': data, 'apikey': 'lipd_linked'}
 
         # Development Link
         # response = requests.post('http://localhost:3000/api/validator', data=payload)
@@ -194,6 +197,7 @@ def _call_validator_api(data):
     if not result:
         result = {"dat": {}, "feedback": {}, "filename": _filename, "status": "EMPTY RESPONSE"}
 
+    result["filename"] = _filename
     return result
 
 # Validator Format

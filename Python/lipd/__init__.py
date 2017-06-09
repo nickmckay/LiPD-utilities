@@ -201,7 +201,7 @@ def doi():
     return
 
 
-def validate(detailed=False, fetch_new_results=True):
+def validate(detailed=True, fetch_new_results=True):
     """
     Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
     Display the PASS/FAIL results. Display detailed results if the option is chosen.
