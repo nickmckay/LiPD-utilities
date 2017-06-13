@@ -74,8 +74,8 @@ class Convert(object):
         self.__ts_extract_paleo(d)
 
         # Get TSNames and verify against TSOs in ts_tsos
-        self.__fetch_tsnames()
-        self.__verify_tsnames()
+        # self.__fetch_tsnames()
+        # self.__verify_tsnames()
         logger_convert.info("exit ts_extract_main")
         return self.ts_tsos
 
@@ -225,7 +225,6 @@ class Convert(object):
                         #     except Exception as e:
                         #         logger_convert.warn("ts_extract_paleo: KeyError: unable to append TSO, {}".format(e))
 
-                        # TODO: No longer excluding age, depth, year columns. Make ALL columns
                         # TSO. Add this column onto root items. Deepcopy since we need to reuse ts_root
                         col = self.__ts_extract_paleo_columns(e, deepcopy(self.ts_root))
                         try:
@@ -254,10 +253,12 @@ class Convert(object):
                     s = "age"
 
                 # all other normal cases. clean key and set key.
-                elif any(x in k.lower() for x in ('age', 'depth', 'year', "yr")):
+                elif any(x in k.lower() for x in ('age', 'depth', 'year', "yr", "distance_from_top", "distance")):
                     # Some keys have units hanging on them (i.e. 'year_ad', 'depth_cm'). We don't want units on the keys
                     if re_pandas_x_und.match(k):
                         s = k.split('_')[0]
+                    elif "distance" in k:
+                        s = "depth"
                     else:
                         s = k
 
