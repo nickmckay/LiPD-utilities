@@ -4,10 +4,9 @@ from ..helpers.bag import create_bag
 from ..helpers.csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata
 from ..helpers.jsons import read_json_from_file, write_json_to_file, split_csv_json, idx_num_to_name, idx_name_to_num,\
     rm_values_fields, rm_empty_doi, rm_empty_fields
-from ..helpers.lipd_lint import lipd_lint
 from ..helpers.loggers import create_logger
 from ..helpers.dataframes import lipd_to_df
-from ..helpers.misc import put_tsids
+from ..helpers.misc import put_tsids, fix_coordinate_decimal
 from ..helpers.validator_api import get_validator_format
 
 from collections import OrderedDict
@@ -62,15 +61,21 @@ class LiPD(object):
             # Read in metadata file
             j = read_json_from_file(self.name + '.jsonld')
 
+            # Fix Geo coordinates that are too long (as a result of excel calculations)
+            j = fix_coordinate_decimal(j)
+
             # Run the metadata through lint and correct any invalid keys
             os.chdir(self.dir_root)
-            # j = lipd_lint(j)
 
             # Read in metadata, and switch to idx-by-name
             j = idx_num_to_name(j)
 
+
+
             # Clean metadata of empty fields and data before loading. Set metadata to self
             self.data_master = rm_empty_fields(rm_empty_doi(j))
+
+
 
             # Copy metadata to self before adding csv
             self.data_json = copy.deepcopy(self.data_master)

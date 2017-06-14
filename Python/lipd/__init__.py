@@ -1,4 +1,5 @@
 import copy
+from time import clock
 
 from .pkg_resources.lipds.LiPD_Library import *
 from .pkg_resources.timeseries.Convert import *
@@ -8,8 +9,8 @@ from .pkg_resources.excel.excel_main import excel_main
 from .pkg_resources.noaa.noaa_main import noaa_prompt, noaa_to_lpd, lpd_to_noaa
 from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
-from .pkg_resources.helpers.directory import get_src_or_dst, collect_metadata_files, list_files
-from .pkg_resources.helpers.loggers import create_logger
+from .pkg_resources.helpers.directory import get_src_or_dst, list_files
+from .pkg_resources.helpers.loggers import create_logger, log_benchmark, create_benchmark
 from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
 from .pkg_resources.helpers.validator_api import get_validator_results, display_results
@@ -25,7 +26,7 @@ def run():
     :return none:
     """
     # GLOBALS
-    global cwd, lipd_lib, ts_lib, convert, files, logger_start, verbose
+    global cwd, lipd_lib, ts_lib, convert, files, logger_start, logger_benchmark, verbose
     verbose = True
     cwd = os.getcwd()
     # creating the LiPD Library also creates the Tmp sys folder where the files will be stored later.
@@ -35,6 +36,7 @@ def run():
     # print(cwd)
     # logger created in whatever directory lipd is called from
     logger_start = create_logger("start")
+    logger_benchmark = create_benchmark("benchmarks", "benchmark.log")
     files = {".txt": [], ".lpd": [], ".xls": []}
 
     return
@@ -47,7 +49,10 @@ def readLipd(usr_path=""):
     :return str cwd: Current Working Directory
     """
     global cwd
+    start = time.clock()
     __read(usr_path, ".lpd")
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("readLipd", start, end))
     return cwd
 
 
@@ -58,7 +63,10 @@ def readExcel(usr_path=""):
     :return str cwd: Current Working Directory
     """
     global cwd
+    start = time.clock()
     __read(usr_path, ".xls")
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("readExcel", start, end))
     return cwd
 
 
@@ -69,7 +77,10 @@ def readNoaa(usr_path=""):
     :return str cwd: Current Working Directory
     """
     global cwd
+    start = time.clock()
     __read(usr_path, ".txt")
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("readNoaa", start, end))
     return cwd
 
 
@@ -80,12 +91,15 @@ def readAll(usr_path=""):
     :return str cwd: Current Working Directory
     """
     global cwd
+    start = time.clock()
     if not usr_path:
         usr_path, src_files = get_src_or_dst("read", "directory")
     __read_directory(usr_path, ".lpd")
     __read_directory(usr_path, ".xls")
     __read_directory(usr_path, ".xlsx")
     __read_directory(usr_path, ".txt")
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("readAll", start, end))
     return cwd
 
 
@@ -95,8 +109,11 @@ def excel():
     :return none:
     """
     global files, cwd, verbose
+    start = time.clock()
     # Convert excel files to LiPD
     excel_main(files)
+    end = time.clock()
+    logger_start.info(log_benchmark("excel", start, end))
     # Turn off verbose. We don't want to clutter the console with extra reading/writing output statements
     verbose = False
     for file in files[".xls"]:
@@ -110,6 +127,8 @@ def excel():
               "to ensure that your new LiPD file(s) are valid")
     except Exception as e:
         logger_start.debug("excel: Unable to writeLipds with new lipd files, {}".format(e))
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("readAll", start, end))
     # Turn on verbose. Back to normal mode when this function is finished.
     verbose = True
     return
@@ -126,7 +145,7 @@ def noaa():
 
     # Choose the mode
     _mode = noaa_prompt()
-
+    start = time.clock()
     # LiPD mode: Convert LiPD files to NOAA files
     if _mode == "1":
 
@@ -152,6 +171,8 @@ def noaa():
 
     else:
         print("Invalid input. Try again.")
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("noaa", start, end))
     return
 
 
@@ -173,6 +194,7 @@ def validate(detailed=True, fetch_new_results=True):
     :param bool fetch_new_results: Defaults to fetching new validation results each call
     :return none:
     """
+    start = time.clock()
     print("\n")
     # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
     if fetch_new_results:
@@ -189,6 +211,8 @@ def validate(detailed=True, fetch_new_results=True):
     else:
         results = lipd_lib.get_validator_results()
         display_results(results, detailed)
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("validate", start, end))
     return
 
 
@@ -290,6 +314,7 @@ def extractTs():
     :return list l: Time series
     """
     l = []
+    start = time.clock()
     try:
         # Loop over the LiPD files in the LiPD_Library
         for k, v in lipd_lib.get_master().items():
@@ -307,6 +332,8 @@ def extractTs():
         print("Error: Unable to extractTimeSeries")
         logger_start.debug("extractTimeSeries() failed at {}".format(e))
 
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("extractTs", start, end))
     return l
 
 
@@ -509,7 +536,10 @@ def writeLipd(usr_path="", filename=""):
     :return none:
     """
     global verbose
+    start = time.clock()
     __write_lipd(usr_path, filename)
+    end = time.clock()
+    logger_benchmark.info(log_benchmark("writeLipd", start, end))
     return
 
 

@@ -1,6 +1,20 @@
 import datetime
 import logging
 from logging.config import dictConfig
+from logging.handlers import RotatingFileHandler
+
+
+def log_benchmark(fn, start, end):
+    """
+    Log a given function and how long the function takes in seconds
+    :param str fn: Function name
+    :param float start: Function start time
+    :param float end: Function end time
+    :return none:
+    """
+    elapsed = round(end - start, 2)
+    line = ("Benchmark - Function: {} , Time: {} seconds".format(fn, elapsed))
+    return line
 
 
 def update_changelog():
@@ -16,6 +30,24 @@ def update_changelog():
         # write update line
         f.write(str(datetime.datetime.now().strftime("%d %B %Y %I:%M%p")) + '\nDescription: ' + description)
     return
+
+
+def create_benchmark(name, log_file, level=logging.INFO):
+    """
+    Creates a logger for function benchmark times
+    :param str name: Name of the logger
+    :param str log_file: Filename
+    :return obj: Logger
+    """
+    handler = logging.FileHandler(log_file)
+    rtf_handler = RotatingFileHandler(log_file, maxBytes=30000, backupCount=0)
+    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s')
+    handler.setFormatter(formatter)
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+    logger.addHandler(rtf_handler)
+    return logger
 
 
 def create_logger(name):
@@ -53,7 +85,7 @@ def create_logger(name):
                 "filename": "debug.log",
                 'mode': 'a',
                 'maxBytes': 30000,
-                'backupCount': 1
+                'backupCount': 0
             }
         },
         'loggers': {

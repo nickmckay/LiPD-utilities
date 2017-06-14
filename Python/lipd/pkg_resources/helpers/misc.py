@@ -84,6 +84,20 @@ def clean_doi(doi_string):
     return m
 
 
+def fix_coordinate_decimal(d):
+    """
+    Coordinate decimal degrees calculated by an excel formula are often too long as a repeating decimal.
+    Round them down to 5 decimals
+    :param dict d: Metadata
+    :return dict d: Metadata
+    """
+    try:
+        for idx, n in enumerate(d["geo"]["geometry"]["coordinates"]):
+            d["geo"]["geometry"]["coordinates"][idx] = round(n, 5)
+    except Exception as e:
+        logger_misc.error("fix_coordinate_decimal: {}".format(e))
+    return d
+
 def generate_timestamp(fmt=None):
     """
     Generate a timestamp to mark when this file was last modified.
