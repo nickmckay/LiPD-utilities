@@ -21,8 +21,8 @@ from .pkg_resources.helpers.alternates import FILE_TYPE_MAP
 
 def run():
     """
-    Initialize and start objects
-    :return:
+    Initialize and start objects. This is called automatically when importing the package.
+    :return none:
     """
     # GLOBALS
     global cwd, lipd_lib, ts_lib, convert, files, logger_start, verbose
@@ -42,7 +42,7 @@ def run():
 
 def readLipd(usr_path=""):
     """
-    Wrapper function for LiPD file read.
+    Wrapper function: LiPD file read
     :param str usr_path: Path to file (optional)
     :return str cwd: Current Working Directory
     """
@@ -53,7 +53,7 @@ def readLipd(usr_path=""):
 
 def readExcel(usr_path=""):
     """
-    Wrapper function for Excel file read.
+    Wrapper function: Excel file read
     :param str usr_path: Path to file (optional)
     :return str cwd: Current Working Directory
     """
@@ -64,7 +64,7 @@ def readExcel(usr_path=""):
 
 def readNoaa(usr_path=""):
     """
-    Wrapper function for NOAA file read.
+    Wrapper function: NOAA file read
     :param str usr_path: Path to file
     :return str cwd: Current Working Directory
     """
@@ -75,26 +75,27 @@ def readNoaa(usr_path=""):
 
 def readAll(usr_path=""):
     """
-    Wrapper function for reading ALL file types in a given directory.
+    Wrapper function: Read all file types at once
     :param str usr_path: Path to directory
     :return str cwd: Current Working Directory
     """
     global cwd
     if not usr_path:
         usr_path, src_files = get_src_or_dst("read", "directory")
-    __read_directory(usr_path, ".lpd", "LiPD")
-    __read_directory(usr_path, ".xls", "Excel (xls)")
-    __read_directory(usr_path, ".xlsx", "Excel (xlsx)")
-    __read_directory(usr_path, ".txt", "NOAA")
+    __read_directory(usr_path, ".lpd")
+    __read_directory(usr_path, ".xls")
+    __read_directory(usr_path, ".xlsx")
+    __read_directory(usr_path, ".txt")
     return cwd
 
 
 def excel():
     """
-    User facing call to the excel function
+    Wrapper function: Convert Excel files to LiPD files
     :return none:
     """
     global files, cwd, verbose
+    # Convert excel files to LiPD
     excel_main(files)
     # Turn off verbose. We don't want to clutter the console with extra reading/writing output statements
     verbose = False
@@ -116,7 +117,7 @@ def excel():
 
 def noaa():
     """
-    User facing call to noaa function
+    Wrapper function: Convert between NOAA and LiPD files
     :return none:
     """
     global files, lipd_lib, cwd
@@ -156,7 +157,7 @@ def noaa():
 
 def doi():
     """
-    User facing call to doi function
+    Wrapper function: Update publication information using data DOIs
     :return:
     """
     global files
@@ -169,6 +170,7 @@ def validate(detailed=True, fetch_new_results=True):
     Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
     Display the PASS/FAIL results. Display detailed results if the option is chosen.
     :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors.
+    :param bool fetch_new_results: Defaults to fetching new validation results each call
     :return none:
     """
     print("\n")
@@ -217,8 +219,6 @@ def addEnsemble(filename, ensemble):
             lipd_lib.put_master(lib)
     else:
         print("Error: '{}' file not found in workspace. Please use showLipds() to see available files ".format(filename))
-
-    # print("Process Complete")
     return
 
 
@@ -229,7 +229,7 @@ def ensToDf(ensemble):
     """
     Create an ensemble data frame from some given nested numpy arrays
     :param list ensemble: Ensemble data
-    :return obj: DataFrame
+    :return obj df: Pandas dataframe
     """
     df = create_dataframe(ensemble)
     return df
@@ -239,7 +239,7 @@ def lipdToDf(filename):
     """
     Get LiPD data frames from LiPD object
     :param str filename:
-    :return dict: Pandas data frame objects
+    :return dict dfs: Pandas dataframes
     """
     try:
         dfs = lipd_lib.get_dfs(filename)
@@ -247,7 +247,6 @@ def lipdToDf(filename):
         print("Error: Unable to find LiPD file")
         logger_start.warn("lipd_to_df: KeyError: missing lipds {}".format(filename))
         dfs = None
-    # print("Process Complete")
     return dfs
 
 
@@ -256,7 +255,7 @@ def tsToDf(tso):
     Create Pandas DataFrame from TimeSeries object.
     Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
     :param dict tso: Time series object
-    :return dict: Pandas data frames
+    :return dict dfs: Pandas dataframes
     """
     dfs = {}
     try:
@@ -271,17 +270,15 @@ def filterDfs(expr):
     """
     Get data frames based on some criteria. i.e. all measurement tables or all ensembles.
     :param str expr: Search expression. (i.e. "paleo measurement tables")
-    :return dict: Data frames indexed by filename
+    :return dict dfs: Data frames indexed by filename
     """
+    dfs = {}
     try:
         dfs = get_filtered_dfs(lipd_lib.get_master(), expr)
-        return dfs
-
     except Exception:
         logger_dataframes.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
-        print("Unable to filter data frames")
-
-    return
+        print("Error: unable to filter dataframes")
+    return dfs
 
 
 # ANALYSIS - TIME SERIES
@@ -289,8 +286,8 @@ def filterDfs(expr):
 
 def extractTs():
     """
-    Create a TimeSeries using the current files in LiPD_Library.
-    :return list: TimeSeries_Library
+    Create a time series using the LiPD library
+    :return list l: Time series
     """
     l = []
     try:
@@ -316,6 +313,7 @@ def extractTs():
 def collapseTs():
     """
     Export TimeSeries back to LiPD Library. Updates information in LiPD objects.
+    :return none:
     """
     l = []
     # Get all TSOs from TS_Library, and add them to a list
@@ -337,7 +335,7 @@ def find(expression, ts):
     ex: find("paleoData_variablename == sst", ts)
     :param str expression: The filter expression to apply to the time series
     :param list ts: Time series
-    :return list new_ts: A filtered time series of objects that match the criteria
+    :return list new_ts: Filtered time series that matches the expression
     """
     new_ts = []
     expr_lst = translate_expression(expression)
@@ -369,41 +367,39 @@ def find(expression, ts):
 
 def showLipds():
     """
-    Prints the names of all LiPD files in the LiPD_Library
-    :return None:
+    Display the filenames in the LiPD library
+    :return none:
     """
     lipd_lib.show_lipds()
-    # print("Process Complete")
     return
 
 
 def showMetadata(filename):
     """
-    Display the contents of the specified LiPD file. (Must be previously loaded into the workspace)
+    Display the contents of the specified LiPD file in the library.
     (ex. displayLiPD NAm-ak000.lpd)
     :param str filename: LiPD filename
+    :return none:
     """
     lipd_lib.show_metadata(filename)
-    # print("Process Complete")
     return
 
 
 def showCsv(filename):
     """
-    Show CSV data for one LiPD
-    :param str filename:
-    :return None:
+    Display CSV data for a LiPD file
+    :param str filename: LiPD filename
+    :return none:
     """
     lipd_lib.show_csv(filename)
-    # print("Process Complete")
     return
 
 
 def showTso(tso):
     """
-    Show contents of one TimeSeries object.
-    :param str name: TimeSeries Object name
-    :return None:
+    Display contents of one time series entry.
+    :param str tso: Time series entry
+    :return none:
     """
     try:
         for key, value in sorted(tso.items()):
@@ -414,25 +410,25 @@ def showTso(tso):
     return
 
 
-def showDfs(dict_in):
+def showDfs(d):
     """
-    Print the available data frame names in a given data frame collection
-    :param dict dict_in: Data frame collection
+    Display the available data frame names in a given data frame collection
+    :param dict d: Dataframe collection
     :return none:
     """
-    if "metadata" in dict_in:
+    if "metadata" in d:
         print("metadata")
-    if "paleoData" in dict_in:
+    if "paleoData" in d:
         try:
-            for k, v in dict_in["paleoData"].items():
+            for k, v in d["paleoData"].items():
                 print(k)
         except KeyError:
             pass
         except AttributeError:
             pass
-    if "chronData" in dict_in:
+    if "chronData" in d:
         try:
-            for k, v in dict_in["chronData"].items():
+            for k, v in d["chronData"].items():
                 print(k)
         except KeyError:
             pass
@@ -446,8 +442,8 @@ def showDfs(dict_in):
 
 def getLipdNames():
     """
-    Get a list of all lipd dataset names in the library
-    :return list:
+    Get a list of all LiPD names in the library
+    :return list f_list: File list
     """
     f_list = []
     try:
@@ -459,9 +455,9 @@ def getLipdNames():
 
 def getMetadata(filename):
     """
-    Get metadata from LiPD file
+    Get metadata from a LiPD file
     :param str filename: LiPD filename
-    :return dict d: Metadata dictionary
+    :return dict d: Metadata
     """
     d = {}
     try:
@@ -475,9 +471,9 @@ def getMetadata(filename):
 
 def getCsv(filename):
     """
-    Get CSV from LiPD file
+    Get CSV from a  LiPD file
     :param str filename: LiPD filename
-    :return dict d: CSV dictionary
+    :return dict d: CSV
     """
     d = {}
     try:
@@ -485,14 +481,13 @@ def getCsv(filename):
     except KeyError:
         print("Error: Unable to find record")
         logger_start.warn("Unable to find record {}".format(filename))
-    # print("Process Complete")
     return d
 
 
 def getLibrary():
     """
-    Get LiPD Library as a simpler dictionary. Intended for use in pickling library data.
-    :return none:
+    Get LiPD library as a dictionary. Intended for use in pickling library data.
+    :return dict D: Library
     """
     D = {}
     try:
@@ -509,7 +504,7 @@ def getLibrary():
 def writeLipd(usr_path="", filename=""):
     """
     Write out LiPD file(s)
-    :param str filename: LiPD filename ("somefile.lpd") (optional)
+    :param str filename: LiPD filename (optional)
     :param str usr_path: Target directory destination (optional)
     :return none:
     """
@@ -520,8 +515,8 @@ def writeLipd(usr_path="", filename=""):
 
 def removeLipd(filename):
     """
-    Remove LiPD object from library
-    :return None:
+    Remove LiPD file from library
+    :return none:
     """
     lipd_lib.remove_lipd(filename)
     return
@@ -529,8 +524,8 @@ def removeLipd(filename):
 
 def removeLipds():
     """
-    Remove all LiPD objects from library.
-    :return None:
+    Remove all LiPD files from library.
+    :return none:
     """
     lipd_lib.remove_lipds()
     return
@@ -538,7 +533,8 @@ def removeLipds():
 
 def quit():
     """
-    Quit and exit the program. (Does not save changes)
+    Quit and exit the program. Cleans up temporary space (Does not save changes)
+    :return none:
     """
     lipd_lib.cleanup()
     print("Quitting LiPD Utilities...")
