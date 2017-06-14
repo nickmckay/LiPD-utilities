@@ -305,14 +305,15 @@ def get_src_or_dst_prompt(mode):
     :return str prompt: The prompt needed
     """
     _words = {"read": "from", "write": "to"}
-    print(os.getcwd())
+    # print(os.getcwd())
     prompt = "Where would you like to {} your file(s) {}?\n" \
-             "1. Current ({})\n" \
-             "2. Browse\n" \
-             "3. Downloads ({})\n" \
-             "4. Desktop ({})\n".format(mode, _words[mode], os.getcwd(),
-                                        os.path.expanduser('~/Downloads'),
-                                        os.path.expanduser('~/Desktop'))
+             "1. Desktop ({})\n" \
+             "2. Downloads ({})\n" \
+             "3. Current ({})\n" \
+             "4. Browse".format(mode, _words[mode],
+                                  os.path.expanduser('~/Desktop'),
+                                    os.path.expanduser('~/Downloads'),
+                                    os.getcwd())
     return prompt
 
 
@@ -325,23 +326,24 @@ def get_src_or_dst_path(prompt, count):
     _path = ""
     print(prompt)
     option = input("Option: ")
+    print("\n")
     if option == '1':
-        # Current directory
-        logger_directory.info("1: current")
-        _path = os.getcwd()
-    elif option == '2':
-        # Open up the GUI browse dialog
-        logger_directory.info("2: browse")
-        _path = browse_dialog_dir()
-        # Set the path to the local files in CLI and lipd_lib
-    elif option == '3':
-        # Set the path to the system downloads folder.
-        logger_directory.info("3: downloads")
-        _path = os.path.expanduser('~/Downloads')
-    elif option == '4':
-        # Set path to the Notebook folder
-        logger_directory.info("4: desktop ")
+        # Set the path to the system desktop folder.
+        logger_directory.info("1: desktop")
         _path = os.path.expanduser('~/Desktop')
+    elif option == '2':
+        # Set the path to the system downloads folder.
+        logger_directory.info("2: downloads")
+        _path = os.path.expanduser('~/Downloads')
+    elif option == '3':
+        # Current directory
+        logger_directory.info("3: current")
+        _path = os.getcwd()
+    elif option == '4':
+        # Open up the GUI browse dialog
+        logger_directory.info("4: browse ")
+        _path = browse_dialog_dir()
+
     else:
         # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
         if count == 2:

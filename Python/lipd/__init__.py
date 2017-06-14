@@ -13,6 +13,7 @@ from .pkg_resources.helpers.loggers import create_logger
 from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
 from .pkg_resources.helpers.validator_api import get_validator_results, display_results
+from .pkg_resources.helpers.alternates import FILE_TYPE_MAP
 
 
 # READ
@@ -42,49 +43,22 @@ def run():
 def readLipd(usr_path=""):
     """
     Wrapper function for LiPD file read.
-    :param str usr_path: Path to file
-    :return none:
+    :param str usr_path: Path to file (optional)
+    :return str cwd: Current Working Directory
     """
     global cwd
-    __read_file(usr_path, ".lpd")
-    return cwd
-
-
-def readLipds(usr_path=""):
-    """
-    Wrapper function for LiPD directory read.
-    :param str usr_path: Path to directory
-    :return none:
-    """
-    global cwd
-    __read_directory(usr_path, ".lpd", "LiPD")
-    # Turned off until LiPD.net is updated to accept Validator API requests
-    # validate()
+    __read(usr_path, ".lpd")
     return cwd
 
 
 def readExcel(usr_path=""):
     """
     Wrapper function for Excel file read.
-    :param str usr_path: Path to file
-    :return none:
+    :param str usr_path: Path to file (optional)
+    :return str cwd: Current Working Directory
     """
     global cwd
-    __read_file(usr_path, ".xls")
-    return cwd
-
-
-def readExcels(usr_path=""):
-    """
-    Wrapper function for Excel directory read.
-    :param str usr_path: Path to directory
-    :return none:
-    """
-    global cwd
-    if not usr_path:
-        usr_path, src_files = get_src_or_dst("read", "directory")
-    __read_directory(usr_path, ".xls", "Excel (.xls)")
-    __read_directory(usr_path, ".xlsx", "Excel (.xlsx)")
+    __read(usr_path, ".xls")
     return cwd
 
 
@@ -92,21 +66,10 @@ def readNoaa(usr_path=""):
     """
     Wrapper function for NOAA file read.
     :param str usr_path: Path to file
-    :return none:
+    :return str cwd: Current Working Directory
     """
     global cwd
-    __read_file(usr_path, ".txt")
-    return cwd
-
-
-def readNoaas(usr_path=""):
-    """
-    Wrapper function for NOAA directory read.
-    :param str usr_path: Path to directory
-    :return none:
-    """
-    global cwd
-    __read_directory(usr_path, ".txt", "NOAA")
+    __read(usr_path, ".txt")
     return cwd
 
 
@@ -114,7 +77,7 @@ def readAll(usr_path=""):
     """
     Wrapper function for reading ALL file types in a given directory.
     :param str usr_path: Path to directory
-    :return none:
+    :return str cwd: Current Working Directory
     """
     global cwd
     if not usr_path:
@@ -141,7 +104,7 @@ def excel():
         except Exception as e:
             logger_start.debug("excel: Converted excel to lipd file, but unable readLipd(): {}, {}".format(file["filename_ext"], e))
     try:
-        writeLipds(cwd)
+        writeLipd(usr_path=cwd)
         print("Reminder! Use lipd.validate() or www.LiPD.net/validator "
               "to ensure that your new LiPD file(s) are valid")
     except Exception as e:
@@ -179,7 +142,7 @@ def noaa():
         # Replace the data in the LiPD Library master
         lipd_lib.put_master(_lib)
         # Write out the new LiPD files, since they now contain the NOAA URL data
-        writeLipds(cwd)
+        writeLipd(usr_path=cwd)
 
     # NOAA mode: Convert NOAA files to LiPD files
     elif _mode == "2":
@@ -543,39 +506,15 @@ def getLibrary():
 # WRITE
 
 
-def writeLipd(filename, usr_path=""):
+def writeLipd(usr_path="", filename=""):
     """
-    Write out one specific LiPD file
-    :param str filename: LiPD filename ("somefile.lpd")
+    Write out LiPD file(s)
+    :param str filename: LiPD filename ("somefile.lpd") (optional)
     :param str usr_path: Target directory destination (optional)
     :return none:
     """
     global verbose
-    # no path provided. start gui browse
-    if not usr_path:
-        # got dir path
-        usr_path, _ignore = get_src_or_dst("write", "directory")
     __write_lipd(usr_path, filename)
-    return
-
-
-def writeLipds(usr_path=""):
-    """
-    Save changes made to all LiPD files in the workspace.
-    Files are created in current working directory if path is not provided.
-    :param str usr_path: Target directory destination (optional)
-    """
-    global verbose
-    # no path provided. start gui browse
-    if not usr_path:
-        # got dir path
-        usr_path, _ignore = get_src_or_dst("write", "directory")
-    _lib = list(lipd_lib.get_master().keys())
-    if _lib:
-        for filename in _lib:
-            __write_lipd(usr_path, filename)
-    # if verbose:
-    #     print("Process Complete")
     return
 
 
@@ -609,7 +548,7 @@ def quit():
 # HELPERS
 
 
-def __universal_load(file_path, file_type):
+def __universal_read(file_path, file_type):
     """
     Use a file path to create file metadata and load a file in the appropriate way, according to the provided file type.
     :param str file_path: Path to file
@@ -639,7 +578,7 @@ def __universal_load(file_path, file_type):
             # yes, go ahead and load in the file
             lipd_lib.read_lipd(file_meta)
         # append to global files
-        elif file_type in (".xls", ".xlsx"):
+        elif file_type in [".xls", ".xlsx"]:
             files[".xls"].append(file_meta)
         # append to global files
         elif file_type == ".txt":
@@ -650,6 +589,50 @@ def __universal_load(file_path, file_type):
         cwd = file_meta["dir"]
         os.chdir(cwd)
 
+    return
+
+
+def __read(usr_path, file_type):
+    """
+    Determine what path needs to be taken to read in file(s)
+    :param str usr_path: Path  (optional)
+    :param str file_type: File type to read
+    :return none:
+    """
+    # is there a file path specified ?
+    if usr_path:
+        if os.path.isdir(usr_path):
+            __read_directory(usr_path, file_type)
+        elif os.path.isfile(usr_path):
+            __read_file(usr_path, file_type)
+        else:
+            print("Error: Path given is invalid")
+
+    # no path specified. ask if they want to load dir or file
+    else:
+        choice = ""
+        count = 3
+        while not choice:
+            try:
+                print("Choose a read option:\n1. One file\n2. Multi-file select\n3. Directory")
+                choice = input("Option: ")
+                print("\n")
+                # now use the given file type and prompt answer to call _read_file or _read_dir
+                if choice in ["1", "2", "3"]:
+                    # open directory picker
+                    if choice == "3":
+                        __read_directory(usr_path, file_type)
+                    else:
+                        # open a file picker
+                        __read_file(usr_path, file_type)
+                    break
+                else:
+                    count -= 1
+                if count == 0:
+                    print("Error: Too many failed attempts")
+                    break
+            except Exception as e:
+                print("Error: Invalid input: {}".format(e))
     return
 
 
@@ -669,24 +652,24 @@ def __read_file(usr_path, file_type):
         # check if src_files is a list of multiple files
         if len(src_files) > 1:
             for file_path in src_files:
-                __universal_load(file_path, file_type)
+                __universal_read(file_path, file_type)
         # one file chosen
         elif src_files:
             file_path = src_files[0]
-            __universal_load(file_path, file_type)
+            __universal_read(file_path, file_type)
         else:
             print("No file(s) chosen")
     else:
-        __universal_load(usr_path, file_type)
+        __universal_read(usr_path, file_type)
 
     return
 
 
-def __read_directory(usr_path, file_type, file_type_print):
+def __read_directory(usr_path, file_type):
     """
     Universal read directory. Given a path and a type, it will do the appropriate read actions
     :param str usr_path: Path to directory
-    :param str file_type: One of approved file types: xls, xlsx, txt, lpd
+    :param str file_type: .xls, .xlsx, .txt, .lpd
     :return none:
     """
     # no path provided. start gui browse
@@ -700,9 +683,14 @@ def __read_directory(usr_path, file_type, file_type_print):
     # If dir path is valid
     if valid_path:
         # List all files of target type in dir
-        files_found = list_files(file_type, usr_path)
+        files_found = []
+        # Extra case for xlsx excel files
+        if file_type == ".xls":
+            print("finding more excel")
+            files_found += list_files(".xlsx", usr_path)
+        files_found += list_files(file_type, usr_path)
         # notify how many files were found
-        print("Found: {} {} file(s)".format(len(files_found), file_type_print))
+        print("Found: {} {} file(s)".format(len(files_found), FILE_TYPE_MAP[file_type]["file_type"]))
         # Loop for each file found
         for file_path in files_found:
             # Call read lipd for each file found
@@ -728,10 +716,19 @@ def __write_lipd(usr_path, filename):
     valid_path = path_type(usr_path, "directory")
     # If dir path is valid
     if valid_path:
-        if verbose:
-            print("writing: {}".format(filename))
-        lipd_lib.write_lipd(usr_path, filename)
-
+        # Filename is given, write out one file
+        if filename:
+            lipd_lib.write_lipd(usr_path, filename)
+            if verbose:
+                print("writing: {}".format(filename))
+        # Filename is not given, write out whole library
+        else:
+            _lib = list(lipd_lib.get_master().keys())
+            if _lib:
+                for filename in _lib:
+                    lipd_lib.write_lipd(usr_path, filename)
+                    if verbose:
+                        print("writing: {}".format(filename))
     return
 
 
