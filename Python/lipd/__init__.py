@@ -26,8 +26,10 @@ def run():
     :return none:
     """
     # GLOBALS
-    global cwd, lipd_lib, ts_lib, convert, files, logger_start, logger_benchmark, verbose
+    global cwd, lipd_lib, ts_lib, convert, files, logger_start, logger_benchmark, verbose, note_validate, note_update
     verbose = True
+    note_update = True
+    note_validate = True
     cwd = os.getcwd()
     # creating the LiPD Library also creates the Tmp sys folder where the files will be stored later.
     lipd_lib = LiPD_Library()
@@ -49,8 +51,8 @@ def readLipd(usr_path=""):
     :return str cwd: Current Working Directory
     """
     global cwd
-    print("Disclaimer: LiPD files may be updated and modified to adhere to standards\n")
-
+    if verbose:
+        __disclaimer(opt="update")
     start = time.clock()
     __read(usr_path, ".lpd")
     end = time.clock()
@@ -135,9 +137,6 @@ def excel():
     # Time!
     end = time.clock()
     logger_benchmark.info(log_benchmark("excel", start, end))
-    # Turn on verbose. Back to normal mode when this function is finished.
-    print("Reminder: Use lipd.validate() or www.LiPD.net/create "
-          "to ensure that your new LiPD file(s) are valid")
     # Start printing stuff again.
     verbose = True
     return
@@ -765,6 +764,21 @@ def __write_lipd(usr_path, filename):
                         print("writing: {}".format(filename))
     return
 
+
+def __disclaimer(opt=""):
+    """
+    Print the disclaimers once. If they've already been shown, skip over.
+    :return none:
+    """
+    global note_validate, note_update
+    if opt is "update":
+        print("Disclaimer: LiPD files may be updated and modified to adhere to standards\n")
+        note_update = False
+    if opt is "validate":
+        print("Note: Use lipd.validate() or www.LiPD.net/create "
+              "to ensure that your new LiPD file(s) are valid")
+        note_validate = False
+    return
 
 # GLOBALS
 run()

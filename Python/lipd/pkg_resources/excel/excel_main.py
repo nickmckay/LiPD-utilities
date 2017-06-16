@@ -788,6 +788,10 @@ def _parse_sheet(workbook, sheet):
 
                             if metadata_done and any(i in row for i in variable_keys_lower):
                                 data_on = True
+
+                                # Take the difference of the two lists. If anything exists, then that's a problem
+                                __compare_vars(row, variable_keys_lower, sheet["old_name"])
+
                                 # Ensemble columns are counted differently.
                                 if ensemble_on:
                                     # Get the next row, and count the data cells.
@@ -1442,6 +1446,25 @@ def compile_fund(workbook, sheet, row, col):
             logger_excel.debug("compile_fund: IndexError: sheet:{} row:{} col:{}, {}".format(sheet, row, col, e))
     logger_excel.info("exit compile_fund")
     return l
+
+
+def __compare_vars(a1, a2, name):
+    """
+    Check that the metadata variable names are the same as the data header variable names
+    :param list a1: Variable names
+    :param list a2: Variable names
+    :param str name: Sheet name
+    :return bool: Truth
+    """
+    try:
+        a1 = [i for i in a1 if i]
+        a2 = [i for i in a2 if i]
+        a3 = set(a1).symmetric_difference(set(a2))
+        if a3:
+            print("- Error: Variables are not entered correctly in sheet: {}\n\tUnmatched variables: {}".format(name, a3))
+    except Exception as e:
+        logger_excel.error("compare_vars: {}".format(e))
+    return
 
 
 def __get_datasetname(d, filename):
