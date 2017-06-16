@@ -49,6 +49,8 @@ def readLipd(usr_path=""):
     :return str cwd: Current Working Directory
     """
     global cwd
+    print("Disclaimer: LiPD files may be updated and modified to adhere to standards\n")
+
     start = time.clock()
     __read(usr_path, ".lpd")
     end = time.clock()
@@ -109,27 +111,34 @@ def excel():
     :return none:
     """
     global files, cwd, verbose
-    start = time.clock()
-    # Convert excel files to LiPD
-    excel_main(files)
-    end = time.clock()
-    logger_start.info(log_benchmark("excel", start, end))
     # Turn off verbose. We don't want to clutter the console with extra reading/writing output statements
     verbose = False
+    # Find excel files
+    print("Found " + str(len(files[".xls"])) + " Excel files")
+    logger_start.info("found excel files: {}".format(len(files[".xls"])))
+    # Start the clock
+    start = time.clock()
+    # Loop for each excel file
     for file in files[".xls"]:
+        # Convert excel file to LiPD
+        filename = excel_main(file)
         try:
-            readLipd(os.path.join(file["dir"], file["filename_no_ext"] + ".lpd"))
+            # Read the new LiPD file back in, to get fixes, inferred calculations, updates, etc.
+            readLipd(os.path.join(file["dir"], filename))
         except Exception as e:
             logger_start.debug("excel: Converted excel to lipd file, but unable readLipd(): {}, {}".format(file["filename_ext"], e))
-    try:
-        writeLipd(usr_path=cwd)
-        print("Reminder! Use lipd.validate() or www.LiPD.net/validator "
-              "to ensure that your new LiPD file(s) are valid")
-    except Exception as e:
-        logger_start.debug("excel: Unable to writeLipds with new lipd files, {}".format(e))
+        try:
+            # Write the modified LiPD file back out again.
+            writeLipd(usr_path=cwd)
+        except Exception as e:
+            logger_start.debug("excel: Unable to writeLipds with new lipd files, {}".format(e))
+    # Time!
     end = time.clock()
-    logger_benchmark.info(log_benchmark("readAll", start, end))
+    logger_benchmark.info(log_benchmark("excel", start, end))
     # Turn on verbose. Back to normal mode when this function is finished.
+    print("Reminder: Use lipd.validate() or www.LiPD.net/create "
+          "to ensure that your new LiPD file(s) are valid")
+    # Start printing stuff again.
     verbose = True
     return
 
@@ -712,7 +721,6 @@ def __read_directory(usr_path, file_type):
         files_found = []
         # Extra case for xlsx excel files
         if file_type == ".xls":
-            print("finding more excel")
             files_found += list_files(".xlsx", usr_path)
         files_found += list_files(file_type, usr_path)
         # notify how many files were found

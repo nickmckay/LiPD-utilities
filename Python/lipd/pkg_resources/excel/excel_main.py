@@ -23,27 +23,66 @@ VERSION: LiPD v1.2
 """
 
 
-def excel_main(files):
+def excel_main(file):
     """
     Parse data from Excel spreadsheets into LiPD files.
-    :return:
+    :return list: Filenames of LiPD files created
     """
 
-    # Find excel files
-    print("Found " + str(len(files[".xls"])) + " Excel files")
-    logger_excel.info("found excel files: {}".format(len(files[".xls"])))
+    os.chdir(file["dir"])
 
-    # Run once for each file
-    for file in files[".xls"]:
-        name_ext = file["filename_ext"]
+    name_ext = file["filename_ext"]
 
-        # Filename without extension
-        name = file["filename_no_ext"]
-        # remove foreign characters to prevent wiki uploading erros
-        name = normalize_name(name)
-        name_lpd = name + '.lpd'
-        print("processing: {}".format(name_ext))
-        logger_excel.info("processing: {}".format(name_ext))
+    # Filename without extension
+    name = file["filename_no_ext"]
+    name_lpd = name + ".lpd"
+    # remove foreign characters to prevent wiki uploading erros
+    name = normalize_name(name)
+    print("processing: {}".format(name_ext))
+    logger_excel.info("processing: {}".format(name_ext))
+
+    pending_csv = []
+    final = OrderedDict()
+    logger_excel.info("variables initialized")
+
+    """
+    EACH DATA TABLE WILL BE STRUCTURED LIKE THIS
+    "paleo_chron": "paleo",
+    "pc_idx": 1,
+    "model_idx": "",
+    "table_type": "measurement",
+    "table_idx": 1,
+    "name": sheet,
+    "filename": sheet,
+    "data": { column data }
+    """
+
+    # Open excel workbook with filename
+    try:
+        workbook = xlrd.open_workbook(name_ext)
+        logger_excel.info("opened XLRD workbook")
+
+    except Exception as e:
+        # There was a problem opening a file with XLRD
+        print("Failed to open Excel workbook: {}".format(name))
+        workbook = None
+        logger_excel.debug("excel: xlrd failed to open workbook: {}, {}".format(name, e))
+
+    if workbook:
+
+        # Build sheets, but don't make full filenames yet. Need to parse metadata sheet first to get datasetname.
+        sheets, ct_paleo, ct_chron, metadata_str = _get_sheet_metadata(workbook, name)
+
+        # METADATA WORKSHEETS
+        # Parse Metadata sheet and add to output dictionary
+        if metadata_str:
+            logger_excel.info("parsing worksheet: {}".format(metadata_str))
+            final = cells_dn_meta(workbook, metadata_str, 0, 0, final)
+
+        # Now that we have the dataSetName, we can use it to build filenames
+        name = __get_datasetname(final, name)
+        name_lpd = name + ".lpd"
+        sheets = __set_sheet_filenames(sheets, name)
 
         # Create a temporary folder and set paths
         dir_tmp = create_tmp_dir()
@@ -54,108 +93,71 @@ def excel_main(files):
         os.mkdir(os.path.join(dir_bag))
         os.mkdir(os.path.join(dir_data))
 
-        pending_csv = []
-        final = OrderedDict()
-        logger_excel.info("variables initialized")
+        # PALEO AND CHRON SHEETS
+        for sheet in sheets:
+            logger_excel.info("parsing data worksheet: {}".format(sheet["new_name"]))
+            sheet_meta, sheet_csv = _parse_sheet(workbook, sheet)
+            if sheet_csv and sheet_meta:
+                pending_csv.append(sheet_csv)
+                sheet["data"] = sheet_meta
 
-        """
-        EACH DATA TABLE WILL BE STRUCTURED LIKE THIS
-        "paleo_chron": "paleo",
-        "pc_idx": 1,
-        "model_idx": "",
-        "table_type": "measurement",
-        "table_idx": 1,
-        "name": sheet,
-        "filename": sheet,
-        "data": { column data }
-        """
+        # create the metadata skeleton where we will place the tables. dynamically add empty table blocks for data.
+        skeleton_paleo, skeleton_chron = _create_skeleton_1(sheets)
 
-        # Open excel workbook with filename
+        # Reorganize sheet metadata into LiPD structure
+        d_paleo, d_chron = _place_tables_main(sheets, skeleton_paleo, skeleton_chron)
+
+        # Add organized metadata into final dictionary
+        final['paleoData'] = d_paleo
+        final['chronData'] = d_chron
+
+        # OUTPUT
+
+        # Create new files and dump data in dir_data
+        os.chdir(dir_data)
+
+        # WRITE CSV
+        _write_data_csv(pending_csv)
+
+        # JSON-LD
+        # Invoke DOI Resolver Class to update publisher data
         try:
-            workbook = xlrd.open_workbook(name_ext)
-            logger_excel.info("opened XLRD workbook")
-
+            logger_excel.info("invoking doi resolver")
+            final = DOIResolver(file["dir"], name, final).main()
         except Exception as e:
-            # There was a problem opening a file with XLRD
-            print("Failed to open Excel workbook: {}".format(name))
-            workbook = None
-            logger_excel.debug("excel: xlrd failed to open workbook: {}, {}".format(name, e))
+            print("Error: doi resolver failed: {}".format(name))
+            logger_excel.debug("excel: doi resolver failed: {}, {}".format(name, e))
 
-        if workbook:
+        # Dump final_dict to a json file.
+        final["LiPDVersion"] = 1.2
+        write_json_to_file(name, final)
 
-            sheets, ct_paleo, ct_chron, metadata_str = _get_sheet_metadata(workbook, name)
+        # Move files to bag root for re-bagging
+        # dir : dir_data -> dir_bag
+        logger_excel.info("start cleanup")
+        dir_cleanup(dir_bag, dir_data)
 
-            # METADATA WORKSHEETS
-            # Parse Metadata sheet and add to output dictionary
-            if metadata_str:
-                logger_excel.info("parsing worksheet: {}".format(metadata_str))
-                cells_dn_meta(workbook, metadata_str, 0, 0, final)
+        # Create a bag for the 3 files
+        finish_bag(dir_bag)
 
-            # PALEO AND CHRON SHEETS
-            for sheet in sheets:
-                logger_excel.info("parsing data worksheet: {}".format(sheet["new_name"]))
-                sheet_meta, sheet_csv = _parse_sheet(workbook, sheet)
-                if sheet_csv and sheet_meta:
-                    pending_csv.append(sheet_csv)
-                    sheet["data"] = sheet_meta
-
-            # create the metadata skeleton where we will place the tables. dynamically add empty table blocks for data.
-            skeleton_paleo, skeleton_chron = _create_skeleton_1(sheets)
-
-            # Reorganize sheet metadata into LiPD structure
-            d_paleo, d_chron = _place_tables_main(sheets, skeleton_paleo, skeleton_chron)
-
-            # Add organized metadata into final dictionary
-            final['paleoData'] = d_paleo
-            final['chronData'] = d_chron
-
-            # OUTPUT
-
-            # Create new files and dump data in dir_data
-            os.chdir(dir_data)
-
-            # WRITE CSV
-            _write_data_csv(pending_csv)
-
-            # JSON-LD
-            # Invoke DOI Resolver Class to update publisher data
-            try:
-                logger_excel.info("invoking doi resolver")
-                final = DOIResolver(file["dir"], name, final).main()
-            except Exception as e:
-                print("Error: doi resolver failed: {}".format(name))
-                logger_excel.debug("excel: doi resolver failed: {}, {}".format(name, e))
-
-            # Dump final_dict to a json file.
-            final["LiPDVersion"] = 1.2
-            write_json_to_file(name, final)
-
-            # Move files to bag root for re-bagging
-            # dir : dir_data -> dir_bag
-            logger_excel.info("start cleanup")
-            dir_cleanup(dir_bag, dir_data)
-
-            # Create a bag for the 3 files
-            finish_bag(dir_bag)
-
-            # dir: dir_tmp -> dir_root
-            os.chdir(file["dir"])
-
-            # Check if same lpd file exists. If so, delete so new one can be made
-            if os.path.isfile(name_lpd):
-                os.remove(name_lpd)
-
-            # Zip dir_bag. Creates in dir_root directory
-            logger_excel.info("re-zip and rename")
-            zipper(path_name_ext=name_lpd, root_dir=dir_tmp, name=name)
-
-        # Move back to dir_root for next loop.
+        # dir: dir_tmp -> dir_root
         os.chdir(file["dir"])
 
-        # Cleanup and remove tmp directory
-        shutil.rmtree(dir_tmp)
+        # Check if same lpd file exists. If so, delete so new one can be made
+        if os.path.isfile(name_lpd):
+            os.remove(name_lpd)
 
-    return
+        # Zip dir_bag. Creates in dir_root directory
+        logger_excel.info("re-zip and rename")
+        zipper(path_name_ext=name_lpd, root_dir=dir_tmp, name=name)
+
+    # Move back to dir_root for next loop.
+    os.chdir(file["dir"])
+
+    # Cleanup and remove tmp directory
+    shutil.rmtree(dir_tmp)
+
+    return name_lpd
 
 
 # SORT THROUGH WORKSHEETS
@@ -220,7 +222,7 @@ def _get_sheet_metadata(workbook, name):
                         "idx_table": 1,
                         "old_name": sheet,
                         "new_name": sheet,
-                        "filename": "{}paleo{}measurementTable1.csv".format(name, ct_paleo),
+                        "filename": "paleo{}measurementTable1.csv".format(ct_paleo),
                         "table_name": "paleo{}measurementTable1".format(ct_paleo),
                         "data": ""
                     })
@@ -236,7 +238,7 @@ def _get_sheet_metadata(workbook, name):
                         "idx_table": 1,
                         "old_name": sheet,
                         "new_name": sheet,
-                        "filename": "{}chron{}measurementTable1.csv".format(name, ct_chron),
+                        "filename": "chron{}measurementTable1.csv".format(ct_chron),
                         "table_name": "chron{}measurementTable1".format(ct_chron),
                         "data": ""
                     })
@@ -343,7 +345,7 @@ def _sheet_meta_from_regex(m, sheets, old_name, name, ct_paleo, ct_chron):
         new_name = "{}{}".format(new_name, m.group(5))
         if idx_table:
             new_name = "{}{}".format(new_name, m.group(6))
-        filename = "{}.{}.csv".format(name, new_name)
+        filename = "{}.csv".format(new_name)
     except Exception as e:
         logger_excel.debug("excel: sheet_meta_from_regex: error during setup, {}".format(e))
 
@@ -1442,6 +1444,37 @@ def compile_fund(workbook, sheet, row, col):
     return l
 
 
+def __get_datasetname(d, filename):
+    """
+    Get the filename based on the dataset name in the metadata
+    :param str filename: Filename.lpd
+    :return str: Filename
+    """
+    try:
+        filename = d["dataSetName"]
+    except KeyError:
+        logger_excel.info("get_datasetname: KeyError: No dataSetName found. Reverting to: {}".format(filename))
+    return filename
+
+
+def __set_sheet_filenames(sheets, n):
+    """
+    Use the dataset name to build the filenames in the sheets metadata
+    :param list sheets: Sheet metadata
+    :param str n: Dataset Name
+    :return list: Sheet metadata
+    """
+    try:
+        for idx, sheet in enumerate(sheets):
+            try:
+                sheets[idx]["filename"] = "{}.{}".format(n, sheet["filename"])
+            except Exception as e:
+                logger_excel.error("set_sheet_filenames: inner: {}".format(e), exc_info=True)
+    except Exception as q:
+        logger_excel.error("set_sheet_filenames: outer: {}".format(q), exc_info=True)
+    return sheets
+
+
 def name_to_jsonld(title_in):
     """
     Convert formal titles to camelcase json_ld text that matches our context file
@@ -1673,7 +1706,7 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
     for k, v in general_temp.items():
         final_dict[k] = v
     logger_excel.info("exit cells_dn_meta")
-    return
+    return final_dict
 
 
 # CHRONOLOGY HELPER METHODS
