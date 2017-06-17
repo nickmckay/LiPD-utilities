@@ -363,21 +363,34 @@ def collapseTs():
     return
 
 
-def find(expression, ts):
+def filterTs(expression, ts):
     """
-    Find the names of the TimeSeries that match some criteria (expression)
+    Find the names of the time series entries that match the expression
     ex: find("geo_elevation == 1500", ts)
     ex: find("paleoData_variablename == sst", ts)
-    :param str expression: The filter expression to apply to the time series
+    :param str expression: Expression
     :param list ts: Time series
     :return list new_ts: Filtered time series that matches the expression
     """
     new_ts = []
     expr_lst = translate_expression(expression)
     if expr_lst:
-        new_ts = get_matches(expr_lst, ts)
+        new_ts, idxs = get_matches(expr_lst, ts)
     return new_ts
 
+
+def queryTs(expression, ts):
+    """
+    Find the indices of the time series entries that match the criteria expression
+    :param str expression: Expression
+    :param list ts: Time series
+    :return list idxs: Indices of entries that match the criteria
+    """
+    idxs = []
+    expr_lst = translate_expression(expression)
+    if expr_lst:
+        new_ts, idxs = get_matches(expr_lst, ts)
+    return idxs
 
 # DEPRECATED - TS no longer uses dictionaries or names.
 # def _createTs(names, ts):
