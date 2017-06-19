@@ -15,24 +15,30 @@ def _fix_numeric_types(c):
     :param dict c: Columns of data
     :return dict c: Columns of data
     """
-    for var, data in c.items():
-        for k, v in data.items():
-            if k in ["hasMeanValue", "hasMaxValue", "hasMinValue", "hasMedianValue"]:
-                if math.isnan(v):
-                    c[var][k] = "nan"
-                elif not isinstance(v, (int, float)):
-                    c[var][k] = float(v)
-            elif k == "hasResolution":
-                for b, g in v.items():
-                    if b in ["hasMeanValue", "hasMaxValue", "hasMinValue", "hasMedianValue"]:
-                        if math.isnan(g):
-                            c[var][k][b] = "nan"
-                        elif not isinstance(g, (int, float)):
-                            try:
-                                f = float(g)
-                                c[var][k][b] = f
-                            except Exception as e:
-                                print("error converting float: {}".format(e))
+    try:
+        for var, data in c.items():
+            for k, v in data.items():
+                if k in ["hasMeanValue", "hasMaxValue", "hasMinValue", "hasMedianValue"]:
+                    if math.isnan(v):
+                        c[var][k] = "nan"
+                    elif not isinstance(v, (int, float)):
+                        try:
+                            c[var][k] = float(v)
+                        except Exception as e:
+                            logger_inferred_data.info("fix_numeric_types: converting float: {}".format(e))
+                elif k == "hasResolution":
+                    for b, g in v.items():
+                        if b in ["hasMeanValue", "hasMaxValue", "hasMinValue", "hasMedianValue"]:
+                            if math.isnan(g):
+                                c[var][k][b] = "nan"
+                            elif not isinstance(g, (int, float)):
+                                try:
+                                    f = float(g)
+                                    c[var][k][b] = f
+                                except Exception as e:
+                                    logger_inferred_data.info("fix_numeric_types: converting float: {}".format(e))
+    except Exception as e:
+        logger_inferred_data.error("fix_numeric_types: {}".format(e))
     return c
 
 
@@ -131,80 +137,29 @@ def _get_resolution(age, values):
     return res
 
 
-# def _get_inferred_data_res(column, age):
-#     """
-#     Calculate Resolution and m/m/m/m for column values.
-#     :param dict column: Column data
-#     :param list age: Age values
-#     :return dict column: Column data - modified
-#     """
-#     try:
-#         with warnings.catch_warnings():
-#             warnings.simplefilter("ignore")
-#             # Get the values for this column
-#             values = column["values"]
-#             # Make sure that age and values are numpy arrays
-#             _values = np.array(copy.copy(values), dtype=float)
-#             _age = np.array(age, dtype=float)
-#             # If we have values, keep going
-#             if len(_values) != 0:
-#                 # Get the resolution for this age and column values data
-#                 res = _get_resolution(_age, _values).tolist()
-#                 # If we have successful resolution data, keep going
-#                 if len(res) != 0:
-#                     # Use the resolution values to create new entries and data
-#                     column["hasResolution"] = {
-#                         "hasMinValue": min(res),
-#                         "hasMaxValue": max(res),
-#                         "hasMeanValue": st.mean(res),
-#                         "hasMedianValue": st.median(res),
-#                         # "values": res.tolist()
-#                     }
-#
-#                 # Remove the NaNs from the values list.
-#                 _values = _values[np.where(~np.isnan(_values))[0]].tolist()
-#                 # Use the values to create new entries and data
-#                 column["hasMinValue"] = min(_values)
-#                 column["hasMaxValue"] = max(_values)
-#                 column["hasMedianValue"] = st.median(_values)
-#                 column["hasMeanValue"] = st.mean(_values)
-#
-#     except KeyError as e:
-#         logger_inferred_data.debug("get_inferred_data_column: KeyError: {}".format(e))
-#     except Exception as e:
-#         logger_inferred_data.debug("get_inferred_data_column: Exception: {}".format(e))
-#
-#     return column
-#
-#
-# def _get_inferred_data_column(column):
-#     """
-#     Calculate the m/m/m/m for column values.
-#     :param dict column: Column data
-#     :return dict column: Column data - modified
-#     """
-#     try:
-#         with warnings.catch_warnings():
-#             warnings.simplefilter("ignore")
-#             # Get the values for this column
-#             values = column["values"]
-#             # Make sure that age and values are numpy arrays
-#             _values = np.array(copy.copy(values), dtype=float)
-#             # If we have values, keep going
-#             if len(_values) != 0:
-#                 # Remove the NaNs from the values list.
-#                 _values = _values[np.where(~np.isnan(_values))[0]].tolist
-#                 # Use the values to create new entries and data
-#                 column["hasMinValue"] = min(_values)
-#                 column["hasMaxValue"] = max(_values)
-#                 column["hasMedianValue"] = st.median(_values)
-#                 column["hasMeanValue"] = st.mean(_values)
-#     except KeyError as e:
-#         logger_inferred_data.debug("get_inferred_data_column: KeyError: {}".format(e))
-#     except Exception as e:
-#         logger_inferred_data.debug("get_inferred_data_column: Exception: {}".format(e))
-#
-#     return column
+def __get_inferred_data_res_2(v=None, calc=True):
+    """
+    Use a list of values to calculate m/m/m/m. Resolution values or otherwise.
+    :param numpy array v: Values
+    :param bool calc: If false, we don't need calculations
+    :return dict:  Results of calculation
+    """
+    # Base: If something goes wrong, or if there are no values, then use "NaN" placeholders.
+    d = {
+        "hasMinValue": "nan", "hasMaxValue": "nan",
+        "hasMeanValue": "nan", "hasMedianValue": "nan",
+    }
+    try:
+        if calc:
+            d = {
+                "hasMinValue": np.min(v), "hasMaxValue": np.max(v),
+                "hasMeanValue": np.mean(v), "hasMedianValue": np.median(v),
+            }
+    except Exception as e:
+        logger_inferred_data.error("get_inferred_data_res_2: {}".format(e))
+
+    return d
+
 
 def _get_inferred_data_res(column, age):
     """
@@ -227,22 +182,12 @@ def _get_inferred_data_res(column, age):
                 res = _get_resolution(_age, _values)
                 # If we have successful resolution data, keep going
                 if len(res) != 0:
-                    # Use the resolution values to create new entries and data
-                    column["hasResolution"] = {
-                        "hasMinValue": np.min(res),
-                        "hasMaxValue": np.max(res),
-                        "hasMeanValue": np.mean(res),
-                        "hasMedianValue": np.median(res),
-                        # "values": res.tolist()
-                    }
+                    column["hasResolution"] = __get_inferred_data_res_2(res)
 
                 # Remove the NaNs from the values list.
                 _values = _values[np.where(~np.isnan(_values))[0]]
-                # Use the values to create new entries and data
-                column["hasMinValue"] = np.min(_values)
-                column["hasMaxValue"] = np.max(_values)
-                column["hasMedianValue"] = np.median(_values)
-                column["hasMeanValue"] = np.mean(_values)
+                # Calculate column non-resolution data, update the column with the results.
+                column.update(__get_inferred_data_res_2(_values))
 
     except KeyError as e:
         logger_inferred_data.debug("get_inferred_data_column: KeyError: {}".format(e))
@@ -270,10 +215,11 @@ def _get_inferred_data_column(column):
                 # Remove the NaNs from the values list.
                 _values = _values[np.where(~np.isnan(_values))[0]]
                 # Use the values to create new entries and data
-                column["hasMinValue"] = np.min(_values)
-                column["hasMaxValue"] = np.max(_values)
-                column["hasMedianValue"] = np.median(_values)
-                column["hasMeanValue"] = np.mean(_values)
+                column.update(__get_inferred_data_res_2(_values))
+
+            # Even though we're not calculating resolution, still add it with "NaN" placeholders.
+            column["hasResolution"] = __get_inferred_data_res_2(None, calc=False)
+
     except KeyError as e:
         logger_inferred_data.debug("get_inferred_data_column: KeyError: {}".format(e))
     except Exception as e:

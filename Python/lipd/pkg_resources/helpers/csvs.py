@@ -39,7 +39,7 @@ def _merge_csv_section(section_data, pc):
     :param dict section_data: Metadata
     :return dict: Modified metadata
     """
-    logger_csvs.info("enter  merge_csv_section: {}".format(pc))
+    logger_csvs.info("enter merge_csv_section: {}".format(pc))
 
     try:
         # Loop through each table_data in paleoData
@@ -58,7 +58,10 @@ def _merge_csv_section(section_data, pc):
     except AttributeError:
         print("Error: {} section must be a dictionary data type".format(pc))
 
-    logger_csvs.info("exit  merge_csv_section: {}".format(pc))
+    except Exception as e:
+        logger_csvs.error("merge_csv_section: {}".format(e))
+
+    logger_csvs.info("exit merge_csv_section: {}".format(pc))
     return section_data
 
 
@@ -101,6 +104,9 @@ def _merge_csv_model(models, pc, crumbs):
     except AttributeError:
         print("Error: Model section must be a list data type")
 
+    except Exception as e:
+        logger_csvs.error("merge_csv_model: {}",format(e))
+
     logger_csvs.info("exit merge_csv_model: {}".format(pc))
     return models
 
@@ -117,61 +123,65 @@ def _add_csv_to_columns(table, crumbs, pc):
     filename = _get_filename(table, crumbs)
     ensemble = False
 
-    # If there's no filename, bypass whole process because there's no way to know which file to open
-    if filename:
-        # Call read_csv_to_columns for this filename. csv_data is list of lists.
-        csv_data = read_csv_from_file(filename)
+    try:
+        # If there's no filename, bypass whole process because there's no way to know which file to open
+        if filename:
+            # Call read_csv_to_columns for this filename. csv_data is list of lists.
+            csv_data = read_csv_from_file(filename)
 
-        # If all the data columns are non-numeric types, then a missing value is not necessary
-        _only_numerics = _is_numeric_data(csv_data)
+            # If all the data columns are non-numeric types, then a missing value is not necessary
+            _only_numerics = _is_numeric_data(csv_data)
 
-        if not _only_numerics:
+            if not _only_numerics:
 
-            # Get the Missing Value key from the table-level data
-            _mv = get_missing_value_key(table, filename)
+                # Get the Missing Value key from the table-level data
+                _mv = get_missing_value_key(table, filename)
 
-            if _mv:
-                # Use the Missing Value key to replace all current missing values with "nan"
-                csv_data = _replace_missing_values_table(csv_data, _mv)
-            # else:
-            #     # If there's not a missingValue key, and the user didn't enter one in the prompt, then skip reading
-            #     # this LiPD file.
-            #     raise KeyError("Cannot read CSV data without missingValue key. Skipping file...")
+                if _mv:
+                    # Use the Missing Value key to replace all current missing values with "nan"
+                    csv_data = _replace_missing_values_table(csv_data, _mv)
+                # else:
+                #     # If there's not a missingValue key, and the user didn't enter one in the prompt, then skip reading
+                #     # this LiPD file.
+                #     raise KeyError("Cannot read CSV data without missingValue key. Skipping file...")
 
-        # Start putting CSV data into corresponding column "values" key
-        try:
-            ensemble = is_ensemble(table["columns"])
-            if ensemble:
-                # realization columns
-                if len(table["columns"]) == 1:
-                    for col_name, col_data in table["columns"].items():
-                        col_data["values"] = csv_data
-                # depth column + realization columns
-                elif len(table["columns"]) == 2:
-                    for col_name, col_data in table["columns"].items():
-                        if isinstance(col_data["number"], (int, float)):
-                            col_num = cast_int(col_data["number"])
-                            col_data['values'] = csv_data[col_num - 1]
-                        elif isinstance(col_data["number"], list):
-                            col_data["values"] = csv_data[2:]
-            else:
-                for col_name, col_data in table['columns'].items():
-                    col_num = cast_int(col_data["number"])
-                    col_data['values'] = csv_data[col_num - 1]
-        except IndexError:
-            logger_csvs.warning("add_csv_to_columns: IndexError: index out of range of csv_data list")
-        except KeyError:
-            logger_csvs.debug("add_csv_to_columns: KeyError: missing columns key")
-        except Exception as e:
-            logger_csvs.debug("add_csv_to_columns: Unknown Error:  {}".format(e))
-        # We want to keep one missing value ONLY at the table level. Remove MVs if they're still in column-level
-        table = rm_missing_values_table(table)
-        # Now that all missing values are changed to "nan", revise the key before we leave
-        table["missingValue"] = "nan"
+            # Start putting CSV data into corresponding column "values" key
+            try:
+                ensemble = is_ensemble(table["columns"])
+                if ensemble:
+                    # realization columns
+                    if len(table["columns"]) == 1:
+                        for col_name, col_data in table["columns"].items():
+                            col_data["values"] = csv_data
+                    # depth column + realization columns
+                    elif len(table["columns"]) == 2:
+                        for col_name, col_data in table["columns"].items():
+                            if isinstance(col_data["number"], (int, float)):
+                                col_num = cast_int(col_data["number"])
+                                col_data['values'] = csv_data[col_num - 1]
+                            elif isinstance(col_data["number"], list):
+                                col_data["values"] = csv_data[2:]
+                else:
+                    for col_name, col_data in table['columns'].items():
+                        col_num = cast_int(col_data["number"])
+                        col_data['values'] = csv_data[col_num - 1]
+            except IndexError:
+                logger_csvs.warning("add_csv_to_columns: IndexError: index out of range of csv_data list")
+            except KeyError:
+                logger_csvs.error("add_csv_to_columns: KeyError: missing columns key")
+            except Exception as e:
+                logger_csvs.error("add_csv_to_columns: Unknown Error:  {}".format(e))
+            # We want to keep one missing value ONLY at the table level. Remove MVs if they're still in column-level
+            table = rm_missing_values_table(table)
+            # Now that all missing values are changed to "nan", revise the key before we leave
+            table["missingValue"] = "nan"
 
-        if not ensemble:
-            # calculate inferred data before leaving this section! paleo AND chron tables
-            table = get_inferred_data_table(pc, table)
+            if not ensemble:
+                # calculate inferred data before leaving this section! paleo AND chron tables
+                table = get_inferred_data_table(pc, table)
+
+    except Exception as e:
+        logger_csvs.error("add_csv_to_columns: {}".format(e))
 
     return table
 
@@ -239,7 +249,7 @@ def write_csv_to_file(d):
             except Exception as e:
                 print("Error: CSV file not written, {}: {}".format(filename, e))
     except AttributeError as e:
-        logger_csvs.debug("write_csv_to_file: Unable to write CSV File: {}".format(e))
+        logger_csvs.error("write_csv_to_file: Unable to write CSV File: {}".format(e, exc_info=True))
     logger_csvs.info("exit write_csv_to_file")
     return
 
@@ -370,8 +380,11 @@ def _get_filename(table, crumbs):
     try:
         filename = table["filename"]
     except KeyError:
-        logger_csvs.info("_get_filename: KeyError: missing filename key for {}".format(crumbs))
+        logger_csvs.info("get_filename: KeyError: missing filename key for {}".format(crumbs))
         print("Error: Missing filename for: {} , cannot load this file".format(crumbs))
+        filename = ""
+    except Exception as e:
+        logger_csvs.error("get_filename: {}".format(e))
         filename = ""
     return filename
 
@@ -464,7 +477,7 @@ def _reorder_csv(d, filename=""):
                 _d2[data["number"]-1] = data["values"]
 
     except Exception as e:
-        logger_csvs.debug("reorder_csvs: Unable to write CSV file: {}, {}".format(filename, e))
+        logger_csvs.error("reorder_csvs: Unable to write CSV file: {}, {}".format(filename, e))
     return _d2
 
 
@@ -505,7 +518,7 @@ def _search_table_for_vals(d, filename):
                     cols[name_col] = {"number": data_col["number"], "values": vals}
         except AttributeError:
             print("Error: Table 'columns' entries must be a dictionary type")
-            logger_csvs.debug("search_table_for_vals: AttributeError: expected type dict, given type {}".format(type(d)))
+            logger_csvs.error("search_table_for_vals: AttributeError: expected type dict, given type {}".format(type(d)))
 
     return cols
 
@@ -547,7 +560,7 @@ def _merge_ensemble(ensemble, col_nums, col_vals):
             ensemble[num-1] = col_vals[num - 2]
 
     except IndexError:
-        logger_csvs.debug("merge_ensemble: IndexError: index out of range")
+        logger_csvs.error("merge_ensemble: IndexError: index out of range")
 
     return ensemble
 
