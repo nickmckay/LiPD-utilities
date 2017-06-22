@@ -43,10 +43,21 @@ emptyYearMax = find(cellfun(@isempty,yearMax));
 yearMax(emptyYearMax)=repmat({NaN},length(emptyYearMax),1);
 yearMax=cell2mat(yearMax);
 
-vers='0.3';
+yearMax(yearMax > 2000) = 2000;
+yearMin(yearMin < 000) = 000;
+yearMin(yearMin > 2000) = 2000;
+yearMax(yearMax < 000) = 000;
 
-p_lon=cell2mat({TS.geo_meanLon}');
-p_lat=cell2mat({TS.geo_meanLat}');
+
+vers='0.4';
+
+p_lon = nan(length(TS),1);
+p_lat=p_lon;
+goodLon = find(~cellfun(@isempty,{TS.geo_meanLon}));
+goodLat = find(~cellfun(@isempty,{TS.geo_meanLat}));
+
+p_lon(goodLon)=cell2mat({TS.geo_meanLon}');
+p_lat(goodLat)=cell2mat({TS.geo_meanLat}');
 
 %%
 % extract archive types and assign colors

@@ -154,19 +154,24 @@ lastPub = 20;
         pd=find(strncmp('paleoData_',fT,10));
         
         %get or create the name of the relevant paleodata table
-        if isfield(T,'paleoData_tableName')
+        if isfield(T,'paleoData_paleoNumber') & isfield(T,'paleoData_paleoMeasurementTableNumber')
+            if ischar(T.paleoData_paleoNumber)
+                T.paleoData_paleoNumber = str2num(T.paleoData_paleoNumber);
+            end
+            if ischar(T.paleoData_paleoMeasurementTableNumber)
+                T.paleoData_paleoMeasurementTableNumber = str2num(T.paleoData_paleoMeasurementTableNumber);
+            end
+            pdName =['pt' num2str(T.paleoData_paleoNumber) '_'  num2str(T.paleoData_paleoMeasurementTableNumber)] ;
+            TS(fts(f)).paleoData_paleoDataTableName=pdName;
+            T.paleoData_paleoDataTableName=pdName;
+        elseif isfield(T,'paleoData_tableName')
             
             pdName=T.paleoData_tableName;
             TS(fts(f)).paleoData_paleoDataTableName=pdName;
             
         elseif isfield(T,'paleoData_paleoDataTableName')
             pdName=T.paleoData_paleoDataTableName;
-            
-        elseif isfield(T,'paleoData_paleoNumber') & isfield(T,'paleoData_paleoMeasurementTableNumber')
-            pdName =['pt' num2str(T.paleoData_paleoNumber) '_'  num2str(T.paleoData_paleoMeasurementTableNumber)] ;
-            TS(fts(f)).paleoData_paleoDataTableName=pdName;
-            T.paleoData_paleoDataTableName=pdName;
-            
+                       
             
         else
             pdName='s1';

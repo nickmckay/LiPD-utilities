@@ -64,6 +64,7 @@ if nargin < 3
     L.geo.longitude = NaN;
     L.geo.elevation = NaN;
     L.pub = cell(1,1);
+    L.paleoData = cell(1,1);
 end
 
 if nargin < 4
