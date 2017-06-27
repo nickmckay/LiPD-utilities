@@ -1,0 +1,31 @@
+Package: lipdR
+Type: Package
+Title: LiPD utilities for R
+Version: 0.2.1
+Date: 2015-06-05
+Author: Christopher Heiser,
+	Nicholas McKay
+Maintainer: Christopher Heiser <heiser@nau.edu>
+Description: Utilities to open, modify, analyze, and store LiPD data
+Depends: R (>= 3.1.0)
+License: GNU Public License
+LazyData: TRUE
+RoxygenNote: 5.0.1
+URL: www.lipd.net
+Imports:
+	Rcpp,
+	backports,
+	lattice,
+	grid,
+	knitr,
+	markdown,
+	methods,
+	stats,
+	utils,
+	checkmate,
+	chron,
+	data.table,
+	Kmisc,
+	RJSONIO,
+	jsonlite,
+	BBmisc

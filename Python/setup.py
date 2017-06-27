@@ -19,7 +19,7 @@ class PostInstall(install):
         install.run(self)
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.1.8'
+version = '0.2.1.9'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -74,7 +74,7 @@ setup(
         "bagit>=1.5.4",
         "demjson>=2.2.4",
         "xlrd>=0.9.3",
-        "pandas<=0.19.2",
+        "pandas",
         "requests>=2.9.1",
     ],
     include_package_data=True,
