@@ -20,12 +20,14 @@ logger_misc = create_logger("misc")
 def cast_values_csvs(d, idx, x):
     """
     Attempt to cast string to float. If error, keep as a string.
-    :param str x: String data
+    :param dict d: Data
+    :param int idx: Index number
+    :param str x: Data
     :return any:
     """
     try:
         d[idx].append(float(x))
-    except ValueError as e:
+    except ValueError:
         d[idx].append(x)
         # logger_misc.warn("cast_values_csv: ValueError")
         # logger_misc.warn("ValueError: col: {}, {}".format(x, e))
@@ -67,6 +69,18 @@ def cast_int(x):
     return x
 
 
+def check_dsn(path, _json):
+    """
+    Look for a dataSetName. If one is not given, then insert the filename as the dataSetName.
+    :param str path: File path
+    :param dict _json: Metadata
+    :return dict _json: Metadata
+    """
+    if "dataSetName" not in _json:
+        _json["dataSetName"] = os.path.splitext(os.path.basename(path))[0]
+    return _json
+
+
 def clean_doi(doi_string):
     """
     Use regex to extract all DOI ids from string (i.e. 10.1029/2005pa001215)
@@ -97,6 +111,7 @@ def fix_coordinate_decimal(d):
     except Exception as e:
         logger_misc.error("fix_coordinate_decimal: {}".format(e))
     return d
+
 
 def generate_timestamp(fmt=None):
     """
@@ -200,11 +215,11 @@ def get_ensemble_counts(d):
     return _rows_cols
 
 
-def get_missing_value_key(d, filename=""):
+def get_missing_value_key(d):
     """
-    Get the Missing Value entry from a table of data. If none is found, try the columns. If still none found, prompt user.
+    Get the Missing Value entry from a table of data. If none is found, try the columns.
+    If still none found, prompt user.
     :param dict d: Table of data
-    :param str filename: Filename linked to this table
     :return str: Missing Value
     """
     _mv = "nan"
@@ -388,7 +403,8 @@ def load_fn_matches_ext(file_path, file_type):
         elif curr_ext == file_type:
             correct_ext = True
         else:
-            print("Use '{}' to load this file: {}".format(FILE_TYPE_MAP[curr_ext]["load_fn"], os.path.basename(file_path)))
+            print("Use '{}' to load this file: {}".format(FILE_TYPE_MAP[curr_ext]["load_fn"],
+                                                          os.path.basename(file_path)))
     except Exception as e:
         logger_misc.debug("load_fn_matches_ext: {}".format(e))
 

@@ -134,6 +134,7 @@ def collect_metadata_files(cwd, new_files, existing_files):
     :param dict existing_files: Files currently loaded, separated by type
     :return list: All files separated by type
     """
+    obj = {}
     try:
         os.chdir(cwd)
 
@@ -141,7 +142,7 @@ def collect_metadata_files(cwd, new_files, existing_files):
         if new_files:
             for full_path in new_files:
                 # Create the file metadata for one file, and append it to the existing files.
-                existing_files = collect_metadata_file(full_path, existing_files)
+                obj = collect_metadata_file(full_path)
 
         # directory: get all files in the directory and sort by type
         else:
@@ -158,7 +159,7 @@ def collect_metadata_files(cwd, new_files, existing_files):
     except Exception:
         logger_directory.info("directory: collect_files: there's a problem")
 
-    return existing_files
+    return obj
 
 
 def collect_metadata_file(full_path):
@@ -171,12 +172,6 @@ def collect_metadata_file(full_path):
     fne = os.path.basename(full_path)
     fn = os.path.splitext(fne)[0]
     obj = {"full_path": full_path, "filename_ext": fne, "filename_no_ext": fn, "dir": os.path.dirname(full_path)}
-    # if full_path.endswith(".lpd"):
-    #     existing_files[".lpd"].append(obj)
-    # elif full_path.endswith(".xls") or full_path.endswith(".xlsx"):
-    #     existing_files[".xls"].append(obj)
-    # elif full_path.endswith(".txt"):
-    #     existing_files[".txt"].append(obj)
     return obj
 
 
@@ -215,6 +210,30 @@ def filename_from_path(path):
     """
     head, tail = ntpath.split(path)
     return head, tail or ntpath.basename(head)
+
+
+def find_files():
+    """
+    Search for the directory containing jsonld and csv files. chdir and then quit.
+    :return none:
+    """
+    _dir = os.getcwd()
+    _files = os.listdir()
+    # Look for a jsonld file
+    for _file in _files:
+        if _file.endswith(".jsonld"):
+            return os.getcwd()
+    # No jsonld file found, try to chdir into "bag" (LiPD v1.3)
+    if "bag" in _files:
+        os.chdir("bag")
+        _dir = find_files()
+    # No "bag" dir. Try chdir into whatever dataset name dir we find (< LiPD v1.2)
+    else:
+        for _file in _files:
+            if os.path.isdir(_file):
+                os.chdir(_file)
+                _dir = find_files()
+    return _dir
 
 
 def get_filenames_generated(d, name="", csvs=""):

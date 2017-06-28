@@ -6,8 +6,6 @@ from .loggers import create_logger
 
 logger_zips = create_logger("zips")
 
-# zipper(self.dir_tmp, self.name, self.name_ext)
-
 
 def zipper(root_dir="", name="", path_name_ext=""):
     """
@@ -24,20 +22,20 @@ def zipper(root_dir="", name="", path_name_ext=""):
     return
 
 
-def unzipper(name_ext, dir_tmp):
+def unzipper(filename, dir_tmp):
     """
     Unzip .lpd file contents to tmp directory.
-    :param str name_ext: Name of lpd file with extension
+    :param str filename: filename.lpd
     :param str dir_tmp: Tmp folder to extract contents to
     :return None:
     """
     logger_zips.info("enter unzip")
     # Unzip contents to the tmp directory
     try:
-        with zipfile.ZipFile(name_ext) as f:
+        with zipfile.ZipFile(filename) as f:
             f.extractall(dir_tmp)
     except FileNotFoundError as e:
-        logger_zips.debug("unzip: FileNotFound: {}, {}".format(name_ext, e))
+        logger_zips.debug("unzip: FileNotFound: {}, {}".format(filename, e))
         shutil.rmtree(dir_tmp)
     logger_zips.info("exit unzip")
     return

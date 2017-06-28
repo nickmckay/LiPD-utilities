@@ -1,12 +1,42 @@
 import demjson
 from collections import OrderedDict
+import os
 
-from .misc import *
+from .misc import update_lipd_version, get_variable_name_table, rm_empty_fields
+from .loggers import create_logger
 
 logger_jsons = create_logger("jsons")
 
 
 # IMPORT
+
+def read_jsonld():
+    """
+    Find jsonld file in the cwd (or within a 2 levels below cwd), and load it in.
+    :return dict: Jsonld data
+    """
+    _d = {}
+
+    # Find a jsonld file in cwd. If none, fallback for a json file. If neither found, return empty.
+    _filename = [file for file in os.listdir() if file.endswith(".jsonld")][0]
+    if not _filename:
+        _filename = [file for file in os.listdir() if file.endswith(".json")][0]
+
+    if _filename:
+        try:
+            # Load and decode
+            _d = demjson.decode_file(_filename, decode_float=float)
+            logger_jsons.info("Read JSONLD successful: {}".format(_filename))
+        except FileNotFoundError as fnf:
+            print("Error: metadata file not found: {}".format(_filename))
+            logger_jsons.error("read_jsonld: FileNotFound: {}, {}".format(_filename, fnf))
+        except Exception as e:
+            print("Error: unable to read metadata file: {}".format(e))
+            logger_jsons.error("read_jsonld: Exception: {}, {}".format(_filename, e))
+    else:
+        print("Error: metadata file (.jsonld) not found in LiPD archive")
+    logger_jsons.info("exit read_json_from_file")
+    return _d
 
 
 def read_json_from_file(filename):
@@ -19,12 +49,12 @@ def read_json_from_file(filename):
     d = OrderedDict()
     try:
         # Load and decode
-        d = demjson.decode_file(filename)
+        d = demjson.decode_file(filename, decode_float=float)
         logger_jsons.info("successful read from json file")
     except FileNotFoundError:
         # Didn't find a jsonld file. Maybe it's a json file instead?
         try:
-            d = demjson.decode_file(os.path.splitext(filename)[0] + '.json')
+            d = demjson.decode_file(os.path.splitext(filename)[0] + '.json', decode_float=float)
         except FileNotFoundError as e:
             # No json or jsonld file. Exit
             print("Error: jsonld file not found: {}".format(filename))
