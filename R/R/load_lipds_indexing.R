@@ -102,7 +102,20 @@ moveColsUp <- function(table){
       if (is.null(vn)){
         table[[i]] <- table[["columns"]][[i]]
       } else {
-        table[[vn]] <- table[["columns"]][[i]]
+        # edge case: more than one column have the same variablename. append a number so there aren't any overwrite conflicts.
+        if (vn %in% names(table)){
+          idx <- 1
+          vn.tmp <-paste0(vn, "-", as.character(idx))
+          while(vn.tmp %in% table){
+            idx <- idx + 1
+            vn.tmp <-paste0(vn, "-", as.character(idx))
+          }
+          table[[vn.tmp]] = table[["columns"]][[i]]
+        }
+        # normal case: place the column data in the table
+        else {
+          table[[vn]] <- table[["columns"]][[i]]
+        }
       }
     }
     # remove the columns item from table
