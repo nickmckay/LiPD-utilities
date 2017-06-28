@@ -135,7 +135,7 @@ def _add_csv_to_columns(table, crumbs, pc):
             if not _only_numerics:
 
                 # Get the Missing Value key from the table-level data
-                _mv = get_missing_value_key(table, filename)
+                _mv = get_missing_value_key(table)
 
                 if _mv:
                     # Use the Missing Value key to replace all current missing values with "nan"

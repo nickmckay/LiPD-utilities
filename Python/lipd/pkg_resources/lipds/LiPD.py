@@ -6,7 +6,7 @@ from ..helpers.jsons import write_json_to_file, idx_num_to_name, idx_name_to_num
 from ..helpers.loggers import create_logger
 from ..helpers.misc import put_tsids, check_dsn, rm_empty_doi, rm_values_fields
 
-from collections import OrderedDict
+import copy
 import os
 import shutil
 
@@ -56,29 +56,33 @@ def lipd_read(path):
 # WRITE
 
 
-def lipd_write(dat, path):
+def lipd_write(_json, path, name):
     """
     Saves current state of LiPD object data. Outputs to a LiPD file.
     Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,
         zip up bag folder, place lipd in target dst, move to original dir, delete tmp
-    :param dict dat: LiPD data
+    :param dict _json_tmp: Metadata
     :param str path: Destination path
+    :param str name: Filename w/o extension
     :return none:
     """
+    # Json is pass by reference. Make a copy so we don't mess up the original data.
+    _json_tmp = copy.deepcopy(_json)
     dir_original = os.getcwd()
     try:
         dir_tmp = create_tmp_dir()
         dir_bag = os.path.join(dir_tmp, "bag")
         os.mkdir(dir_bag)
         os.chdir(dir_bag)
-        _dsn = check_dsn(path, dat)
+        _json_tmp = check_dsn(name, _json_tmp)
+        _dsn = _json_tmp["dataSetName"]
         _dsn_lpd = _dsn + ".lpd"
-        _json, _csv = get_csv_from_metadata(_dsn, dat)
+        _json_tmp, _csv = get_csv_from_metadata(_dsn, _json_tmp)
         write_csv_to_file(_csv)
-        _json = rm_values_fields(_json)
-        _json = put_tsids(_json)
-        _json = idx_name_to_num(_json)
-        write_json_to_file(_dsn, _json)
+        _json_tmp = rm_values_fields(_json_tmp)
+        _json_tmp = put_tsids(_json_tmp)
+        _json_tmp = idx_name_to_num(_json_tmp)
+        write_json_to_file(_dsn, _json_tmp)
         create_bag(dir_bag)
         rm_file_if_exists(path, _dsn_lpd)
         zipper(root_dir=dir_tmp, name="bag", path_name_ext=os.path.join(path, _dsn_lpd))

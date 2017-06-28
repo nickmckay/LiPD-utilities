@@ -69,15 +69,15 @@ def cast_int(x):
     return x
 
 
-def check_dsn(path, _json):
+def check_dsn(name, _json):
     """
-    Look for a dataSetName. If one is not given, then insert the filename as the dataSetName.
-    :param str path: File path
+    Get a dataSetName. If one is not provided, then insert the filename as the dataSetName.
+    :param str name: Filename w/o extension
     :param dict _json: Metadata
     :return dict _json: Metadata
     """
     if "dataSetName" not in _json:
-        _json["dataSetName"] = os.path.splitext(os.path.basename(path))[0]
+        _json["dataSetName"] = name
     return _json
 
 
@@ -135,6 +135,27 @@ def generate_tsid(size=8):
     chars = string.ascii_uppercase + string.digits
     _gen = "".join(random.choice(chars) for _ in range(size))
     return "PYT" + str(_gen)
+
+
+def get_appended_name(name, columns):
+    """
+    Append numbers to a name until it no longer conflicts with the other names in a column.
+    Necessary to avoid overwriting columns and losing data. Loop a preset amount of times to avoid an infinite loop.
+    There shouldn't ever be more than two or three identical variable names in a table.
+    :param str name: Variable name in question
+    :param dict columns: Columns listed by variable name
+    :return str: Appended variable name
+    """
+    loop = 0
+    while name in columns:
+        loop += 1
+        if loop > 10:
+            logger_misc.warn("get_appended_name: Too many loops: Tried to get appended name but something looks wrong")
+            break
+        tmp = name + "-" + str(loop)
+        if tmp not in columns:
+            return tmp
+    return name + "-99"
 
 
 def get_authors_as_str(x):

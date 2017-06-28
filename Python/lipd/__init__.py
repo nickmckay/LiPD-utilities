@@ -764,17 +764,23 @@ def __write_lipd(dat, usr_path, filename):
     if valid_path:
         # Filename is given, write out one file
         if filename:
-            lipd_lib.write_lipd(usr_path, filename)
-            if verbose:
-                print("writing: {}".format(filename))
+            try:
+                if verbose:
+                    print("writing: {}".format(filename))
+                lipd_write(dat[filename], usr_path)
+            except Exception as e:
+                print("Error: Unable to write file: {}, {}".format(filename, e))
         # Filename is not given, write out whole library
         else:
-            _lib = list(lipd_lib.get_master().keys())
-            if _lib:
-                for filename in _lib:
-                    lipd_lib.write_lipd(usr_path, filename)
-                    if verbose:
-                        print("writing: {}".format(filename))
+            if dat:
+                for name, lipd_dat in dat.items():
+                    try:
+                        if verbose:
+                            print("writing: {}".format(name))
+                        lipd_write(lipd_dat, usr_path, name)
+                    except Exception as e:
+                        print("Error: Unable to write file: {}, {}".format(name, e))
+
     return
 
 

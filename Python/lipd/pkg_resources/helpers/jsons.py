@@ -1,9 +1,9 @@
+from .misc import update_lipd_version, get_variable_name_table, rm_empty_fields, get_appended_name
+from .loggers import create_logger
+
 import demjson
 from collections import OrderedDict
 import os
-
-from .misc import update_lipd_version, get_variable_name_table, rm_empty_fields
-from .loggers import create_logger
 
 logger_jsons = create_logger("jsons")
 
@@ -229,23 +229,25 @@ def _idx_col_by_name(l):
     """
     Iter over columns list. Turn indexed-by-num list into an indexed-by-name dict. Keys are the variable names.
     :param list l: Columns
-    :return dict: New column indexed-by-name
+    :return dict: New columns indexed-by-name
     """
-    col_new = OrderedDict()
+    cols_new = OrderedDict()
 
     # Iter for each column in the list
     try:
         for col in l:
             try:
                 col_name = col["variableName"]
-                col_new[col_name] = col
+                if col_name in cols_new:
+                    col_name = get_appended_name(col_name, cols_new)
+                cols_new[col_name] = col
             except KeyError:
                 print("Error: missing 'variableName' in column")
                 logger_jsons.info("idx_col_by_name: KeyError: missing variableName key")
     except AttributeError:
         logger_jsons.info("idx_col_by_name: AttributeError: expected list type, given {} type".format(type(l)))
 
-    return col_new
+    return cols_new
 
 
 # PREP FOR EXPORT
