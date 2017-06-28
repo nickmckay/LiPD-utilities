@@ -1,7 +1,19 @@
-function writeLiPDLibrary(Dout,overwrite,libDir)
+function writeLiPD(Dout,overwrite,libDir)
+%check to see if it's a single LiPD file
+if isfield(Dout,'dataSetName')
+    newD.(makeValidName(Dout)) = Dout;
+    single = 1;
+else
+    single = 0;
+end
+
 %write LiPD library
 if nargin < 3
+    if single
+        libDir = pwd;
+    else
     libDir=uigetdir;
+    end
 end
 
 if nargin<2
@@ -26,7 +38,8 @@ dnames=fieldnames(Dout);
 for d=1:length(dnames)
     cd(libDir)
     try
-    writeLiPD(Dout.(dnames{d}));
+    writeLiPDFile(Dout.(dnames{d}));
+    display(['Writing ' dnames{d} '.lpd...'])
     catch ME
         warning([dnames{d} ' encountered errors and didnt write out']);
         proceed = input('Do you want to proceed?')
