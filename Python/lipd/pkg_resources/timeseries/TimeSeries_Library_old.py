@@ -1,4 +1,4 @@
-from .TimeSeries import TimeSeries
+from .TimeSeries_old import TimeSeries
 from ..helpers.loggers import create_logger
 
 logger_ts_lib = create_logger('TimeSeries_Library')

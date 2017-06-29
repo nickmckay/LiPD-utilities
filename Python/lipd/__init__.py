@@ -1,6 +1,7 @@
 from .pkg_resources.lipds.LiPD import lipd_read, lipd_write
-from .pkg_resources.timeseries.Convert import *
+from .pkg_resources.timeseries.timeseries import extract, collapse
 from .pkg_resources.doi.doi_main import doi_main
+from .pkg_resources.helpers.csvs import get_csv_from_metadata
 from .pkg_resources.excel.excel_main import excel_main
 from .pkg_resources.noaa.noaa_main import noaa_prompt, noaa_to_lpd, lpd_to_noaa
 from .pkg_resources.helpers.ts import translate_expression, get_matches
@@ -25,13 +26,10 @@ def run():
     :return none:
     """
     # GLOBALS
-    global cwd, lipd_lib, ts_lib, convert, files, logger_start, logger_benchmark, verbose, note_validate, note_update
+    global cwd, files, logger_start, logger_benchmark, settings
     # files = {".lpd": [ {"full_path", "filename_ext", "filename_no_ext", "dir"} ], ".xls": [...], ".txt": [...]}
-    verbose = True
-    note_update = True
-    note_validate = True
+    settings = {"note_update": True, "note_validate": True, "verbose": True}
     cwd = os.getcwd()
-    convert = Convert()
     # logger created in whatever directory lipd is called from
     logger_start = create_logger("start")
     logger_benchmark = create_benchmark("benchmarks", "benchmark.log")
@@ -46,8 +44,8 @@ def readLipd(usr_path=""):
     :param str usr_path: Path to file (optional)
     :return str cwd: Current Working Directory
     """
-    global cwd
-    if verbose:
+    global cwd, settings
+    if settings["verbose"]:
         __disclaimer(opt="update")
     start = clock()
     __read(usr_path, ".lpd")
@@ -114,9 +112,9 @@ def excel():
 
     :return none:
     """
-    global files, cwd, verbose
+    global files, cwd, settings
     # Turn off verbose. We don't want to clutter the console with extra reading/writing output statements
-    verbose = False
+    settings["verbose"] = False
     # Find excel files
     print("Found " + str(len(files[".xls"])) + " Excel files")
     logger_start.info("found excel files: {}".format(len(files[".xls"])))
@@ -138,7 +136,7 @@ def excel():
     end = clock()
     logger_benchmark.info(log_benchmark("excel", start, end))
     # Start printing stuff again.
-    verbose = True
+    settings["verbose"] = True
     return
 
 
@@ -337,7 +335,7 @@ def extractTs(d=None):
 
     :return list l: Time series
     """
-    l = []
+    _l = []
     start = clock()
     try:
         if not d:
@@ -350,11 +348,13 @@ def extractTs(d=None):
                     # Receive a time series (list of time series objects) and add it to what we currently have.
                     # Continue building time series until all datasets are processed.
                     print("extracting: {}".format(k))
-                    l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+                    _v = copy.deepcopy(v)
+                    _dfs = lipd_to_df(_v, getCsv(_v))
+                    _l += (extract(_v, _dfs))
                 except Exception as e:
                     print("Error: Skipping file: {}: {}".format(k, e))
                     logger_start.debug("extractTs: Exception: {}".format(e))
-            print("Finished time series: {} entries".format(len(l)))
+            print("Finished time series: {} entries".format(len(_l)))
     except KeyError as ke:
         print("Error: Unable to extractTs: {}".format(ke))
         logger_start.error("extractTs: KeyError: {}".format(ke))
@@ -363,25 +363,33 @@ def extractTs(d=None):
         logger_start.error("extractTs: Exception: {}".format(e))
     end = clock()
     logger_benchmark.info(log_benchmark("extractTs", start, end))
-    return l
+    return _l
 
 
-def collapseTs():
+def collapseTs(ts=None):
     """
-    Export TimeSeries back to LiPD Library. Updates information in LiPD objects.
-    :return none:
+    Collapse a time series back into LiPD record form.
+
+    Example
+    1. D = lipd.readLipd()
+    2. ts = lipd.extractTs(D)
+    3. New_D = lipd.collapseTs(ts)
+
+    :param list ts: Time series
+    :return dict: LiPD data
     """
     l = []
-    # Get all TSOs from TS_Library, and add them to a list
-    for k, v in ts_lib.get_master().items():
-        l.append({'name': v.get_lpd_name(), 'data': v.get_master()})
-    # Send the TSOs list through to be converted. Then let the LiPD_Library load the metadata into itself.
-    try:
-        lipd_lib.load_tsos(convert.lipd_extract_main(l))
-    except Exception:
-        print("Error: Unable to convert time series to LiPD")
-        logger_start.debug("collapseTs failed")
-    return
+    _d = {}
+    if not ts:
+        print("Error: Time series data not provided. Pass time series into the function.")
+    else:
+        # Send time series list through to be collapsed.
+        try:
+            _d = collapse(ts)
+        except Exception as e:
+            print("Error: Unable to collapse the time series: {}".format(e))
+            logger_start.error("collapseTs: unable to collapse the time series: {}".format(e))
+    return _d
 
 
 def filterTs(ts, expression):
@@ -434,12 +442,22 @@ def queryTs(ts, expression):
 # SHOW
 
 
-def showLipds(d):
+def showLipds(D=None):
     """
     Display the dataset names of a given LiPD data
+
+    Example
+    lipd.showLipds(D)
+
+    :pararm dict D: LiPD data
     :return none:
     """
-    print(json.dumps(d.keys(), indent=2))
+
+    if not D:
+        print("Error: LiPD data not provided. Pass LiPD data into the function.")
+    else:
+        print(json.dumps(D.keys(), indent=2))
+
     return
 
 
@@ -513,25 +531,35 @@ def showDfs(d):
 
 # GET
 
-def getLipdNames():
+def getLipdNames(D=None):
     """
     Get a list of all LiPD names in the library
+
+    Example
+    names = lipd.getLipdNames(D)
+
     :return list f_list: File list
     """
-    f_list = []
+    _names = []
     try:
-        f_list = lipd_lib.get_lipd_names()
+        if not D:
+            print("Error: LiPD data not provided. Pass LiPD data into the function.")
+        else:
+            _names = D.keys()
     except Exception:
         pass
-    return f_list
+    return _names
 
 
 def getMetadata(L):
     """
     Get metadata from a LiPD data in memory
-    Example: getMetadata(D["Africa-ColdAirCave.Sundqvist.2013"])
-    :param dict L: Metadata (with values)
-    :return dict d: Metadata (without values)
+
+    Example
+    m = lipd.getMetadata(D["Africa-ColdAirCave.Sundqvist.2013"])
+
+    :param dict L: One LiPD record
+    :return dict d: LiPD record (metadata only)
     """
     _l = {}
     try:
@@ -541,23 +569,33 @@ def getMetadata(L):
         _l = rm_values_fields(_l)
     except Exception as e:
         # Input likely not formatted correctly, though other problems can occur.
-        print("Error: Unable to get metadata. Please check that input is LiPD data: {}".format(e))
+        print("Error: Unable to get data. Please check that input is LiPD data: {}".format(e))
     return _l
 
 
-def getCsv(filename):
+def getCsv(L=None):
     """
-    Get CSV from a  LiPD file
-    :param str filename: LiPD filename
-    :return dict d: CSV
+    Get CSV from LiPD data
+
+    Example
+    c = lipd.getCsv(D["Africa-ColdAirCave.Sundqvist.2013"])
+
+    :param dict L: One LiPD record
+    :return dict d: CSV data
     """
-    d = {}
+    _c = {}
     try:
-        d = lipd_lib.get_csv(filename)
-    except KeyError:
-        print("Error: Unable to find record")
-        logger_start.warn("Unable to find record {}".format(filename))
-    return d
+        if not L:
+            print("Error: LiPD data not provided. Pass LiPD data into the function.")
+        else:
+            _l = copy.deepcopy(L)
+            _j, _c = get_csv_from_metadata(_l["dataSetName"], _l)
+    except KeyError as ke:
+        print("Error: Unable to get data. Please check that input is LiPD data: {}".format(ke))
+    except Exception as e:
+        print("Error: Unable to get data. Something went wrong: {}".format(e))
+        logger_start.warn("getCsv: Exception: Unable to process lipd data: {}".format(e))
+    return _c
 
 
 def getLibrary():
@@ -585,7 +623,7 @@ def writeLipd(dat, usr_path="", filename=""):
     :param str filename: LiPD filename, for writing one specific file (optional)
     :return none:
     """
-    global verbose
+    global settings
     start = clock()
     __write_lipd(dat, usr_path, filename)
     end = clock()
@@ -621,7 +659,7 @@ def __universal_read(file_path, file_type):
     :param str file_type: One of approved file types: xls, xlsx, txt, lpd
     :return none:
     """
-    global files, lipd_lib, cwd, verbose
+    global files, cwd, settings
 
     # check that we are using the correct function to load this file type. (i.e. readNoaa for a .txt file)
     correct_ext = load_fn_matches_ext(file_path, file_type)
@@ -634,7 +672,7 @@ def __universal_read(file_path, file_type):
 
         # get file metadata for one file
         file_meta = collect_metadata_file(file_path)
-        if verbose:
+        if settings["verbose"]:
             print("reading: {}".format(file_meta["filename_ext"]))
 
         # append to global files, then load in lipd_lib
@@ -785,7 +823,7 @@ def __write_lipd(dat, usr_path, filename):
     :param str filename: Target file
     :return none:
     """
-    global verbose
+    global settings
     # no path provided. start gui browse
     if not usr_path:
         # got dir path
@@ -797,7 +835,7 @@ def __write_lipd(dat, usr_path, filename):
         # Filename is given, write out one file
         if filename:
             try:
-                if verbose:
+                if settings["verbose"]:
                     print("writing: {}".format(filename))
                 lipd_write(dat[filename], usr_path, filename)
             except Exception as e:
@@ -807,7 +845,7 @@ def __write_lipd(dat, usr_path, filename):
             if dat:
                 for name, lipd_dat in dat.items():
                     try:
-                        if verbose:
+                        if settings["verbose"]:
                             print("writing: {}".format(name))
                         lipd_write(lipd_dat, usr_path, name)
                     except Exception as e:
@@ -821,14 +859,14 @@ def __disclaimer(opt=""):
     Print the disclaimers once. If they've already been shown, skip over.
     :return none:
     """
-    global note_validate, note_update
+    global settings
     if opt is "update":
         print("Disclaimer: LiPD files may be updated and modified to adhere to standards\n")
-        note_update = False
+        settings["note_update"] = False
     if opt is "validate":
         print("Note: Use lipd.validate() or www.LiPD.net/create "
               "to ensure that your new LiPD file(s) are valid")
-        note_validate = False
+        settings["note_validate"] = False
     return
 
 # GLOBALS
