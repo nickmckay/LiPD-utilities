@@ -7,14 +7,15 @@ from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst, list_files, collect_metadata_file
 from .pkg_resources.helpers.loggers import create_logger, log_benchmark, create_benchmark
-from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext
+from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext, rm_values_fields
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
 from .pkg_resources.helpers.validator_api import get_validator_results, display_results
 from .pkg_resources.helpers.alternates import FILE_TYPE_MAP
 
 from time import clock
 import os
-
+import json
+import copy
 # READ
 
 
@@ -105,7 +106,12 @@ def readAll(usr_path=""):
 
 def excel():
     """
-    Wrapper function: Convert Excel files to LiPD files
+    Convert Excel files to LiPD files
+
+    Example
+    1: lipd.readExcel()
+    2: lipd.excel()
+
     :return none:
     """
     global files, cwd, verbose
@@ -122,14 +128,12 @@ def excel():
         filename = excel_main(file)
         try:
             # Read the new LiPD file back in, to get fixes, inferred calculations, updates, etc.
-            readLipd(os.path.join(file["dir"], filename))
-        except Exception as e:
-            logger_start.debug("excel: Converted excel to lipd file, but unable readLipd(): {}, {}".format(file["filename_ext"], e))
-        try:
+            _d = readLipd(os.path.join(file["dir"], filename))
             # Write the modified LiPD file back out again.
-            writeLipd(usr_path=cwd)
+            writeLipd(_d, cwd, filename)
         except Exception as e:
-            logger_start.debug("excel: Unable to writeLipds with new lipd files, {}".format(e))
+            logger_start.error("excel: Unable to read/write new LiPD file, {}".format(e))
+            print("Error: Unable to process new LiPD file: {}, {}".format(filename, e))
     # Time!
     end = clock()
     logger_benchmark.info(log_benchmark("excel", start, end))
@@ -138,9 +142,18 @@ def excel():
     return
 
 
-def noaa():
+def noaa(d=None):
     """
     Wrapper function: Convert between NOAA and LiPD files
+
+    Example: LiPD to NOAA converter
+    1: D = lipd.readLipd()
+    2: lipd.noaa(D)
+
+    Example: NOAA to LiPD converter
+    1: readNoaa()
+    2: lipd.noaa()
+
     :return none:
     """
     global files, lipd_lib, cwd
@@ -152,21 +165,18 @@ def noaa():
     start = clock()
     # LiPD mode: Convert LiPD files to NOAA files
     if _mode == "1":
-
-        _lib = lipd_lib.get_master()
-
-        # For each LiPD file in the LiPD Library
-        for filename, obj in _lib.items():
-            # Get the LiPD object data
-            # _obj = dict(obj)
-            # Process this data through the converter
-            _obj_modified = lpd_to_noaa(obj)
-            # Overwrite the data in the LiPD object with our new data.
-            _lib[filename] = _obj_modified
-        # Replace the data in the LiPD Library master
-        lipd_lib.put_master(_lib)
-        # Write out the new LiPD files, since they now contain the NOAA URL data
-        writeLipd(usr_path=cwd)
+        if not d:
+            print("Error: LiPD data must be provided for LiPD -> NOAA conversions")
+        else:
+            # For each LiPD file in the LiPD Library
+            for dsn, dat in d.items():
+                _l = copy.deepcopy(dat)
+                # Process this data through the converter
+                _l_modified = lpd_to_noaa(_l)
+                # Overwrite the data in the LiPD object with our new data.
+                d[dsn] = _l_modified
+            # Write out the new LiPD files, since they now contain the new NOAA URL data
+            writeLipd(d, cwd)
 
     # NOAA mode: Convert NOAA files to LiPD files
     elif _mode == "2":
@@ -182,8 +192,13 @@ def noaa():
 
 def doi():
     """
-    Wrapper function: Update publication information using data DOIs
-    :return:
+    Update publication information using data DOIs. Updates LiPD files on disk, not in memory.
+
+    Example
+    1: lipd.readLipd()
+    2: lipd.doi()
+
+    :return none:
     """
     global files
     doi_main(files)
@@ -312,30 +327,40 @@ def filterDfs(expr):
 # ANALYSIS - TIME SERIES
 
 
-def extractTs():
+def extractTs(d=None):
     """
-    Create a time series using the LiPD library
+    Create a time series using LiPD data
+
+    Example
+    1. D = lipd.readLipd()
+    2. ts = lipd.extractTs(D)
+
     :return list l: Time series
     """
     l = []
     start = clock()
     try:
-        # Loop over the LiPD files in the LiPD_Library
-        for k, v in lipd_lib.get_master().items():
-            try:
-                # Get metadata from this LiPD object. Convert.
-                # Receive a time series (list of time series objects) and add it to what we currently have.
-                # Continue building time series until all datasets are processed.
-                print("extracting: {}".format(k))
-                l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
-            except Exception as e:
-                print("Error: Skipping {}: {}".format(k, e))
-                logger_start.debug("extractTs: Exception: {}".format(e))
-        print("Finished time series: {} entries".format(len(l)))
-    except KeyError as e:
-        print("Error: Unable to extractTimeSeries")
-        logger_start.debug("extractTimeSeries() failed at {}".format(e))
-
+        if not d:
+            print("Error: LiPD data not provided. Pass LiPD data into the function.")
+        else:
+            # Loop over the LiPD files in the LiPD_Library
+            for k, v in d.items():
+                try:
+                    # Get metadata from this LiPD object. Convert.
+                    # Receive a time series (list of time series objects) and add it to what we currently have.
+                    # Continue building time series until all datasets are processed.
+                    print("extracting: {}".format(k))
+                    l += (convert.ts_extract_main(v.get_master(), v.get_dfs_chron()))
+                except Exception as e:
+                    print("Error: Skipping file: {}: {}".format(k, e))
+                    logger_start.debug("extractTs: Exception: {}".format(e))
+            print("Finished time series: {} entries".format(len(l)))
+    except KeyError as ke:
+        print("Error: Unable to extractTs: {}".format(ke))
+        logger_start.error("extractTs: KeyError: {}".format(ke))
+    except Exception as e:
+        print("Error: Unable to extractTs: {}".format(e))
+        logger_start.error("extractTs: Exception: {}".format(e))
     end = clock()
     logger_benchmark.info(log_benchmark("extractTs", start, end))
     return l
@@ -359,7 +384,7 @@ def collapseTs():
     return
 
 
-def filterTs(expression, ts):
+def filterTs(ts, expression):
     """
     Find the names of the time series entries that match the expression
     ex: find("geo_elevation == 1500", ts)
@@ -375,7 +400,7 @@ def filterTs(expression, ts):
     return new_ts
 
 
-def queryTs(expression, ts):
+def queryTs(ts, expression):
     """
     Find the indices of the time series entries that match the criteria expression
     :param str expression: Expression
@@ -409,23 +434,27 @@ def queryTs(expression, ts):
 # SHOW
 
 
-def showLipds():
+def showLipds(d):
     """
-    Display the filenames in the LiPD library
+    Display the dataset names of a given LiPD data
     :return none:
     """
-    lipd_lib.show_lipds()
+    print(json.dumps(d.keys(), indent=2))
     return
 
 
-def showMetadata(filename):
+def showMetadata(dat):
     """
-    Display the contents of the specified LiPD file in the library.
-    (ex. displayLiPD NAm-ak000.lpd)
-    :param str filename: LiPD filename
+    Display the metadata specified LiPD in pretty print
+
+    Example
+    showMetadata(D["Africa-ColdAirCave.Sundqvist.2013"])
+
+    :param dict dat: Metadata
     :return none:
     """
-    lipd_lib.show_metadata(filename)
+    _tmp = rm_values_fields(copy.deepcopy(dat))
+    print(json.dumps(_tmp, indent=2))
     return
 
 
@@ -497,20 +526,23 @@ def getLipdNames():
     return f_list
 
 
-def getMetadata(filename):
+def getMetadata(L):
     """
-    Get metadata from a LiPD file
-    :param str filename: LiPD filename
-    :return dict d: Metadata
+    Get metadata from a LiPD data in memory
+    Example: getMetadata(D["Africa-ColdAirCave.Sundqvist.2013"])
+    :param dict L: Metadata (with values)
+    :return dict d: Metadata (without values)
     """
-    d = {}
+    _l = {}
     try:
-        d = lipd_lib.get_metadata(filename)
-    except KeyError:
-        print("Error: Unable to find LiPD file")
-        logger_start.warn("KeyError: Unable to find record {}".format(filename))
-    # print("Process Complete")
-    return d
+        # Create a copy. Do not affect the original data.
+        _l = copy.deepcopy(L)
+        # Remove values fields
+        _l = rm_values_fields(_l)
+    except Exception as e:
+        # Input likely not formatted correctly, though other problems can occur.
+        print("Error: Unable to get metadata. Please check that input is LiPD data: {}".format(e))
+    return _l
 
 
 def getCsv(filename):
@@ -767,7 +799,7 @@ def __write_lipd(dat, usr_path, filename):
             try:
                 if verbose:
                     print("writing: {}".format(filename))
-                lipd_write(dat[filename], usr_path)
+                lipd_write(dat[filename], usr_path, filename)
             except Exception as e:
                 print("Error: Unable to write file: {}, {}".format(filename, e))
         # Filename is not given, write out whole library
