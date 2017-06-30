@@ -106,7 +106,7 @@ moveColsUp <- function(table){
         if (vn %in% names(table)){
           idx <- 1
           vn.tmp <-paste0(vn, "-", as.character(idx))
-          while(vn.tmp %in% table){
+          while(vn.tmp %in% names(table)){
             idx <- idx + 1
             vn.tmp <-paste0(vn, "-", as.character(idx))
           }
