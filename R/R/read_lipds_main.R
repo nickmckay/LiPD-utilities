@@ -7,13 +7,15 @@
 #' Main LiPD reading function. Combines all processes into one.
 #' @export
 #' @keywords internal
+#' @param path Target path (optional)
 #' @return D LiPD Library
-readLipd <- function(){
+readLipd <- function(path=NULL){
   # setModules()
   options(warn = -1)
+  D = list()
 
-  # Ask user where files are stored
-  path.and.file <- getSrcOrDst()
+  # Ask user where files are stored, or sort the given path parameter
+  path.and.file <- getSrcOrDst(path)
 
   # Do initial set up
   working.dir <- path.and.file[["dir"]]
@@ -23,17 +25,21 @@ readLipd <- function(){
 
   # Get names of lipd files present
   lpds_ext <- getListLpdExt(path.and.file)
-
-  if (!is.null(path.and.file$file)){
-    # Read one file. Reads data directly into variable
-    # tryCatch({
-      D <- singleRead(lpds_ext[[1]], working.dir, tmp)
-    # }, error=function(cond){
-    #   print(paste0("read_lipds_main: readLipd: Failed to import with singleRead(), ", cond))
-    # })
+  
+  if (isNullOb(lpds_ext)){
+    print("No LiPD file(s) found in the given path")
   } else {
-    # Read multiple files. Reads files into a list by filename.
-    D <- multiRead(lpds_ext, working.dir, tmp)
+    if (!is.null(path.and.file$file)){
+      # Read one file. Reads data directly into variable
+      # tryCatch({
+      D <- singleRead(lpds_ext[[1]], working.dir, tmp)
+      # }, error=function(cond){
+      #   print(paste0("read_lipds_main: readLipd: Failed to import with singleRead(), ", cond))
+      # })
+    } else {
+      # Read multiple files. Reads files into a list by filename.
+      D <- multiRead(lpds_ext, working.dir, tmp)
+    }
   }
   return(D)
 }
@@ -42,6 +48,9 @@ readLipd <- function(){
 #' Loop over multiple LiPD files. Read one at a time. 
 #' @export
 #' @keywords internal
+#' @param lpds_ext List of LiPD filenames to read (w/ .lpd extension)
+#' @param working.dir Directory that contains the target files
+#' @param tmp Temporary directory to unpack LiPD data
 #' @return D LiPD Library
 multiRead <- function(lpds_ext, working.dir, tmp){
   # library to store all lpd data, indexed by lpd dataset name (no extension)
@@ -63,6 +72,9 @@ multiRead <- function(lpds_ext, working.dir, tmp){
 #' Read one LiPD file. All steps
 #' @export
 #' @keywords internal
+#' @param lpds_ext List of LiPD filenames to read (w/ .lpd extension)
+#' @param working.dir Directory that contains the target files
+#' @param tmp Temporary directory to unpack LiPD data
 #' @return d LiPD File
 singleRead <- function(lpd, working.dir, tmp){
   d <- list()

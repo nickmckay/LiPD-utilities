@@ -1,20 +1,7 @@
 ###############################################
 ## Read LiPD - Helpers
-## Misc functions that aid the reading of LiPD
-## files
+## Misc functions that aid the reading of LiPD files
 ###############################################
-
-#' #' Import each of the required modules for the package
-#' #' @export
-#' #' @keywords internal
-#' #' @return none
-#' setModules <- function(){
-#'   suppressPackageStartupMessages(library(tools, quietly=TRUE, verbose=FALSE))
-#'   suppressPackageStartupMessages(library(Kmisc, quietly=TRUE, verbose=FALSE))
-#'   suppressPackageStartupMessages(library(RJSONIO, quietly=TRUE, verbose=FALSE))
-#'   suppressPackageStartupMessages(library(jsonlite, quietly=TRUE, verbose=FALSE))
-#'   suppressPackageStartupMessages(library(BBmisc, quietly=TRUE, verbose=FALSE))
-#' }
 
 #' Get list of all LiPD files in current directory
 #' @export
@@ -25,7 +12,7 @@ getListLpdExt <- function(path.and.file){
   file <- path.and.file[["file"]]
   # Multiple file grab. No single filename given.
   if (is.null(file)){
-    f <- list.files(path=getwd(), pattern='\\.lpd$')
+    f <- list.files(path=path.and.file[["dir"]], pattern='\\.lpd$')
   }
   # Single file given. Create list of one filename.
   else {

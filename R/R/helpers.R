@@ -34,10 +34,25 @@ confirmLipdVersion <- function(j){
 #' Ask user where local file/folder location is.
 #' @export
 #' @keywords internal
+#' @param path Target path (optional)
 #' @return path.and.file Path to files
-getSrcOrDst<- function(){
-  ans <- askHowMany()
-  path.and.file <- browseDialog(ans)
+getSrcOrDst<- function(path=NULL){
+  
+  if (missing(path)){
+    # Path was not given. Start prompts
+    ans <- askHowMany()
+    path.and.file <- browseDialog(ans)
+  } else {
+    # Path was given. Is it a directory or a file?
+    dir <- isDirectory(path)
+    if (dir){
+      # It's a directory. Set the path as the directory
+      path.and.file <- list("dir" = path, "file"= NULL)
+    } else {
+      # It's a file. Split the directory and the filename
+      path.and.file <- list("dir" = dirname(path), "file"= basename(path))
+    }
+  }
   return(path.and.file)
 }
 
@@ -96,6 +111,20 @@ removeEmptyRec <- function( x ){
 #' @return boolean
 isNullOb <- function(x) is.null(x) | all(sapply(x, is.null))
 
+#' Checks if a path is a directory or not a directory
+#' @export
+#' @keywords internal
+#' @param s Target path
+#' @return boolean
+isDirectory <- function(s){
+  # Get the basename (last item in file path), and check it for a file extension
+  # If there is not a file extension (like below), then we can assume that it's a directory
+  if (file_ext(basename(s)) == ""){
+    return(TRUE)
+  }
+  # No file extension. Assume it's a file and not a directory
+  return(FALSE)
+} 
 
 #' Create a temporary working directory
 #' @export
