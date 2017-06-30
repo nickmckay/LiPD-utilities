@@ -1,10 +1,10 @@
-#' Main function. Run all save sub-routines for one LiPD record
+#' Main function. Run all write sub-routines for one LiPD record
 #' @export
 #' @keywords internal
 #' @param d Metadata
 #' @param name Name of current LiPD record
 #' @return none
-saveLipdFile <- function(d, name){
+writeLipdFile <- function(d, name){
   tryCatch({
     # verify name format
     name <- verifyOutputFilename(name)
@@ -34,7 +34,7 @@ saveLipdFile <- function(d, name){
     setwd(name)
 
     # reverse columns to index by number
-    d <- indexByNumberSave(d)
+    d <- indexByNumberWrite(d)
     
     # collect all csv data into an organized list
     all.data <- collectCsvs(name, d)
@@ -88,7 +88,7 @@ saveLipdFile <- function(d, name){
       
     } # end csv.success
   }, error=function(cond){
-    print(paste0("error save_lipds_file: ", cond))
+    print(paste0("error write_lipds_file: ", cond))
   })
 
 

@@ -20,7 +20,7 @@ zipper <- function(dir, tmp){
 #' @param path The path to the directory that needs to be bagged
 #' @return none
 bagit <- function(data.dir, initial.dir){
-  # if the bagit path isn't loaded into the global env yet (first run), then locate it and save the location
+  # if the bagit path isn't loaded into the global env yet (first run), then locate it and write the location
   if(!exists("bagit.script",where = .GlobalEnv)){
     # locate the bagit py file included with the lipdR package
     bagit.script <- system.file(package="lipdR", "bagit.py")
@@ -28,7 +28,7 @@ bagit <- function(data.dir, initial.dir){
     if(!file.exists(bagit.script)){
       # not found. user locate file with gui
       print("Select your bagit.py file")
-      # save path to global env
+      # write path to global env
       bagit.script<-file.choose()
       assign("bagit.script", bagit.script, envir = .GlobalEnv)
     }

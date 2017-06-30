@@ -1,5 +1,5 @@
 ###############################################
-## Load LiPDs - Indexing
+## Read LiPDs - Indexing
 ## Misc functions that aid in converting LiPD
 ## data into a preferred R analysis structure
 ###############################################
@@ -10,11 +10,11 @@
 #' @keywords internal
 #' @param d LiPD file
 #' @return d Modified LiPD file
-indexByNameLoad <- function(d){
+indexByNameRead <- function(d){
   paleo <- c("paleoData", "paleoMeasurementTable", "paleoModel")
   chron <- c("chronData", "chronMeasurementTable", "chronModel")
-  d <- indexSectionLoad(d, paleo)
-  d <- indexSectionLoad(d, chron)
+  d <- indexSectionRead(d, paleo)
+  d <- indexSectionRead(d, chron)
   d <- indexGeo(d)
   return(d)
 }
@@ -25,7 +25,7 @@ indexByNameLoad <- function(d){
 #' @param d LiPD metadata
 #' @param keys Section keys
 #' @return d Modified LiPD metadata
-indexSectionLoad <- function(d, keys){
+indexSectionRead <- function(d, keys){
   key1 <- keys[[1]]
   key2 <- keys[[2]]
   key3 <- keys[[3]]
@@ -75,7 +75,7 @@ indexSectionLoad <- function(d, keys){
       }
     }
   }, error=function(cond){
-    print(paste0("error load_lipds_indexing: indexSection: ", key1, ", ", cond));
+    print(paste0("error read_lipds_indexing: indexSection: ", key1, ", ", cond));
   })
   return(d)
 }

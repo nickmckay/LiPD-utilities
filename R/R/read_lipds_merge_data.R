@@ -1,5 +1,5 @@
 ###############################################
-## Load LiPDs - Merge
+## Read LiPDs - Merge
 ## Merge metadata and csv into one LiPD object
 ###############################################
 
@@ -8,11 +8,11 @@
 #' @keywords internal
 #' @param d LiPD Metdata
 #' @return d Modfified LiPD Metadata
-addCsvToMetadataLoad <- function(d){
+addCsvToMetadataRead <- function(d){
   paleo <- c("paleoData", "paleoMeasurementTable", "paleoModel")
   chron <- c("chronData", "chronMeasurementTable", "chronModel")
-  d <- mergeDataLoad(d, paleo)
-  d <- mergeDataLoad(d, chron)
+  d <- mergeDataRead(d, paleo)
+  d <- mergeDataRead(d, chron)
   return(d)
 }
 
@@ -22,7 +22,7 @@ addCsvToMetadataLoad <- function(d){
 #' @param d LiPD metadata
 #' @param keys Paleo or Chron keys
 #' @return d Modified LiPD metadata
-mergeDataLoad <- function(d, keys){
+mergeDataRead <- function(d, keys){
 
     key1 <- keys[[1]]
     key2 <- keys[[2]]
@@ -50,7 +50,7 @@ mergeDataLoad <- function(d, keys){
         if (!is.null(filename)){
           csv.cols <- d[["csv"]][[filename]]
           meta.cols <- table[["columns"]]
-          d[["metadata"]][[key1]][[i]][[key2]][[j]][["columns"]] <- mergeCsvLoad(csv.cols, meta.cols)
+          d[["metadata"]][[key1]][[i]][[key2]][[j]][["columns"]] <- mergeCsvRead(csv.cols, meta.cols)
         }
       } # end measurement tables
 
@@ -74,7 +74,7 @@ mergeDataLoad <- function(d, keys){
             if (!is.null(filename)){
               csv.cols <- d[["csv"]][[filename]]
               meta.cols <- table[["columns"]]
-              columns <- mergeCsvLoad(csv.cols, meta.cols)
+              columns <- mergeCsvRead(csv.cols, meta.cols)
               toCopy <- which(names(table)!="columns")
               for(tt in toCopy){
                 chronModel[[j]]$summaryTable[[names(table)[tt]]] <- table[[names(table)[tt]]]
@@ -93,7 +93,7 @@ mergeDataLoad <- function(d, keys){
               if (!is.null(filename)){
                 csv.cols <- d[["csv"]][[filename]]
                 meta.cols <- table[["columns"]]
-                columns <- mergeCsvLoad(csv.cols, meta.cols)
+                columns <- mergeCsvRead(csv.cols, meta.cols)
                 toCopy <- which(names(table)!="columns")
                 for(tt in toCopy){
                   chronModel[[j]]$ensembleTable[[names(table)[tt]]] <- table[[names(table)[tt]]]
@@ -116,7 +116,7 @@ mergeDataLoad <- function(d, keys){
                     if (!is.null(filename)){
                       csv.cols <- d[["csv"]][[filename]]
                       meta.cols <- table[["columns"]]
-                      columns  <- mergeCsvLoad(csv.cols, meta.cols)
+                      columns  <- mergeCsvRead(csv.cols, meta.cols)
                       toCopy <- which(names(table)!="columns")
                       for(tt in toCopy){
                         distributionTable[[k]][[names(table)[tt]]] <- table[[names(table)[tt]]]
@@ -153,7 +153,7 @@ mergeDataLoad <- function(d, keys){
 #' @param csv.cols CSV data for this file
 #' @param meta.cols Target metadata columns
 #' @return meta.cols Modified metadata columns
-mergeCsvLoad <- function(csv.cols, meta.cols){
+mergeCsvRead <- function(csv.cols, meta.cols){
 
   col.ct <- length(meta.cols)
   # go through the columns

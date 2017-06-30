@@ -3,14 +3,14 @@
 #' @keywords internal
 #' @param d Metadata
 #' @return d Modified metadata
-indexByNumberSave <- function(d){
+indexByNumberWrite <- function(d){
 
   paleos <- c("paleoData", "paleoMeasurementTable", "paleoModel")
   chrons <- c("chronData", "chronMeasurementTable", "chronModel")
 
   # convert single entries to lists. matching structure to 1.2
-  d <- indexSectionSave(d, paleos)
-  d <- indexSectionSave(d, chrons)
+  d <- indexSectionWrite(d, paleos)
+  d <- indexSectionWrite(d, chrons)
   d <- unindexGeo(d)
 
   return(d)
@@ -22,7 +22,7 @@ indexByNumberSave <- function(d){
 #' @param d LiPD Metadata
 #' @param keys Section keys
 #' @return d Modified metadata
-indexSectionSave <- function(d, keys){
+indexSectionWrite <- function(d, keys){
   
   tryCatch({
     key1 <- keys[[1]]
@@ -44,7 +44,7 @@ indexSectionSave <- function(d, keys){
             table <- d[[key1]][[i]][[key2]][[j]]
             
             if(!is.null(table)){
-              new <- moveColsDownSave(table)
+              new <- moveColsDownWrite(table)
               d[[key1]][[i]][[key2]][[j]] <- new
             }
             
@@ -58,14 +58,14 @@ indexSectionSave <- function(d, keys){
             # d$paleoData[[i]]paleoModel[[j]]$summaryTable - should only be one
             table <- d[[key1]][[i]][[key3]][[j]][["summaryTable"]]
             if (!is.null(table)){
-              new <- moveColsDownSave(table)
+              new <- moveColsDownWrite(table)
               d[[key1]][[i]][[key3]][[j]][["summaryTable"]] <- new
             }
             
             # d$paleoData[[i]]paleoModel[[j]]$ensembleTable - should only be one
             table <- d[[key1]][[i]][[key3]][[j]][["ensembleTable"]]
             if (!is.null(table)){
-              new <- moveColsDownSave(table)
+              new <- moveColsDownWrite(table)
               d[[key1]][[i]][[key3]][[j]][["ensembleTable"]] <- new
             }
             # d$paleoData[[i]]paleoModel[[j]]$distributionTable - can be one or many
@@ -74,7 +74,7 @@ indexSectionSave <- function(d, keys){
               # d$paleoData[[i]]paleoModel[[j]]$distributionTable[[k]]
               table <- d[[key1]][[i]][[key3]][[j]][["distributionTable"]][[k]]
               if (!is.null(table)){
-                new <- moveColsDownSave(table)
+                new <- moveColsDownWrite(table)
                 # only add if the table exists
                 d[[key1]][[i]][[key3]][[j]][["distributionTable"]][[k]] <- new
               }
@@ -93,7 +93,7 @@ indexSectionSave <- function(d, keys){
       } # end section
     }
   }, error=function(cond){
-    print(paste0("error save_lipds_indexing:indexSection: ", cond))
+    print(paste0("error write_lipds_indexing:indexSection: ", cond))
   })
   return(d)
 }
@@ -103,7 +103,7 @@ indexSectionSave <- function(d, keys){
 #' @keywords internal
 #' @param table Table data
 #' @return table Modified table data
-moveTableUpSave <- function(table, pc, tableType){
+moveTableUpWrite <- function(table, pc, tableType){
   d = list()
   tryCatch({
     tableNameKey = paste0(pc, "Name")
@@ -118,7 +118,7 @@ moveTableUpSave <- function(table, pc, tableType){
     # table is still not sorted correctly. fix it here. s1 is still at top
     return(d)
   }, error=function(cond){
-    print(paste0("error save_lipds_indexing: moveTableUp: ", cond))
+    print(paste0("error write_lipds_indexing: moveTableUp: ", cond))
   })
   return(table)
 }
@@ -130,7 +130,7 @@ moveTableUpSave <- function(table, pc, tableType){
 #' @keywords internal
 #' @param table Table data
 #' @return table Modified table data
-moveColsDownSave <- function(table){
+moveColsDownWrite <- function(table){
 
   tmp <- list()
   new.cols <- list()
@@ -186,7 +186,7 @@ moveColsDownSave <- function(table){
     tmp[["columns"]] <- new.cols
     
   }, error=function(cond){
-    print(paste0("error save_lipds_indexing: moveColsDown ", cond))
+    print(paste0("error write_lipds_indexing: moveColsDown ", cond))
   })
   return(tmp)
 }

@@ -162,7 +162,7 @@ collectCsvSection <- function(all.data, keys, name){
       }
     } #if key1 in d
   }, error=function(cond){
-    print(sprintf("error in save_lipds_csv:collectCsvSection %s", cond))
+    print(sprintf("error in write_lipds_csv:collectCsvSection %s", cond))
   })
   return(all.data)
   }
@@ -217,7 +217,7 @@ parseTable <- function(table){
     out[["csv"]] <- vals
     
   }, error=function(cond){
-    print(sprintf("error in save_lipds_csv:parseTable: %s", cond))
+    print(sprintf("error in write_lipds_csv:parseTable: %s", cond))
   })
   return(out)
 }

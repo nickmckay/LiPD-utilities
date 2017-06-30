@@ -1,6 +1,6 @@
 ###############################################
-## Load LiPD - Helpers
-## Misc functions that aid the loading of LiPD
+## Read LiPD - Helpers
+## Misc functions that aid the reading of LiPD
 ## files
 ###############################################
 
@@ -83,12 +83,12 @@ removeLayers <- function(d){
   return(d)
 }
 
-#' Ask if user wants to load one file or a directory with multiple files.
+#' Ask if user wants to read one file or a directory with multiple files.
 #' @export
 #' @keywords internal
 #' @return ans Answer to prompt (s/m)
 askHowMany <- function(){
-  ans <- readline(prompt="Are you loading one file or multiple? (s/m): ")
+  ans <- readline(prompt="Are you reading one file or multiple? (s/m): ")
   # Test if input matches what we expect. Keep prompting until valid input.
   if(!grepl("\\<s\\>",ans) & !grepl("\\<m\\>", ans))
   { return(askHowMany()) }

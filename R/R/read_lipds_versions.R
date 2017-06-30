@@ -1,5 +1,5 @@
 ###############################################
-## Load LiPDs - Versions
+## Read LiPDs - Versions
 ## Converts the incoming LiPD data into the
 ## current LiPD version structure
 ###############################################
@@ -46,7 +46,7 @@ setVersion <- function(d, ver){
   tryCatch({
     d[["metadata"]][["LiPDVersion"]] <- ver
   }, error=function(cond){
-    print("load_lipds_versions:setVersion: unable to set new LiPD version")
+    print("read_lipds_versions:setVersion: unable to set new LiPD version")
   })
   return(d)
 }
