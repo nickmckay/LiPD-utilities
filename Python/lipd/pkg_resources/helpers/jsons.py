@@ -106,17 +106,17 @@ def _import_data(section_data, pc):
             tmp_table = OrderedDict()
 
             # Get the table name from the first measurement table, and use that as the index name for this table
-            tmp_table_name = get_variable_name_table("{}DataTableName".format(pc), table, pc)
+            tmp_table_name = get_variable_name_table("dataTableName", table, pc)
 
             # Process the paleo measurement table
-            if "{}MeasurementTable".format(pc) in table:
-                tmp_pmt = _import_meas(table["{}MeasurementTable".format(pc)], pc)
-                tmp_table["{}MeasurementTable".format(pc)] = tmp_pmt
+            if "measurementTable" in table:
+                tmp_pmt = _import_meas(table["measurementTable"], pc)
+                tmp_table["measurementTable"] = tmp_pmt
 
             # Process the paleo model
-            if "{}Model".format(pc) in table:
-                tmp_cm = _import_model(table["{}Model".format(pc)], pc)
-                tmp_table["{}Model".format(pc)] = tmp_cm
+            if "model" in table:
+                tmp_cm = _import_model(table["model"], pc)
+                tmp_table["model"] = tmp_cm
 
             # If we only have generic table names, and one exists already, don't overwrite. Create dynamic name
             if tmp_table_name in d:
@@ -149,8 +149,8 @@ def _import_model(models, pc):
             # Do a direct replacement of chronModelTable columns. No table name, no table work needed.
             if "summaryTable" in model:
                 model["summaryTable"]["columns"] = _idx_col_by_name(model["summaryTable"]["columns"])
-            elif "{}ModelTable".format(pc) in model:
-                model["{}ModelTable".format(pc)]["columns"] = _idx_col_by_name(model["{}ModelTable".format(pc)]["columns"])
+            elif "modelTable" in model:
+                model["modelTable"]["columns"] = _idx_col_by_name(model["modelTable"]["columns"])
 
             # Do a direct replacement of ensembleTable columns. No table name, no table work needed.
             if "ensembleTable" in model:
@@ -164,9 +164,9 @@ def _import_model(models, pc):
                 model["distributionTable"] = _import_dist(model, "distributionTable")
 
     except AttributeError:
-        logger_jsons.debug("import_model_{}: AttributeError: expected list type, given {} type".format(pc, type(models)))
+        logger_jsons.debug("import_model: {}: AttributeError: expected list type, given {} type".format(pc, type(models)))
 
-    logger_jsons.info("exit import_model_{}".format(pc))
+    logger_jsons.info("exit import_model: {}".format(pc))
     return models
 
 
@@ -181,7 +181,7 @@ def _import_meas(tables, pc):
 
     for table in tables:
         # Get the table name
-        name_table = get_variable_name_table("{}DataTableName".format(pc), table, pc)
+        name_table = get_variable_name_table("dataTableName", table, pc)
 
         # Call idx_table_by_name
         table = _idx_table_by_name(table)
@@ -406,12 +406,12 @@ def _export_data(section_data, pc):
     for name, table in section_data.items():
 
         # Process chron models
-        if "{}Model".format(pc) in table:
-            table["{}Model".format(pc)] = _export_model(table["{}Model".format(pc)], pc)
+        if "model" in table:
+            table["model"] = _export_model(table["model"], pc)
 
         # Process the chron measurement table
-        if "{}MeasurementTable".format(pc) in table:
-            table["{}MeasurementTable".format(pc)] = _export_measurement(table["{}MeasurementTable".format(pc)], pc)
+        if "measurementTable" in table:
+            table["measurementTable"] = _export_measurement(table["measurementTable"], pc)
 
         # Add only the table to the output list
         l.append(table)
@@ -454,9 +454,9 @@ def _export_model(models, pc):
             if "summaryTable" in model:
                 model["summaryTable"] = _idx_table_by_num(model["summaryTable"])
 
-            if "{}ModelTable".format(pc) in model:
-                model["summaryTable"] = _idx_table_by_num(model["{}ModelTable".format(pc)])
-                model.pop("{}ModelTable".format(pc))
+            if "modelTable" in model:
+                model["summaryTable"] = _idx_table_by_num(model["modelTable"])
+                model.pop("modelTable")
 
             # Process ensemble table (special two columns)
             if "ensembleTable" in model:

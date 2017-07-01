@@ -1,9 +1,9 @@
 import csv
 
-from ..helpers.regexes import *
-from ..helpers.directory import check_file_age
-from ..helpers.google import get_google_csv
-from .loggers import create_logger
+from pkg_resources.graveyard.google import get_google_csv
+from pkg_resources.helpers.directory import check_file_age
+from pkg_resources.helpers.loggers import create_logger
+from pkg_resources.helpers.regexes import *
 
 
 logger_tslint = create_logger("ts_lint")

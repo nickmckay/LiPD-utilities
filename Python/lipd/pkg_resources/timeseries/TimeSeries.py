@@ -1,5 +1,7 @@
 import copy
 
+# from ..helpers.google import get_google_csv
+# from ..helpers.directory import check_file_age
 from ..helpers.regexes import re_pandas_x_und, re_fund_valid, re_pub_valid
 from ..helpers.blanks import EMPTY
 from ..helpers.loggers import create_logger
@@ -9,37 +11,45 @@ logger_timeseries = create_logger('time_series')
 
 ############################## EXTRACT
 
-def extract(d, dfs):
+def extract(d, chron):
     """
-    LiPD Version 1.2
+    LiPD Version 1.3
     Main function to initiate LiPD to TSOs conversion.
     :param dict d: Metadata for one LiPD file
-    :param dict dfs: Chron data frame(s)
+    :param bool chron: Paleo mode (default) or Chron mode
+    :return list _ts: Time series
     """
-    logger_timeseries.info("enter _extract_main")
+    logger_timeseries.info("enter extract_main")
     _root = {}
+    _ts = {}
+    _switch = {"paleoData": "chronData", "chronData": "paleoData"}
+    _pc = "paleoData"
+    if chron:
+        _pc = "chronData"
+    try:
+        # Build the root level data.
+        # This will serve as the template for which column data will be added onto later.
+        for k, v in d.items():
+            if isinstance(v, str):
+                _root[k] = v
+            elif k == "funding":
+                _root = _extract_fund(v, _root)
+            elif k == "geo":
+                _root = _extract_geo(v, _root)
+            elif k == 'pub':
+                _root = _extract_pub(v, _root)
+            elif k == _switch[_pc]:
+                # Whatever mode we're in, store the opposite raw data.
+                # e.g. If we're making a paleo time series, store the raw chronData
+                _root[_switch[_pc]] = copy.deepcopy(v)
 
-    # Build the root level data.
-    # This will serve as the template for which column data will be added onto later.
-    for k, v in d.items():
-        if isinstance(v, str):
-            _root[k] = v
-        elif k == "funding":
-            _root = _extract_fund(v, _root)
-        elif k == "geo":
-            _root = _extract_geo(v, _root)
-        elif k == 'pub':
-            _root = _extract_pub(v, _root)
-        elif k == 'chronData':
-            _root[k] = copy.deepcopy(v)
+        # Create tso dictionaries for each individual column (build on root data)
+        _ts = _extract_pc(d, _root, _pc)
+    except Exception as e:
+        logger_timeseries.error("extract: Exception: {}".format(e))
+        print("extract: Exception: {}".format(e))
 
-    # Include the chronology data frame in each time series object
-    _root["chronData_df"] = dfs
-
-    # Create tso dictionaries for each individual column (build on root data)
-    _ts = _extract_paleo(d, _root)
-
-    logger_timeseries.info("exit _extract_main")
+    logger_timeseries.info("exit extract_main")
     return _ts
 
 
@@ -170,33 +180,37 @@ def _extract_authors(pub, idx, _root):
     return _root
 
 
-def _extract_paleo(d, _root):
+def _extract_pc(d, root, pc):
     """
     Extract all data from a PaleoData dictionary.
     :param dict d: PaleoData dictionary
+    :param dict root: Time series root data
+    :param str pc: paleoData or chronData
+    :param list _ts: Time series
     """
-    logger_timeseries.info("enter ts_extract_paleo")
+    logger_timeseries.info("enter extract_pc")
     _ts = []
     try:
         # For each table in paleoData
-        for k, v in d['paleoData'].items():
-            _tmp_table = copy.deepcopy(_root)
-            for table_name, table_data in v["paleoMeasurementTable"].items():
+        for k, v in d[pc].items():
+            _tmp_table = copy.deepcopy(root)
+            for table_name, table_data in v["measurementTable"].items():
                 # Get root items for this table
-                _tmp_table = _extract_paleo_table_root(table_data, _tmp_table)
+                _tmp_table = _extract_table_root(table_data, _tmp_table, pc)
                 # Add age, depth, and year columns to ts_root if available
                 _tmp_table = _extract_special(table_data, _tmp_table)
                 # Start creating TSOs with dictionary copies.
                 for i, e in table_data["columns"].items():
                     # TSO. Add this column onto root items. Deepcopy since we need to reuse _tmp_table
-                    col = _extract_paleo_columns(e, copy.deepcopy(_tmp_table))
+                    col = _extract_columns(e, copy.deepcopy(_tmp_table), pc)
                     try:
                         _ts.append(col)
                     except Exception as e:
-                        logger_timeseries.warn("extract_paleo: KeyError: unable to append TSO, {}".format(e))
+                        logger_timeseries.warn("extract_pc: KeyError: unable to append TSO, {}".format(e))
 
     except KeyError as e:
-        logger_timeseries.warn("extract_paleo: KeyError: paleoData/columns not found, {}".format(e))
+        logger_timeseries.warn("extract_pc: KeyError: paleoData/columns not found, {}".format(e))
+
     return _ts
 
 
@@ -233,12 +247,12 @@ def _extract_special(table_data, current):
                     current[s] = v['values']
                 except KeyError as e:
                     # Values key was not found.
-                    logger_timeseries.warn("_extract_special: KeyError: 'values' not found, {}".format(e))
+                    logger_timeseries.warn("extract_special: KeyError: 'values' not found, {}".format(e))
                 try:
                     current[s + 'Units'] = v['units']
                 except KeyError as e:
                     # Values key was not found.
-                    logger_timeseries.warn("ts_extract_special: KeyError: 'units' not found, {}".format(e))
+                    logger_timeseries.warn("extract_special: KeyError: 'units' not found, {}".format(e))
 
     except KeyError as ke:
         logger_timeseries.error("extract_special: KeyError: didn't find 'columns', {}",format(ke))
@@ -251,28 +265,29 @@ def _extract_special(table_data, current):
     return current
 
 
-def _extract_paleo_table_root(d, current):
+def _extract_table_root(d, current, pc):
     """
     Extract data from the root level of a paleoData table.
     :param dict d: paleoData table
     :param dict current: Current data
+    :param str pc: paleoData or chronData
     :return dict current:
     """
-    logger_timeseries.info("enter extract_paleo_table_root")
+    logger_timeseries.info("enter extract_table_root")
     for k, v in d.items():
         if isinstance(v, str):
-            current['paleoData_' + k] = v
+            current[pc + '_' + k] = v
     return current
 
 
-def _extract_paleo_columns(d, tmp_tso):
+def _extract_columns(d, tmp_tso, pc):
     """
     Extract data from one paleoData column
     :param dict d: Column dictionary
     :param dict tmp_tso: TSO dictionary with only root items
     :return dict: Finished TSO
     """
-    logger_timeseries.info("enter _extract_paleo_columns")
+    logger_timeseries.info("enter extract_columns")
     for k, v in d.items():
         if k == 'climateInterpretation':
             tmp_tso = _extract_climate(v, tmp_tso)
@@ -280,7 +295,7 @@ def _extract_paleo_columns(d, tmp_tso):
             tmp_tso = _extract_calibration(v, tmp_tso)
         else:
             # Assume if it's not a special nested case, then it's a string value
-            tmp_tso['paleoData_' + k] = v
+            tmp_tso[pc + '_' + k] = v
     return tmp_tso
 
 
@@ -304,7 +319,7 @@ def _extract_climate(d, tmp_tso):
     :param dict tmp_tso: Temp TSO dictionary
     :return dict: tmp_tso with added climateInterpretation entries
     """
-    logger_timeseries.info("enter _extract_climate")
+    logger_timeseries.info("enter extract_climate")
     for k, v in d.items():
         tmp_tso['climateInterpretation_' + k] = v
     return tmp_tso

@@ -1,9 +1,9 @@
-import csv
 import copy
+import csv
 
-from ..helpers.directory import check_file_age
-from ..helpers.google import get_google_csv
-from ..helpers.loggers import *
+from pkg_resources.graveyard.google import get_google_csv
+from pkg_resources.helpers.directory import check_file_age
+from pkg_resources.helpers.loggers import *
 
 logger_lipd_lint = create_logger("lipd_lint")
 

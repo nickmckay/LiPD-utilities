@@ -1,6 +1,6 @@
-from .LiPD import LiPD
-from ..helpers.directory import *
-from ..helpers.loggers import create_logger
+from pkg_resources.graveyard.LiPD_objs import LiPD
+from pkg_resources.helpers.directory import *
+from pkg_resources.helpers.loggers import create_logger
 
 logger_lipd_lib = create_logger('LiPD_Library')
 

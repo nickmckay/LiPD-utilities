@@ -45,15 +45,15 @@ def _merge_csv_section(section_data, pc):
         # Loop through each table_data in paleoData
         for table_name, table_data in section_data.items():
 
-            if "{}MeasurementTable".format(pc) in table_data:
+            if "measurementTable" in table_data:
                 # Send whole table_data through. Adds csv data to columns
-                for table_name2, table_data2 in table_data["{}MeasurementTable".format(pc)].items():
-                    crumbs = "{}.{}.{}.{}".format(pc, table_name, "MeasurementTable", table_name2)
-                    table_data["{}MeasurementTable".format(pc)][table_name2] = _add_csv_to_columns(table_data2, crumbs, pc)
+                for table_name2, table_data2 in table_data["measurementTable"].items():
+                    crumbs = "{}.{}.{}.{}".format(pc, table_name, "measurement", table_name2)
+                    table_data["measurementTable"][table_name2] = _add_csv_to_columns(table_data2, crumbs, pc)
 
-            if "{}Model".format(pc) in table_data:
-                crumbs = "".format(pc, table_name, "Model")
-                table_data["{}Model".format(pc)] = _merge_csv_model(table_data["{}Model".format(pc)], pc, crumbs)
+            if "model" in table_data:
+                crumbs = "{}.{}.{}".format(pc, table_name, "model")
+                table_data["model"] = _merge_csv_model(table_data["model"], pc, crumbs)
 
     except AttributeError:
         print("Error: {} section must be a dictionary data type".format(pc))
@@ -79,15 +79,15 @@ def _merge_csv_model(models, pc, crumbs):
         for model in models:
 
             if "summaryTable" in model:
-                crumbs2 = "{}.{}".format(crumbs, "summaryTable")
+                crumbs2 = "{}.{}".format(crumbs, "summary")
                 model["summaryTable"] = _add_csv_to_columns(model["summaryTable"], crumbs2, pc)
 
-            if "{}ModelTable".format(pc) in model:
-                crumbs2 = "{}.{}".format(crumbs, "ModelTable")
-                model["{}ModelTable".format(pc)] = _add_csv_to_columns(model["{}ModelTable".format(pc)], crumbs2, pc)
+            if "modelTable".format(pc) in model:
+                crumbs2 = "{}.{}".format(crumbs, "model")
+                model["modelTable"] = _add_csv_to_columns(model["modelTable"], crumbs2, pc)
 
             if "ensembleTable" in model:
-                crumbs2 = "{}.{}".format(crumbs, "ensembleTable")
+                crumbs2 = "{}.{}".format(crumbs, "ensemble")
                 model["ensembleTable"] = _add_csv_to_columns(model["ensembleTable"], crumbs2, pc)
 
             # Check for calibratedAges (old format) and distributionTable (current format)
@@ -95,11 +95,11 @@ def _merge_csv_model(models, pc, crumbs):
                 model["distributionTable"] = {}
                 # Calibrated age tables are nested. Go down an extra layer.
                 for k, v in model["calibratedAges"].items():
-                    crumbs2 = "{}.{}.{}".format(crumbs, "distributionTable", k)
+                    crumbs2 = "{}.{}.{}".format(crumbs, "distribution", k)
                     model["distributionTable"][k] = _add_csv_to_columns(v, crumbs2, pc)
             elif "distributionTable" in model:
                 for k, v in model["distributionTable"].items():
-                    crumbs2 = "{}.{}.{}".format(crumbs, "distributionTable", k)
+                    crumbs2 = "{}.{}.{}".format(crumbs, "distribution", k)
                     model["distributionTable"][k] = _add_csv_to_columns(v, crumbs2, pc)
     except AttributeError:
         print("Error: Model section must be a list data type")
@@ -304,13 +304,12 @@ def _get_csv_section(_meta, crumbs, pc):
     try:
         # Process the tables in section
         for name_table, data_table in _meta.items():
-            # crumbs_tmp = "{}{}".format(crumbs, str(name_table))
             crumbs_tmp = "{}{}".format(crumbs, s_idx)
 
             # Process each entry sub-table below if they exist
-            if "{}MeasurementTable".format(pc) in data_table:
+            if "measurementTable" in data_table:
                 idx = 1
-                for name_pmt, dat in data_table["{}MeasurementTable".format(pc)].items():
+                for name_pmt, dat in data_table["measurementTable"].items():
                     # String together the final pieces of the crumbs filename
                     filename = "{}{}{}.csv".format(crumbs_tmp, "measurement", idx)
                     # Set the filename inside the metadata also, so our _csv and _meta will match
@@ -321,8 +320,8 @@ def _get_csv_section(_meta, crumbs, pc):
                     _csv[filename] = out
                     idx += 1
 
-            if "{}Model".format(pc) in data_table:
-                for m_idx, item in enumerate(data_table["{}Model".format(pc)]):
+            if "model".format(pc) in data_table:
+                for m_idx, item in enumerate(data_table["model"]):
                     if "calibratedAges" in item:
                         idx = 1
                         # CA has an extra level of nesting
@@ -343,14 +342,14 @@ def _get_csv_section(_meta, crumbs, pc):
                             _csv[filename] = out
                             idx += 1
 
-                    if "{}ModelTable".format(pc) in item:
-                        filename = "{}model{}{}.csv".format(crumbs_tmp, m_idx+1, "{}Model".format(pc))
-                        item["{}ModelTable".format(pc)] = _put_filename(item["{}ModelTable".format(pc)], filename)
-                        out = _search_table_for_vals(item["{}ModelTable".format(pc)], filename)
+                    if "modelTable".format(pc) in item:
+                        filename = "{}model{}{}.csv".format(crumbs_tmp, m_idx+1, "model")
+                        item["modelTable".format(pc)] = _put_filename(item["modelTable"], filename)
+                        out = _search_table_for_vals(item["modelTable"], filename)
                         _csv[filename] = out
 
                     elif "summaryTable".format() in item:
-                        filename = "{}model{}{}.csv".format(crumbs_tmp, m_idx+1, "summary".format(pc))
+                        filename = "{}model{}{}.csv".format(crumbs_tmp, m_idx+1, "summary")
                         item["summaryTable"] = _put_filename(item["summaryTable"], filename)
                         out = _search_table_for_vals(item["summaryTable"], filename)
                         _csv[filename] = out

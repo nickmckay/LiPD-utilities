@@ -1,18 +1,19 @@
+import datetime as dt
+import math
 import operator
 import os
-import datetime as dt
-import numpy as np
-import unicodedata
+import random
 import re
 import shutil
-import random
 import string
-import math
+import unicodedata
 
-from ..helpers.loggers import create_logger
-from ..helpers.blanks import EMPTY
+import numpy as np
+
 from ..helpers.alternates import FILE_TYPE_MAP
+from ..helpers.blanks import EMPTY
 from ..helpers.directory import list_files
+from ..helpers.loggers import create_logger
 
 logger_misc = create_logger("misc")
 
@@ -344,7 +345,7 @@ def is_ensemble(d):
     return False
 
 
-def lipd_v1_0_to_v1_1(d):
+def update_lipd_v1_1(d):
     """
     Update LiPD version 1.0 to version 1.1.  See LiPD Version changelog for details.
     NOTE main changes: ChronData turned into a scalable lists of dictioanries.
@@ -376,11 +377,11 @@ def lipd_v1_0_to_v1_1(d):
     return d
 
 
-def lipd_v1_1_to_v1_2(d):
+def update_lipd_v1_2(d):
     """
     Update LiPD version 1.1 to version 1.2. See LiPD Version changelog for details.
-    :param dict d: Metadata dictioanry
-    :return dict: v1.2 metadata dictionary
+    :param dict d: Metadata v1.1
+    :return dict d: Metadata v1.2
     """
     logger_misc.info("enter lipds 1.1 to 1.2")
     tmp_all = []
@@ -404,6 +405,50 @@ def lipd_v1_1_to_v1_2(d):
 
     d["LiPDVersion"] = 1.2
     logger_misc.info("exit lipds 1.1 to 1.2")
+    return d
+
+
+def update_lipd_v1_3(d):
+    """
+    Update LiPD version 1.2 to 1.3. The major changes here are:
+    - 'createdBy' key
+    - Top-level folder inside LiPD archives are named "bag". (No longer <datasetname>)
+    - .jsonld file is now generically named 'metadata.jsonld' (No longer <datasetname>.lpd )
+    - All "paleo" and "chron" prefixes are removed from "paleoMeasurementTable", "paleoModel", etc.
+    - Merge isotopeInterpretation and climateInterpretation into "interpretation" block
+
+    :param dict d: Metadata v1.2
+    :return dict d: Metadata v1.3
+    """
+
+    rm = ["paleoMeasurementTable", "paleoDataTableName", "paleoModel", "chronMeasurementTable", "chronDataTableName", "chronModel"]
+    interps = ["climateInterpretation", "isotopeInterpretation"]
+
+    try:
+        if isinstance(d, dict):
+            for k, v in d.items():
+                # dive down for dictionaries
+                d[k] = update_lipd_v1_3(v)
+
+                # see if the key is in the remove list
+                if k in rm:
+                    # remove the paleo or chron piece of the string
+                    s = k.replace("paleo", "").replace("chron", "")
+                    # lowercase the first letter
+                    s = s[:1].lower() + s[1:] if s else ''
+                    # replace the key in the dictionary
+                    d[s] = d.pop(k)
+            for key in interps:
+                if key in d:
+                    d = _merge_interpretations(d)
+
+        elif isinstance(d, list):
+            # dive down for lists
+            for idx, i in enumerate(d):
+                d[idx] = update_lipd_v1_3(i)
+    except Exception as e:
+        print("Error: Unable to update file to LiPD v1.3: {}".format(e))
+
     return d
 
 
@@ -482,6 +527,39 @@ def match_arr_lengths(l):
     return True
 
 
+def _merge_interpretations(d):
+    """
+
+    :param d:
+    :return:
+    """
+    _tmp = []
+    try:
+        # Now loop and aggregate the interpretation data into one list
+        for k,v in d.items():
+            if k in ["climateInterpretation", "isotopeInterpretation", "interpretation"]:
+                # now add in the new data
+                if isinstance(v, list):
+                    for i in v:
+                        _tmp.append(i)
+                elif isinstance(v, dict):
+                    _tmp.append(d[k])
+        # Set the aggregate data into the interpretation key
+        d["interpretation"] = _tmp
+
+    except Exception as e:
+        print("Error: merge_interpreatations: {}".format(e))
+
+    # Now remove the old interpretation keys
+    for key in ["climateInterpretation", "isotopeInterpretation"]:
+        try:
+            del d[key]
+        except Exception:
+            pass
+
+    return d
+
+
 def mv_files(src, dst):
     """
     Move all files from one directory to another
@@ -545,9 +623,9 @@ def prompt_protocol():
     ans = ""
     while True and stop > 0:
         ans = input("Save as (d)ictionary or (o)bject?\n"
-                      "* Note:\n"
+                    "* Note:\n"
                     "Dictionaries are more basic, and are compatible with Python v2.7+.\n"
-                      "Objects are more complex, and are only compatible with v3.4+ ")
+                    "Objects are more complex, and are only compatible with v3.4+ ")
         if ans not in ("d", "o"):
             print("Invalid response: Please choose 'd' or 'o'")
         else:
@@ -804,13 +882,16 @@ def update_lipd_version(d):
 
     # Update from (N/A or 1.0) to 1.1
     if version in (1.0, "1.0"):
-        d = lipd_v1_0_to_v1_1(d)
+        d = update_lipd_v1_1(d)
         version = 1.1
 
     # Update from 1.1 to 1.2
     if version in (1.1, "1.1"):
-        d = lipd_v1_1_to_v1_2(d)
+        d = update_lipd_v1_2(d)
         version = 1.2
+    if version in (1.2, "1.2"):
+        d = update_lipd_v1_3(d)
+        version = 1.3
 
     return d
 
@@ -833,7 +914,7 @@ def unwrap_arrays(l):
             for k in l:
                 # all items in this list are numeric, so this list is done. append to main list
                 if all(isinstance(i, float) or isinstance(i, int) for i in k):
-                        l2.append(k)
+                    l2.append(k)
                 # this list has more nested lists inside. append each individual nested list to the main one.
                 elif all(isinstance(i, list) or isinstance(i, np.ndarray) for i in k):
                     for i in k:

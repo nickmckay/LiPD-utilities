@@ -51,6 +51,7 @@ def readLipd(usr_path=""):
     __read(usr_path, ".lpd")
     _d = __read_lipd_contents()
     end = clock()
+    print("Finished read: {} records".format(len(_d)))
     logger_benchmark.info(log_benchmark("readLipd", start, end))
     return _d
 
@@ -325,7 +326,7 @@ def filterDfs(expr):
 # ANALYSIS - TIME SERIES
 
 
-def extractTs(d=None):
+def extractTs(d, chron=False):
     """
     Create a time series using LiPD data
 
@@ -349,8 +350,8 @@ def extractTs(d=None):
                     # Continue building time series until all datasets are processed.
                     print("extracting: {}".format(k))
                     _v = copy.deepcopy(v)
-                    _dfs = lipd_to_df(_v, getCsv(_v))
-                    _l += (extract(_v, _dfs))
+                    # _dfs = lipd_to_df(_v, getCsv(_v))
+                    _l += (extract(_v, chron))
                 except Exception as e:
                     print("Error: Skipping file: {}: {}".format(k, e))
                     logger_start.debug("extractTs: Exception: {}".format(e))

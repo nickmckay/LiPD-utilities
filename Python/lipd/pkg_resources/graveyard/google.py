@@ -2,7 +2,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-from .loggers import *
+from pkg_resources.helpers.loggers import *
 
 logger_google = create_logger("google")
 
