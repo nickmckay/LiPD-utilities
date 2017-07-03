@@ -82,7 +82,7 @@ def lipd_write(_json, path, name):
         _json_tmp = rm_values_fields(_json_tmp)
         _json_tmp = put_tsids(_json_tmp)
         _json_tmp = idx_name_to_num(_json_tmp)
-        write_json_to_file(_dsn, _json_tmp)
+        write_json_to_file(_json_tmp)
         create_bag(dir_bag)
         rm_file_if_exists(path, _dsn_lpd)
         zipper(root_dir=dir_tmp, name="bag", path_name_ext=os.path.join(path, _dsn_lpd))

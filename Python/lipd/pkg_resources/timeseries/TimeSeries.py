@@ -191,23 +191,19 @@ def _extract_pc(d, root, pc):
     logger_timeseries.info("enter extract_pc")
     _ts = []
     try:
-        # For each table in paleoData
+        # For each table in pc
         for k, v in d[pc].items():
-            _tmp_table = copy.deepcopy(root)
-            for table_name, table_data in v["measurementTable"].items():
-                # Get root items for this table
-                _tmp_table = _extract_table_root(table_data, _tmp_table, pc)
-                # Add age, depth, and year columns to ts_root if available
-                _tmp_table = _extract_special(table_data, _tmp_table)
-                # Start creating TSOs with dictionary copies.
-                for i, e in table_data["columns"].items():
-                    # TSO. Add this column onto root items. Deepcopy since we need to reuse _tmp_table
-                    col = _extract_columns(e, copy.deepcopy(_tmp_table), pc)
-                    try:
-                        _ts.append(col)
-                    except Exception as e:
-                        logger_timeseries.warn("extract_pc: KeyError: unable to append TSO, {}".format(e))
-
+            for _table_name, _table_data in v["measurementTable"].items():
+                _tmp_root = copy.deepcopy(root)
+                _ts = _extract_table(_table_data, _tmp_root, pc, _ts)
+            if "model" in v:
+                _tmp_root = copy.deepcopy(root)
+                for _entry in v["model"]:
+                    if "summaryTable" in _entry:
+                        # todo this needs to be switched over once "summaryTable" becomes a list of multiples
+                        _ts = _extract_table(_entry["summaryTable"], _tmp_root, pc, _ts)
+                        # for _table_name, _table_data in _entry["summaryTable"].items():
+                        #     _ts = _extract_table(_table_data, _table_tmp, pc, _ts)
     except KeyError as e:
         logger_timeseries.warn("extract_pc: KeyError: paleoData/columns not found, {}".format(e))
 
@@ -278,6 +274,31 @@ def _extract_table_root(d, current, pc):
         if isinstance(v, str):
             current[pc + '_' + k] = v
     return current
+
+
+def _extract_table(table_data, tmp_root, pc, ts):
+    """
+    Use the given table data to create a time series entry for each column in the table.
+    :param dict table_data: Table data
+    :param dict tmp_root: LiPD root data
+    :param str pc: paleoData or chronData
+    :param list ts: Time series (so far)
+    :return list ts: Time series (so far)
+    """
+    # Get root items for this table
+    # todo create fields for the table name and table index in the ts entry.
+    _table_tmp = _extract_table_root(table_data, tmp_root, pc)
+    # Add age, depth, and year columns to root if available
+    _table_tmp = _extract_special(tmp_root, _table_tmp)
+    # Start creating entries using dictionary copies.
+    for i, e in table_data["columns"].items():
+        # Add column data onto root items. Copy so we don't ruin original data
+        col = _extract_columns(e, copy.deepcopy(_table_tmp), pc)
+        try:
+            ts.append(col)
+        except Exception as e:
+            logger_timeseries.warn("extract_table: Exception: Unable to create ts entry, {}".format(e))
+    return ts
 
 
 def _extract_columns(d, tmp_tso, pc):

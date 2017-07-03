@@ -36,7 +36,7 @@ def excel_main(file):
     # Filename without extension
     name = file["filename_no_ext"]
     name_lpd = name + ".lpd"
-    # remove foreign characters to prevent wiki uploading erros
+    # remove foreign characters to prevent wiki uploading errors
     name = normalize_name(name)
     print("processing: {}".format(name_ext))
     logger_excel.info("processing: {}".format(name_ext))
@@ -44,6 +44,9 @@ def excel_main(file):
     pending_csv = []
     final = OrderedDict()
     logger_excel.info("variables initialized")
+
+    # Create a temporary folder and set paths
+    dir_tmp = create_tmp_dir()
 
     """
     EACH DATA TABLE WILL BE STRUCTURED LIKE THIS
@@ -84,8 +87,6 @@ def excel_main(file):
         name_lpd = name + ".lpd"
         sheets = __set_sheet_filenames(sheets, name)
 
-        # Create a temporary folder and set paths
-        dir_tmp = create_tmp_dir()
         dir_bag = os.path.join(dir_tmp, name)
         dir_data = os.path.join(dir_bag, 'data')
 
@@ -129,8 +130,9 @@ def excel_main(file):
             logger_excel.debug("excel: doi resolver failed: {}, {}".format(name, e))
 
         # Dump final_dict to a json file.
-        final["LiPDVersion"] = 1.2
-        write_json_to_file(name, final)
+        final["lipdVersion"] = 1.2
+        final["createdBy"] = "excel"
+        write_json_to_file(final)
 
         # Move files to bag root for re-bagging
         # dir : dir_data -> dir_bag
@@ -428,8 +430,8 @@ def _place_tables_main(sheets, skeleton_paleo, skeleton_chron):
     """
     All the data has been parsed, skeletons have been created, now put the data into the skeletons.
     :param list sheets: All metadata needed to place sheet data into the LiPD structure
-    :param dict skeleton_paleo: The empty skeleton where we will place data
-    :param dict skeleton_chron: The empty skeleton where we will place data
+    :param list skeleton_paleo: The empty skeleton where we will place data
+    :param list skeleton_chron: The empty skeleton where we will place data
     :return:
     """
     logger_excel.info("enter place_tables_main")

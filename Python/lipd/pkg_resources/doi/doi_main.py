@@ -83,7 +83,7 @@ def process_lpd(name, dir_tmp):
     # Overwrite data with new data
     jld_data = DOIResolver(dir_root, name, jld_data).main()
     # Open the jld file and overwrite the contents with the new data.
-    write_json_to_file(os.path.join(dir_data, name), jld_data)
+    write_json_to_file(jld_data)
 
     # Open changelog. timestamp it. Prompt user for short description of changes. Close and save
     # update_changelog()

@@ -345,20 +345,16 @@ def extractTs(d, chron=False):
             # Loop over the LiPD files in the LiPD_Library
             for k, v in d.items():
                 try:
-                    # Get metadata from this LiPD object. Convert.
-                    # Receive a time series (list of time series objects) and add it to what we currently have.
-                    # Continue building time series until all datasets are processed.
+                    # Use the LiPD data given to start time series extract
                     print("extracting: {}".format(k))
+                    # Copy, so we don't affect the original data
                     _v = copy.deepcopy(v)
-                    # _dfs = lipd_to_df(_v, getCsv(_v))
+                    # Start extract...
                     _l += (extract(_v, chron))
                 except Exception as e:
-                    print("Error: Skipping file: {}: {}".format(k, e))
+                    print("Error: Unable to extractTs for dataset: {}: {}".format(k, e))
                     logger_start.debug("extractTs: Exception: {}".format(e))
-            print("Finished time series: {} entries".format(len(_l)))
-    except KeyError as ke:
-        print("Error: Unable to extractTs: {}".format(ke))
-        logger_start.error("extractTs: KeyError: {}".format(ke))
+            print("Created time series: {} entries".format(len(_l)))
     except Exception as e:
         print("Error: Unable to extractTs: {}".format(e))
         logger_start.error("extractTs: Exception: {}".format(e))
@@ -680,8 +676,6 @@ def __universal_read(file_path, file_type):
         if file_type == ".lpd":
             # add meta to global file meta
             files[".lpd"].append(file_meta)
-            # yes, go ahead and load in the file
-            # lipd_lib.read_lipd(file_meta)
         # append to global files
         elif file_type in [".xls", ".xlsx"]:
             files[".xls"].append(file_meta)

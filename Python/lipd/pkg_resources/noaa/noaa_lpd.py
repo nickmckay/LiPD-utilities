@@ -41,7 +41,7 @@ class NOAA_LPD(object):
         self.__parse()
         os.chdir(self.dir_bag)
         # Dump Metadata JSON to dir_tmp
-        write_json_to_file(self.name, self.metadata)
+        write_json_to_file(self.metadata)
         # Create a bagit bag
         finish_bag(self.dir_bag)
         logger_noaa_lpd.info("exit main")

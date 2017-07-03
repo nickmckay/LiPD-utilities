@@ -352,11 +352,11 @@ def _remove_csv_from_section(d, pc):
 # EXPORT
 
 
-def write_json_to_file(filename, json_data):
+def write_json_to_file(json_data, filename="metadata"):
     """
     Write all JSON in python dictionary to a new json file.
-    :param str filename: Target json file
     :param dict json_data: JSON data
+    :param str filename: Target filename (defaults to 'metadata.jsonld')
     :return None:
     """
     logger_jsons.info("enter write_json_to_file")
