@@ -3,6 +3,30 @@
 GLOBAL LIST OF ALTERNATES AND SYNONYMS
 """
 
+VER_1_3 = {
+    "tables": ["chronTableName", "paleoTableName", "paleoDataTableName", "chronDataTableName",
+         "chronMeasurementTableName", "paleoMeasurementTableName"],
+    "swap": {
+        "paleoMeasurementTable": "measurementTable",
+        "chronMeasurementTable": "measurementTable",
+
+        "paleoModel": "model",
+        "chronModel": "model",
+
+        "paleoDataMD5": "dataMD5",
+        "chronDataMD5": "dataMD5",
+
+        "chronEnsembleMD5": "tableMD5",
+        "paleoEnsembleMD5": "tableMD5",
+
+        "chronEnsembleTableMD5": "tableMD5",
+        "paleoEnsembleTableMD5": "tableMD5",
+
+        "paleoMeasurementTableMD5": "tableMD5",
+        "chronMeasurementTableMD5": "tableMD5",
+    }
+}
+
 # LiPD Excel Template expects these types of data sheets
 EXCEL_SHEET_TYPES = {
     "paleo": ["p", "paleo"],

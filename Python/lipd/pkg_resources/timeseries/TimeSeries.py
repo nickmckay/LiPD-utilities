@@ -200,10 +200,8 @@ def _extract_pc(d, root, pc):
                 _tmp_root = copy.deepcopy(root)
                 for _entry in v["model"]:
                     if "summaryTable" in _entry:
-                        # todo this needs to be switched over once "summaryTable" becomes a list of multiples
-                        _ts = _extract_table(_entry["summaryTable"], _tmp_root, pc, _ts)
-                        # for _table_name, _table_data in _entry["summaryTable"].items():
-                        #     _ts = _extract_table(_table_data, _table_tmp, pc, _ts)
+                        for _table_name, _table_data in _entry["summaryTable"].items():
+                            _ts = _extract_table(_table_data, _tmp_root, pc, _ts)
     except KeyError as e:
         logger_timeseries.warn("extract_pc: KeyError: paleoData/columns not found, {}".format(e))
 
@@ -286,7 +284,7 @@ def _extract_table(table_data, tmp_root, pc, ts):
     :return list ts: Time series (so far)
     """
     # Get root items for this table
-    # todo create fields for the table name and table index in the ts entry.
+    # todo create fields for "modelNumber" and "summaryNumber" to map back summary table entries in the time series
     _table_tmp = _extract_table_root(table_data, tmp_root, pc)
     # Add age, depth, and year columns to root if available
     _table_tmp = _extract_special(tmp_root, _table_tmp)
@@ -362,19 +360,28 @@ def collapse(l):
     # Current time series entry
     _current= {}
 
-    # Receive list of TSO objects
-    for entry in l:
-        # Get notable keys
-        dsn = entry['dataSetName']
-        logger_timeseries.info("processing: {}".format(dsn))
-        _current = entry
+    # Determine if we're collapsing a paleo or chron time series
+    _pc = "paleoData" if l[0]["chronData"] else "chronData"
 
-        # Since root items are the same in each column of the same dataset, we only need these steps the first time.
-        if dsn not in _master:
-            _master, _current = _collapse_root(_master, _current, dsn)
+    try:
 
-        # Collapse paleoData, calibration, and climate interpretation
-        _master = _collapse_paleo(_master, _current, dsn)
+        # Receive list of TSO objects
+        for entry in l:
+            # Get notable keys
+            dsn = entry['dataSetName']
+            logger_timeseries.info("processing: {}".format(dsn))
+            _current = entry
+
+            # Since root items are the same in each column of the same dataset, we only need these steps the first time.
+            if dsn not in _master:
+                _master, _current = _collapse_root(_master, _current, dsn, _pc)
+
+            # Collapse pc, calibration, and interpretation
+            _master = _collapse_pc(_master, _current, dsn)
+
+    except Exception as e:
+        print("Error: Unable to collapse time series, {}".format(e))
+        logger_timeseries.error("collapse: Exception: {}".format(e))
 
     logger_timeseries.info("exit collapse")
     return _master
@@ -403,105 +410,119 @@ def _get_current(current, dsn):
     return _table_name, _variable_name
 
 
-def _collapse_root(master, current, dsn):
+def _collapse_root(master, current, dsn, pc):
     """
     Collapse the root items of the current time series entry
     :param dict master: LiPD data (so far)
     :param dict current: Current time series entry
     :param str dsn: Dataset name
+    :param str pc: paleoData or chronData (mode)
     :return dict master:
     :return dict current:
     """
     logger_timeseries.info("enter collapse_root")
     _tmp_fund = {}
     _tmp_pub = {}
+    _switch = {"paleoData" : "chronData", "chronData": "paleoData"}
+    # The tmp lipd data that we'll place in master later
     _tmp_master = {'pub': [], 'geo': {'geometry': {'coordinates': []}, 'properties': {}}, 'funding': [],
-                  'paleoData': {}}
+                  'paleoData': {}, "chronData": {}}
+    _raw = _switch[pc]
     p_keys = ['siteName', 'pages2kRegion']
     c_keys = ['meanLat', 'meanLon', 'meanElev']
     c_vals = [0, 0, 0]
 
-    for k, v in current.items():
-        if 'paleoData' not in k and 'calibration' not in k and \
-                        'climateInterpretation' not in k and "chronData" not in k:
-            if 'funding' in k:
-                # Group funding items in tmp_funding by number
-                m = re_fund_valid.match(k)
-                try:
-                    _tmp_fund[m.group(1)][m.group(2)] = v
-                except Exception:
+    try:
+        for k, v in current.items():
+            if 'paleo' not in k and 'calibration' not in k and \
+                            'climateInterpretation' not in k and "chronData" not in k:
+                if 'funding' in k:
+                    # Group funding items in tmp_funding by number
+                    m = re_fund_valid.match(k)
                     try:
-                        # If the first layer is missing, create it and try again
-                        _tmp_fund[m.group(1)] = {}
                         _tmp_fund[m.group(1)][m.group(2)] = v
                     except Exception:
-                        # Still not working. Give up.
-                        pass
-
-            elif 'geo' in k:
-                key = k.split('_')
-                # Coordinates - [LON, LAT, ELEV]
-                if key[1] in c_keys:
-                    if key[1] == 'meanLon':
-                        c_vals[0] = v
-                    elif key[1] == 'meanLat':
-                        c_vals[1] = v
-                    elif key[1] == 'meanElev':
-                        c_vals[2] = v
-                # Properties
-                elif key[1] in p_keys:
-                    _tmp_master['geo']['properties'][key[1]] = v
-                # All others
-                else:
-                    _tmp_master['geo'][key[1]] = v
-
-            elif 'pub' in k:
-                # Group pub items in tmp_pub by number
-                m = re_pub_valid.match(k)
-                if m:
-                    number = int(m.group(1)) - 1  # 0 indexed behind the scenes, 1 indexed to user.
-                    key = m.group(2)
-                    # Authors ("Pu, Y.; Nace, T.; etc..")
-                    if key == 'author' or key == 'authors':
                         try:
-                            _tmp_pub[number]['author'] = _collapse_author(v)
-                        except KeyError as e:
-                            # Dictionary not created yet. Assign one first.
-                            _tmp_pub[number] = {}
-                            _tmp_pub[number]['author'] = _collapse_author(v)
-                    # DOI ID
-                    elif key == 'DOI':
-                        try:
-                            _tmp_pub[number]['identifier'] = [{"id": v, "type": "doi", "url": "http://dx.doi.org/" + str(v)}]
-                        except KeyError:
-                            # Dictionary not created yet. Assign one first.
-                            _tmp_pub[number] = {}
-                            _tmp_pub[number]['identifier'] = [{"id": v, "type": "doi", "url": "http://dx.doi.org/" + str(v)}]
+                            # If the first layer is missing, create it and try again
+                            _tmp_fund[m.group(1)] = {}
+                            _tmp_fund[m.group(1)][m.group(2)] = v
+                        except Exception:
+                            # Still not working. Give up.
+                            pass
+
+                elif 'geo' in k:
+                    key = k.split('_')
+                    # Coordinates - [LON, LAT, ELEV]
+                    if key[1] in c_keys:
+                        if key[1] == 'meanLon':
+                            c_vals[0] = v
+                        elif key[1] == 'meanLat':
+                            c_vals[1] = v
+                        elif key[1] == 'meanElev':
+                            c_vals[2] = v
+                    # Properties
+                    elif key[1] in p_keys:
+                        _tmp_master['geo']['properties'][key[1]] = v
                     # All others
                     else:
-                        try:
-                            _tmp_pub[number][key] = v
-                        except KeyError:
-                            # Dictionary not created yet. Assign one first.
-                            _tmp_pub[number] = {}
-                            _tmp_pub[number][key] = v
-            else:
-                # Root
-                _tmp_master[k] = v
+                        _tmp_master['geo'][key[1]] = v
 
-    # Append pub and funding to master
-    for k, v in _tmp_pub.items():
-        _tmp_master['pub'].append(v)
-    for k, v in _tmp_fund.items():
-        _tmp_master['funding'].append(v)
-    # Get rid of elevation coordinate if one was never added.
-    if c_vals[2] == 0:
-        del c_vals[2]
-    _tmp_master['geo']['geometry']['coordinates'] = c_vals
+                elif 'pub' in k:
+                    # Group pub items in tmp_pub by number
+                    m = re_pub_valid.match(k)
+                    if m:
+                        number = int(m.group(1)) - 1  # 0 indexed behind the scenes, 1 indexed to user.
+                        key = m.group(2)
+                        # Authors ("Pu, Y.; Nace, T.; etc..")
+                        if key == 'author' or key == 'authors':
+                            try:
+                                _tmp_pub[number]['author'] = _collapse_author(v)
+                            except KeyError as e:
+                                # Dictionary not created yet. Assign one first.
+                                _tmp_pub[number] = {}
+                                _tmp_pub[number]['author'] = _collapse_author(v)
+                        # DOI ID
+                        elif key == 'DOI':
+                            try:
+                                _tmp_pub[number]['identifier'] = [{"id": v, "type": "doi", "url": "http://dx.doi.org/" + str(v)}]
+                            except KeyError:
+                                # Dictionary not created yet. Assign one first.
+                                _tmp_pub[number] = {}
+                                _tmp_pub[number]['identifier'] = [{"id": v, "type": "doi", "url": "http://dx.doi.org/" + str(v)}]
+                        # All others
+                        else:
+                            try:
+                                _tmp_pub[number][key] = v
+                            except KeyError:
+                                # Dictionary not created yet. Assign one first.
+                                _tmp_pub[number] = {}
+                                _tmp_pub[number][key] = v
+                else:
+                    # Root
+                    _tmp_master[k] = v
 
-    # If we're getting root info, then there shouldn't be a dataset entry yet.
-    # Create entry in object master, and set our new data to it.
-    master[dsn] = _tmp_master
+        # Append pub and funding to master
+        for k, v in _tmp_pub.items():
+            _tmp_master['pub'].append(v)
+        for k, v in _tmp_fund.items():
+            _tmp_master['funding'].append(v)
+        # Get rid of elevation coordinate if one was never added.
+        if c_vals[2] == 0:
+            del c_vals[2]
+        _tmp_master['geo']['geometry']['coordinates'] = c_vals
+
+        # Place the raw paleoData or chronData into the metadata. (Depending on mode)
+        # Ex. if we're in paleoData mode, then try to add chronData, and vice versa
+        try:
+            _tmp_master[_raw] = current[_raw]
+        except Exception as e:
+            logger_timeseries.info("collapse_root: Exception: Unable to add raw data: {}, {}",format(_raw, e))
+
+        # If we're getting root info, then there shouldn't be a dataset entry yet.
+        # Create entry in object master, and set our new data to it.
+        master[dsn] = _tmp_master
+    except Exception as e:
+        logger_timeseries.error("collapse_root: Exception: {}, {}".format(dsn, e))
     logger_timeseries.info("exit collapse_root")
     return master, current
 
@@ -520,7 +541,7 @@ def _collapse_author(s):
     return l
 
 
-def _collapse_paleo(master, current, dsn):
+def _collapse_pc(master, current, dsn):
     """
     Collapse the paleoData for the current time series entry
     :param dict master: LiPD data (so far)
@@ -532,7 +553,7 @@ def _collapse_paleo(master, current, dsn):
     _table_name, _variable_name = _get_current(current, dsn)
     tmp_clim = {}
     tmp_cal = {}
-    master, current = _collapse_paleo_root(master, current, dsn)
+    master, current = _collapse_pc_root(master, current, dsn)
     try:
         # Create the column entry in the table
         master[dsn]['paleoData'][_table_name]['columns'][_variable_name] = {}
@@ -561,9 +582,10 @@ def _collapse_paleo(master, current, dsn):
     return master
 
 
-def _collapse_paleo_root(master, current, dsn):
+def _collapse_pc_root(master, current, dsn):
     """
     Create paleo table in master if it doesn't exist. Insert table root items
+
     """
     logger_timeseries.info("enter collapse_paleo_root")
     _table_name, _variable_name = _get_current(current, dsn)

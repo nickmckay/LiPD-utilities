@@ -1,4 +1,4 @@
-from .misc import update_lipd_version, get_variable_name_table, rm_empty_fields, get_appended_name
+from .misc import update_lipd_version, get_table_key, rm_empty_fields, get_appended_name
 from .loggers import create_logger
 
 import demjson
@@ -76,152 +76,175 @@ def idx_num_to_name(d):
     """
     logger_jsons.info("enter idx_num_to_name")
 
-    # Take whatever lipds version this file is, and convert it to the most current lipds version
-    d = update_lipd_version(d)
-
-    if "paleoData" in d:
-        tmp_pd = _import_data(d["paleoData"], "paleo")
-        d["paleoData"] = tmp_pd
-
-    if "chronData" in d:
-        tmp_cd = _import_data(d["chronData"], "chron")
-        d["chronData"] = tmp_cd
-
+    try:
+        if "paleoData" in d:
+            tmp_pd = _import_data(d["paleoData"], "paleo")
+            d["paleoData"] = tmp_pd
+        if "chronData" in d:
+            tmp_cd = _import_data(d["chronData"], "chron")
+            d["chronData"] = tmp_cd
+    except Exception as e:
+        logger_jsons.error("idx_num_to_name: Exception: {}".format(e))
     logger_jsons.info("exit idx_num_to_name")
     return d
 
 
-def _import_data(section_data, pc):
+def _import_data(section_data, crumbs):
     """
     Import the section metadata and change it to index-by-name.
     :param list section_data: Section metadata
     :param str pc: Paleo or Chron
     :return dict: Modified paleoData
     """
-    logger_jsons.info("enter import_data: {}".format(pc))
+    logger_jsons.info("enter import_data: {}".format(crumbs))
     d = OrderedDict()
-    idx = 1
     try:
-        for table in section_data:
+        for _idx, table in enumerate(section_data):
             tmp_table = OrderedDict()
-
-            # Get the table name from the first measurement table, and use that as the index name for this table
-            tmp_table_name = get_variable_name_table("dataTableName", table, pc)
 
             # Process the paleo measurement table
             if "measurementTable" in table:
-                tmp_pmt = _import_meas(table["measurementTable"], pc)
+                tmp_pmt = _import_meas(table["measurementTable"], "{}{}".format(crumbs, _idx))
                 tmp_table["measurementTable"] = tmp_pmt
 
             # Process the paleo model
             if "model" in table:
-                tmp_cm = _import_model(table["model"], pc)
+                tmp_cm = _import_model(table["model"], crumbs + str(_idx))
                 tmp_table["model"] = tmp_cm
 
+            # Get the table name from the first measurement table, and use that as the index name for this table
+            # _table_name = get_table_key("tableName", table, "{}{}".format(crumbs, _idx))
+            _table_name = "{}{}".format(crumbs, _idx)
+
             # If we only have generic table names, and one exists already, don't overwrite. Create dynamic name
-            if tmp_table_name in d:
-                tmp_table_name = "{}_{}".format(tmp_table_name, idx)
-                idx += 1
+            if _table_name in d:
+                _table_name = "{}_{}".format(_table_name, _idx)
 
-            # Put the final product into the output dictionary. Indexed-by-table-name
-            d[tmp_table_name] = tmp_table
+            # Put the final product into the output dictionary. Indexed by name
+            d[_table_name] = tmp_table
 
-    except AttributeError:
-        # paleoData is not a list like it should be.
-        logger_jsons.info("import_data: {},  AttributeError: expected list type, given {}".format(pc, type(section_data)))
-    logger_jsons.info("exit import_data: {}".format(pc))
+    except Exception as e:
+        logger_jsons.info("import_data: Exception: {}".format(e))
+    logger_jsons.info("exit import_data: {}".format(crumbs))
     return d
 
 
-def _import_model(models, pc):
+def _import_model(models, crumbs):
     """
     Change the nested items of the paleoModel data. Overwrite the data in-place.
     :param list models:
-    :param str pc: Paleo or Chron
+    :param str crumbs: Crumbs
     :return list:
     """
-    logger_jsons.info("enter import_model".format(pc))
-
+    logger_jsons.info("enter import_model".format(crumbs))
+    crumbs += "model"
+    _table_new = OrderedDict()
     try:
-        for model in models:
+        for _idx, model in enumerate(models):
             # Keep the original dictionary, but replace the three main entries below
 
             # Do a direct replacement of chronModelTable columns. No table name, no table work needed.
             if "summaryTable" in model:
-                model["summaryTable"]["columns"] = _idx_col_by_name(model["summaryTable"]["columns"])
+                model["summaryTable"] = _import_model_2(model, "summaryTable",
+                                                                   "{}{}{}".format(crumbs, _idx, "summary"))
             elif "modelTable" in model:
-                model["modelTable"]["columns"] = _idx_col_by_name(model["modelTable"]["columns"])
+                model["summaryTable"] = _import_model_2(model, "modelTable",
+                                                                 "{}{}{}".format(crumbs, _idx, "summary"))
 
             # Do a direct replacement of ensembleTable columns. No table name, no table work needed.
             if "ensembleTable" in model:
-                model["ensembleTable"]["columns"] = _idx_col_by_name(model["ensembleTable"]["columns"])
+                model["ensembleTable"] = _import_model_2(model, "ensembleTable",
+                                                                    "{}{}{}".format(crumbs, _idx, "ensemble"))
 
             # Iter over each distribution. Check for calibrated ages (old) just in case
             if "calibratedAges" in model:
-                model["distributionTable"] = _import_dist(model, "calibratedAges")
+                model["distributionTable"] = _import_model_2(model, "calibratedAges",
+                                                             "{}{}{}".format(crumbs, _idx, "distribution"))
                 model.pop("calibratedAges")
             elif "distributionTable" in model:
-                model["distributionTable"] = _import_dist(model, "distributionTable")
+                model["distributionTable"] = _import_model_2(model, "distributionTable",
+                                                             "{}{}{}".format(crumbs, _idx, "distribution"))
 
-    except AttributeError:
-        logger_jsons.debug("import_model: {}: AttributeError: expected list type, given {} type".format(pc, type(models)))
+            _table_name = "{}{}".format(crumbs, _idx)
+            _table_new[_table_name] = model
+    except Exception as e:
+        logger_jsons.error("import_model: Exception: {}".format(e))
+    logger_jsons.info("exit import_model: {}".format(crumbs))
+    return _table_new
 
-    logger_jsons.info("exit import_model: {}".format(pc))
-    return models
 
-
-def _import_meas(tables, pc):
+def _import_meas(tables, crumbs):
     """
     Index the measurement table by name
-    :param dict tables: Measurement table data
-    :return dict:
+    :param dict tables: Table data
+    :param str crumbs: Crumbs
+    :return dict tables_new: Table data
     """
-    logger_jsons.info("enter import_meas: {}".format(pc))
-    table_new = OrderedDict()
+    logger_jsons.info("enter import_meas: {}".format(crumbs))
+    crumbs += "measurement"
+    _table_new = OrderedDict()
+    try:
+        for _idx, table in enumerate(tables):
+            # Get the table name
+            # _table_name = get_table_key("tableName", table, "{}{}{}".format(crumbs, "measurement", _idx))
+            _table_name = "{}{}".format(crumbs, _idx)
 
-    for table in tables:
-        # Get the table name
-        name_table = get_variable_name_table("dataTableName", table, pc)
+            # Call idx_table_by_name
+            _tmp_table = _idx_table_by_name(table)
+            # Enter the named table in the output dictionary
+            if _table_name in _table_new:
+                _fallback_name = "{}{}{}".format(crumbs, "measurement", _idx)
+                _tmp_table["tableName"] = _fallback_name
+                _table_new[_fallback_name] = _tmp_table
+            else:
+                _tmp_table["tableName"] = _table_name
+                _table_new[_table_name] = _tmp_table
 
-        # Call idx_table_by_name
-        table = _idx_table_by_name(table)
-
-        # Enter the named table in the output dictionary
-        table_new[name_table] = table
-    logger_jsons.info("exit import_meas: {}".format(pc))
-    return table_new
+    except Exception as e:
+        logger_jsons.error("import_meas: Exception: {}".format(e))
+    logger_jsons.info("exit import_meas: {}".format(crumbs))
+    return _table_new
 
 
-def _import_dist(model, key):
+def _import_model_2(model, key, crumbs):
     """
-    Import calibratedAges or distributionTable.
+    Import summary, ensemble, calibratedAges or distribution data.
     :param model: Table metadata
     :param key: calibratedAges or distributionTable
     :return: Modified table metadata
     """
-    tmp_calib = OrderedDict()
-    for calibration in model[key]:
-        # Use "name" as table name
-        name_calib = get_variable_name_table("name", calibration)
-        # Call idx_table_by_name
-        table_new = _idx_table_by_name(calibration)
-        # Set the new table by name into the WIP tmp_calib
-        tmp_calib[name_calib] = table_new
-    return tmp_calib
+    _table_new = OrderedDict()
+    try:
+        for _idx, _table in enumerate(model[key]):
+            # Use "name" as table name
+            # _table_name = get_table_key("tableName", _table, "{}{}".format(crumbs, _idx))
+            _table_name = "{}{}".format(crumbs, _idx)
+            # Call idx_table_by_name
+            _tmp_table = _idx_table_by_name(_table)
+            if _table_name in _table_new:
+                _fallback_name = "{}_{}".format(crumbs, _idx)
+                _tmp_table["tableName"] = _fallback_name
+                _table_new[_fallback_name] = _tmp_table
+            else:
+                _tmp_table["tableName"] = _table_name
+                _table_new[_table_name] = _tmp_table
+    except Exception as e:
+        logger_jsons.error("import_model_2: Exception: {}".format(e))
+    return _table_new
 
 
 def _idx_table_by_name(d):
     """
     Switch a table of data from indexed-by-number into indexed-by-name using table names
     :param dict d: Table data
-    :return dict: new idx-by-name table
+    :return dict d: Table data
     """
     try:
         # Overwrite the columns entry with named columns
         d["columns"] = _idx_col_by_name(d["columns"])
-    except AttributeError:
-        print("Error: 'columns' data is not a dictionary")
-        logger_jsons.info("idx_table_by_name: AttributeError: expected dictionary type, given {} type".format(type(d)))
+    except Exception as e:
+        print("Error: Indexing table data: {}".format(e))
+        logger_jsons.info("idx_table_by_name: Exception: {}".format(e))
     return d
 
 
@@ -244,8 +267,8 @@ def _idx_col_by_name(l):
             except KeyError:
                 print("Error: missing 'variableName' in column")
                 logger_jsons.info("idx_col_by_name: KeyError: missing variableName key")
-    except AttributeError:
-        logger_jsons.info("idx_col_by_name: AttributeError: expected list type, given {} type".format(type(l)))
+    except Exception as e:
+        logger_jsons.info("idx_col_by_name: Exception: {}".format(e))
 
     return cols_new
 

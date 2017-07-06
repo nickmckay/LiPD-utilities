@@ -8,7 +8,7 @@ from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst, list_files, collect_metadata_file
 from .pkg_resources.helpers.loggers import create_logger, log_benchmark, create_benchmark
-from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext, rm_values_fields
+from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext, rm_values_fields,get_dsn
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
 from .pkg_resources.helpers.validator_api import get_validator_results, display_results
 from .pkg_resources.helpers.alternates import FILE_TYPE_MAP
@@ -42,7 +42,7 @@ def readLipd(usr_path=""):
     """
     Wrapper function: LiPD file read
     :param str usr_path: Path to file (optional)
-    :return str cwd: Current Working Directory
+    :return dict _d: LiPD data
     """
     global cwd, settings
     if settings["verbose"]:
@@ -105,15 +105,16 @@ def readAll(usr_path=""):
 
 def excel():
     """
-    Convert Excel files to LiPD files
+    Convert Excel files to LiPD files. LiPD data is returned directly from this function.
 
     Example
     1: lipd.readExcel()
-    2: lipd.excel()
+    2: D = lipd.excel()
 
-    :return none:
+    :return dict _d: LiPD data
     """
     global files, cwd, settings
+    _d = {}
     # Turn off verbose. We don't want to clutter the console with extra reading/writing output statements
     settings["verbose"] = False
     # Find excel files
@@ -127,7 +128,7 @@ def excel():
         filename = excel_main(file)
         try:
             # Read the new LiPD file back in, to get fixes, inferred calculations, updates, etc.
-            _d = readLipd(os.path.join(file["dir"], filename))
+            _d[filename] = readLipd(os.path.join(file["dir"], filename))
             # Write the modified LiPD file back out again.
             writeLipd(_d, cwd, filename)
         except Exception as e:
@@ -138,7 +139,7 @@ def excel():
     logger_benchmark.info(log_benchmark("excel", start, end))
     # Start printing stuff again.
     settings["verbose"] = True
-    return
+    return _d
 
 
 def noaa(d=None):
@@ -342,18 +343,33 @@ def extractTs(d, chron=False):
         if not d:
             print("Error: LiPD data not provided. Pass LiPD data into the function.")
         else:
-            # Loop over the LiPD files in the LiPD_Library
-            for k, v in d.items():
+            if "paleoData" in d:
+                # One dataset: Process directly on file, don't loop
                 try:
+                    _dsn = get_dsn(d)
                     # Use the LiPD data given to start time series extract
-                    print("extracting: {}".format(k))
+                    print("extracting: {}".format(_dsn))
                     # Copy, so we don't affect the original data
-                    _v = copy.deepcopy(v)
+                    _v = copy.deepcopy(d)
                     # Start extract...
-                    _l += (extract(_v, chron))
+                    _l = (extract(_v, chron))
                 except Exception as e:
-                    print("Error: Unable to extractTs for dataset: {}: {}".format(k, e))
-                    logger_start.debug("extractTs: Exception: {}".format(e))
+                    print("Error: Unable to extractTs for dataset: {}: {}".format(_dsn, e))
+                    logger_start.debug("extractTs: Exception: {}, {}".format(_dsn, e))
+
+            else:
+                # Multiple datasets: Loop and append for each file
+                for k, v in d.items():
+                    try:
+                        # Use the LiPD data given to start time series extract
+                        print("extracting: {}".format(k))
+                        # Copy, so we don't affect the original data
+                        _v = copy.deepcopy(v)
+                        # Start extract...
+                        _l += (extract(_v, chron))
+                    except Exception as e:
+                        print("Error: Unable to extractTs for dataset: {}: {}".format(k, e))
+                        logger_start.debug("extractTs: Exception: {}".format(e))
             print("Created time series: {} entries".format(len(_l)))
     except Exception as e:
         print("Error: Unable to extractTs: {}".format(e))
@@ -375,7 +391,6 @@ def collapseTs(ts=None):
     :param list ts: Time series
     :return dict: LiPD data
     """
-    l = []
     _d = {}
     if not ts:
         print("Error: Time series data not provided. Pass time series into the function.")
@@ -391,32 +406,48 @@ def collapseTs(ts=None):
 
 def filterTs(ts, expression):
     """
-    Find the names of the time series entries that match the expression
-    ex: find("geo_elevation == 1500", ts)
-    ex: find("paleoData_variablename == sst", ts)
+    Create a new time series that only contains entries that match the given expression.
+
+    Example:
+    D = lipd.loadLipd()
+    ts = lipd.extractTs(D)
+    new_ts = filterTs(ts, "archiveType == marine sediment")
+    new_ts = filterTs(ts, "paleoData_variableName == sst")
+
     :param str expression: Expression
     :param list ts: Time series
     :return list new_ts: Filtered time series that matches the expression
     """
     new_ts = []
+    # Use some magic to turn the given string expression into a machine-usable comparative expression.
     expr_lst = translate_expression(expression)
+    # Only proceed if the translation resulted in a usable expression.
     if expr_lst:
-        new_ts, idxs = get_matches(expr_lst, ts)
+        new_ts, _idx = get_matches(expr_lst, ts)
     return new_ts
 
 
 def queryTs(ts, expression):
     """
-    Find the indices of the time series entries that match the criteria expression
+    Find the indices of the time series entries that match the given expression.
+
+    Example:
+    D = lipd.loadLipd()
+    ts = lipd.extractTs(D)
+    matches = queryTs(ts, "archiveType == marine sediment")
+    matches = queryTs(ts, "geo_meanElev <= 2000")
+
     :param str expression: Expression
     :param list ts: Time series
-    :return list idxs: Indices of entries that match the criteria
+    :return list _idx: Indices of entries that match the criteria
     """
-    idxs = []
+    _idx = []
+    # Use some magic to turn the given string expression into a machine-usable comparative expression.
     expr_lst = translate_expression(expression)
+    # Only proceed if the translation resulted in a usable expression.
     if expr_lst:
-        new_ts, idxs = get_matches(expr_lst, ts)
-    return idxs
+        new_ts, _idx = get_matches(expr_lst, ts)
+    return _idx
 
 # DEPRECATED - TS no longer uses dictionaries or names.
 # def _createTs(names, ts):

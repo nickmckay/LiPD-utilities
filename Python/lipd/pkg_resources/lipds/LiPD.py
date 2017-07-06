@@ -4,7 +4,7 @@ from ..helpers.bag import create_bag
 from ..helpers.csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata
 from ..helpers.jsons import write_json_to_file, idx_num_to_name, idx_name_to_num, rm_empty_fields, read_jsonld
 from ..helpers.loggers import create_logger
-from ..helpers.misc import put_tsids, check_dsn, rm_empty_doi, rm_values_fields
+from ..helpers.misc import put_tsids, check_dsn, rm_empty_doi, rm_values_fields, update_lipd_version
 
 import copy
 import os
@@ -37,6 +37,7 @@ def lipd_read(path):
         _j = read_jsonld()
         _j = rm_empty_fields(_j)
         _j = check_dsn(path, _j)
+        _j = update_lipd_version(_j)
         _j = idx_num_to_name(_j)
         _j = rm_empty_doi(_j)
         _j = rm_empty_fields(_j)
@@ -49,7 +50,7 @@ def lipd_read(path):
     except Exception as e:
         print("Error: unable to read LiPD: {}".format(e))
     os.chdir(dir_original)
-    logger_lipd.info("object loaded: {}".format(path))
+    logger_lipd.info("lipd_read: record loaded: {}".format(path))
     return _j
 
 

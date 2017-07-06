@@ -380,7 +380,7 @@ def _get_filename(table, crumbs):
         filename = table["filename"]
     except KeyError:
         logger_csvs.info("get_filename: KeyError: missing filename key for {}".format(crumbs))
-        print("Error: Missing filename for: {} , cannot load this file".format(crumbs))
+        print("Error: Missing filename for: {}, cannot load this file".format(crumbs))
         filename = ""
     except Exception as e:
         logger_csvs.error("get_filename: {}".format(e))

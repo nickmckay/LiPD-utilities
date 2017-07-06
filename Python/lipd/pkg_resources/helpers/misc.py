@@ -10,7 +10,7 @@ import unicodedata
 
 import numpy as np
 
-from ..helpers.alternates import FILE_TYPE_MAP
+from ..helpers.alternates import FILE_TYPE_MAP, VER_1_3
 from ..helpers.blanks import EMPTY
 from ..helpers.directory import list_files
 from ..helpers.loggers import create_logger
@@ -201,6 +201,20 @@ def get_authors_as_str(x):
     return _authors
 
 
+def get_dsn(d):
+    """
+    Get the dataset name from a record
+    :param dict d: Metadata
+    :return str: Dataset name
+    """
+
+    try:
+        return d["dataSetName"]
+    except Exception as e:
+        logger_misc.warn("get_dsn: Exception: No datasetname found: {}".format(e))
+        return "unknown_dataset"
+
+
 def get_ensemble_counts(d):
     """
     Determine if this is a 1 or 2 column ensemble. Then determine how many columns and rows it has.
@@ -296,7 +310,7 @@ def get_variable_name_col(d):
     return var
 
 
-def get_variable_name_table(key, d, fallback=""):
+def get_table_key(key, d, fallback=""):
     """
     Try to get a table name from a data table
     :param str key: Key to try first
@@ -308,7 +322,7 @@ def get_variable_name_table(key, d, fallback=""):
         var = d[key]
         return var
     except KeyError:
-        logger_misc.info("get_variable_name_table: KeyError: missing {}".format(key))
+        logger_misc.info("get_variable_name_table: KeyError: missing {}, use name: {}".format(key, fallback))
         return fallback
 
 
@@ -343,113 +357,6 @@ def is_ensemble(d):
         except Exception as e:
             logger_misc.debug("misc: is_ensemble: {}".format(e))
     return False
-
-
-def update_lipd_v1_1(d):
-    """
-    Update LiPD version 1.0 to version 1.1.  See LiPD Version changelog for details.
-    NOTE main changes: ChronData turned into a scalable lists of dictioanries.
-    :param dict d: Metadata
-    :return dict: v1.1 metadata dictionary
-    """
-    logger_misc.info("enter lipds 1.0 to 1.1")
-    tmp_all = []
-
-    # ChronData is the only structure update
-    if "chronData" in d:
-        # As of v1.1, ChronData should have an extra level of abstraction.
-        # No longer shares the same structure of paleoData
-
-        # If no measurement table, then make a measurement table list with the table as the entry
-        for table in d["chronData"]:
-            if "chronMeasurementTable" not in table:
-                tmp_all.append({"chronMeasurementTable": [table]})
-
-            # If the table exists, but it is a dictionary, then turn it into a list with one entry
-            elif "chronMeasurementTable" in table:
-                if isinstance(table["chronMeasurementTable"], dict):
-                    tmp_all.append({"chronMeasurementTable": [table["chronMeasurementTable"]]})
-        if tmp_all:
-            d["chronData"] = tmp_all
-
-    d["LiPDVersion"] = 1.1
-    logger_misc.info("exit lipds 1.0 to 1.1")
-    return d
-
-
-def update_lipd_v1_2(d):
-    """
-    Update LiPD version 1.1 to version 1.2. See LiPD Version changelog for details.
-    :param dict d: Metadata v1.1
-    :return dict d: Metadata v1.2
-    """
-    logger_misc.info("enter lipds 1.1 to 1.2")
-    tmp_all = []
-
-    # PaleoData is the only structure update
-    if "paleoData" in d:
-
-        # As of 1.2, PaleoData should match the structure of v1.1 chronData.
-        # There is an extra level of abstraction and room for models, ensembles, calibrations, etc.
-        for table in d["paleoData"]:
-            if "paleoMeasurementTable" not in table:
-                tmp_all.append({"paleoMeasurementTable": [table]})
-
-            # If the table exists, but it is a dictionary, then turn it into a list with one entry
-            elif "paleoMeasurementTable" in table:
-                if isinstance(table["paleoMeasurementTable"], dict):
-                    tmp_all.append({"paleoMeasurementTable": [table["paleoMeasurementTable"]]})
-
-        if tmp_all:
-            d["paleoData"] = tmp_all
-
-    d["LiPDVersion"] = 1.2
-    logger_misc.info("exit lipds 1.1 to 1.2")
-    return d
-
-
-def update_lipd_v1_3(d):
-    """
-    Update LiPD version 1.2 to 1.3. The major changes here are:
-    - 'createdBy' key
-    - Top-level folder inside LiPD archives are named "bag". (No longer <datasetname>)
-    - .jsonld file is now generically named 'metadata.jsonld' (No longer <datasetname>.lpd )
-    - All "paleo" and "chron" prefixes are removed from "paleoMeasurementTable", "paleoModel", etc.
-    - Merge isotopeInterpretation and climateInterpretation into "interpretation" block
-
-    :param dict d: Metadata v1.2
-    :return dict d: Metadata v1.3
-    """
-
-    rm = ["paleoMeasurementTable", "paleoDataTableName", "paleoModel", "chronMeasurementTable", "chronDataTableName", "chronModel"]
-    interps = ["climateInterpretation", "isotopeInterpretation"]
-
-    try:
-        if isinstance(d, dict):
-            for k, v in d.items():
-                # dive down for dictionaries
-                d[k] = update_lipd_v1_3(v)
-
-                # see if the key is in the remove list
-                if k in rm:
-                    # remove the paleo or chron piece of the string
-                    s = k.replace("paleo", "").replace("chron", "")
-                    # lowercase the first letter
-                    s = s[:1].lower() + s[1:] if s else ''
-                    # replace the key in the dictionary
-                    d[s] = d.pop(k)
-            for key in interps:
-                if key in d:
-                    d = _merge_interpretations(d)
-
-        elif isinstance(d, list):
-            # dive down for lists
-            for idx, i in enumerate(d):
-                d[idx] = update_lipd_v1_3(i)
-    except Exception as e:
-        print("Error: Unable to update file to LiPD v1.3: {}".format(e))
-
-    return d
 
 
 def load_fn_matches_ext(file_path, file_type):
@@ -536,7 +443,7 @@ def _merge_interpretations(d):
     _tmp = []
     try:
         # Now loop and aggregate the interpretation data into one list
-        for k,v in d.items():
+        for k, v in d.items():
             if k in ["climateInterpretation", "isotopeInterpretation", "interpretation"]:
                 # now add in the new data
                 if isinstance(v, list):
@@ -548,12 +455,12 @@ def _merge_interpretations(d):
         d["interpretation"] = _tmp
 
     except Exception as e:
-        print("Error: merge_interpreatations: {}".format(e))
+        print("Error: merge_interpretations: {}".format(e))
 
     # Now remove the old interpretation keys
     for key in ["climateInterpretation", "isotopeInterpretation"]:
         try:
-            del d[key]
+            d[key] = ""
         except Exception:
             pass
 
@@ -665,18 +572,18 @@ def put_tsids(x):
                                 except Exception as e:
                                     logger_misc.debug("put_tsids: level 3: Exception: {}".format(e))
                         except Exception as e:
-                            print("put_tsids: level 2: Exception: {}, {}".format(e, k))
+                            print("put_tsids: level 2: Exception: {}, {}".format(k, e))
                     # If it's not "columns", then dive deeper.
                     else:
                         x[k] = put_tsids(v)
             except Exception as e:
-                print("put_tsids: level 1: Exception: {}, {}".format(e, k))
+                print("put_tsids: level 1: Exception: {}, {}".format(k, e))
         # Item is a list, dive deeper for each item in the list
         elif isinstance(x, list):
             for idx, entry in enumerate(x):
                 x[idx] = put_tsids(entry)
     except Exception as e:
-        print("put_tsids: root: Exception: {}, {}".format(e, k))
+        print("put_tsids: root: Exception: {}, {}".format(k, e))
     return x
 
 
@@ -870,14 +777,15 @@ def split_path_and_file(s):
 
 def update_lipd_version(d):
     """
+    Metadata is indexed by number at this step.
+
     Use the current version number to determine where to start updating from. Use "chain versioning" to make it
     modular. If a file is a few versions behind, convert to EACH version until reaching current. If a file is one
     version behind, it will only convert once to the newest.
-    :param dict d: Metadata dictionary
-    :return dict: Most current version metadata dictionary
+    :param dict d: Metadata
+    :return dict d: Metadata
     """
-
-    # Get the lipds version number.
+    # Get the lipd version number.
     version = get_lipd_version(d)
 
     # Update from (N/A or 1.0) to 1.1
@@ -893,6 +801,159 @@ def update_lipd_version(d):
         d = update_lipd_v1_3(d)
         version = 1.3
 
+    return d
+
+
+def update_lipd_v1_1(d):
+    """
+    Update LiPD v1.0 to v1.1
+    - chronData entry is a list that allows multiple tables
+    - paleoData entry is a list that allows multiple tables
+    - chronData now allows measurement, model, summary, modelTable, ensemble, calibratedAges tables
+    - Added 'lipdVersion' key
+
+    :param dict d: Metadata v1.0
+    :return dict d: Metadata v1.1
+    """
+    logger_misc.info("enter update_lipd_v1_1")
+    tmp_all = []
+
+    try:
+        # ChronData is the only structure update
+        if "chronData" in d:
+            # As of v1.1, ChronData should have an extra level of abstraction.
+            # No longer shares the same structure of paleoData
+
+            # If no measurement table, then make a measurement table list with the table as the entry
+            for table in d["chronData"]:
+                if "chronMeasurementTable" not in table:
+                    tmp_all.append({"chronMeasurementTable": [table]})
+
+                # If the table exists, but it is a dictionary, then turn it into a list with one entry
+                elif "chronMeasurementTable" in table:
+                    if isinstance(table["chronMeasurementTable"], dict):
+                        tmp_all.append({"chronMeasurementTable": [table["chronMeasurementTable"]]})
+            if tmp_all:
+                d["chronData"] = tmp_all
+
+        # Log that this is now a v1.1 structured file
+        d["LiPDVersion"] = 1.1
+    except Exception as e:
+        logger_misc.error("update_lipd_v1_1: Exception: {}".format(e))
+    logger_misc.info("exit update_lipd_v1_1")
+    return d
+
+
+def update_lipd_v1_2(d):
+    """
+    Update LiPD v1.1 to v1.2
+    - Added NOAA compatible keys : maxYear, minYear, originalDataURL, WDCPaleoURL, etc
+    - 'calibratedAges' key is now 'distribution'
+    - paleoData structure mirrors chronData. Allows measurement, model, summary, modelTable, ensemble,
+        distribution tables
+    :param dict d: Metadata v1.1
+    :return dict d: Metadata v1.2
+    """
+    logger_misc.info("enter update_lipd_v1_2")
+    tmp_all = []
+
+    try:
+        # PaleoData is the only structure update
+        if "paleoData" in d:
+            # As of 1.2, PaleoData should match the structure of v1.1 chronData.
+            # There is an extra level of abstraction and room for models, ensembles, calibrations, etc.
+            for table in d["paleoData"]:
+                if "paleoMeasurementTable" not in table:
+                    tmp_all.append({"paleoMeasurementTable": [table]})
+
+                # If the table exists, but it is a dictionary, then turn it into a list with one entry
+                elif "paleoMeasurementTable" in table:
+                    if isinstance(table["paleoMeasurementTable"], dict):
+                        tmp_all.append({"paleoMeasurementTable": [table["paleoMeasurementTable"]]})
+            if tmp_all:
+                d["paleoData"] = tmp_all
+        # Log that this is now a v1.1 structured file
+        d["LiPDVersion"] = 1.2
+    except Exception as e:
+        logger_misc.error("update_lipd_v1_2: Exception: {}".format(e))
+
+    logger_misc.info("exit update_lipd_v1_2")
+    return d
+
+
+def update_lipd_v1_3(d):
+    """
+    Update LiPD v1.2 to v1.3
+    - Added 'createdBy' key
+    - Top-level folder inside LiPD archives are named "bag". (No longer <datasetname>)
+    - .jsonld file is now generically named 'metadata.jsonld' (No longer <datasetname>.lpd )
+    - All "paleo" and "chron" prefixes are removed from "paleoMeasurementTable", "paleoModel", etc.
+    - Merge isotopeInterpretation and climateInterpretation into "interpretation" block
+    - ensemble table entry is a list that allows multiple tables
+    - summary table entry is a list that allows multiple tables
+    :param dict d: Metadata v1.2
+    :return dict d: Metadata v1.3
+    """
+    # sub routine (recursive): changes all the key names and merges interpretation
+    d = update_lipd_v1_3_names(d)
+    # sub routine: changes ensemble and summary table structure
+    d = update_lipd_v1_3_structure(d)
+    return d
+
+
+def update_lipd_v1_3_names(d):
+    """
+    Update the key names and merge interpretation data
+    :param dict d: Metadata
+    :return dict d: Metadata
+    """
+    try:
+        if isinstance(d, dict):
+            for k, v in d.items():
+                # dive down for dictionaries
+                d[k] = update_lipd_v1_3_names(v)
+
+                # see if the key is in the remove list
+                if k in VER_1_3["swap"]:
+                    # replace the key in the dictionary
+                    _key_swap = VER_1_3["swap"][k]
+                    d[_key_swap] = d.pop(k)
+                elif k in VER_1_3["tables"]:
+                    d[k] = ""
+            for _key in ["climateInterpretation", "isotopeInterpretation"]:
+                if _key in d:
+                    d = _merge_interpretations(d)
+
+        elif isinstance(d, list):
+            # dive down for lists
+            for idx, i in enumerate(d):
+                d[idx] = update_lipd_v1_3_names(i)
+    except Exception as e:
+        print("Error: Unable to update file to LiPD v1.3: {}".format(e))
+        logger_misc.error("update_lipd_v1_3_names: Exception: {}".format(e))
+    return d
+
+
+def update_lipd_v1_3_structure(d):
+    """
+    Update the structure for summary and ensemble tables
+    :param dict d: Metadata
+    :return dict d: Metadata
+    """
+    for key in ["paleoData", "chronData"]:
+        if key in d:
+            for entry1 in d[key]:
+                if "model" in entry1:
+                    for entry2 in entry1["model"]:
+                        for key_table in ["summaryTable", "ensembleTable"]:
+                            if key_table in entry2:
+                                if isinstance(entry2[key_table], dict):
+                                    try:
+                                        _tmp = entry2[key_table]
+                                        entry2[key_table] = []
+                                        entry2[key_table].append(_tmp)
+                                    except Exception as e:
+                                        logger_misc.error("update_lipd_v1_3_structure: Exception: {}".format(e))
     return d
 
 
