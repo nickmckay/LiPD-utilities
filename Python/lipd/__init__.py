@@ -1,5 +1,5 @@
 from .pkg_resources.lipds.LiPD import lipd_read, lipd_write
-from .pkg_resources.timeseries.timeseries import extract, collapse
+from .pkg_resources.timeseries.timeseries import extract, collapse, mode_ts
 from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.helpers.csvs import get_csv_from_metadata
 from .pkg_resources.excel.excel_main import excel_main
@@ -8,7 +8,7 @@ from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst, list_files, collect_metadata_file
 from .pkg_resources.helpers.loggers import create_logger, log_benchmark, create_benchmark
-from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext, rm_values_fields,get_dsn
+from .pkg_resources.helpers.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields
 from .pkg_resources.helpers.ensembles import create_ensemble, insert_ensemble
 from .pkg_resources.helpers.validator_api import get_validator_results, display_results
 from .pkg_resources.helpers.alternates import FILE_TYPE_MAP
@@ -343,6 +343,7 @@ def extractTs(d, chron=False):
         if not d:
             print("Error: LiPD data not provided. Pass LiPD data into the function.")
         else:
+            print(mode_ts("extract", b=chron))
             if "paleoData" in d:
                 # One dataset: Process directly on file, don't loop
                 try:
@@ -397,7 +398,11 @@ def collapseTs(ts=None):
     else:
         # Send time series list through to be collapsed.
         try:
+            print(mode_ts("collapse", ts=ts))
             _d = collapse(ts)
+            _d = rm_empty_fields(_d)
+            print("Created LiPD data: {} entries".format(len(_d)))
+
         except Exception as e:
             print("Error: Unable to collapse the time series: {}".format(e))
             logger_start.error("collapseTs: unable to collapse the time series: {}".format(e))

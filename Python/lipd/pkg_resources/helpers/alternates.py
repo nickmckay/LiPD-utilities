@@ -5,7 +5,7 @@ GLOBAL LIST OF ALTERNATES AND SYNONYMS
 
 VER_1_3 = {
     "tables": ["chronTableName", "paleoTableName", "paleoDataTableName", "chronDataTableName",
-         "chronMeasurementTableName", "paleoMeasurementTableName"],
+               "chronMeasurementTableName", "paleoMeasurementTableName"],
     "swap": {
         "paleoMeasurementTable": "measurementTable",
         "chronMeasurementTable": "measurementTable",
@@ -24,6 +24,8 @@ VER_1_3 = {
 
         "paleoMeasurementTableMD5": "tableMD5",
         "chronMeasurementTableMD5": "tableMD5",
+
+        "name": "tableName",
     }
 }
 

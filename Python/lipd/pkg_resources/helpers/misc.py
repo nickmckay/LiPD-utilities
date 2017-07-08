@@ -789,15 +789,15 @@ def update_lipd_version(d):
     version = get_lipd_version(d)
 
     # Update from (N/A or 1.0) to 1.1
-    if version in (1.0, "1.0"):
+    if version in [1.0, "1.0"]:
         d = update_lipd_v1_1(d)
         version = 1.1
 
     # Update from 1.1 to 1.2
-    if version in (1.1, "1.1"):
+    if version in [1.1, "1.1"]:
         d = update_lipd_v1_2(d)
         version = 1.2
-    if version in (1.2, "1.2"):
+    if version in [1.2, "1.2"]:
         d = update_lipd_v1_3(d)
         version = 1.3
 
@@ -837,7 +837,7 @@ def update_lipd_v1_1(d):
                 d["chronData"] = tmp_all
 
         # Log that this is now a v1.1 structured file
-        d["LiPDVersion"] = 1.1
+        d["lipdVersion"] = 1.1
     except Exception as e:
         logger_misc.error("update_lipd_v1_1: Exception: {}".format(e))
     logger_misc.info("exit update_lipd_v1_1")
@@ -873,7 +873,7 @@ def update_lipd_v1_2(d):
             if tmp_all:
                 d["paleoData"] = tmp_all
         # Log that this is now a v1.1 structured file
-        d["LiPDVersion"] = 1.2
+        d["lipdVersion"] = 1.2
     except Exception as e:
         logger_misc.error("update_lipd_v1_2: Exception: {}".format(e))
 
@@ -898,6 +898,9 @@ def update_lipd_v1_3(d):
     d = update_lipd_v1_3_names(d)
     # sub routine: changes ensemble and summary table structure
     d = update_lipd_v1_3_structure(d)
+    d["lipdVersion"] = 1.3
+    if "LiPDVersion" in d:
+        del d["LiPDVersion"]
     return d
 
 

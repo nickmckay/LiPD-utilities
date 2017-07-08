@@ -62,7 +62,7 @@ def lipd_write(_json, path, name):
     Saves current state of LiPD object data. Outputs to a LiPD file.
     Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,
         zip up bag folder, place lipd in target dst, move to original dir, delete tmp
-    :param dict _json_tmp: Metadata
+    :param dict _json: Metadata
     :param str path: Destination path
     :param str name: Filename w/o extension
     :return none:

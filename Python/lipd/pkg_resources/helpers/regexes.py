@@ -10,7 +10,7 @@ GLOBAL LIST OF REGEXES
 re_var_w_units = re.compile(r'([\w\s\.\-\_\:\/\\\"\'\`\#\+\{\}\[\]\;\*]+)\(?([\w\s\.\-\_\:\/\\\"\'\`\#\+\{\}\[\]\;\*]+)?\)?', re.I)
 # todo write a regex for legacy sheet names
 re_sheet = re.compile(r'(paleo|chron)[a-zA-Z]*(\d+)(model)?[a-zA-Z]*(\d+)?(measurement|ensemble|summary|distribution)[a-zA-Z]*(\d+)?', re.I)
-# (paleo\d+|chron\d+)\.(?(?=measurement)(measurement[a-z]*\d+)|(model[a-z]*\d+)\.(distribution[a-z]*\d+|model[a-z]*|ensemble[a-z]*]))
+re_sheet_w_number = re.compile(r"(paleo\d+|chron\d+)(model\d+)?(measurement\d+|ensemble\d+|summary\d+|distribution\d+)?", re.I)
 re_table = re.compile(r"(paleo|model|chron|ensemble|distribution|summary)(\d+)")
 re_calibration = re.compile(r"calibration_(\w+)")
 re_physical = re.compile(r"physicalsample_(\w+)")
@@ -35,8 +35,8 @@ re_chron_var_header = re.compile(r"(\w+\S+)[\s]{0,2}((?:\()?(\w+)?(?:\)))?")
 re_misc_fetch = re.compile(r'(geo_(\w+)|climateInterpretation_(\w+)|calibration_(\w+)|paleoData_(\w+))')
 re_pub_fetch = re.compile(r'pub1_(citation|year|DOI|author|publisher|title|type|volume|issue|journal|link|pubDataUrl|abstract|pages)')
 
-re_pub_valid = re.compile(r'pub(\d)_(citation|year|DOI|author|publisher|title|type|volume|issue|journal|link|pubDataUrl|abstract|pages)')
-re_fund_valid = re.compile(r'funding(\d)_(grant|agency)')
+re_pub_valid = re.compile(r'pub(\d)_(citation|year|DOI|author|publisher|title|type|volume|issue|journal|link|pubDataUrl|abstract|pages)', re.I)
+re_fund_valid = re.compile(r'funding(\d)_(grant|agency)', re.I)
 
 re_pub_invalid = re.compile(r'pub_(\w+)|pub(\d)_(\w+)|pub(\d)(\w+)|pub(\w+)')
 re_fund_invalid = re.compile(r'agency|grant|funding_agency|funding_grant')
