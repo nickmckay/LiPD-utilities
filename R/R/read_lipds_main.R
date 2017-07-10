@@ -27,7 +27,7 @@ readLipd <- function(path=NULL){
   lpds_ext <- getListLpdExt(path.and.file)
   
   if (isNullOb(lpds_ext)){
-    print("No LiPD file(s) found in the given path")
+    print("LiPD file(s) not found in the given path")
   } else {
     if (!is.null(path.and.file$file)){
       # Read one file. Reads data directly into variable

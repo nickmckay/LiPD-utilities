@@ -2,7 +2,7 @@
 #' @export
 #' @param D LiPD data, sorted by dataset name
 #' @return ts Time series
-extractTs= function(D){
+extractTs= function(D, chron=NULL){
   
   
   TS=list()
@@ -14,18 +14,22 @@ extractTs= function(D){
     if(breakFlag){
       break
     }
-    
+    # Is this a single dataset? We'll know if the dataSetName is in the root.
     if(any(names(D)=="dataSetName")){
       L=D
       breakFlag= TRUE
-    }else{
+    }
+    # Dataset library? That's our only other assumption if the first "if" doesn't work.  
+    else{
       L = D[[d]] #grab just one LiPD file
     }
     
+    # dataSetName not provided. Exit(1), we can't continue without it. 
     if(!any(names(L)=="dataSetName")){
       stop(names(D)[d],"has no dataSetName. This is forbidden.")
     }
     
+    # paleoData not provided. Exit(1), we can't continue without it.
     if(!any(names(L)=="paleoData")){
       stop(paste(L$dataSetName),"has no paleoData. This is forbidden.")
     }
@@ -39,8 +43,11 @@ extractTs= function(D){
       #Loop through paleoMeasurementTables
       for(pm in 1:length(L$paleoData[[p]]$paleoMeasurementTable)){
         PM = L$paleoData[[p]]$paleoMeasurementTable[[pm]]#grab this measurmentTable
+        # Special columns need to 
         specialColumns = c("age","year","depth","ageEnsemble")
-        columnsToGrab = which(!(names(PM) %in% specialColumns) & sapply(PM,is.list))
+        # columnsToGrab = which(!(names(PM) %in% specialColumns) & sapply(PM,is.list))
+        # Do not exclude the special columns. We need time series entries for those as well. ALL columns. 
+        columnsToGrab = which(sapply(PM,is.list))
         for(ctg in columnsToGrab){#which columns to grab? These are your timeseries objets
           ts = ts+1
           TS[[ts]]=list()

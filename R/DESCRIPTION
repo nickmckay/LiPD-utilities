@@ -13,7 +13,9 @@ LazyData: TRUE
 RoxygenNote: 5.0.1
 URL: www.lipd.net
 Imports:
+  stringr,
   tools,
+  base,
 	Rcpp,
 	backports,
 	lattice,

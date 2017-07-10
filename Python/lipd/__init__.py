@@ -1,5 +1,5 @@
 from .pkg_resources.lipds.LiPD import lipd_read, lipd_write
-from .pkg_resources.timeseries.timeseries import extract, collapse, mode_ts
+from .pkg_resources.timeseries.timeseries_fns import extract, collapse, mode_ts
 from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.helpers.csvs import get_csv_from_metadata
 from .pkg_resources.excel.excel_main import excel_main

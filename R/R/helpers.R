@@ -25,7 +25,7 @@ confirmLipdVersion <- function(j){
   # Check for the lipdversion key in the metadata
   if(!"lipdversion" %in% keys && !"lipd_version" %in% keys){
     # Key not found, insert it and default to v1.2
-    j$LiPDVersion = 1.2
+    j$lipdVersion = 1.2
   }
   return(j)
 }
@@ -36,9 +36,8 @@ confirmLipdVersion <- function(j){
 #' @keywords internal
 #' @param path Target path (optional)
 #' @return path.and.file Path to files
-getSrcOrDst<- function(path=NULL){
-  
-  if (missing(path)){
+getSrcOrDst<- function(path){
+  if (isNullOb(path)){
     # Path was not given. Start prompts
     ans <- askHowMany()
     path.and.file <- browseDialog(ans)
@@ -50,7 +49,7 @@ getSrcOrDst<- function(path=NULL){
       path.and.file <- list("dir" = path, "file"= NULL)
     } else {
       # It's a file. Split the directory and the filename
-      path.and.file <- list("dir" = dirname(path), "file"= basename(path))
+      path.and.file <- list("dir" = base::dirname(path), "file"= base::basename(path))
     }
   }
   return(path.and.file)
@@ -71,13 +70,13 @@ browseDialog <- function(ans){
 
   # parse the dir path. don't keep the filename
   if (ans == "m" || is.null(ans)){
-    dir.path = dirname(path)
+    dir.path = base::dirname(path)
     one.file = NULL
   }
   # parse the dir path and the filename
   else if (ans == "s"){
-    dir.path = dirname(path)
-    one.file = basename(path)
+    dir.path = base::dirname(path)
+    one.file = base::basename(path)
   }
   out.list <- list("dir" = dir.path, "file"= one.file)
   return(out.list)
@@ -119,7 +118,7 @@ isNullOb <- function(x) is.null(x) | all(sapply(x, is.null))
 isDirectory <- function(s){
   # Get the basename (last item in file path), and check it for a file extension
   # If there is not a file extension (like below), then we can assume that it's a directory
-  if (file_ext(basename(s)) == ""){
+  if (tools::file_ext(base::basename(s)) == ""){
     return(TRUE)
   }
   # No file extension. Assume it's a file and not a directory

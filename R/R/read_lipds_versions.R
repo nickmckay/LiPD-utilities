@@ -10,13 +10,10 @@
 #' @param d One LiPD file
 #' @return d Modified LiPD file
 convertVersion <- function(d){
-
   # Check which version this LiPD file is
   d <- checkVersion(d)
-
   # check and convert any data frames into lists
   d <- convertDfsLst(d)
-
   return(d)
 }
 
@@ -26,12 +23,21 @@ convertVersion <- function(d){
 #' @param d LiPD Metadata
 #' @return version LiPD version number
 checkVersion <- function(d){
-  version <- as.numeric(d[["metadata"]][["LiPDVersion"]])
-  if (isNullOb(version)){
-    d <- setVersion(d, 1.0)
+  version <- NULL
+  keys <- c("lipdVersion", "liPDVersion", "LiPDVersion")
+  for (i in 1:length(keys)){
+    key <- keys[[i]]
+    if (key %in% names(d[["metadata"]])){
+      version <- d[["metadata"]][[key]]
+      d[["metadata"]][[key]] <- NULL
+    }
   }
-  else if (!(version %in% c(1, 1.0, 1.1, 1.2))){
-    print(sprintf("LiPD Version is invalid: %s", version))
+  if (isNullOb(version)){
+    # Since R does not yet do all the version 1.3 changes, we have to assume 1.2 for now. 
+    d <- setVersion(d, 1.2)
+  }
+  else if (!(version %in% c(1, 1.0, 1.1, 1.2, 1.3))){
+    print(sprintf("LiPD version is invalid: %s", version))
   }
   return(d)
 }
@@ -44,7 +50,7 @@ checkVersion <- function(d){
 #' @return d Modified LiPD Metadata
 setVersion <- function(d, ver){
   tryCatch({
-    d[["metadata"]][["LiPDVersion"]] <- ver
+    d[["metadata"]][["lipdVersion"]] <- ver
   }, error=function(cond){
     print("read_lipds_versions:setVersion: unable to set new LiPD version")
   })
@@ -257,7 +263,7 @@ convertSM <- function(d, keys){
   } # end if section
 
   # change the LiPDVersion value to 1.2
-  d[["metadata"]][["LiPDVersion"]] <- 1.2
+  d[["metadata"]][["lipdVersion"]] <- 1.2
   return(d)
 }
 
