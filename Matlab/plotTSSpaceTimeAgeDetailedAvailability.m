@@ -14,7 +14,7 @@ inset = 0;
 % if nargin < 2
 %     options.export = 0;
 % end
-year = [];
+age = [];
 % load data and packages% if nargin < 2
 %     options.export = 0;
 % end
@@ -37,39 +37,38 @@ allnan = find(cellfun(@(x) all(isnan(x)),values));
 good = setdiff(1:length(TSall),allnan);
 TS=TSall(good);
 
-notCell = find(~cellfun(@iscell,{TS.year}) & ~cellfun(@isempty,{TS.year}));
+notCell = find(~cellfun(@iscell,{TS.age}) & ~cellfun(@isempty,{TS.age}));
 if length(notCell)>1
 TS=TS(notCell);
 end
-minYear = num2cell(cellfun(@nanmin,{TS.age}));
-maxYear = num2cell(cellfun(@nanmax,{TS.age}));
+minage = num2cell(cellfun(@nanmin,{TS.age}));
+maxage = num2cell(cellfun(@nanmax,{TS.age}));
 
-[TS.minYear] = minYear{:};
-[TS.maxYear] = maxYear{:};
+[TS.minage] = minage{:};
+[TS.maxage] = maxage{:};
 
 
 %%
 %pull relevant data from TS
+TS = convertNamesTS(TS,'archiveType');
 archive={TS.archiveType}';
-year=1:2000;
+
+age=1:10000;
 nr=length(TS);
-yearMin={TS.minYear}';
-emptyYearMin = find(cellfun(@isempty,yearMin));
-yearMin(emptyYearMin)=repmat({NaN},length(emptyYearMin),1);
-yearMin=cell2mat(yearMin);
+ageMin={TS.minage}';
+emptyageMin = find(cellfun(@isempty,ageMin));
+ageMin(emptyageMin)=repmat({NaN},length(emptyageMin),1);
+ageMin=cell2mat(ageMin);
 
-yearMax={TS.maxYear}';
-emptyYearMax = find(cellfun(@isempty,yearMax));
-yearMax(emptyYearMax)=repmat({NaN},length(emptyYearMax),1);
-yearMax=cell2mat(yearMax);
+ageMax={TS.maxage}';
+emptyageMax = find(cellfun(@isempty,ageMax));
+ageMax(emptyageMax)=repmat({NaN},length(emptyageMax),1);
+ageMax=cell2mat(ageMax);
 
-yearMax(yearMax > 2000) = 2000;
-yearMin(yearMin < 000) = 000;
-yearMin(yearMin > 2000) = 2000;
-yearMax(yearMax < 000) = 000;
-
-
-vers='0.4';
+ageMax(ageMax > 10000) = 10000;
+ageMin(ageMin < 000) = 000;
+ageMin(ageMin > 10000) = 10000;
+ageMax(ageMax < 000) = 000;
 
 p_lon = nan(length(TS),1);
 p_lat=p_lon;
@@ -92,28 +91,32 @@ p_lat(goodLat)=cell2mat({TS.geo_meanLat}');
 % Graphical Attributes of each proxy type
 archiveType = unique(lower(archive)); na = length(archiveType);
 
-Graph{1,1}=rgb('DarkOrange');  Graph{1,2}= 'o'; 
-Graph{2,1}=rgb('LightSkyBlue');Graph{2,2}= 'd';
-Graph{3,1}=rgb('SaddleBrown'); Graph{3,2}= 's'; 
-Graph{4,1}=rgb('Red');         Graph{4,2}= 'o'; 
-Graph{5,1}=rgb('RoyalBlue');   Graph{5,2}= 's'; 
-Graph{6,1}=rgb('Black');       Graph{6,2}= 'p'; 
+Graph{1,1}=rgb('DarkOrange');  Graph{1,2}= 'o'; %coral
+Graph{2,1}=rgb('LightSkyBlue');Graph{2,2}= 'd'; %glacier ice
+Graph{3,1}=rgb('SaddleBrown'); Graph{3,2}= 's'; %Marine Sediment
+Graph{4,1}=rgb('Red');         Graph{4,2}= 'o';  %sclero sponge
+Graph{5,1}=rgb('RoyalBlue');   Graph{5,2}= 's'; %Lake sediment
+Graph{6,1}=rgb('Black');       Graph{6,2}= 'p'; %documents
 Graph{7,1}=rgb('DarkKhaki');   Graph{7,2}= 'h'; 
 Graph{8,1}=rgb('DeepSkyBlue'); Graph{8,2}= 's'; 
-Graph{9,1}=rgb('Gold');        Graph{9,2}= 'h';
-Graph{10,1}=rgb('DeepPink');   Graph{10,2}= 'd';
-Graph{11,1}=rgb('LimeGreen');  Graph{11,2}= '^'; 
+Graph{9,1}=rgb('Gold');        Graph{9,2}= 's'; %peat
+Graph{10,1}=rgb('DeepPink');   Graph{10,2}= 'd'; %speleothems
+Graph{11,1}=rgb('LimeGreen');  Graph{11,2}= '^'; %tree
 
 if na>size(Graph,1)
     error('More than 11 archive types. Beyond current functionality')
 end
-Graph=Graph(1:na,:);
+
+%use specific archives
+
+Graph=Graph([2 5 3 9 10 11],:);
 
 
 %%
 % DEFINE TIME AXIS AND AVAILABILITY
 % avail = ~isnan(proxy);
-ny = length(year);
+ny = length(age);
+
 avail = NaN(ny,nr);
 
 p_code = nan(nr,1);
@@ -121,7 +124,7 @@ for r = 1:nr
     % define proxy code
     s = strfind(archiveType,lower(archive{r}));
     p_code(r) =  find(~cellfun('isempty', s), 1 ); % number between 1 and na
-    avail(ismember(year,[yearMin(r):yearMax(r)]),r)=1;
+    avail(ismember(age,[floor(ageMin(r)):ceil(ageMax(r))]),r)=1;
 end
 
 % define edge color (black except for hybrids)
@@ -143,18 +146,18 @@ end
 % =============
 % PLOT SPACETIME COVERAGE
 % =============
-n1000 = ceil(sum(nproxy(year == 1000,:))/10)*10;
+n1000 = ceil(sum(nproxy(age == 1000,:))/10)*10;
 ns    = length(unique({TS.dataSetName})); % # of sites
 versl = strrep(vers,'_','.');
-fig('PAGES2K'), clf
+fig('OnsetSpaceTime'), clf
 orient landscape
 set(gcf,'PaperPositionMode','auto')
 set(gcf, 'Position', [440   144   896   654])
 % plot spatial distribution
 hmap=axes('Position', [.05 0.45 0.75 0.5]);
-m_proj('Robinson','clong',10);
+m_proj('stereographic','lat',90,'long',45,'radius',35,'rotangle',45)
 m_coast('patch',[.9 .9 .9]);
-m_grid('xtick',6,'ytick',9,'xticklabel',[ ],'xlabeldir','middle', 'fontsize',4,'fontname',FontName);
+m_grid('xtick',6,'ytick',[60 70 80],'xticklabel',[ ],'xlabeldir','middle', 'fontsize',4,'fontname',FontName);
 % loop over records
 for r = 1:nr
     h(r) = m_line(p_lon(r),p_lat(r),'marker',Graph{p_code(r),2},'MarkerEdgeColor',edgec{r},'MarkerFaceColor',Graph{p_code(r),1},'linewidth',[1],'MarkerSize',[7],'linestyle','none');
@@ -167,15 +170,16 @@ set(hl, 'FontName', FontName,'box','off');
 hstack=axes('Position', [0.1 0.1 0.8 0.29]);
 cmap=cell2mat(Graph(:,1));
 colormap(cmap);
-area(year,nproxy,'EdgeColor','w'), set(gca,'YAxisLocation','Right');
-xlim([1 2000])
-fancyplot_deco('','Year (CE)','# proxies',14,'Helvetica');
+area(age,nproxy,'EdgeColor','w'), set(gca,'YAxisLocation','Right');
+xlim([0 10000])
+set(gca,'XDir','reverse')
+fancyplot_deco('','age (yr BP)','# timeseries',14,'Helvetica');
 title('Temporal Availability',style_t{:})
 % inset
 if inset
 frac=.5;
 hstackin=axes('Position', [0.1 0.2 frac*.8 0.14]);
-area(year,nproxy,'EdgeColor','w')
+area(age,nproxy,'EdgeColor','w')
 axis([1 1000 0 n1000])
 set(hstackin,'xtick',[],'box','off','TickDir','out','TickLength',[.02 .02],'YMinorTick','on', 'YGrid','on')
 set(hstackin,'YAxisLocation','Right')
@@ -183,12 +187,11 @@ set(hstackin,'FontName',FontName,'YColor', [.3 .3 .3])
 title('First Millennium',style_l{:})
 end
 %pause; % manually adjust the size of the figure
-if options.export
    %figpath = [strrep(userpath,':','/') 'tempfigs/'];
-   fname = ['Iso2k_' vers '_spacetime_realData.tif'];
+   fname = ['~/Dropbox/AHT/OnsetPaper/Manuscript/Figures/Onset_spacetime.tif'];
    export_fig([fname],'-r300');
    %hepta_figprint(['../../figs/synopsis/PAGES2K_phase2_' vers '_spacetime']);
    %saveFigure([figpath fname '_saveFigure.pdf']); %'painters', true
    %plot2svg([figpath fname '.svg']);
    %print([figpath fname],'-depsc','-r300','-cmyk')
-end
+
