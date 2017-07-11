@@ -329,12 +329,18 @@ def filterDfs(expr):
 
 def extractTs(d, chron=False):
     """
-    Create a time series using LiPD data
+    Create a time series using LiPD data (uses paleoData by default)
 
-    Example
+    Example : paleoData
     1. D = lipd.readLipd()
     2. ts = lipd.extractTs(D)
 
+    Example : chronData
+    1. D = lipd.readLipd()
+    2. ts = lipd.extractTs(D, chron=True)
+
+    :param dict d: LiPD data
+    :param bool chron: Create a chronData time series
     :return list l: Time series
     """
     _l = []
