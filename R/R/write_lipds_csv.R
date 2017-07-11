@@ -225,6 +225,7 @@ parseTable <- function(table){
 
 #' Write out each CSV file for this LiPD record
 #' csv.data format: [ some_filename.csv $columns.data ]
+#' @importFrom utils write.table
 #' @export
 #' @keywords internal
 #' @param csv.data List of Lists of csv column data
