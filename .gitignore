@@ -1,10 +1,11 @@
 # RStudio files
-*/.Rbuildignore
-*/.Rhistory
-*/.RData
-*/.Rproj.user
-*/.Rbuildignore
-*/.Rd2pdf*
+R/.Rbuildignore
+R/.Rhistory
+R/R/.Rhistory
+R/.RData
+R/.Rproj.user
+R/.Rbuildignore
+R/.Rd2pdf*
 
 # produced vignettes
 vignettes/*.html
@@ -19,8 +20,8 @@ google_token*.mat
 #Local preferences
 LiPDUtilitiesPreferences.mat
 
+*/.idea/*
 .idea/*
-
 *.pyc
 *.xml
 *.iml
@@ -33,23 +34,14 @@ build
 LiPD.egg-info
 Python/dist/LiPD-0.1.0-py3.4.egg
 
-Python/.spyderworkspace
+*/.spyderworkspace
 
 Python/lipd/files/examples/*
 Python/README.txt
 
 index.html
 
-Python/lipd/pkg_resources/.DS_Store
-
 */.DS_Store
 
-*.m~
-
-*.m~
-
-Python/.DS_Store
-
-Python/lipd/.DS_Store
-
 Matlab/nameCon.mat
+.Rproj.user
