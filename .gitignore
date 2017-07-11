@@ -1,17 +1,14 @@
-# History files
-.Rhistory
-.Rapp.history
-
-# Example code in package build process
-*-Ex.R
-
 # RStudio files
-.Rproj.user/
+*/.Rbuildignore
+*/.Rhistory
+*/.RData
+*/.Rproj.user
+*/.Rbuildignore
+*/.Rd2pdf*
 
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
-.Rproj.user
 
 #matlab temporary files
 *.m~
