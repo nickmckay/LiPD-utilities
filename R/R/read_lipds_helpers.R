@@ -25,6 +25,7 @@ getListLpdExt <- function(path.and.file){
 
 #' Unzip LiPD file to the temporary directory
 #' @export
+#' @importFrom utils unzip
 #' @keywords internal
 #' @param file One LiPD file to unzip
 #' @param tmp Temporary directory
