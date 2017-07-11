@@ -1,10 +1,9 @@
 # RStudio files
-*/.Rbuildignore
-*/.Rhistory
-*/.RData
-*/.Rproj.user
-*/.Rbuildignore
-*/.Rd2pdf*
+**/.Rbuildignore
+**/.Rhistory
+**/.RData
+**/.Rproj.user
+**/.Rd2pdf*
 
 # produced vignettes
 vignettes/*.html
