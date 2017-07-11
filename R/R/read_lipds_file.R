@@ -39,6 +39,7 @@ readLipdFile <- function(lpd_noext, tmp){
 
 #' Retrieve and import csv and jsonld files in the current directory.
 #' @export
+#' @importFrom utils read.csv
 #' @keywords internal
 #' @return data.list List of data for one LiPD file
 getDataRead <- function(){
