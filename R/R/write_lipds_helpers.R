@@ -1,4 +1,5 @@
 #' Zip a directory, and move up a level
+#' @importFrom utils zip
 #' @export
 #' @keywords internal
 #' @param dir Directory to be zipped
