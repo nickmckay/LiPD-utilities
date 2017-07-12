@@ -1,11 +1,13 @@
 import copy
 import re
 
-from ..helpers.regexes import re_pandas_x_und, re_fund_valid, re_pub_valid, re_sheet_w_number, re_sheet
+from ..helpers.alternates import COMPARISONS
+from ..helpers.misc import match_operators, cast_float
+from ..helpers.regexes import re_pandas_x_und, re_fund_valid, re_pub_valid, re_sheet_w_number, re_sheet, re_filter_expr
 from ..helpers.blanks import EMPTY
 from ..helpers.loggers import create_logger
 
-logger_timeseries = create_logger('time_series')
+logger_ts = create_logger('time_series')
 
 
 # EXTRACT
@@ -18,7 +20,7 @@ def extract(d, chron):
     :param bool chron: Paleo mode (default) or Chron mode
     :return list _ts: Time series
     """
-    logger_timeseries.info("enter extract_main")
+    logger_ts.info("enter extract_main")
     _root = {}
     _ts = {}
     # _switch = {"paleoData": "chronData", "chronData": "paleoData"}
@@ -44,10 +46,10 @@ def extract(d, chron):
         # Create tso dictionaries for each individual column (build on root data)
         _ts = _extract_pc(d, _root, _pc)
     except Exception as e:
-        logger_timeseries.error("extract: Exception: {}".format(e))
+        logger_ts.error("extract: Exception: {}".format(e))
         print("extract: Exception: {}".format(e))
 
-    logger_timeseries.info("exit extract_main")
+    logger_ts.info("exit extract_main")
     return _ts
 
 
@@ -56,7 +58,7 @@ def _extract_fund(l, _root):
     Creates flat funding dictionary.
     :param list l: Funding entries
     """
-    logger_timeseries.info("enter _extract_funding")
+    logger_ts.info("enter _extract_funding")
     for idx, i in enumerate(l):
         for k, v in i.items():
             _root['funding' + str(idx + 1) + '_' + k] = v
@@ -69,7 +71,7 @@ def _extract_geo(d, _root):
     :param dict d: Geo
     :return dict _root: Root data
     """
-    logger_timeseries.info("enter ts_extract_geo")
+    logger_ts.info("enter ts_extract_geo")
     # May not need these if the key names are corrected in the future.
     # COORDINATE ORDER: [LON, LAT, ELEV]
     x = ['geo_meanLon', 'geo_meanLat', 'geo_meanElev']
@@ -94,7 +96,7 @@ def _extract_geo(d, _root):
                         # Set the value as a float into its entry.
                         _root[x[idx]] = float(p)
                 except IndexError as e:
-                    logger_timeseries.warn("_extract_geo: IndexError: idx: {}, val: {}, {}".format(idx, p, e))
+                    logger_ts.warn("_extract_geo: IndexError: idx: {}, val: {}, {}".format(idx, p, e))
         # Case 2: Any value that is a string can be added as-is
         elif isinstance(v, str):
             if k == 'meanElev':
@@ -103,7 +105,7 @@ def _extract_geo(d, _root):
                     _root['geo_' + k] = float(v)
                 except ValueError as e:
                     # If the value is a string, then we don't want it
-                    logger_timeseries.warn("_extract_geo: ValueError: meanElev is a string: {}, {}".format(v, e))
+                    logger_ts.warn("_extract_geo: ValueError: meanElev is a string: {}, {}".format(v, e))
             else:
                 _root['geo_' + k] = v
         # Case 3: Nested dictionary. Recursion
@@ -118,10 +120,10 @@ def _extract_pub(l, _root):
     :param list l: Publication
     :return dict _root: Root data
     """
-    logger_timeseries.info("enter _extract_pub")
+    logger_ts.info("enter _extract_pub")
     # For each publication entry
     for idx, pub in enumerate(l):
-        logger_timeseries.info("processing publication #: {}".format(idx))
+        logger_ts.info("processing publication #: {}".format(idx))
         # Get author data first, since that's the most ambiguously structured data.
         _root = _extract_authors(pub, idx, _root)
         # Go through data of this publication
@@ -131,7 +133,7 @@ def _extract_pub(l, _root):
                 try:
                     _root['pub' + str(idx + 1) + '_DOI'] = v[0]['id']
                 except KeyError as e:
-                    logger_timeseries.warn("_extract_pub: KeyError: no doi id: {}, {}".format(v, e))
+                    logger_ts.warn("_extract_pub: KeyError: no doi id: {}, {}".format(v, e))
             # Case 2: All other string entries
             else:
                 if k != 'authors' and k != 'author':
@@ -145,7 +147,7 @@ def _extract_authors(pub, idx, _root):
     :param any pub: Publication author structure is ambiguous
     :param int idx: Index number of Pub
     """
-    logger_timeseries.info("enter extract_authors")
+    logger_ts.info("enter extract_authors")
     try:
         # DOI Author data. We'd prefer to have this first.
         names = pub['author']
@@ -156,7 +158,7 @@ def _extract_authors(pub, idx, _root):
         except KeyError as e:
             # Couldn't find any author data. Skip it altogether.
             names = False
-            logger_timeseries.info("extract_authors: KeyError: author data not provided, {}".format(e))
+            logger_ts.info("extract_authors: KeyError: author data not provided, {}".format(e))
 
     # If there is author data, find out what type it is
     if names:
@@ -186,7 +188,7 @@ def _extract_pc(d, root, pc):
     :param str pc: paleoData or chronData
     :return list _ts: Time series
     """
-    logger_timeseries.info("enter extract_pc")
+    logger_ts.info("enter extract_pc")
     _ts = []
     try:
         # For each table in pc
@@ -199,7 +201,7 @@ def _extract_pc(d, root, pc):
                         for _table_name2, _table_data2 in _table_data1["summaryTable"].items():
                             _ts = _extract_table(_table_data2, copy.deepcopy(root), pc, _ts, summary=True)
     except Exception as e:
-        logger_timeseries.warn("extract_pc: Exception: {}".format(e))
+        logger_ts.warn("extract_pc: Exception: {}".format(e))
     return _ts
 
 
@@ -210,7 +212,7 @@ def _extract_special(current, table_data):
     :param dict current: Current data
     :return dict current:
     """
-    logger_timeseries.info("enter extract_special")
+    logger_ts.info("enter extract_special")
     try:
         # Add age, year, and depth columns to ts_root where possible
         for k, v in table_data['columns'].items():
@@ -236,15 +238,15 @@ def _extract_special(current, table_data):
                     current[s] = v['values']
                 except KeyError as e:
                     # Values key was not found.
-                    logger_timeseries.warn("extract_special: KeyError: 'values' not found, {}".format(e))
+                    logger_ts.warn("extract_special: KeyError: 'values' not found, {}".format(e))
                 try:
                     current[s + 'Units'] = v['units']
                 except KeyError as e:
                     # Values key was not found.
-                    logger_timeseries.warn("extract_special: KeyError: 'units' not found, {}".format(e))
+                    logger_ts.warn("extract_special: KeyError: 'units' not found, {}".format(e))
 
     except Exception as e:
-        logger_timeseries.error("extract_special: {}".format(e))
+        logger_ts.error("extract_special: {}".format(e))
 
     return current
 
@@ -257,13 +259,13 @@ def _extract_table_root(d, current, pc):
     :param str pc: paleoData or chronData
     :return dict current: Current root data
     """
-    logger_timeseries.info("enter extract_table_root")
+    logger_ts.info("enter extract_table_root")
     try:
         for k, v in d.items():
             if isinstance(v, str):
                 current[pc + '_' + k] = v
     except Exception as e:
-        logger_timeseries.error("extract_table_root: {}".format(e))
+        logger_ts.error("extract_table_root: {}".format(e))
     return current
 
 
@@ -282,9 +284,9 @@ def _extract_table_summary(table_data, current, summary):
                 current["modelNumber"] = m.group(4)
                 current["summaryNumber"] = m.group(6)
             else:
-                logger_timeseries.error("extract_table_summary: Unable to parse modelNumber and summaryNumber")
+                logger_ts.error("extract_table_summary: Unable to parse modelNumber and summaryNumber")
     except Exception as e:
-        logger_timeseries.error("extract_table_summary: {}".format(e))
+        logger_ts.error("extract_table_summary: {}".format(e))
     return current
 
 
@@ -312,9 +314,9 @@ def _extract_table(table_data, current, pc, ts, summary=False):
             try:
                 ts.append(_col_tmp)
             except Exception as e:
-                logger_timeseries.warn("extract_table: Unable to create ts entry, {}".format(e))
+                logger_ts.warn("extract_table: Unable to create ts entry, {}".format(e))
     except Exception as e:
-        logger_timeseries.error("extract_table: {}".format(e))
+        logger_ts.error("extract_table: {}".format(e))
     return ts
 
 
@@ -325,7 +327,7 @@ def _extract_columns(d, tmp_tso, pc):
     :param dict tmp_tso: TSO dictionary with only root items
     :return dict: Finished TSO
     """
-    logger_timeseries.info("enter extract_columns")
+    logger_ts.info("enter extract_columns")
     for k, v in d.items():
         if k == 'climateInterpretation':
             tmp_tso = _extract_climate(v, tmp_tso)
@@ -344,7 +346,7 @@ def _extract_calibration(d, tmp_tso):
     :param dict tmp_tso: Temp TSO dictionary
     :return dict: tmp_tso with added calibration entries
     """
-    logger_timeseries.info("enter extract_calibration")
+    logger_ts.info("enter extract_calibration")
     for k, v in d.items():
         tmp_tso['calibration_' + k] = v
     return tmp_tso
@@ -357,7 +359,7 @@ def _extract_climate(d, tmp_tso):
     :param dict tmp_tso: Temp TSO dictionary
     :return dict: tmp_tso with added climateInterpretation entries
     """
-    logger_timeseries.info("enter extract_climate")
+    logger_ts.info("enter extract_climate")
     for k, v in d.items():
         tmp_tso['climateInterpretation_' + k] = v
     return tmp_tso
@@ -373,7 +375,7 @@ def collapse(l):
     :param list l: Time series
     :return dict _master: LiPD data, sorted by dataset name
     """
-    logger_timeseries.info("enter collapse")
+    logger_ts.info("enter collapse")
     # LiPD data (in progress), sorted dataset name
     _master = {}
 
@@ -389,7 +391,7 @@ def collapse(l):
 
             # Since root items are the same in each column of the same dataset, we only need these steps the first time.
             if dsn not in _master:
-                logger_timeseries.info("collapsing: {}".format(dsn))
+                logger_ts.info("collapsing: {}".format(dsn))
                 print("collapsing: {}".format(dsn))
                 _master, _current = _collapse_dataset_root(_master, _current, dsn, _pc)
                 _master[dsn]["paleoData"] = _current["paleoData"]
@@ -400,9 +402,9 @@ def collapse(l):
 
     except Exception as e:
         print("Error: Unable to collapse time series, {}".format(e))
-        logger_timeseries.error("collapse: Exception: {}".format(e))
+        logger_ts.error("collapse: Exception: {}".format(e))
 
-    logger_timeseries.info("exit collapse")
+    logger_ts.info("exit collapse")
     return _master
 
 
@@ -422,7 +424,7 @@ def _get_current_names(current, dsn, pc):
         _variable_name = current['{}_variableName'.format(pc)]
     except Exception as e:
         print("Error: Unable to collapse time series: {}, {}".format(dsn, e))
-        logger_timeseries.error("get_current: {}, {}".format(dsn, e))
+        logger_ts.error("get_current: {}, {}".format(dsn, e))
     return _table_name, _variable_name
 
 
@@ -436,7 +438,7 @@ def _collapse_dataset_root(master, current, dsn, pc):
     :return dict master:
     :return dict current:
     """
-    logger_timeseries.info("enter collapse_root")
+    logger_ts.info("enter collapse_root")
     _tmp_fund = {}
     _tmp_pub = {}
     # The tmp lipd data that we'll place in master later
@@ -535,8 +537,8 @@ def _collapse_dataset_root(master, current, dsn, pc):
         # Create entry in object master, and set our new data to it.
         master[dsn] = _tmp_master
     except Exception as e:
-        logger_timeseries.error("collapse_root: Exception: {}, {}".format(dsn, e))
-    logger_timeseries.info("exit collapse_root")
+        logger_ts.error("collapse_root: Exception: {}, {}".format(dsn, e))
+    logger_ts.info("exit collapse_root")
     return master, current
 
 
@@ -546,7 +548,7 @@ def _collapse_author(s):
     :param str s: Formatted names string "Last, F.; Last, F.; etc.."
     :return list of dict: One dictionary per author name
     """
-    logger_timeseries.info("enter collapse_author")
+    logger_ts.info("enter collapse_author")
     l = []
     authors = s.split(';')
     for author in authors:
@@ -563,7 +565,7 @@ def _collapse_pc(master, current, dsn, pc):
     :param str pc: paleoData or chronData
     :return dict master:
     """
-    logger_timeseries.info("enter collapse_paleo")
+    logger_ts.info("enter collapse_paleo")
     _table_name, _variable_name = _get_current_names(current, dsn, pc)
 
     try:
@@ -605,7 +607,7 @@ def _collapse_pc(master, current, dsn, pc):
 
     except Exception as e:
         print("Error: Unable to collapse column data: {}, {}".format(dsn, e))
-        logger_timeseries.error("collapse_paleo: {}, {}, {}".format(dsn, _variable_name, e))
+        logger_ts.error("collapse_paleo: {}, {}, {}".format(dsn, _variable_name, e))
 
     # If these sections had any items added to them, then add them to the column master.
 
@@ -638,9 +640,9 @@ def _collapse_column(current, pc):
                     elif 'interpretation' in m[0]:
                         _tmp_interp[m[1]] = v
             except Exception as e:
-                logger_timeseries.error("collapse_column: loop: {}".format(e))
+                logger_ts.error("collapse_column: loop: {}".format(e))
     except Exception as e:
-        logger_timeseries.error("collapse_column: {}".format(e))
+        logger_ts.error("collapse_column: {}".format(e))
 
     # Add the interpretation and calibration data
     if _tmp_interp:
@@ -658,7 +660,7 @@ def _collapse_table_root(current, dsn, pc):
     :param str pc: paleoData or chronData
     :return dict _tmp_table: Table data
     """
-    logger_timeseries.info("enter collapse_table_root")
+    logger_ts.info("enter collapse_table_root")
     _table_name, _variable_name = _get_current_names(current, dsn, pc)
     _tmp_table = {'columns': {}}
 
@@ -674,7 +676,7 @@ def _collapse_table_root(current, dsn, pc):
                         pass
     except Exception as e:
         print("Error: Unable to collapse: {}, {}".format(dsn, e))
-        logger_timeseries.error("collapse_table_root: Unable to collapse: {}, {}, {}".format(_table_name, dsn, e))
+        logger_ts.error("collapse_table_root: Unable to collapse: {}, {}, {}".format(_table_name, dsn, e))
 
     return _tmp_table
 
@@ -702,3 +704,75 @@ def mode_ts(ec, ts=None, b=None):
             phrase = "collapsing paleoData..."
     return phrase
 
+
+def translate_expression(expression):
+    """
+    Check if the expression is valid, then check turn it into an expression that can be used for filtering.
+    :return list of lists: One or more matches. Each list has 3 strings.
+    """
+    logger_ts.info("enter translate_expression")
+    m = re_filter_expr.findall(expression)
+    matches = []
+    if m:
+        for i in m:
+            logger_ts.info("parse match: {}".format(i))
+            tmp = list(i[1:])
+            if tmp[1] in COMPARISONS:
+                tmp[1] = COMPARISONS[tmp[1]]
+            tmp[0] = cast_float(tmp[0])
+            tmp[2] = cast_float(tmp[2])
+            matches.append(tmp)
+    else:
+        logger_ts.warn("translate_expression: invalid expression: {}".format(expression))
+        print("Invalid input expression")
+    logger_ts.info("exit translate_expression")
+    return matches
+
+
+def get_matches(expr_lst, ts):
+    """
+    Get a list of TimeSeries objects that match the given expression.
+    :param list expr_lst: Expression
+    :param list ts: TimeSeries
+    :return list new_ts: Matched time series objects
+    :return list idxs: Indices of matched objects
+    """
+    logger_ts.info("enter get_matches")
+    new_ts = []
+    idxs = []
+    match = False
+    try:
+        for idx, ts_data in enumerate(ts):
+            for expr in expr_lst:
+                try:
+                    val = ts_data[expr[0]]
+                    # Check what comparison operator is being used
+                    if expr[1] == 'in':
+                        # "IN" operator can't be used in get_truth. Handle first.
+                        if expr[2] in val:
+                            match = True
+                    elif match_operators(val, expr[1], expr[2]):
+                        # If it's a typical operator, check with the truth test.
+                        match = True
+                    else:
+                        # If one comparison is false, then it can't possibly be a match
+                        match = False
+                        break
+                except KeyError as e:
+                    logger_ts.warn("get_matches: KeyError: getting value from TimeSeries object, {}, {}".format(expr, e))
+                    match = False
+                except IndexError as e:
+                    logger_ts.warn("get_matches: IndexError: getting value from TimeSeries object, {}, {}".format(expr, e))
+                    match = False
+            if match:
+                idxs.append(idx)
+                new_ts.append(ts_data)
+    except AttributeError as e:
+        logger_ts.debug("get_matches: AttributeError: unable to get expression matches, {},  {}".format(type(ts), e))
+        print("Error: Timeseries is an invalid data type")
+    if not new_ts:
+        print("No matches found for that expression")
+    else:
+        print("Found {} matches".format(len(new_ts)))
+    logger_ts.info("exit get_matches")
+    return new_ts, idxs

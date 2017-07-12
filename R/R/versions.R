@@ -1,28 +1,15 @@
 ###############################################
-## Read LiPDs - Versions
-## Converts the incoming LiPD data into the
-## current LiPD version structure
+## Versions
+## Updates the incoming LiPD to the most recent
+## LiPD standards
 ###############################################
 
-#' Convert LiPD version structure whenever necessary
-#' @export
-#' @keywords internal
-#' @param d One LiPD file
-#' @return d Modified LiPD file
-convertVersion <- function(d){
-  # Check which version this LiPD file is
-  d <- checkVersion(d)
-  # check and convert any data frames into lists
-  d <- convertDfsLst(d)
-  return(d)
-}
-
-#' Check the version number from metadata
+#' Check what version of LiPD this file is using. If none is found, assume it's using version 1.0
 #' @export
 #' @keywords internal
 #' @param d LiPD Metadata
 #' @return version LiPD version number
-checkVersion <- function(d){
+get_lipd_version <- function(d){
   version <- NULL
   keys <- c("lipdVersion", "liPDVersion", "LiPDVersion")
   for (i in 1:length(keys)){
@@ -32,28 +19,128 @@ checkVersion <- function(d){
       d[["metadata"]][[key]] <- NULL
     }
   }
-  if (isNullOb(version)){
-    # Since R does not yet do all the version 1.3 changes, we have to assume 1.2 for now. 
-    d <- setVersion(d, 1.2)
+  version <- as.numeric(version)
+  if (isNullOb(version) || is.na(version)){
+    # Since R does not yet do all the version 1.3 changes, we have to assume 1.2 for now.
+    version <- 1.0
   }
   else if (!(version %in% c(1, 1.0, 1.1, 1.2, 1.3))){
     print(sprintf("LiPD version is invalid: %s", version))
   }
-  return(d)
+  return(version)
 }
 
-#' Set the LiPD version field
+
+#' Use the current version number to determine where to start updating from. Use "chain versioning" to make it
+#' modular. If a file is a few versions behind, convert to EACH version until reaching current. If a file is one
+#' version behind, it will only convert once to the newest.
 #' @export
 #' @keywords internal
-#' @param d LiPD Metadata
-#' @param ver Version number
-#' @return d Modified LiPD Metadata
-setVersion <- function(d, ver){
-  tryCatch({
-    d[["metadata"]][["lipdVersion"]] <- ver
-  }, error=function(cond){
-    print("read_lipds_versions:setVersion: unable to set new LiPD version")
-  })
+#' @param d Metadata
+#' @return d Metadata
+update_lipd_version <- function(d){
+  # Get the lipd version number.
+  version <- get_lipd_version(d)
+  
+  # Update from (N/A or 1.0) to 1.1
+  if (version == 1.0 || version == "1.0"){
+    d = update_lipd_v1_1(d)
+    version <- 1.1
+  }
+    
+    # Update from 1.1 to 1.2
+    if (version == 1.1 || version == "1.1"){
+      d = update_lipd_v1_2(d)
+      version = 1.2
+    }
+    
+    # Update from 1.2 to 1.3
+    if(version == 1.2 || version == "1.2"){
+      d = update_lipd_v1_3(d)
+      version = 1.3
+    }
+    return(d)
+}
+
+
+#' Update LiPD v1.0 to v1.1
+#' - chronData entry is a list that allows multiple tables
+#' - paleoData entry is a list that allows multiple tables
+#' - chronData now allows measurement, model, summary, modelTable, ensemble, calibratedAges tables
+#' - Added 'lipdVersion' key
+#' @export
+#' @keywords internal
+#' @param d Metadata
+#' @return d Metadata
+update_lipd_v1_1 <- function(d){
+  
+}
+
+#' Update LiPD v1.1 to v1.2
+#' - Added NOAA compatible keys : maxYear, minYear, originalDataURL, WDCPaleoURL, etc
+#' - 'calibratedAges' key is now 'distribution'
+#' - paleoData structure mirrors chronData. Allows measurement, model, summary, modelTable, ensemble,
+#'   distribution tables
+#' @export
+#' @keywords internal
+#' @param d Metadata
+#' @return d Metadata
+update_lipd_v1_2 <- function(d){
+  
+}
+
+
+#' Update LiPD v1.2 to v1.3
+#' - Added 'createdBy' key
+#' - Top-level folder inside LiPD archives are named "bag". (No longer <datasetname>)
+#' - .jsonld file is now generically named 'metadata.jsonld' (No longer <datasetname>.lpd )
+#' - All "paleo" and "chron" prefixes are removed from "paleoMeasurementTable", "paleoModel", etc.
+#' - Merge isotopeInterpretation and climateInterpretation into "interpretation" block
+#' - ensemble table entry is a list that allows multiple tables
+#' - summary table entry is a list that allows multiple tables
+#' @export
+#' @keywords internal
+#' @param d Metadata
+#' @return d Metadata
+update_lipd_v1_3 <- function(d){
+  
+}
+
+#' Update the key names and merge interpretation data
+#' @export
+#' @keywords internal
+#' @param d Metadata
+#' @return d Metadata
+update_lipd_v1_3_keys <- function(d){
+  v12keys <- c("paleoMeasurementTable", "chronMeasurementTable", "paleoModel", "chronModel", "paleoDataMD5", "chronDataMD5", "paleoEnsembleMD5",  
+                 "chronEnsembleMD5", "paleoEnsembleTableMD5", "chronEnsembleTableMD5", "paleoMeasurementTableMD5", "chronMeasurementTableMD5", "name")
+  v13keys <- c("measurementTable", "measurementTable", "model", "model", "dataMD5", "dataMD5", "tableMD5", "tableMD5", "tableMD5", "tableMD5",
+                 "tableMD5", "tableMD5", "tableName")
+  v13keymap <- setNames(as.list(v13keys), v12keys)
+  
+}
+
+#' Update the structure for summary and ensemble tables
+#' @export
+#' @keywords internal
+#' @param d Metadata
+#' @return d Metadata
+update_lipd_v1_3_structure <- function(d){
+  
+}
+
+
+
+#' Convert LiPD version structure whenever necessary
+#' @export
+#' @keywords internal
+#' @param d Metadata
+#' @return d Metadata
+convertVersion <- function(d){
+  # Check which version this LiPD file is
+  d <- checkVersion(d)
+  # check and convert any data frames into lists
+  d <- convertDfsLst(d)
   return(d)
 }
 
