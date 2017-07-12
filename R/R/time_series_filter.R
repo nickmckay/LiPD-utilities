@@ -18,9 +18,9 @@ filterTs= function(ts, expression){
   } else {
     tryCatch({
       # Get the separate pieces of the expression
-      key = base::trimws(m[[1]][[2]])
-      op = base::trimws(m[[1]][[3]])
-      val = base::trimws(m[[1]][[4]])
+      key = trimws(m[[1]][[2]])
+      op = trimws(m[[1]][[3]])
+      val = trimws(m[[1]][[4]])
       # Attempt to cast value to numeric. If the result is NOT "NA", then keep it. Otherwise, it's not a numeric at all. 
       if (!is.na(as.numeric(val))){
         val = as.numeric(val)
