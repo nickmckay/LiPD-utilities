@@ -17,6 +17,7 @@ from time import clock
 import os
 import json
 import copy
+from collections import OrderedDict
 # READ
 
 
@@ -296,8 +297,8 @@ def lipdToDf(filename):
 def tsToDf(tso):
     """
     Create Pandas DataFrame from TimeSeries object.
-    Use: Must first extractTimeSeries to get a time series. Then pick one item from time series and pass it through
-    :param dict tso: Time series object
+    Use: Must first extractTs to get a time series. Then pick one item from time series and pass it through
+    :param dict tso: Time series entry
     :return dict dfs: Pandas dataframes
     """
     dfs = {}
@@ -459,6 +460,54 @@ def queryTs(ts, expression):
     if expr_lst:
         new_ts, _idx = get_matches(expr_lst, ts)
     return _idx
+
+
+def viewTs(ts):
+    """
+    View the contents of one time series entry in a nicely formatted way
+
+    Example
+    1. D = lipd.readLipd()
+    2. ts = lipd.extractTs(D)
+    3. viewTs(ts[0])
+
+    :param dict ts: One time series entry
+    :return none:
+    """
+    _tmp_sort = OrderedDict()
+    _tmp_sort["ROOT"] = {}
+    _tmp_sort["PUBLICATION"] = {}
+    _tmp_sort["GEO"] = {}
+    _tmp_sort["OTHERS"] = {}
+    _tmp_sort["DATA"] = {}
+
+    # Organize the data by section
+    for k,v in ts.items():
+        if not any(i == k for i in ["paleoData", "chronData", "mode", "@context"]):
+            if k in ["archiveType", "dataSetName", "googleSpreadSheetKey", "metadataMD5", "tagMD5", "googleMetadataWorksheet", "lipdVersion"]:
+                _tmp_sort["ROOT"][k] = v
+            elif "pub" in k:
+                _tmp_sort["PUBLICATION"][k] = v
+            elif "geo" in k:
+                _tmp_sort["GEO"][k] = v
+            elif "paleoData_" in k or "chronData_" in k:
+                if isinstance(v, list) and len(v) > 2:
+                    _tmp_sort["DATA"][k] = "[{}, {}, {}, ...]".format(v[0], v[1], v[2])
+                else:
+                    _tmp_sort["DATA"][k] = v
+            else:
+                if isinstance(v, list) and len(v) > 2:
+                    _tmp_sort["OTHERS"][k] = "[{}, {}, {}, ...]".format(v[0], v[1], v[2])
+                else:
+                    _tmp_sort["OTHERS"][k] = v
+
+    # Start printing the data to console
+    for k1, v1 in _tmp_sort.items():
+        print("\n{}\n===============".format(k1))
+        for k2, v2 in v1.items():
+            print("{} : {}".format(k2, v2))
+
+    return
 
 # DEPRECATED - TS no longer uses dictionaries or names.
 # def _createTs(names, ts):
