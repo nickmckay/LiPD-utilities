@@ -8,7 +8,7 @@ Author: Christopher Heiser,
 Maintainer: Christopher Heiser <heiser@nau.edu>
 Description: Utilities to open, modify, analyze, and store LiPD data
 Depends: R (>= 3.1.0)
-License: GNU Public License
+License: GPL-2
 LazyData: TRUE
 RoxygenNote: 5.0.1
 URL: www.lipd.net
