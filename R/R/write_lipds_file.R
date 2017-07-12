@@ -30,7 +30,7 @@ writeLipdFile <- function(d, name){
     
     # Need an extra (identical) level for zipping later.
     dir.create(name, showWarnings=FALSE)
-    lipd2.dir <- file.path(tmp,name,name)
+    lipd2.dir <- file.path(tmp,name,"bag")
     setwd(name)
 
     # reverse columns to index by number
@@ -56,10 +56,10 @@ writeLipdFile <- function(d, name){
       j <- jsonlite::toJSON(j, pretty=TRUE, auto_unbox = TRUE)
       
       # filename.lpd
-      lpd.jsonld <- paste0(name, ".jsonld")
+      # lpd.jsonld <- paste0(name, ".jsonld")
       
       # write json to file
-      write(j, file=lpd.jsonld)
+      write(j, file="metadata.jsonld")
       
       # move up to lipd dir level
       setwd(lipd2.dir)

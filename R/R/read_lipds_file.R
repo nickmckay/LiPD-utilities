@@ -60,7 +60,7 @@ getDataRead <- function(){
   j <- listFiles("jsonld")
   # import jsonld file
   if (length(j)>1){
-    print("error read_lipds_file: getData: more than 1 jsonld file found")
+    print("error read_lipds_file: getDataRead: more than 1 jsonld file found")
     for(i in 1:length(j)){
       print(j[[i]])
     }

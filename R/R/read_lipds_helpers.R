@@ -8,7 +8,7 @@
 #' @keywords internal
 #' @param path.and.file Target directory and 1+ files
 #' @return f List of LiPD files w. ext
-getListLpdExt <- function(path.and.file){
+list_files <- function(path){
   file <- path.and.file[["file"]]
   # Multiple file grab. No single filename given.
   if (is.null(file)){
@@ -20,23 +20,6 @@ getListLpdExt <- function(path.and.file){
     f[[1]] <- file
   }
   return(f)
-}
-
-
-#' Unzip LiPD file to the temporary directory
-#' @export
-#' @importFrom utils unzip
-#' @keywords internal
-#' @param file One LiPD file to unzip
-#' @param tmp Temporary directory
-#' @return none
-unzipper <- function(file, tmp){
-  if(length(file)>0){
-    # sapply(files, function(f){
-    #   unzip(f, exdir = tmp)
-    # })
-    unzip(file, exdir = tmp)
-  }
 }
 
 #' Remove the file extension from string name

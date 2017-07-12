@@ -1,4 +1,4 @@
-from .misc import update_lipd_version, get_table_key, rm_empty_fields, get_appended_name
+from .misc import rm_empty_fields, get_appended_name
 from .loggers import create_logger
 
 import demjson
@@ -274,21 +274,6 @@ def _idx_col_by_name(l):
 
 
 # PREP FOR EXPORT
-
-
-def split_csv_json(d):
-    """
-    Split JSON with CSV values into separate JSON and CSV dictionaries.
-    :param dict d: JSON metadata with CSV values in paleoData columns
-    :return dict, dict: JSON only metadata, CSV organized by filename->column
-    """
-    logger_jsons.info("enter split_csv_json")
-    # First, get CSV values and organize.
-    csv = get_csv_from_json(d)
-    # Then remove CSV values, which gives us JSON only.
-    j = remove_csv_from_json(d)
-    logger_jsons.info("exit split_csv_json")
-    return j, csv
 
 
 def get_csv_from_json(d):

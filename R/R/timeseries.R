@@ -1,18 +1,49 @@
 #' Find all the time series entries that match a given search expression, 
+#' and return vector of the indices that match. 
+#' @export
+#' @example indices = queryTs(ts, "archiveType == marine sediment")
+#' @example Valid operators : ==, =, <=, >=, <, >
+#' @param ts Time series
+#' @param expression Search expression
+#' @return idx Matching indices
+queryTs= function(ts, expression){
+  ops = c("<", "<=", "==", "=", ">=", ">", "less than", "more than", "is")
+  idxs <- list()
+  m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-]+)")
+  results <- get_matches(ts, m)
+  return(results[["idx"]])
+}
+
+#' Find all the time series entries that match a given search expression, 
 #' and return a new time series with the matching entries
 #' @export
 #' @example new.ts = filterTs(ts, "archiveType == marine sediment")
+#' @example Valid operators : ==, =, <=, >=, <, >
 #' @param ts Time series
 #' @param expression Search expression
 #' @return new.ts Time series
 filterTs= function(ts, expression){
-  ops = c("<", "<=", "==", "=", ">=", ">", "less than", "more than", "is")
   new.ts <- list()
+  # use the regex to get the <key><operator><value> groups from the given expression
+  m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-]+)")
+  results <- get_matches(ts, m)
+  return(results[["new_ts"]])
+}
+
+
+#' Use the regex match groups and the time series to compile two lists: matching indices, and matching entries. 
+#' @export
+#' @keywords internal
+#' @param ts Time series
+#' @param m Regex match groups
+get_matches <- function(ts, m){
+  tmp = list()
+  idx = list()
+  new_ts = list()
   # m[[1]][[1]] is full match
   # m[[1]][[2]] is key
   # m[[1]][[3]] is operator
   # m[[1]][[4]] is value
-  m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-]+)")
   if(isNullOb(m[[1]])){
     print("Error: Invalid expression given")
   } else {
@@ -32,23 +63,28 @@ filterTs= function(ts, expression){
           if (key %in% names(entry)){
             if(op == "<"){
               if (entry[[key]] < val){
-                new.ts[[length(new.ts) + 1]] <- entry
+                new_ts[[length(new_ts) + 1]] <- entry
+                idx[[length(idx) + 1]] <- i
               }
             } else if (op == "<="){
               if (entry[[key]] < val || entry[[key]] == val){
-                new.ts[[length(new.ts) + 1]] <- entry
+                new_ts[[length(new_ts) + 1]] <- entry
+                idx[[length(idx) + 1]] <- i
               }
             } else if (op == "==" || op == "="){
               if (entry[[key]] == val){
-                new.ts[[length(new.ts) + 1]] <- entry
+                new_ts[[length(new_ts) + 1]] <- entry
+                idx[[length(idx) + 1]] <- i
               }
             } else if (op == ">="){
               if (entry[[key]] > val || entry[[key]] == val){
-                new.ts[[length(new.ts) + 1]] <- entry
+                new_ts[[length(new_ts) + 1]] <- entry
+                idx[[length(idx) + 1]] <- i
               }
             } else if (op == ">"){
               if (entry[[key]] > val){
-                new.ts[[length(new.ts) + 1]] <- entry
+                new_ts[[length(new_ts) + 1]] <- entry
+                idx[[length(idx) + 1]] <- i
               }
             }
           }
@@ -61,5 +97,7 @@ filterTs= function(ts, expression){
     })
     
   }
-  return(new.ts)
+  tmp[["new_ts"]] <- new_ts
+  tmp[["idx"]] <- idx
+  return(tmp)
 }

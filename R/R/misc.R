@@ -14,74 +14,6 @@ createRange <- function(start, len){
 }
 
 
-#' Check for a LiPD version in the metadata. Create one if it isn't found.
-#' @export
-#' @keywords internal
-#' @param j Json metadata
-#' @return j Json metadata
-confirmLipdVersion <- function(j){
-  # Lowercase the keys so we can match keys case-insensitively
-  keys = sapply(names(j), tolower)
-  # Check for the lipdversion key in the metadata
-  if(!"lipdversion" %in% keys && !"lipd_version" %in% keys){
-    # Key not found, insert it and default to v1.2
-    j$lipdVersion = 1.2
-  }
-  return(j)
-}
-
-
-#' Ask user where local file/folder location is.
-#' @export
-#' @keywords internal
-#' @param path Target path (optional)
-#' @return path.and.file Path to files
-getSrcOrDst<- function(path){
-  if (isNullOb(path)){
-    # Path was not given. Start prompts
-    ans <- askHowMany()
-    path.and.file <- browseDialog(ans)
-  } else {
-    # Path was given. Is it a directory or a file?
-    dir <- isDirectory(path)
-    if (dir){
-      # It's a directory. Set the path as the directory
-      path.and.file <- list("dir" = path, "file"= NULL)
-    } else {
-      # It's a file. Split the directory and the filename
-      path.and.file <- list("dir" = dirname(path), "file"= basename(path))
-    }
-  }
-  return(path.and.file)
-}
-
-#' Open a file browsing gui to let the user pick a location
-#' @export
-#' @keywords internal
-#' @param ans Single or multiple files
-#' @return path Path to file
-browseDialog <- function(ans){
-  tryCatch(
-    { path <- file.choose() },
-    error=function(cond){
-      print("File/Directory not chosen")
-      quit(1)
-    })
-
-  # parse the dir path. don't keep the filename
-  if (ans == "m" || is.null(ans)){
-    dir.path = dirname(path)
-    one.file = NULL
-  }
-  # parse the dir path and the filename
-  else if (ans == "s"){
-    dir.path = dirname(path)
-    one.file = basename(path)
-  }
-  out.list <- list("dir" = dir.path, "file"= one.file)
-  return(out.list)
-}
-
 #' Remove all NA, NULL, and empty objects from the data structure
 #' @export
 #' @keywords internal
@@ -125,15 +57,6 @@ isDirectory <- function(s){
   return(FALSE)
 } 
 
-#' Create a temporary working directory
-#' @export
-#' @keywords internal
-#' @return d Temporary directory path
-createTmpDir <- function(){
-  d <- tempdir()
-  return(d)
-}
-
 #' Return to preset "home" working directory
 #' @export
 #' @keywords internal
@@ -166,31 +89,7 @@ hasData <- function(path, i){
   return(dat)
 }
 
-#' Replace all blank values in csv matrices
-#' @export
-#' @keywords internal
-#' @param csv All csv data
-#' @return csv All csv data
-cleanCsv <- function(csv){
-  blanks <- c("", " ", "NA", "NaN", "NAN", "nan")
-  file.len <- length(csv)
-  if (file.len>0){
-    for (file in 1:file.len){
-      col.len <- length(csv[[file]])
-      if (col.len>0){
-        for (cols in 1:col.len){
-          # get one column (matrix)
-          col <- csv[[file]][[cols]]
-          # replace all blanks in it
-          col[is.na(col) | is.nan(col)] <- NA
-          # set column back in columns
-          csv[[file]][[cols]] <- col
-        }
-      }
-    }
-  }
-  return(csv)
-}
+
 
 #' Check if output filename has invalid filename characters. Replace if necessary
 #' R will not zip directories with certain characters.

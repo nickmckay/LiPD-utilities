@@ -1,10 +1,9 @@
 from .pkg_resources.lipds.LiPD import lipd_read, lipd_write
-from .pkg_resources.timeseries.timeseries_fns import extract, collapse, mode_ts
+from .pkg_resources.timeseries.timeseries_fns import extract, collapse, mode_ts, translate_expression, get_matches
 from .pkg_resources.doi.doi_main import doi_main
 from .pkg_resources.helpers.csvs import get_csv_from_metadata
 from .pkg_resources.excel.excel_main import excel_main
 from .pkg_resources.noaa.noaa_main import noaa_prompt, noaa_to_lpd, lpd_to_noaa
-from .pkg_resources.helpers.ts import translate_expression, get_matches
 from .pkg_resources.helpers.dataframes import *
 from .pkg_resources.helpers.directory import get_src_or_dst, list_files, collect_metadata_file
 from .pkg_resources.helpers.loggers import create_logger, log_benchmark, create_benchmark
