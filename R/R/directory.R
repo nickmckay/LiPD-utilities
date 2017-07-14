@@ -1,3 +1,36 @@
+#' Ask if user wants to read one file or a directory with multiple files.
+#' @export
+#' @keywords internal
+#' @return ans Answer to prompt (s/m)
+ask_how_many <- function(){
+  ans <- readline(prompt="Do you want to load a single file (s) or directory (d)? ")
+  # Test if input matches what we expect. Keep prompting until valid input.
+  if(!grepl("\\<s\\>",ans) & !grepl("\\<d\\>", ans))
+  { return(ask_how_many()) }
+  # Return a valid answer
+  return(as.character(ans))
+}
+
+
+#' Open a file browsing gui to let the user pick a file or directory
+#' @export
+#' @keywords internal
+#' @param char ans single (s) or directory (d) 
+#' @return char path Directory or file path
+browse_dialog <- function(ans){
+  tryCatch(
+    { path <- file.choose() },
+    error=function(cond){
+      print("Error: File must be selected")
+      quit(1)
+    })
+  
+  # Since R cannot choose directories, we have to manually get the directory path from the file that was chosen
+  if (ans == "d" || is.null(ans)){
+    path = dirname(path)
+  }
+  return(path)
+}
 
 #' Create a temporary working directory
 #' @export
@@ -8,54 +41,69 @@ createTmpDir <- function(){
   return(d)
 }
 
-#' Open a file browsing gui to let the user pick a location
+#' Ask user where local file/directory location is.
 #' @export
 #' @keywords internal
-#' @param ans Single or multiple files
-#' @return path Path to file
-browseDialog <- function(ans){
-  tryCatch(
-    { path <- file.choose() },
-    error=function(cond){
-      print("File/Directory not chosen")
-      quit(1)
-    })
-  
-  # parse the dir path. don't keep the filename
-  if (ans == "m" || is.null(ans)){
-    dir.path = dirname(path)
-    one.file = NULL
+#' @param char path Target path
+#' @return char path Directory or file path
+get_src_or_dst<- function(path){
+  if (!isNullOb(path)){
+    # If the provided path is not a directory and not a lipd file path, then it's not valid
+    if (!isDirectory(path) && !tools::file_ext(path) == "lpd"){
+      # Not a lipd file and not a directory. Stop execution and quit. 
+      stop("Error: The provided path must be a directory or a LiPD file")
+    } 
+  } else {
+    # Path was not given. Start prompts
+    ans <- ask_how_many()
+    path <- browse_dialog(ans)
   }
-  # parse the dir path and the filename
-  else if (ans == "s"){
-    dir.path = dirname(path)
-    one.file = basename(path)
-  }
-  out.list <- list("dir" = dir.path, "file"= one.file)
-  return(out.list)
+  return(path)
 }
 
-#' Ask user where local file/folder location is.
+#' Get a list of paths to LiPD files
 #' @export
 #' @keywords internal
-#' @param path Target path (optional)
-#' @return path.and.file Path to files
-get_src_or_dst<- function(path){
-  if (isNullOb(path)){
-    # Path was not given. Start prompts
-    ans <- askHowMany()
-    path.and.file <- browseDialog(ans)
-  } else {
-    # Path was given. Is it a directory or a file?
-    dir <- isDirectory(path)
-    if (dir){
-      # It's a directory. Set the path as the directory
-      path.and.file <- list("dir" = path, "file"= NULL)
-    } else {
-      # It's a file. Split the directory and the filename
-      path.and.file <- list("dir" = dirname(path), "file"= basename(path))
-    }
+#' @param path Directory or file path
+#' @return list files File paths to LiPD files
+get_lipd_paths <- function(path){
+  files <- list()
+  if (isDirectory(path)){
+    files <- list.files(path=path, pattern='\\.lpd$', full.names = TRUE)
+  } else if(tools::file_ext(path) == "lpd"){
+    files[[1]] <- path
   }
-  return(path.and.file)
+  return(files)
 }
+
+#' Recursive file list for current directory and below
+#' @export
+#' @keywords internal
+#' @param char x: File type
+#' @return char files: Matching file paths
+list_files_recursive <- function(x){
+  # create the file type filter string
+  ft <- paste0("\\.", x, "$")
+  # get the list of filenames from the current directory and below
+  files <- list.files(path=getwd(), pattern=ft, recursive=TRUE)
+  return(files)
+}
+
+
+#' Use a recursive file search to find the "data" directory of a LiPD file
+#' @export
+#' @keywords internal
+#' @param char x: File type
+#' @return char files: Matching file paths
+find_data_dir <- function(){
+  # If there is a jsonld file, then that means we're in the data directory
+  files <- list.files(path=getwd(), pattern="\\.jsonld$", recursive=TRUE)
+  if (isNullOb(files)){
+    stop("Error: Unable to find the 'data' directory in the LiPD file")
+  }
+  # Use the directory name from the jsonld path
+  dir_data <- dirname(files[[1]])
+  return(dir_data)
+}
+
 

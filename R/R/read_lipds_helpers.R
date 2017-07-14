@@ -3,6 +3,7 @@
 ## Misc functions that aid the reading of LiPD files
 ###############################################
 
+<<<<<<< Updated upstream
 #' Get list of all LiPD files in current directory
 #' @export
 #' @keywords internal
@@ -71,6 +72,8 @@ askHowMany <- function(){
 }
 
 
+=======
+>>>>>>> Stashed changes
 #' Convert column type: data frame to list
 #' Function may be unused right now
 #' @export

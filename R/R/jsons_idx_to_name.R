@@ -1,7 +1,5 @@
 ###############################################
-## Read LiPDs - Indexing
-## Misc functions that aid in converting LiPD
-## data into a preferred R analysis structure
+## Indexing
 ###############################################
 
 
@@ -10,7 +8,7 @@
 #' @keywords internal
 #' @param d LiPD file
 #' @return d Modified LiPD file
-indexByNameRead <- function(d){
+idx_num_to_name <- function(d){
   paleo <- c("paleoData", "paleoMeasurementTable", "paleoModel")
   chron <- c("chronData", "chronMeasurementTable", "chronModel")
   d <- indexSectionRead(d, paleo)

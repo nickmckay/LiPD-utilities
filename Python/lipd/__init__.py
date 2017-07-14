@@ -473,6 +473,11 @@ def viewTs(ts):
     :param dict ts: One time series entry
     :return none:
     """
+    _ts = ts
+    if isinstance(ts, list):
+        _ts = ts[0]
+        print("It looks like you input a full time series. It's best to view one entry at a time.\n"
+              "I'll show you the first entry...")
     _tmp_sort = OrderedDict()
     _tmp_sort["ROOT"] = {}
     _tmp_sort["PUBLICATION"] = {}
@@ -481,7 +486,7 @@ def viewTs(ts):
     _tmp_sort["DATA"] = {}
 
     # Organize the data by section
-    for k,v in ts.items():
+    for k,v in _ts.items():
         if not any(i == k for i in ["paleoData", "chronData", "mode", "@context"]):
             if k in ["archiveType", "dataSetName", "googleSpreadSheetKey", "metadataMD5", "tagMD5", "googleMetadataWorksheet", "lipdVersion"]:
                 _tmp_sort["ROOT"][k] = v
@@ -851,13 +856,9 @@ def __read_file(usr_path, file_type):
         # src files could be a list of one, or a list of many. depending how many files the user selects
         src_dir, src_files = get_src_or_dst("read", "file")
         # check if src_files is a list of multiple files
-        if len(src_files) > 1:
+        if src_files:
             for file_path in src_files:
                 __universal_read(file_path, file_type)
-        # one file chosen
-        elif src_files:
-            file_path = src_files[0]
-            __universal_read(file_path, file_type)
         else:
             print("No file(s) chosen")
     else:

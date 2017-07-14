@@ -65,25 +65,6 @@ multiWrite <- function(D){
   }
 }
 
-#' Get data set name from metadata
-#' @export
-#' @keywords internal
-#' @param d LiPD data
-#' @return name Data set name
-getDatasetName <- function(d){
-  # Attempt to find data set name entry
-  name <- tryCatch({
-    name <- d$dataSetName
-  }, error=function(cond){
-    return(NA)
-  })
-  # No dataSetName entry in record. Have user enter a name
-  if (is.na(name)){
-    name <- promptStringWrite("No data set name found. Enter the name: ")
-  }
-  return(name)
-}
-
 #' Prompt the user for some string entry
 #' @export
 #' @keywords internal
