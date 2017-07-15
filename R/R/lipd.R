@@ -10,7 +10,7 @@ lipd_read <- function(path){
   dir_original = getwd()
   tryCatch({
     dir_tmp <- createTmpDir()
-    unzipper(path, tmp)
+    unzipper(path, dir_tmp)
     setwd(dir_tmp)
     data_dir <- find_data_dir()
     setwd(data_dir)
@@ -28,10 +28,10 @@ lipd_read <- function(path){
     unlink(dir_tmp, recursive=TRUE)
   }, error = function(cond){
     print(paste0("Error: lipd_read: ", cond))
+    setwd(dir_original)
+    unlink(dir_tmp, recursive=TRUE)
   })
-  # Move back to the inital directory (in case there was an error in the tryCatch)
-  setwd(dir_original)
-  return(d)
+  return(j)
 }
 
 
@@ -44,7 +44,7 @@ lipd_read <- function(path){
 #' @param char path: Destination path
 #' @param char dsn: Dataset name
 #' @return none:
-lipd_write <- funciton(j, path, dsn){
+lipd_write <- function(j, path, dsn){
   # Json is pass by reference. Make a copy so we don't mess up the original data.
   # _json_tmp = copy.deepcopy(_json)
   # dir_original = os.getcwd()

@@ -20,12 +20,11 @@ createRange <- function(start, len){
 #' @param char name: Filename fallback
 #' @return char dsn: Dataset name
 get_datasetname <- function(d, name){
+  dsn <- name
   # Attempt to find data set name entry
-  name <- tryCatch({
-    dsn <- d$dataSetName
-  }, error=function(cond){
-    dsn <- name
-  })
+  if ("dataSetName" %in% names(d)){
+    dsn <- d[["dataSetName"]]
+  }
   return(dsn)
 }
 
@@ -126,7 +125,7 @@ indexGeo <- function(d){
 #' @keywords internal
 #' @param x Data structure
 #' @return x Modified data structure
-remove_empty_fields <- function( x ){
+rm_empty_fields <- function( x ){
   # don't process matrices. it'll turn them to lists and that ruins ensemble data.
   if (!is.matrix(x)){
     # Remove all the nulls
@@ -135,7 +134,7 @@ remove_empty_fields <- function( x ){
     # Recursion
     if( is.list(x) ){
       # Recursive dive
-      x <- lapply(x, remove_empty_fields)
+      x <- lapply(x, rm_empty_fields)
     }
     x <- x[ unlist(sapply(x, length) != 0)]
   }

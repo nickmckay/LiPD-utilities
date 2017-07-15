@@ -21,6 +21,7 @@ readLipd <- function(path=NULL){
     print("LiPD file(s) not found in the given path")
   } else {
     for (i in 1:length(files)){
+      j <- list()
       # Entry is one file path
       entry <- files[[i]]
       # Do initial set up
