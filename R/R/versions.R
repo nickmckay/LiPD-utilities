@@ -4,6 +4,19 @@
 ## LiPD standards
 ###############################################
 
+
+#' Add createdBy key to metdata
+#' @export
+#' @keywords internal
+#' @param list d: Metadata
+#' @return list d: Metadata
+add_created_by <- function(d){
+  if(!("createdBy" %in% names(d))){
+    d[["createdBy"]] <- "unknown"
+  }
+  return(d)
+}
+
 #' Check what version of LiPD this file is using. If none is found, assume it's using version 1.0
 #' @export
 #' @keywords internal
@@ -134,13 +147,12 @@ update_lipd_v1_2_section <- function(d, pc){
 #' @param d Metadata
 #' @return d Metadata
 update_lipd_v1_3 <- function(d){
-  # Two part update: Update the keys, then the structure.
+  # TODO  need to write the merge_interpretation function
   d <- update_lipd_v1_3_keys(d)
   d <- update_lipd_v1_3_structure(d)
+  d <- add_created_by(d)
   return(d)
 }
-
-
 
 #' Update v1.2 keys to v1.3 keys: recursive
 #' @export
@@ -201,7 +213,45 @@ update_lipd_v1_3_keys <- function(d){
 #' @return d Metadata
 update_lipd_v1_3_structure <- function(d){
   
+  # Tables that need changing
+  change <- c("ensembleTable", "summaryTable")
+  
+  # Keys in this data
+  keys <- names(d)
+  
+  # For any lists that are indexed by name 
+  if(!isNullOb(keys) && !is.na(keys)){
+    for(i in 1:length(keys)){
+      curr_key <- keys[[i]]
+      # Dive down first
+      if(typeof(d[[curr_key]]) == "list"){
+        d[[curr_key]] <- update_lipd_v1_3_structure(d[[curr_key]])
+      } 
+      # When you bubble back up, then check if this key should be switched
+      if(curr_key %in% change){
+        # Found a table. Do the 'ol switcheroo
+        tmp <- d[[curr_key]]
+        d[[curr_key]] <- list()
+        d[[curr_key]][[1]] <- tmp
+      }
+    }
+  } else {
+    # For any lists that are indexed by number
+    if(typeof(d)=="list"){
+      for(i in 1:length(d)){
+        tryCatch({
+          d[[i]] <- update_lipd_v1_3_structure(d[[i]])
+        }, error=function(cond){
+          print(paste0("Error: update_lipd_v1_3_structure: ", cond))
+        })
+      }
+    }
+  }
+  return(d)
 }
+
+
+# DEPRECATED CODE
 
 #' #' Convert LiPD version structure whenever necessary
 #' #' @export

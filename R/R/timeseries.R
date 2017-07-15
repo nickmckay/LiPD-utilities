@@ -1,8 +1,8 @@
 #' Find all the time series entries that match a given search expression, 
 #' and return vector of the indices that match. 
+#' indices = queryTs(ts, "archiveType == marine sediment")
+#' Valid operators : ==, =, <=, >=, <, >
 #' @export
-#' @example indices = queryTs(ts, "archiveType == marine sediment")
-#' @example Valid operators : ==, =, <=, >=, <, >
 #' @param ts Time series
 #' @param expression Search expression
 #' @return idx Matching indices
@@ -16,9 +16,9 @@ queryTs= function(ts, expression){
 
 #' Find all the time series entries that match a given search expression, 
 #' and return a new time series with the matching entries
+#' new.ts = filterTs(ts, "archiveType == marine sediment")
+#' Valid operators : ==, =, <=, >=, <, >
 #' @export
-#' @example new.ts = filterTs(ts, "archiveType == marine sediment")
-#' @example Valid operators : ==, =, <=, >=, <, >
 #' @param ts Time series
 #' @param expression Search expression
 #' @return new.ts Time series
