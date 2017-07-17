@@ -1,15 +1,12 @@
 #' Unzip LiPD file to the temporary directory
 #' @export
 #' @keywords internal
-#' @param file One LiPD file to unzip
-#' @param tmp Temporary directory
+#' @param char path: Path
+#' @param char tmp: Temporary directory
 #' @return none
-unzipper <- function(file, tmp){
-  if(length(file)>0){
-    # sapply(files, function(f){
-    #   unzip(f, exdir = tmp)
-    # })
-    unzip(file, exdir = tmp)
+unzipper <- function(path, dir_tmp){
+  if(length(path)>0){
+    unzip(path, exdir = dir_tmp)
   }
 }
 

@@ -43,12 +43,12 @@ writeLipdFile <- function(d, name){
     all.data[["csv"]] <- cleanCsv(all.data[["csv"]])
     
     # use the organized list to write out all csv files
-    csv.success <- writeCsvs(all.data[["csv"]])
+    csv.success <- write_csv_to_file(all.data[["csv"]])
     
     # only continue if csv files were written
     if (csv.success){
       # remove all empty objs and null values
-      j <- removeEmptyRec(all.data[["metadata"]])
+      j <- remove_empty_fields(all.data[["metadata"]])
       
       j <- confirmLipdVersion(j)
       

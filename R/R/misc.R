@@ -13,26 +13,37 @@ createRange <- function(start, len){
   return(l)
 }
 
-
-#' Remove all NA, NULL, and empty objects from the data structure
+#' Get dataSetName from metadata. If one is not found, use filename as fallback.
 #' @export
 #' @keywords internal
-#' @param x Data structure
-#' @return x Modified data structure
-removeEmptyRec <- function( x ){
-  # don't process matrices. it'll turn them to lists and that ruins ensemble data.
-  if (!is.matrix(x)){
-    # Remove all the nulls
-    x <- x[ !isNullOb( x )]
-    x <- x[ !sapply( x, is.null ) ]
-    # Recursion
-    if( is.list(x) ){
-      # Recursive dive
-      x <- lapply(x, removeEmptyRec)
-    }
-    x <- x[ unlist(sapply(x, length) != 0)]
+#' @param list d: Metadata
+#' @param char name: Filename fallback
+#' @return char dsn: Dataset name
+get_datasetname <- function(d, name){
+  dsn <- name
+  # Attempt to find data set name entry
+  if ("dataSetName" %in% names(d)){
+    dsn <- d[["dataSetName"]]
   }
-  return(x)
+  return(dsn)
+}
+
+#' Check if metadata path exists. Combine path and i to check for existence
+#' @export
+#' @keywords internal
+#' @param path Path in metadata
+#' @param i Next path level.
+#' @return dat Data found or null
+hasData <- function(path, i){
+  dat <- tryCatch({
+    dat <- path[[i]]
+  }, error=function(cond){
+    return(NULL)
+  })
+  if (isNullOb(dat)){
+    dat <- NULL
+  }
+  return(dat)
 }
 
 #' Checks if an object is null/empty
@@ -56,51 +67,6 @@ isDirectory <- function(s){
   # No file extension. Assume it's a file and not a directory
   return(FALSE)
 } 
-
-#' Return to preset "home" working directory
-#' @export
-#' @keywords internal
-#' @return none
-returnToRoot <- function(){
-  if(!exists("working.dir",where = .GlobalEnv)){
-    print("Working directory not set. Choose any file -inside- your target directory")
-    out <- guiForPath(NULL)
-    working.dir <- out[["dir"]]
-    assign("working.dir", working.dir, envir = .GlobalEnv)
-  }
-  setwd(working.dir)
-}
-
-#' Check if metadata path exists. Combine path and i to check for existence
-#' @export
-#' @keywords internal
-#' @param path Path in metadata
-#' @param i Next path level.
-#' @return dat Data found or null
-hasData <- function(path, i){
-  dat <- tryCatch({
-    dat <- path[[i]]
-  }, error=function(cond){
-    return(NULL)
-  })
-  if (isNullOb(dat)){
-    dat <- NULL
-  }
-  return(dat)
-}
-
-
-
-#' Check if output filename has invalid filename characters. Replace if necessary
-#' R will not zip directories with certain characters.
-#' @export
-#' @keywords internal
-#' @param x String
-#' @return x String
-verifyOutputFilename <- function(x){
-  x <- gsub("[.]", "-", x)
-  return(x)
-}
 
 #' Make geo semi-flat. Remove unnecessary levels between us and data.
 #' @export
@@ -154,44 +120,39 @@ indexGeo <- function(d){
   return(d)
 }
 
-#' Convert geo from semi-flat structure back to original GeoJSON structure.
+#' Remove all NA, NULL, and empty objects from the data structure
 #' @export
 #' @keywords internal
-#' @param d Metadata
-#' @return d Modified metadata
-unindexGeo <- function(d){
+#' @param x Data structure
+#' @return x Modified data structure
+rm_empty_fields <- function( x ){
+  # don't process matrices. it'll turn them to lists and that ruins ensemble data.
+  if (!is.matrix(x)){
+    # Remove all the nulls
+    x <- x[ !isNullOb( x )]
+    x <- x[ !sapply( x, is.null ) ]
+    # Recursion
+    if( is.list(x) ){
+      # Recursive dive
+      x <- lapply(x, rm_empty_fields)
+    }
+    x <- x[ unlist(sapply(x, length) != 0)]
+  }
+  return(x)
+}
 
-  tmp <- list()
-  tmp$geometry <- list()
-  tmp$geometry$coordinates <- list()
-  tmp$properties <- list()
-  geo <- d$geo
-
-  if (!is.null(geo)){
-    gnames <- names(geo)
-    for (i in 1:length(gnames)){
-
-      # type goes in root
-      if (gnames[[i]] == "type"){
-        tmp$type <- geo$type
-      }
-      # geometry
-      else if (gnames[[i]] %in% c("latitude", "longitude", "elevation", "geometryType")){
-        if (gnames[[i]] == "latitude"){ tmp$geometry$coordinates[[1]] <- geo$longitude }
-        else if (gnames[[i]] == "longitude"){ tmp$geometry$coordinates[[2]] <- geo$latitude }
-        else if (gnames[[i]] == "elevation"){ tmp$geometry$coordinates[[3]] <- geo$elevation }
-        else if (gnames[[i]] == "geometryType"){ tmp$geometry$type <- geo$geometryType}
-      }
-
-      # properties
-      else{
-        tmp[[gnames[[i]]]] <- geo[[gnames[[i]]]]
-      }
-    } # end loop
-    d$geo <- tmp
-  } # end if
-
-  return(d)
+#' Return to preset "home" working directory
+#' @export
+#' @keywords internal
+#' @return none
+returnToRoot <- function(){
+  if(!exists("working.dir",where = .GlobalEnv)){
+    print("Working directory not set. Choose any file -inside- your target directory")
+    out <- guiForPath(NULL)
+    working.dir <- out[["dir"]]
+    assign("working.dir", working.dir, envir = .GlobalEnv)
+  }
+  setwd(working.dir)
 }
 
 #' An old bug caused some geo coordinates to be reversed. This will switch them back to normal.
@@ -210,3 +171,53 @@ swapGeoCoordinates <- function(d){
   return(d)
 }
 
+#' Convert geo from semi-flat structure back to original GeoJSON structure.
+#' @export
+#' @keywords internal
+#' @param d Metadata
+#' @return d Modified metadata
+unindexGeo <- function(d){
+  
+  tmp <- list()
+  tmp$geometry <- list()
+  tmp$geometry$coordinates <- list()
+  tmp$properties <- list()
+  geo <- d$geo
+  
+  if (!is.null(geo)){
+    gnames <- names(geo)
+    for (i in 1:length(gnames)){
+      
+      # type goes in root
+      if (gnames[[i]] == "type"){
+        tmp$type <- geo$type
+      }
+      # geometry
+      else if (gnames[[i]] %in% c("latitude", "longitude", "elevation", "geometryType")){
+        if (gnames[[i]] == "latitude"){ tmp$geometry$coordinates[[1]] <- geo$longitude }
+        else if (gnames[[i]] == "longitude"){ tmp$geometry$coordinates[[2]] <- geo$latitude }
+        else if (gnames[[i]] == "elevation"){ tmp$geometry$coordinates[[3]] <- geo$elevation }
+        else if (gnames[[i]] == "geometryType"){ tmp$geometry$type <- geo$geometryType}
+      }
+      
+      # properties
+      else{
+        tmp[[gnames[[i]]]] <- geo[[gnames[[i]]]]
+      }
+    } # end loop
+    d$geo <- tmp
+  } # end if
+  
+  return(d)
+}
+
+#' Check if output filename has invalid filename characters. Replace if necessary
+#' R will not zip directories with certain characters.
+#' @export
+#' @keywords internal
+#' @param x String
+#' @return x String
+verifyOutputFilename <- function(x){
+  x <- gsub("[.]", "-", x)
+  return(x)
+}

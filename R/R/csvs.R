@@ -24,13 +24,30 @@ cleanCsv <- function(csv){
   return(csv)
 }
 
+#' Opens the target CSV file and creates a dictionary with one list for each CSV column.
+#' @export
+#' @importFrom utils read.csv
+#' @keywords internal
+#' @return data.list List of data for one LiPD file
+read_csv_from_file <- function(){
+  c <- list_files_recursive("csv")
+  c.data=vector(mode="list",length=length(c))
+  # import each csv file
+  for (ci in 1:length(c)){
+    df=read.csv(c[ci], header=FALSE, blank.lines.skip = FALSE,na.strings = c("nan", "NaN", "NAN", "NA"))
+    c.data[[c[ci]]]=df
+  }
+  return(c.data)
+}
+
+
 #' Write out each CSV file for this LiPD record
 #' csv.data format: [ some_filename.csv $columns.data ]
 #' @export
 #' @keywords internal
 #' @param csv.data List of Lists of csv column data
 #' @return success Boolean for successful csv write
-writeCsvs <- function(csv.data){
+write_csv_to_file <- function(csv.data){
   
   success <- TRUE
   csv.names <- names(csv.data)

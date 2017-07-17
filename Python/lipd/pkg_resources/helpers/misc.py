@@ -416,39 +416,6 @@ def match_arr_lengths(l):
     return True
 
 
-def _merge_interpretations(d):
-    """
-
-    :param d:
-    :return:
-    """
-    _tmp = []
-    try:
-        # Now loop and aggregate the interpretation data into one list
-        for k, v in d.items():
-            if k in ["climateInterpretation", "isotopeInterpretation", "interpretation"]:
-                # now add in the new data
-                if isinstance(v, list):
-                    for i in v:
-                        _tmp.append(i)
-                elif isinstance(v, dict):
-                    _tmp.append(d[k])
-        # Set the aggregate data into the interpretation key
-        d["interpretation"] = _tmp
-
-    except Exception as e:
-        print("Error: merge_interpretations: {}".format(e))
-
-    # Now remove the old interpretation keys
-    for key in ["climateInterpretation", "isotopeInterpretation"]:
-        try:
-            d[key] = ""
-        except Exception:
-            pass
-
-    return d
-
-
 def mv_files(src, dst):
     """
     Move all files from one directory to another
