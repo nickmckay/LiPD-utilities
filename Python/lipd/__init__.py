@@ -44,10 +44,11 @@ def readLipd(usr_path=""):
     :param str usr_path: Path to file (optional)
     :return dict _d: LiPD data
     """
-    global cwd, settings
+    global cwd, settings, files
     if settings["verbose"]:
         __disclaimer(opt="update")
     start = clock()
+    files[".lpd"] = []
     __read(usr_path, ".lpd")
     _d = __read_lipd_contents()
     end = clock()
@@ -62,8 +63,9 @@ def readExcel(usr_path=""):
     :param str usr_path: Path to file (optional)
     :return str cwd: Current Working Directory
     """
-    global cwd
+    global cwd, files
     start = clock()
+    files[".xls"] = []
     __read(usr_path, ".xls")
     end = clock()
     logger_benchmark.info(log_benchmark("readExcel", start, end))
@@ -76,8 +78,9 @@ def readNoaa(usr_path=""):
     :param str usr_path: Path to file
     :return str cwd: Current Working Directory
     """
-    global cwd
+    global cwd, files
     start = clock()
+    files[".txt"] = []
     __read(usr_path, ".txt")
     end = clock()
     logger_benchmark.info(log_benchmark("readNoaa", start, end))
@@ -90,8 +93,9 @@ def readAll(usr_path=""):
     :param str usr_path: Path to directory
     :return str cwd: Current Working Directory
     """
-    global cwd
+    global cwd, files
     start = clock()
+    files = {".txt": [], ".lpd": [], ".xls": []}
     if not usr_path:
         usr_path, src_files = get_src_or_dst("read", "directory")
     __read_directory(usr_path, ".lpd")
@@ -156,7 +160,7 @@ def noaa(d=None):
 
     :return none:
     """
-    global files, lipd_lib, cwd
+    global files, cwd
     # When going from NOAA to LPD, use the global "files" variable.
     # When going from LPD to NOAA, use the data from the LiPD Library.
 
@@ -205,51 +209,52 @@ def doi():
     return
 
 
-def validate(detailed=True, fetch_new_results=True):
-    """
-    Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
-    Display the PASS/FAIL results. Display detailed results if the option is chosen.
-    :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors.
-    :param bool fetch_new_results: Defaults to fetching new validation results each call
-    :return none:
-    """
-    start = clock()
-    print("\n")
-    # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
-    if fetch_new_results:
-        print("Fetching results from validator at lipd.net/validator... this may take a few moments.\n")
-        # Get the validator-formatted data for each LiPD file in the LiPD Library.
-        # A list of lists of LiPD-content metadata
-        d = lipd_lib.get_data_for_validator()
-        results = get_validator_results(d)
-        display_results(results, detailed)
-        # Set the results inside of each LiPD object
-        for entry in results:
-            lipd_lib.put_validator_results(entry)
-    # Check for previous validator results. Display those rather than running the validator again. (faster)
-    else:
-        results = lipd_lib.get_validator_results()
-        display_results(results, detailed)
-    end = clock()
-    logger_benchmark.info(log_benchmark("validate", start, end))
-    return
+# TODO Not adapted to objectless utilties. Does it need an update?
+# def validate(detailed=True, fetch_new_results=True):
+#     """
+#     Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
+#     Display the PASS/FAIL results. Display detailed results if the option is chosen.
+#     :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors.
+#     :param bool fetch_new_results: Defaults to fetching new validation results each call
+#     :return none:
+#     """
+#     start = clock()
+#     print("\n")
+#     # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
+#     if fetch_new_results:
+#         print("Fetching results from validator at lipd.net/validator... this may take a few moments.\n")
+#         # Get the validator-formatted data for each LiPD file in the LiPD Library.
+#         # A list of lists of LiPD-content metadata
+#         d = lipd_lib.get_data_for_validator()
+#         results = get_validator_results(d)
+#         display_results(results, detailed)
+#         # Set the results inside of each LiPD object
+#         for entry in results:
+#             lipd_lib.put_validator_results(entry)
+#     # Check for previous validator results. Display those rather than running the validator again. (faster)
+#     else:
+#         results = lipd_lib.get_validator_results()
+#         display_results(results, detailed)
+#     end = clock()
+#     logger_benchmark.info(log_benchmark("validate", start, end))
+#     return
 
 
 # PUT
 
 
-def addEnsemble(filename, ensemble):
+def addEnsemble(D, dsn, ensemble):
     """
-    Create ensemble entry and then add it to the specified LiPD dataset
-    :param str filename: LiPD dataset name to add ensemble to
+    Create ensemble entry and then add it to the specified LiPD dataset.
+    :param dict D: LiPD data
+    :param str dsn: Dataset name
     :param list ensemble: Nested numpy array of ensemble column data.
-    :return none:
+    :return dict D: LiPD data
     """
-    # Get the master lipd library
-    lib = lipd_lib.get_master()
+
     # Check that the given filename exists in the library
-    if filename in lib:
-        meta = lib[filename].get_metadata()
+    if dsn in D:
+        meta = D[dsn]
         # Create an ensemble dictionary entry
         ens = create_ensemble(ensemble)
         # If everything above worked, then there should be formatted ensemble data now.
@@ -257,12 +262,10 @@ def addEnsemble(filename, ensemble):
             # Insert the formatted ensemble data into the master lipd library
             meta = insert_ensemble(meta, ens)
             # Set meta into lipd object
-            lib[filename].put_metadata(meta)
-            # Set the new master data back into the lipd library
-            lipd_lib.put_master(lib)
+            D[dsn] = meta
     else:
-        print("Error: '{}' file not found in workspace. Please use showLipds() to see available files ".format(filename))
-    return
+        print("Error: This dataset was not found in your LiPD data: {}".format(dsn))
+    return D
 
 
 # DATA FRAMES
@@ -278,19 +281,21 @@ def ensToDf(ensemble):
     return df
 
 
-def lipdToDf(filename):
-    """
-    Get LiPD data frames from LiPD object
-    :param str filename:
-    :return dict dfs: Pandas dataframes
-    """
-    try:
-        dfs = lipd_lib.get_dfs(filename)
-    except KeyError:
-        print("Error: Unable to find LiPD file")
-        logger_start.warn("lipd_to_df: KeyError: missing lipds {}".format(filename))
-        dfs = None
-    return dfs
+# TODO Not adapted to objectless utilties. Does it need an update?
+# def lipdToDf(D, dsn):
+#     """
+#     Get LiPD data frames from LiPD object
+#     :param dict D: LiPD data
+#     :param str dsn: Dataset name
+#     :return dict dfs: Pandas dataframes
+#     """
+#     try:
+#         dfs = lipd_lib.get_dfs(dsn)
+#     except KeyError:
+#         print("Error: Unable to find LiPD file")
+#         logger_start.warn("lipd_to_df: KeyError: missing lipds {}".format(filename))
+#         dfs = None
+#     return dfs
 
 
 def tsToDf(tso):
@@ -309,19 +314,20 @@ def tsToDf(tso):
     return dfs
 
 
-def filterDfs(expr):
-    """
-    Get data frames based on some criteria. i.e. all measurement tables or all ensembles.
-    :param str expr: Search expression. (i.e. "paleo measurement tables")
-    :return dict dfs: Data frames indexed by filename
-    """
-    dfs = {}
-    try:
-        dfs = get_filtered_dfs(lipd_lib.get_master(), expr)
-    except Exception:
-        logger_dataframes.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
-        print("Error: unable to filter dataframes")
-    return dfs
+# TODO Not adapted to objectless utilties. Does it need an update?
+# def filterDfs(expr):
+#     """
+#     Get data frames based on some criteria. i.e. all measurement tables or all ensembles.
+#     :param str expr: Search expression. (i.e. "paleo measurement tables")
+#     :return dict dfs: Data frames indexed by filename
+#     """
+#     dfs = {}
+#     try:
+#         dfs = get_filtered_dfs(lipd_lib.get_master(), expr)
+#     except Exception:
+#         logger_dataframes.info("filter_dfs: Unable to filter data frames for expr: {}".format(expr))
+#         print("Error: unable to filter dataframes")
+#     return dfs
 
 
 # ANALYSIS - TIME SERIES
@@ -568,15 +574,6 @@ def showMetadata(dat):
     return
 
 
-def showCsv(filename):
-    """
-    Display CSV data for a LiPD file
-    :param str filename: LiPD filename
-    :return none:
-    """
-    lipd_lib.show_csv(filename)
-    return
-
 
 def showTso(tso):
     """
@@ -690,19 +687,6 @@ def getCsv(L=None):
     return _c
 
 
-def getLibrary():
-    """
-    Get LiPD library as a dictionary. Intended for use in pickling library data.
-    :return dict D: Library
-    """
-    D = {}
-    try:
-        D = lipd_lib.get_lib_as_dict()
-    except Exception as e:
-        print("Error: Unable to retrieve library: {}".format(e))
-        logger_start.debug("getLibrary: {}".format(e))
-    return D
-
 
 # WRITE
 
@@ -720,24 +704,6 @@ def writeLipd(dat, usr_path="", filename=""):
     __write_lipd(dat, usr_path, filename)
     end = clock()
     logger_benchmark.info(log_benchmark("writeLipd", start, end))
-    return
-
-
-def removeLipd(filename):
-    """
-    Remove LiPD file from library
-    :return none:
-    """
-    lipd_lib.remove_lipd(filename)
-    return
-
-
-def removeLipds():
-    """
-    Remove all LiPD files from library.
-    :return none:
-    """
-    lipd_lib.remove_lipds()
     return
 
 
@@ -767,7 +733,7 @@ def __universal_read(file_path, file_type):
         if settings["verbose"]:
             print("reading: {}".format(file_meta["filename_ext"]))
 
-        # append to global files, then load in lipd_lib
+        # append to global files, then load in D
         if file_type == ".lpd":
             # add meta to global file meta
             files[".lpd"].append(file_meta)

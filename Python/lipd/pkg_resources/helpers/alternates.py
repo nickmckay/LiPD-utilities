@@ -26,7 +26,7 @@ VER_1_3 = {
         "chronMeasurementTableMD5": "tableMD5",
 
         "name": "tableName",
-    }
+    },
 }
 
 # LiPD Excel Template expects these types of data sheets

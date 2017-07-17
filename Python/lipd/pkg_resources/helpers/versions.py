@@ -21,6 +21,40 @@ def get_lipd_version(d):
             version = 1.0
     return version
 
+
+def _merge_interpretations(d):
+    """
+
+    :param d:
+    :return:
+    """
+    _tmp = []
+    try:
+        # Now loop and aggregate the interpretation data into one list
+        for k, v in d.items():
+            if k in ["climateInterpretation", "isotopeInterpretation", "interpretation"]:
+                # now add in the new data
+                if isinstance(v, list):
+                    for i in v:
+                        _tmp.append(i)
+                elif isinstance(v, dict):
+                    _tmp.append(d[k])
+        # Set the aggregate data into the interpretation key
+        d["interpretation"] = _tmp
+
+    except Exception as e:
+        print("Error: merge_interpretations: {}".format(e))
+
+    # Now remove the old interpretation keys
+    for key in ["climateInterpretation", "isotopeInterpretation"]:
+        try:
+            d[key] = ""
+        except Exception:
+            pass
+
+    return d
+
+
 def update_lipd_version(d):
     """
     Metadata is indexed by number at this step.
@@ -204,4 +238,5 @@ def update_lipd_v1_3_structure(d):
                                     except Exception as e:
                                         logger_versions.error("update_lipd_v1_3_structure: Exception: {}".format(e))
     return d
+
 

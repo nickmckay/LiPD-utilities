@@ -470,22 +470,7 @@ def _export_model(models, pc):
             if "ensembleTable" in model:
                 model["ensembleTable"] = _idx_table_by_num(model["ensembleTable"])
 
-            # Process calibrated ages (nested tables)
-            if "calibratedAges" in model:
-                ca = []
-                for name, table in model["calibratedAges"].items():
-                    try:
-                        # Get the modified table data
-                        tmp = _idx_table_by_num(table)
-                        # Append it to the growing calibrated age list of tables
-                        ca.append(tmp)
-                    except KeyError:
-                        logger_jsons.debug("export_model: {},  KeyError: missing columns key".format(pc))
-
-                # Insert the newly built list in-place over the dictionary
-                model["distributionTable"] = ca
-                model.pop("calibratedAges")
-            elif "distributionTable" in model:
+            if "distributionTable" in model:
                 dt = []
                 for name, table in model["distributionTable"].items():
                     try:
@@ -503,9 +488,6 @@ def _export_model(models, pc):
         logger_jsons.debug("export_model: {}, AttributeError: expected list type, received {} type".format(pc, type(models)))
     logger_jsons.info("exit export_model: {}".format(pc))
     return models
-
-
-# NO EXPORT DISTRIBUTION?
 
 
 def _idx_table_by_num(d):
