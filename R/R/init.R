@@ -34,7 +34,11 @@ readLipd <- function(path=NULL){
       # Set the data in D using the datasetname
       D[[dsn]] <- j
     }
+    if(length(D) == 1){
+      D <- D[[1]]
+    }
   }
+
   return(D)
 }
   
