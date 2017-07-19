@@ -4,7 +4,7 @@
 \alias{merge_csv_section}
 \title{Merge csv numeric data into the metadata columns}
 \usage{
-merge_csv_section(section, pc)
+merge_csv_section(section, pc, csv.data)
 }
 \arguments{
 \item{list}{d: Metadata}

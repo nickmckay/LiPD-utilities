@@ -43,9 +43,25 @@ readLipd <- function(path=NULL){
 #' Write LiPD data onto disk as LiPD files
 #' @export
 #' @keywords internal
-#' @param list D: LiPD data
+#' @param list d: LiPD data
 #' @param char path: Destination path
 #' @return none:
-writeLipd <- function(D, path){
-  
+writeLipd <- function(d, path=NULL){
+  tryCatch({
+    if(missing(path)){
+      path <- browse_dialog("d")
+      setwd(path)
+    }
+    if ("paleoData" %in% names(d)){
+      lipd_write(d, path, d[["dataSetName"]])
+    } else {
+      dsns <- names(d)
+      for (i in 1:length(dsns)){
+        dsn <- dsns[[i]]
+        lipd_write(d[[dsn]], path, dsn)
+      }
+    }
+  }, error=function(cond){
+    print(paste0("Error: writeLipd: ", cond))
+  })
 }

@@ -5,10 +5,10 @@
 #' @return list d: Metadata
 idx_name_to_num <- function(d){
   if ("paleoData" %in% names(d)){
-    d[["paleoData"]] <- export_data(d[["paleoData"]], "paleoData")
+    d[["paleoData"]] <- export_section(d[["paleoData"]], "paleoData")
   }
   if ("chronData" %in% names(d)){
-    d[["chronData"]] <- export_data(d[["chronData"]], "chronData")
+    d[["chronData"]] <- export_section(d[["chronData"]], "chronData")
   }
   d <- unindexGeo(d)
   return(d)
@@ -20,12 +20,12 @@ idx_name_to_num <- function(d){
 #' @param list section: Metadata
 #' @param char pc: paleoData or chronData
 #' @return list d: Metadata
-export_data <- function(section, pc){
+export_section <- function(section, pc){
   tryCatch({
       if(!isNullOb(section)){
         for (i in 1:length(section)){
           if("measurementTable" %in% names(section[[i]])){
-            section[[i]][["measurementTable"]] <- idx_table_by_num(section[[i]][["summaryTable"]])
+            section[[i]][["measurementTable"]] <- idx_table_by_num(section[[i]][["measurementTable"]])
           }
           if("model" %in% names(section[[i]])){
             section[[i]][["model"]] <- export_model(section[[i]][["model"]], pc)
@@ -33,10 +33,10 @@ export_data <- function(section, pc){
           # TODO WHAT IS THIS???          
           # if section contains a bunch of table names, then use idx_table_by_num.
           # if section contains an array of data tables, then we're all set and no need to do this part.
-          if (!is.null(section) && !isNullOb(names(section)) && !"measurementTable" %in% names(section)){
-            # Table(s) indexed by name. Move table(s) up and move the tableName inside the table
-            section = idx_table_by_num_what(section, key1, "measurementTable")
-          }
+          # if (!is.null(section) && !isNullOb(names(section)) && !"measurementTable" %in% names(section)){
+          #   # Table(s) indexed by name. Move table(s) up and move the tableName inside the table
+          #   section = idx_table_by_num_what(section, key1, "measurementTable")
+          # }
         }
       } # end section
   }, error=function(cond){
@@ -49,9 +49,8 @@ export_data <- function(section, pc){
 #' @export
 #' @keywords internal
 #' @param list models: Metadata
-#' @param char pc: paleoData or chronData
 #' @return list models: Metadata
-export_model <- function(models, pc){
+export_model <- function(models){
   tryCatch({
     for (i in 1:length(models)){
       if ("summaryTable" %in% names(models[[i]])){
@@ -77,10 +76,10 @@ export_model <- function(models, pc){
 #' @return list tables: Metadata
 idx_table_by_num <- function(tables){
   for (i in 1:length(tables)){
-    table <- tables[[k]]
+    table <- tables[[i]]
     if (!is.null(table)){
       new <- idx_col_by_num(table)
-      tables[[k]] <- new
+      tables[[i]] <- new
     }
   }
   return(tables)
@@ -104,7 +103,7 @@ idx_col_by_num <- function(table){
       # if it's a list (only list types *should* be columns), then add it to tmp by index number
       if (is.list(table[[i]])){
         # set the column data into the new.cols at the current index
-        new.cols[[i]] <- table[[i]]
+        new.cols[[length(new.cols) + 1]] <- table[[i]]
         # attempt to get the variable name from this table column
         vn <- tryCatch({
           vn <- table[[i]][["variableName"]]

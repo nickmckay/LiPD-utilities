@@ -1,18 +1,15 @@
-###############################################
-## Indexing
-###############################################
-
-
 #' Change index-by-number to index-by-variableName
 #' @export
 #' @keywords internal
-#' @param d LiPD file
-#' @return d Modified LiPD file
+#' @param list d: Metadata
+#' @return list d: Metadata
 idx_num_to_name <- function(d){
-  paleo <- c("paleoData", "paleoMeasurementTable", "paleoModel")
-  chron <- c("chronData", "chronMeasurementTable", "chronModel")
-  d <- indexSectionRead(d, paleo)
-  d <- indexSectionRead(d, chron)
+  if ("paleoData" %in% names(d)){
+    d[["paleoData"]] <- import_section(d[["paleoData"]])
+  }
+  if ("chronData" %in% names(d)){
+    d[["chronData"]] <- import_section(d[["chronData"]])
+  }
   d <- indexGeo(d)
   return(d)
 }
@@ -20,62 +17,65 @@ idx_num_to_name <- function(d){
 #' Change index-by-number for one section
 #' @export
 #' @keywords internal
-#' @param d LiPD metadata
-#' @param keys Section keys
-#' @return d Modified LiPD metadata
-indexSectionRead <- function(d, keys){
-  key1 <- keys[[1]]
-  key2 <- keys[[2]]
-  key3 <- keys[[3]]
-
-  # d$paleoData
-  pc <- hasData(d[["metadata"]], key1)
-
+#' @param list section: Metadata
+#' @return list section: Metadata
+import_section<- function(section){
   # section
   tryCatch({
-    if (!is.null(pc)){
-      for (i in 1:length(pc)){
-        
-        # measurement
-        for (j in 1:length(pc[[i]][[key2]])){
-          
-          # check in measurement table
-          if (!is.null(hasData(pc[[i]][[key2]], j))){
-            new.table <- moveColsUp(pc[[i]][[key2]][[j]])
-            d[["metadata"]][[key1]][[i]][[key2]][[j]] <- new.table
-          }
-        } ## measurement
-        
-        # loop in models
-        for (j in 1:length(pc[[i]][[key3]])){
-          
-          # summary
-          if (!is.null(hasData(pc[[i]][[key3]][[j]], "summaryTable"))){
-            new.table <- moveColsUp(pc[[i]][[key3]][[j]][["summaryTable"]])
-            d[["metadata"]][[key1]][[i]][[key3]][[j]][["summaryTable"]] <- new.table
-          } # end summary
-          
-          # ensemble
-          if (!is.null(hasData(pc[[i]][[key3]][[j]], "ensembleTable"))){
-            new.table <- moveColsUp(pc[[i]][[key3]][[j]][["ensembleTable"]])
-            d[["metadata"]][[key1]][[i]][[key3]][[j]][["ensembleTable"]] <- new.table
-          } # end ensemble
-          
-          # distribution
-          if(!is.null(hasData(pc[[i]][[key3]][[j]], "distributionTable"))){
-            for (k in 1:length(pc[[i]][[key3]][[j]][["distributionTable"]])){
-              new.table <- moveColsUp(pc[[i]][[key3]][[j]][["distributionTable"]][[k]])
-              d[["metadata"]][[key1]][[i]][[key3]][[j]][["distributionTable"]][[k]] <- new.table
-            }
-          } ## end distribution
-          
-        } ## end models
+    if (!is.null(section)){
+      for (i in 1:length(section)){
+        if("measurementTable" %in% names(section[[i]])){
+          section[[i]][["measurementTable"]] <- idx_table_by_name(section[[i]][["measurementTable"]])
+        }
+        if("model" %in% names(section[[i]])){
+          section[[i]][["model"]] <- import_model(section[[i]][["model"]])
+        }
       }
     }
   }, error=function(cond){
-    print(paste0("error read_lipds_indexing: indexSection: ", key1, ", ", cond));
+    print(paste0("Error: import_section: ", cond));
   })
-  return(d)
+  return(section)
+}
+
+#' Index model tables
+#' @export
+#' @keywords internal
+#' @param list models: Metadata
+#' @return list models: Metadata
+import_model <- function(models){
+  tryCatch({
+    for (i in 1:length(models)){
+      if ("summaryTable" %in% names(models[[i]])){
+        models[[i]][["summaryTable"]] <- idx_table_by_name(models[[i]][["summaryTable"]])
+      }
+      if ("ensembleTable" %in% names(models[[i]])){
+        models[[i]][["ensembleTable"]] <- idx_table_by_name(models[[i]][["ensembleTable"]])
+      }
+      if ("distributionTable" %in% names(models[[i]])){
+        models[[i]][["distributionTable"]] <- idx_table_by_name(models[[i]][["distributionTable"]])
+      }
+    }
+  }, error=function(cond){
+    print(paste0("Error: import_model: ", cond))
+  })
+  return(models)
+}
+
+#' Index tables in a loop
+#' @export
+#' @keywords internal
+#' @param list tables: Metadata
+#' @return list tables: Metadata
+idx_table_by_name <- function(tables){
+  for (i in 1:length(tables)){
+    table <- tables[[i]]
+    if (!is.null(table)){
+      new <- idx_col_by_name(table)
+      tables[[i]] <- new
+    }
+  }
+  return(tables)
 }
 
 #' Get rid of "columns" layer so that the columns data is directly beneath its corresponding table
@@ -83,7 +83,7 @@ indexSectionRead <- function(d, keys){
 #' @keywords internal
 #' @param table Table to be reorganized
 #' @return table Modified table
-moveColsUp <- function(table){
+idx_col_by_name <- function(table){
   #look for columns
   if(is.null(table[["columns"]])){
     #already been removed - just needs to be named

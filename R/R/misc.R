@@ -211,13 +211,13 @@ unindexGeo <- function(d){
   return(d)
 }
 
-#' Check if output filename has invalid filename characters. Replace if necessary
+#' Check if output datasetname has invalid characters. Replace if necessary
 #' R will not zip directories with certain characters.
 #' @export
 #' @keywords internal
-#' @param x String
-#' @return x String
-verifyOutputFilename <- function(x){
-  x <- gsub("[.]", "-", x)
-  return(x)
+#' @param char dsn: Dataset name
+#' @return char dsn: Dataset name
+replace_invalid_chars <- function(dsn){
+  dsn <- gsub("[.]", "-", dsn)
+  return(dsn)
 }

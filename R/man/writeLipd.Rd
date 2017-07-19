@@ -4,10 +4,10 @@
 \alias{writeLipd}
 \title{Write LiPD data onto disk as LiPD files}
 \usage{
-writeLipd(D, path)
+writeLipd(d, path = NULL)
 }
 \arguments{
-\item{list}{D: LiPD data}
+\item{list}{d: LiPD data}
 
 \item{char}{path: Destination path}
 }

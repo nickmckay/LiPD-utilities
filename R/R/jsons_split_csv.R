@@ -1,187 +1,153 @@
 #' Get csv "values" fields from metadata.
 #' @export
 #' @keywords internal
-#' @param char name: Name of current LiPD record
 #' @param list d: Metadata
-#' @return all.data Final split of metadata and csv data
-get_csv_from_json <- function(name, d){
-
-  # Combine csv and metadata into a list so we can return multiple items in collect.csvs.section
-  all.data <- list()
-  all.data[["metadata"]] <- d
-  all.data[["csv"]] <- list()
-
-  paleos <- c("paleoData", "paleoMeasurementTable", "paleoModel")
-  chrons <- c("chronData", "chronMeasurementTable", "chronModel")
-
-  # Traverse one section at a time
-  # Parallel: Get CSV from metadata, and remove CSV from metadata
-  all.data <- collectCsvSection(all.data, paleos, name)
-  all.data <- collectCsvSection(all.data, chrons, name)
-
-  return(all.data)
+#' @param char dsn: Dataset name
+#' @return list d2: Metadata / CSV
+get_csv_from_metadata <- function(d, dsn){
+  new <- list()
+  new[["meta"]] <- d
+  new[["csvs"]] <- list()
+  if ("paleoData" %in% names(d)){
+    new <- get_csv_from_section(new, "paleo", dsn)
+  }
+  if ("chronData" %in% names(d)){
+    new <- get_csv_from_section(new, "chron", dsn)
+  }
+  return(new)
 }
 
-#' Collect and remove csv from one section: Paleo or chron
+#' Get CSV from one section
 #' csv.data format: [ some_filename.csv $columns.data ]
 #' @export
 #' @keywords internal
-#' @param d Metadata w. values
-#' @param keys Section keys
-#' @param csv.data Running collection of csv data
-#' @param name LiPD data set name
-#' @return all.data List holding the running collection of separated csv and metadata
-collectCsvSection <- function(all.data, keys, name){
-  d <- all.data[["metadata"]]
-  csv.data <- all.data[["csv"]]
+#' @param list dat: Metadata
+#' @param char pc_1: paleo or chron
+#' @param char dsn: Dataset name
+#' @return list dat: Split data
+get_csv_from_section <- function(dat, pc_1, dsn){
+  new = list()
+  d <- dat[["meta"]]
+  csvs <- dat[["csvs"]]
+  pc <- paste0(pc_1, "Data")
   tryCatch({
-    key1 <- keys[[1]]
-    key2 <- keys[[2]]
-    key3 <- keys[[3]]
-    
-    if(key1 %in% names(d)){
-      if(!isNullOb(d[[key1]])){
-        # name
-        crumb.pd <- paste(name, key1, sep=".")
-        pd <- d[[key1]]
-        
-        # name.paleoData
-        for (i in 1:length(pd)){
+    if(pc %in% names(d)){
+      if(!isNullOb(d[[pc]])){
+        crumbs_1 <- paste(dsn, pc_1, sep=".")
+
+        for (i in 1:length(d[[pc]])){
           
-          # name.paleoData1
-          crumb.pd.i <- paste0(crumb.pd, i)
-          pd.i <- pd[[i]]
-          
-          # name.paleoData1.paleoMeasurementTable
-          crumb.pd.meas <- paste(crumb.pd.i, key2, sep=".")
-          pd.meas <- pd.i[[key2]]
-          
-          for (j in 1:length(pd.meas)){
-            
-            # name.paleoData1.paleoMeasurementTable1
-            # this will be the ending filename for this table
-            crumb.meas.filename <- paste0(crumb.pd.meas, j, ".csv")
-            pd.meas.i <- pd.meas[[j]]
-            tmp.dat <- parseTable(pd.meas.i)
-            
-            # only set items if table has data
-            if (!is.null(tmp.dat[["table"]])){
-              # Set csv in overall output
-              csv.data[[crumb.meas.filename]] <- tmp.dat[["csv"]]
-              # overwrite old table
-              d[[key1]][[i]][[key2]][[j]]<- tmp.dat[["table"]]
-              # overwrite old filename
-              d[[key1]][[i]][[key2]][[j]][["filename"]]<- crumb.meas.filename
-            } # end measurement[i]
-            
+          if ("measurementTable" %in% names(d[[pc]][[i]])){
+            crumbs_2 <- paste0(crumbs_1, "measurement")
+            tmp <- get_csv_from_table(d[[pc]][[i]][["measurementTable"]], crumbs_2, csvs)
+            d[[pc]][[i]][["measurementTable"]] <- tmp[["meta"]]
+            csvs <- tmp[["csvs"]]
           } # end measurement
           
-          # name.paleoData1.paleoModel
-          crumb.pd.mod <- paste(crumb.pd.i, key3, sep=".")
-          pd.mod <- pd.i[[key3]]
           
-          for (j in 1:length(pd.mod)){
-            
-            # name.paleoData1.paleoModel1
-            crumb.pd.mod.i <- paste0(crumb.pd.mod, j)
-            pd.mod.i<- pd.mod[[j]]
-            
-            
-            # SUMMARY TABLE
-            
-            # name.paleoData1.paleoModel1.summaryTable
-            crumb.sum.filename <- paste0(crumb.pd.mod.i, ".summaryTable", ".csv")
-            pd.sum <- pd.mod.i[["summaryTable"]]
-            tmp.dat <- parseTable(pd.sum)
-            
-            # only set items if table has data
-            if (!is.null(tmp.dat[["table"]])){
-              # Set csv in overall output
-              csv.data[[crumb.sum.filename]] <- tmp.dat[["csv"]]
-              # overwrite old table
-              d[[key1]][[i]][[key3]][[j]][["summaryTable"]]<- tmp.dat[["table"]]
-              # overwrite old filename
-              d[[key1]][[i]][[key3]][[j]][["summaryTable"]][["filename"]]<- crumb.sum.filename
-            } # end summary
-            
-            
-            # ENSEMBLE TABLE
-            
-            # name.paleoData1.paleoModel1.ensembleTable
-            crumb.ens.filename <- paste0(crumb.pd.mod.i, ".ensembleTable", ".csv")
-            pd.ens <- pd.mod.i[["ensembleTable"]]
-            tmp.dat <- parseTable(pd.ens)
-            
-            # only set items if table has data
-            if (!is.null(tmp.dat[["table"]])){
-              # Set csv in overall output
-              csv.data[[crumb.ens.filename]] <- tmp.dat[["csv"]]
-              # overwrite old table
-              d[[key1]][[i]][[key3]][[j]][["ensembleTable"]]<- tmp.dat[["table"]]
-              # overwrite old filename
-              d[[key1]][[i]][[key3]][[j]][["ensembleTable"]][["filename"]]<- crumb.ens.filename
-              
-            } # end ensemble
-            
-            
-            # DISTRIBUTION TABLES
-            
-            # name.paleoData1.paleoModel1.distributionTable
-            crumb.dist <- paste0(crumb.pd.mod.i, "distributionTable")
-            pd.dist <- pd.mod.i[["distributionTable"]]
-            
-            for (k in 1:length(pd.dist)){
-              
-              # name.paleoData1.distributionTable1
-              # this will be the ending filename for this table
-              crumb.dist.filename <- paste0(crumb.dist, k, ".csv")
-              pd.dist.i <- pd.dist[[k]]
-              tmp.dat <- parseTable(pd.dist.i)
-              
-              # only set items if table has data
-              if (!is.null(tmp.dat[["table"]])){
-                # Set csv in overall output
-                csv.data[[crumb.dist.filename]] <- tmp.dat[["csv"]]
-                # overwrite old table
-                d[[key1]][[i]][[key3]][[j]][["distributionTable"]][[k]]<- tmp.dat[["table"]]
-                # overwrite old filename
-                d[[key1]][[i]][[key3]][[j]][["distributionTable"]][[k]][["filename"]]<- crumb.dist.filename
-              } # end distribution[i]
-              
-            } # end distribution
-            
-          } # end model tables
-          
-        } # end chronDatas
-        
-        # Can only return one item, so add our two items to a list and use that.
-        new.data = list()
-        new.data[["metadata"]] <- d
-        new.data[["csv"]] <- csv.data
-        return(new.data)
+          if ("model" %in% names(d[[pc]][[i]])){
+            crumbs_2 <- paste0(crumbs_1, "model")
+            tmp <- get_csv_from_model(d[[pc]][[i]][["model"]], crumbs_2, csvs)
+            d[[pc]][[i]][["model"]] <- tmp[["meta"]]
+            csvs <- tmp[["csvs"]]
+          }
+        }
       }
-    } #if key1 in de
+    } 
   }, error=function(cond){
-    print(sprintf("error in write_lipds_csv:collectCsvSection %s", cond))
+    print(paste0("Error: get_csv_from_section: ", cond))
+    stop()
   })
-  return(all.data)
-  }
+  new[["meta"]] <- d
+  new[["csvs"]] <- csvs
+  return(new)
+}
   
-#' Parse the csv value columns from the table, then split the metadata from the csv
+#' Parse metadata and csv from models
 #' @export
 #' @keywords internal
-#' @param table Table of data
-#' @return table Table w/o csv, csv Value columns
-parseTable <- function(table){
+#' @param list models: Metadata
+#' @param char crumbs: Crumbs
+#' @param list csvs: CSV data
+#' @return list new: Metadata / CSV
+get_csv_from_model <- function(models, crumbs, csvs){
+  new <- list()
+  
+  tryCatch({
+    # Loop for each model
+    for (i in 1:length(models)){
+      
+      # Summary
+      if ("summaryTable" %in% names(models[[i]])){
+        crumbs_2 <- paste0(crumbs, i, "summary")
+        tmp <- get_csv_from_table(models[[i]][["summaryTable"]], crumbs_2, csvs)
+        models[[i]][["summaryTable"]] <- tmp[["meta"]]
+        csvs <- tmp[["csvs"]]
+      }
+      
+      # Ensemble
+      if ("ensembleTable" %in% names(models[[i]])){
+        crumbs_2 <- paste0(crumbs, i, "ensemble")
+        tmp <- get_csv_from_table(models[[i]][["ensembleTable"]], crumbs_2, csvs)
+        models[[i]][["ensembleTable"]] <- tmp[["meta"]]
+        csvs <- tmp[["csvs"]]
+      }
+      
+      # Distribution
+      if ("distributionTable" %in% names(models[[i]])){
+        crumbs_2 <- paste0(crumbs, i, "distribution")
+        tmp <- get_csv_from_table(models[[i]][["distributionTable"]], crumbs_2, csvs)
+        models[[i]][["distributionTable"]] <- tmp[["meta"]]
+        csvs <- tmp[["csvs"]]
+      }
+    }
+  }, error=function(cond){
+    print(paste0("Error: get_csv_from_model: ", cond))
+  })
+  new[["meta"]] <- models
+  new[["csvs"]] <- csvs
+  return(new)
+}
 
+#' Parse metadata and csv from list of tables
+#' @export
+#' @keywords internal
+#' @param list tables: Metadata
+#' @param char crumbs: Crumbs
+#' @param list csvs: CSV data
+#' @return list new: Metadata / CSV
+get_csv_from_table <- function(tables, crumbs, csvs){
+  new <- list()
+  tryCatch({
+    for (i in 1:length(tables)){
+      crumbs_2 <- paste0(crumbs, i, ".csv")
+      tmp <- get_csv_from_columns(tables[[i]])
+      # Set csv in overall output
+      csvs[[crumbs_2]] <- tmp[["csvs"]]
+      # overwrite old table
+      tables[[i]]<- tmp[["meta"]]
+      # overwrite old filename
+      tables[[i]][["filename"]]<- crumbs_2
+    }
+  }, error=function(cond){
+    print(paste0("Error: get_csv_from_table: ", cond))
+  })
+  new[["meta"]] <- tables
+  new[["csvs"]] <- csvs
+  return(new)
+}
+  
+#' Parse metadata and csv from columns
+#' @export
+#' @keywords internal
+#' @param list table: Metadata
+#' @return list new: Metadata / CSV
+get_csv_from_columns <- function(table){
   tryCatch({
     # list to hold each column for this table
     vals <- list()
-    out <- list()
-    
-    # if pd.sum exists
+    new <- list()
     if (!is.null(table)){
-      
       # if a columns entry exists
       if (!is.null(table[["columns"]])){
         curr.num <- 1
@@ -213,12 +179,11 @@ parseTable <- function(table){
         }
       }
     }
-    out[["table"]] <- table
-    out[["csv"]] <- vals
-    
   }, error=function(cond){
-    print(sprintf("error in write_lipds_csv:parseTable: %s", cond))
+    print(paste0("Error: get_csv_from_columns: ", cond))
   })
-  return(out)
+  new[["meta"]] <- table
+  new[["csvs"]] <- vals
+  return(new)
 }
 

@@ -30,3 +30,8 @@ bagit <- function(data.dir, initial.dir){
   }
   return(TRUE)
 }
+
+
+create_bagit <- function(){
+  
+}

@@ -29,7 +29,7 @@ merge_csv_metadata <- function(d){
 #' @param char pc: paleoData or chronData
 #' @param list csv.data: CSV, sorted by filename
 #' @return list d: Metadata
-merge_csv_section <- function(section, pc){
+merge_csv_section <- function(section, pc, csv.data){
 
     #top: d$paleoData[[i]]
     #meas: d$paleoData[[i]]measurementTable[[j]]

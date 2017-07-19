@@ -4,10 +4,10 @@
 \alias{collectCsvs}
 \title{Collect csvs main. Collect and remove csv "values" fields.}
 \usage{
-collectCsvs(dsn, d)
+collectCsvs(name, d)
 }
 \arguments{
-\item{dsn}{Dataset name}
+\item{name}{Name of current LiPD record}
 
 \item{d}{Metadata}
 }

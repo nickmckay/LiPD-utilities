@@ -7,10 +7,10 @@
 idx_num_to_name(d)
 }
 \arguments{
-\item{d}{LiPD file}
+\item{list}{d: Metadata}
 }
 \value{
-d Modified LiPD file
+list d: Metadata
 }
 \description{
 Change index-by-number to index-by-variableName

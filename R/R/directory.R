@@ -32,13 +32,17 @@ browse_dialog <- function(ans){
   return(path)
 }
 
-#' Create a temporary working directory
+#' 'Create' a temp directory (really its the same directory path for the whole R session, so it's not that new)
+#' Recreate it if it's non-existant 
 #' @export
 #' @keywords internal
-#' @return d Temporary directory path
-createTmpDir <- function(){
-  d <- tempdir()
-  return(d)
+#' @return char path: 
+create_tmp_dir <- function(){
+  dir_tmp <- tempdir()
+  if(!dir.exists(dir_tmp)){
+    dir.create(dir_tmp)
+  }
+  return(dir_tmp)
 }
 
 #' Ask user where local file/directory location is.

@@ -53,29 +53,30 @@ get_lipd_version <- function(d){
 #' @param d Metadata
 #' @return d Metadata
 update_lipd_version <- function(d){
-  # Get the lipd version number.
-  version <- get_lipd_version(d)
-  
-  # Update from (N/A or 1.0) to 1.1
-  if (version == 1.0 || version == "1.0"){
-    print("Updating to version 1.1")
-    d = update_lipd_v1_1(d)
-    version <- 1.1
-  }
+  tryCatch({
+    # Get the lipd version number.
+    version <- get_lipd_version(d)
+    
+    # Update from (N/A or 1.0) to 1.1
+    if (version == 1.0 || version == "1.0"){
+      d = update_lipd_v1_1(d)
+      version <- 1.1
+    }
     
     # Update from 1.1 to 1.2
     if (version == 1.1 || version == "1.1"){
-      print("Updating to version 1.2")
       d = update_lipd_v1_2(d)
       version = 1.2
     }
     
     # Update from 1.2 to 1.3
     if(version == 1.2 || version == "1.2"){
-      print("Updating to version 1.3")
       d = update_lipd_v1_3(d)
       version = 1.3
     }
+  }, error=function(cond){
+    print(paste0("Error: update_lipd_version: v", version, ": ", cond))
+  })
     return(d)
 }
 
@@ -105,11 +106,12 @@ update_lipd_v1_1 <- function(d){
 #' @return list d: Metadata
 update_lipd_v1_2 <- function(d){
   if("paleoData" %in% names(d)){
-    d <- update_lipd_v1_2_section()
+    d <- update_lipd_v1_2_section(d, "paleoData")
   }
   if("chronData" %in% names(d)){
-    d <- update_lipd_v1_2_section(d, pc)
+    d <- update_lipd_v1_2_section(d, "chronData")
   }
+  return(d)
 }
 
 #' Update LiPD v1.1 to v1.2 - one section
@@ -147,10 +149,13 @@ update_lipd_v1_2_section <- function(d, pc){
 #' @param d Metadata
 #' @return d Metadata
 update_lipd_v1_3 <- function(d){
-  # TODO  need to write the merge_interpretation function
-  d <- update_lipd_v1_3_keys(d)
-  d <- update_lipd_v1_3_structure(d)
-  d <- add_created_by(d)
+  tryCatch({
+    d <- update_lipd_v1_3_keys(d)
+    d <- update_lipd_v1_3_structure(d)
+    d <- add_created_by(d)
+  }, error=function(cond){
+    print(paste0("Error: update_lipd_v1_3: ", cond))
+  })
   return(d)
 }
 
@@ -215,6 +220,7 @@ update_lipd_v1_3_structure <- function(d){
   
   # Tables that need changing
   change <- c("ensembleTable", "summaryTable")
+  interp <- c("isotopeInterpretation", "climateInterpretation")
   
   # Keys in this data
   keys <- names(d)
@@ -233,6 +239,8 @@ update_lipd_v1_3_structure <- function(d){
         tmp <- d[[curr_key]]
         d[[curr_key]] <- list()
         d[[curr_key]][[1]] <- tmp
+      } else if (curr_key %in% interp){
+        d <- merge_interpretations(d, curr_key)
       }
     }
   } else {
@@ -250,6 +258,22 @@ update_lipd_v1_3_structure <- function(d){
   return(d)
 }
 
+
+#' Merge the old interpretation fields into the new, combined interpretation field
+#' @export
+#' @keywords internal
+#' @param list d: Metadata
+#' @param char key: climateInterpretation or isotopeInterpretation
+#' @return list d: Metadata
+merge_interpretations <- function(d, key){
+  if (!("interpretation" %in% names(d))){
+    d[["interpretation"]] <- list()
+  }
+  pos <- length(d[["interpretation"]]) + 1
+  d[["interpretation"]][[pos]] <- d[[key]]
+  d[[key]] <- NULL
+  return(d)
+}
 
 # DEPRECATED CODE
 
