@@ -33,12 +33,10 @@ get_csv_from_section <- function(dat, pc_1, dsn){
   tryCatch({
     if(pc %in% names(d)){
       if(!isNullOb(d[[pc]])){
-        crumbs_1 <- paste(dsn, pc_1, sep=".")
-
         for (i in 1:length(d[[pc]])){
-          
+          crumbs_1 <- paste(dsn, pc_1, sep=".")
           if ("measurementTable" %in% names(d[[pc]][[i]])){
-            crumbs_2 <- paste0(crumbs_1, "measurement")
+            crumbs_2 <- paste0(crumbs_1, i, "measurement")
             tmp <- get_csv_from_table(d[[pc]][[i]][["measurementTable"]], crumbs_2, csvs)
             d[[pc]][[i]][["measurementTable"]] <- tmp[["meta"]]
             csvs <- tmp[["csvs"]]
@@ -46,7 +44,7 @@ get_csv_from_section <- function(dat, pc_1, dsn){
           
           
           if ("model" %in% names(d[[pc]][[i]])){
-            crumbs_2 <- paste0(crumbs_1, "model")
+            crumbs_2 <- paste0(crumbs_1, i, "model")
             tmp <- get_csv_from_model(d[[pc]][[i]][["model"]], crumbs_2, csvs)
             d[[pc]][[i]][["model"]] <- tmp[["meta"]]
             csvs <- tmp[["csvs"]]
@@ -121,6 +119,7 @@ get_csv_from_table <- function(tables, crumbs, csvs){
   tryCatch({
     for (i in 1:length(tables)){
       crumbs_2 <- paste0(crumbs, i, ".csv")
+      crumbs_3 <- paste0(crumbs, i)
       tmp <- get_csv_from_columns(tables[[i]])
       # Set csv in overall output
       csvs[[crumbs_2]] <- tmp[["csvs"]]
@@ -128,6 +127,7 @@ get_csv_from_table <- function(tables, crumbs, csvs){
       tables[[i]]<- tmp[["meta"]]
       # overwrite old filename
       tables[[i]][["filename"]]<- crumbs_2
+      tables[[i]][["tableName"]] <- strsplit(crumbs_3, "\\.")[[1]][[2]]
     }
   }, error=function(cond){
     print(paste0("Error: get_csv_from_table: ", cond))
