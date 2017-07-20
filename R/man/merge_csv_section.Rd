@@ -2,22 +2,22 @@
 % Please edit documentation in R/jsons_merge.R
 \name{merge_csv_section}
 \alias{merge_csv_section}
-\title{Merge csv numeric data into the metadata columns}
+\title{Merge CSV into each section}
 \usage{
-merge_csv_section(section, pc, csv.data)
+merge_csv_section(section, crumbs, csvs)
 }
 \arguments{
-\item{list}{d: Metadata}
+\item{list}{section: Metadata}
 
-\item{char}{pc: paleoData or chronData}
+\item{char}{crumbs: paleo or chron}
 
-\item{list}{csv.data: CSV, sorted by filename}
+\item{list}{csvs: CSV, sorted by filename}
 }
 \value{
-list d: Metadata
+list section: Metadata
 }
 \description{
-Merge csv numeric data into the metadata columns
+Merge CSV into each section
 }
 \keyword{internal}
 

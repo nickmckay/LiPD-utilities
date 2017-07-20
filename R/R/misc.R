@@ -73,10 +73,10 @@ isDirectory <- function(s){
 #' @keywords internal
 #' @param d Metadata
 #' @return d Modified metadata
-indexGeo <- function(d){
+index_geo <- function(d){
   # create a tmp list
   tmp <- list()
-  geo <- d$metadata$geo
+  geo <- d$geo
 
   if (!is.null(geo)){
     # properties
@@ -115,7 +115,7 @@ indexGeo <- function(d){
       }
 
     # set the new data in d
-    d$metadata$geo <- tmp
+    d$geo <- tmp
   }
   return(d)
 }
@@ -176,7 +176,7 @@ swapGeoCoordinates <- function(d){
 #' @keywords internal
 #' @param d Metadata
 #' @return d Modified metadata
-unindexGeo <- function(d){
+unindex_geo <- function(d){
   
   tmp <- list()
   tmp$geometry <- list()

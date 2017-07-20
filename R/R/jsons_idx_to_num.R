@@ -10,7 +10,7 @@ idx_name_to_num <- function(d){
   if ("chronData" %in% names(d)){
     d[["chronData"]] <- export_section(d[["chronData"]], "chronData")
   }
-  d <- unindexGeo(d)
+  d <- unindex_geo(d)
   return(d)
 }
 

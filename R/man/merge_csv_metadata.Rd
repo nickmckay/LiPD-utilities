@@ -3,7 +3,7 @@
 \name{merge_csv_metadata}
 \alias{merge_csv_metadata}
 \title{Using the given metadata dictionary, retrieve CSV data from CSV files, and insert the CSV
-values into their respective metadata columns. Checks for both paleoData and chronData tables.}
+values into their respective metadata columns.}
 \usage{
 merge_csv_metadata(d)
 }
@@ -15,7 +15,7 @@ list d: Metadata
 }
 \description{
 Using the given metadata dictionary, retrieve CSV data from CSV files, and insert the CSV
-values into their respective metadata columns. Checks for both paleoData and chronData tables.
+values into their respective metadata columns.
 }
 \keyword{internal}
 

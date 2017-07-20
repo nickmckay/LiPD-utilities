@@ -4,12 +4,12 @@
 \alias{zipper}
 \title{Zip a directory, and move up a level}
 \usage{
-zipper(dir_original, dir_tgt, dir_tmp, bag.success, dsn)
+zipper(dir_original, dir_tmp, dsn)
 }
 \arguments{
-\item{char}{dir_tgt: Directory to be zipped}
+\item{char}{dir_original: Directory to move the LiPD to}
 
-\item{char}{dir_tmp  Directory that holds resulting zip file}
+\item{char}{dir_tmp:  Temp directory}
 }
 \value{
 none

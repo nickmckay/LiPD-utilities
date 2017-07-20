@@ -10,7 +10,7 @@ idx_num_to_name <- function(d){
   if ("chronData" %in% names(d)){
     d[["chronData"]] <- import_section(d[["chronData"]])
   }
-  d <- indexGeo(d)
+  d <- index_geo(d)
   return(d)
 }
 

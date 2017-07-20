@@ -41,8 +41,8 @@ extractTs= function(D, chron=NULL){
     #Loop through paleoData objects
     for(p in 1:length(L$paleoData)){
       #Loop through paleoMeasurementTables
-      for(pm in 1:length(L$paleoData[[p]]$paleoMeasurementTable)){
-        PM = L$paleoData[[p]]$paleoMeasurementTable[[pm]]#grab this measurmentTable
+      for(pm in 1:length(L$paleoData[[p]]$measurementTable)){
+        PM = L$paleoData[[p]]$measurementTable[[pm]]#grab this measurmentTable
         # Special columns need to 
         specialColumns = c("age","year","depth","ageEnsemble")
         # columnsToGrab = which(!(names(PM) %in% specialColumns) & sapply(PM,is.list))
@@ -100,8 +100,8 @@ extractTs= function(D, chron=NULL){
           TS[[ts]]$paleoData_measurementTableNumber = pm
           
           #grab metadata from this measurement table
-          pal = L$paleoData[[p]]$paleoMeasurementTable[[pm]]
-          excludePaleo = c("paleoDataTableName","paleoMeasurementTableName","number","paleoNumber","paleoMeasurementTableNumber","filename")
+          pal = L$paleoData[[p]]$measurementTable[[pm]]
+          excludePaleo = c("tableName","number","paleoNumber","paleoMeasurementTableNumber","filename")
           palGrab = which(!(names(pal) %in% excludePaleo) & !sapply(pal,is.list))
           
           for(palp in palGrab){#assign in needed paleo stuff
@@ -168,7 +168,7 @@ extractTs= function(D, chron=NULL){
           ##END PALEODATA!! Woohoo!
           
           ##ChronData
-          #for now, just throw the hole thing in there:
+          #for now, just throw the whole thing in there:
           if(any(names(L)=="chronData")){
             TS[[ts]]["chronData"] = L$chronData
           }

@@ -30,13 +30,12 @@ get_lipd_version <- function(d){
     if (key %in% names(d)){
       version <- d[[key]]
       d[[key]] <- NULL
-      print(paste0("Version key: ", key, " Version number: ", version))
     }
   }
   version <- as.numeric(version)
   if (isNullOb(version) || is.na(version)){
     # Since R does not yet do all the version 1.3 changes, we have to assume 1.2 for now.
-    version <- 1.0
+    version <- 1.1
   }
   else if (!(version %in% c(1, 1.0, 1.1, 1.2, 1.3))){
     print(sprintf("LiPD version is invalid: %s", version))
@@ -61,18 +60,21 @@ update_lipd_version <- function(d){
     if (version == 1.0 || version == "1.0"){
       d = update_lipd_v1_1(d)
       version <- 1.1
+      print("updating to 1.1")
     }
     
     # Update from 1.1 to 1.2
     if (version == 1.1 || version == "1.1"){
       d = update_lipd_v1_2(d)
       version = 1.2
+      print("updating to 1.2")
     }
     
     # Update from 1.2 to 1.3
     if(version == 1.2 || version == "1.2"){
       d = update_lipd_v1_3(d)
       version = 1.3
+      print("updating to 1.3")
     }
   }, error=function(cond){
     print(paste0("Error: update_lipd_version: v", version, ": ", cond))
@@ -91,7 +93,7 @@ update_lipd_version <- function(d){
 #' @param d Metadata
 #' @return d Metadata
 update_lipd_v1_1 <- function(d){
-  # Cannot v1.0 files, and I'm pretty sure there are less than 5 files in existence. 
+  # Cannot v1.0 files, and I'm pretty sure there are less than 5 files in existence.
   return(d)
 }
 
@@ -111,6 +113,7 @@ update_lipd_v1_2 <- function(d){
   if("chronData" %in% names(d)){
     d <- update_lipd_v1_2_section(d, "chronData")
   }
+  d[["lipdVersion"]] <- 1.2
   return(d)
 }
 
@@ -156,6 +159,7 @@ update_lipd_v1_3 <- function(d){
   }, error=function(cond){
     print(paste0("Error: update_lipd_v1_3: ", cond))
   })
+  d[["lipdVersion"]] <- 1.3
   return(d)
 }
 
