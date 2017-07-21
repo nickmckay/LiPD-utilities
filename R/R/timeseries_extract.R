@@ -4,7 +4,6 @@
 #' @return ts Time series
 extractTs= function(D, chron=NULL){
   
-  
   TS=list()
   ts=0
   
@@ -33,10 +32,6 @@ extractTs= function(D, chron=NULL){
     if(!any(names(L)=="paleoData")){
       stop(paste(L$dataSetName),"has no paleoData. This is forbidden.")
     }
-    
-    
-    
-    
     
     #Loop through paleoData objects
     for(p in 1:length(L$paleoData)){
@@ -101,10 +96,10 @@ extractTs= function(D, chron=NULL){
           
           #grab metadata from this measurement table
           pal = L$paleoData[[p]]$measurementTable[[pm]]
-          excludePaleo = c("tableName","number","paleoNumber","paleoMeasurementTableNumber","filename")
+          excludePaleo = c()
           palGrab = which(!(names(pal) %in% excludePaleo) & !sapply(pal,is.list))
           
-          for(palp in palGrab){#assign in needed paleo stuff
+          for(palp in palGrab){#assig n in needed paleo stuff
             TS[[ts]][[paste0("paleoData_",names(pal)[palp])]] = pal[[palp]] 
           }
           
@@ -112,7 +107,7 @@ extractTs= function(D, chron=NULL){
           coldata = pal[[ctg]]
           
           #grab data and metadata from this column
-          excludeColumn = c("number")
+          excludeColumn = c("number", "tableName")
           colGrab = which(!(names(coldata) %in% excludeColumn) & !sapply(coldata,is.list))
           
           for(colc in colGrab){#assign in needed column data and metadata
@@ -163,15 +158,17 @@ extractTs= function(D, chron=NULL){
             TS[[ts]][[names(PM)[sc]]] = PM[[sc]]$values
             
           }
-          
+           
           
           ##END PALEODATA!! Woohoo!
           
-          ##ChronData
-          #for now, just throw the whole thing in there:
-          if(any(names(L)=="chronData")){
-            TS[[ts]]["chronData"] = L$chronData
-          }
+          # Raw chronData
+          TS[[ts]][["raw"]] <- L
+          # if(any(names(L)=="chronData")){
+          #   TS[[ts]]["chronData"] = L$chronData
+          # }
+          # # Raw paleoData
+          # TS[[ts]]["paleoData"] = L$paleoData
           
         }#end columns to grab (each TS entry)
         

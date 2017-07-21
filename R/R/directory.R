@@ -38,7 +38,7 @@ browse_dialog <- function(ans){
 #' @keywords internal
 #' @return char path: 
 create_tmp_dir <- function(){
-  dir_tmp <- tempdir()
+  dir_tmp <- tempfile()
   if(!dir.exists(dir_tmp)){
     dir.create(dir_tmp)
   }

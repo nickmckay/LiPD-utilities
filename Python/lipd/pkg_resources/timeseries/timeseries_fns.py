@@ -393,9 +393,10 @@ def collapse(l):
             if dsn not in _master:
                 logger_ts.info("collapsing: {}".format(dsn))
                 print("collapsing: {}".format(dsn))
-                _master, _current = _collapse_dataset_root(_master, _current, dsn, _pc)
+                _master, _current = _collapse_root(_master, _current, dsn, _pc)
                 _master[dsn]["paleoData"] = _current["paleoData"]
-                _master[dsn]["chronData"] = _current["chronData"]
+                if "chronData" in _current:
+                    _master[dsn]["chronData"] = _current["chronData"]
 
             # Collapse pc, calibration, and interpretation
             _master = _collapse_pc(_master, _current, dsn, _pc)
@@ -428,7 +429,7 @@ def _get_current_names(current, dsn, pc):
     return _table_name, _variable_name
 
 
-def _collapse_dataset_root(master, current, dsn, pc):
+def _collapse_root(master, current, dsn, pc):
     """
     Collapse the root items of the current time series entry
     :param dict master: LiPD data (so far)
@@ -558,7 +559,7 @@ def _collapse_author(s):
 
 def _collapse_pc(master, current, dsn, pc):
     """
-    Collapse the paleoData for the current time series entry
+    Collapse the paleo or chron for the current time series entry
     :param dict master: LiPD data (so far)
     :param dict current: Current time series entry
     :param str dsn: Dataset name
@@ -614,6 +615,35 @@ def _collapse_pc(master, current, dsn, pc):
     return master
 
 
+def _collapse_table_root(current, dsn, pc):
+    """
+    Create a table with items in root given the current time series entry
+    :param dict current: Current time series entry
+    :param str dsn: Dataset name
+    :param str pc: paleoData or chronData
+    :return dict _tmp_table: Table data
+    """
+    logger_ts.info("enter collapse_table_root")
+    _table_name, _variable_name = _get_current_names(current, dsn, pc)
+    _tmp_table = {'columns': {}}
+
+    try:
+        for k, v in current.items():
+            # These are the main table keys that we should be looking for
+            for i in ['filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5"]:
+                if i in k:
+                    try:
+                        _tmp_table[i] = v
+                    except Exception:
+                        # Not all keys are available. It's okay if we hit a KeyError.
+                        pass
+    except Exception as e:
+        print("Error: Unable to collapse: {}, {}".format(dsn, e))
+        logger_ts.error("collapse_table_root: Unable to collapse: {}, {}, {}".format(_table_name, dsn, e))
+
+    return _tmp_table
+
+
 def _collapse_column(current, pc):
     """
     Collapse the column data and
@@ -651,34 +681,6 @@ def _collapse_column(current, pc):
         _tmp_column['calibration'] = _tmp_calib
     return _tmp_column
 
-
-def _collapse_table_root(current, dsn, pc):
-    """
-    Create a table with items in root given the current time series entry
-    :param dict current: Current time series entry
-    :param str dsn: Dataset name
-    :param str pc: paleoData or chronData
-    :return dict _tmp_table: Table data
-    """
-    logger_ts.info("enter collapse_table_root")
-    _table_name, _variable_name = _get_current_names(current, dsn, pc)
-    _tmp_table = {'columns': {}}
-
-    try:
-        for k, v in current.items():
-            # These are the main table keys that we should be looking for
-            for i in ['filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5"]:
-                if i in k:
-                    try:
-                        _tmp_table[i] = v
-                    except Exception:
-                        # Not all keys are available. It's okay if we hit a KeyError.
-                        pass
-    except Exception as e:
-        print("Error: Unable to collapse: {}, {}".format(dsn, e))
-        logger_ts.error("collapse_table_root: Unable to collapse: {}, {}, {}".format(_table_name, dsn, e))
-
-    return _tmp_table
 
 # HELPERS
 
