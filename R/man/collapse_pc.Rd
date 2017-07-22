@@ -4,12 +4,14 @@
 \alias{collapse_pc}
 \title{Collapse time series section; paleo or chron}
 \usage{
-collapse_pc(d, ts)
+collapse_pc(d, entry, pc)
 }
 \arguments{
 \item{list}{d: Metadata}
 
-\item{list}{ts: Time series entry}
+\item{list}{entry: Time series entry}
+
+\item{char}{pc: paleoData or chronData}
 }
 \value{
 list d: Metadata

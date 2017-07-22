@@ -6,7 +6,12 @@ extractTs= function(D, chron=NULL){
   
   TS=list()
   ts=0
-  
+  mode <- "paleo"
+  if(!missing(chron)){
+    if(chron==TRUE){
+      mode <- "chron"}
+  }
+
   breakFlag=FALSE
   
   for(d in 1:length(D)){
@@ -48,6 +53,7 @@ extractTs= function(D, chron=NULL){
           TS[[ts]]=list()
           ###BASE LEVEL
           excludeBase = c("@context")
+          TS[[ts]][["mode"]] <- mode
           baseGrab = which(!(names(L) %in% excludeBase) & !sapply(L,is.list))
           for(b in baseGrab){#assign in needed baselevel stuff
             TS[[ts]][[names(L)[b]]] = L[[b]] 
@@ -98,8 +104,7 @@ extractTs= function(D, chron=NULL){
           pal = L$paleoData[[p]]$measurementTable[[pm]]
           excludePaleo = c()
           palGrab = which(!(names(pal) %in% excludePaleo) & !sapply(pal,is.list))
-          
-          for(palp in palGrab){#assig n in needed paleo stuff
+          for(palp in palGrab){#assign in needed paleo stuff
             TS[[ts]][[paste0("paleoData_",names(pal)[palp])]] = pal[[palp]] 
           }
           

@@ -141,20 +141,6 @@ rm_empty_fields <- function( x ){
   return(x)
 }
 
-#' Return to preset "home" working directory
-#' @export
-#' @keywords internal
-#' @return none
-returnToRoot <- function(){
-  if(!exists("working.dir",where = .GlobalEnv)){
-    print("Working directory not set. Choose any file -inside- your target directory")
-    out <- guiForPath(NULL)
-    working.dir <- out[["dir"]]
-    assign("working.dir", working.dir, envir = .GlobalEnv)
-  }
-  setwd(working.dir)
-}
-
 #' An old bug caused some geo coordinates to be reversed. This will switch them back to normal.
 #' @export
 #' @keywords internal

@@ -2,7 +2,7 @@
 % Please edit documentation in R/csvs.R
 \name{write_csv_to_file}
 \alias{write_csv_to_file}
-\title{Write out each CSV file for this LiPD record
+\title{Write out each CSV file for this LiPD recorde
 csv.data format: [ some_filename.csv $columns.data ]}
 \usage{
 write_csv_to_file(csv.data)
@@ -14,7 +14,7 @@ write_csv_to_file(csv.data)
 success Boolean for successful csv write
 }
 \description{
-Write out each CSV file for this LiPD record
+Write out each CSV file for this LiPD recorde
 csv.data format: [ some_filename.csv $columns.data ]
 }
 \keyword{internal}

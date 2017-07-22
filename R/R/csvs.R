@@ -45,7 +45,7 @@ read_csv_from_file <- function(){
 }
 
 
-#' Write out each CSV file for this LiPD record
+#' Write out each CSV file for this LiPD recorde
 #' csv.data format: [ some_filename.csv $columns.data ]
 #' @export
 #' @keywords internal
