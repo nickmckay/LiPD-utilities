@@ -29,11 +29,10 @@ Using your preferred Python IDE or a Python console, you can import the LiPD pac
 ```
 import lipd
 ```
-This import will trigger a prompt asking you to choose a source directory containing files.
 
 Now you can call any function in the LiPD package.
 ```
-lipd.loadLipds()
+lipd.readLipds()
 ```
 ```
 lipd.excel()
@@ -42,33 +41,22 @@ lipd.excel()
 lipd.doi()
 ```
 
-Starter files
+Getting started 
 ------------
 
-[Download ZIP file](https://dl.dropboxusercontent.com/s/azp3m2hggh0l0jr/lipd_starter_files.zip?dl=1)
+Examples and guides are located on the github at:
 
-The starter files will give you working examples to try out LiPD, as well as blank templates to insert your own data.
+https://github.com/nickmckay/LiPD-utilities/tree/master/Examples
 
-__Included:__
-* NOAA blank template and example file
-* Excel blank template and example file
-* LiPD example file
 
 Features
 ----
 
-- Convert Excel files to LiPD files
-- Convert NOAA files to LiPD files
-- Convert LiPD files to NOAA files
-- Load LiPD files for data analysis
-- Extract TimeSeries
-
-Jupyter Notebooks
-----------------
-
-A Jupyter Notebook is an instructional tool to show examples of python code and code output. We have created a set of Notebooks as guides to getting familiar with LiPD and its functions. These Notebooks can be found in the github repository as '.ipynb' files.
-
-_Jupyter is not required to use the LiPD package._
+- Convert Excel --> LiPD
+- Convert NOAA <--> LiPD
+- Read LiPD file for data analysis
+- Write LiPD file
+- Extract/collapse/filter/query on a time series
 
 Requirements
 ----
@@ -82,9 +70,6 @@ https://github.com/nickmckay/LiPD-utilities
 
 Linked Earth Wiki:
 wiki.linked.earth
-
-Jupyter:
-www.jupyter.org
 
 
 Contact

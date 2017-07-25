@@ -35,36 +35,95 @@ collapse_pc <- function(d, entry, pc){
   # Get the crumbs to the target table
   m <- get_crumbs(entry)
   # Get the existing target table
-  table <- get_table(d, m, pc)
-  # Overwrite the existing table root items and existing (one) specific column
-  new_column <- list()
-  exclude_keys <- c("mode", "measurementTableNumber", "paleoNumber")
-  root_keys <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey")
-  ts_keys <- names(entry)
-  for(i in 1:length(ts_keys)){
-    ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)[_](\\w+)")
-    if(!isNullOb(ts_key[[1]])){
-      # Root keys
-      if(ts_key[[1]][[3]] %in% root_keys){
-        print(paste0("ROOT: ", ts_keys[[i]]))
-      }
-      # Table / column keys
-      else if(grepl(pc, ts_keys[[i]])){
-        print(paste0("TABLE: ", ts_keys[[i]]))
-      }
-      # Interpretations, special case
-      else if (grepl("interpretation", ts_keys[[i]])){
-        print(paste0("INTERPRETATION: ", ts_keys[[i]]))
-      }
-    }
-  }
+  # table <- get_table(d, m, pc)
+  table <- list()
+  table <- collapse_table_root(table, entry, pc)
+  table <- collapse_column(table, entry, pc)
   # Put the new modified table back into the metadata
   d <- put_table(d, m, pc, table)
   return(d)
 }
 
-collapse_column <- function(){
-  
+#' Collapse time series table root. All keys listed below are known table root keys. 
+#' @export
+#' @param list table: Metadata
+#' @param list entry: Time series entry
+#' @param char pc: paleoData or chronData
+#' @return list table: Metadata
+collapse_table_root <- function(table, entry, pc){
+  root_keys <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey")
+  for(i in 1:length(root_keys)){
+    key <- paste0(pc, "_", root_keys[[i]])
+    if(key %in% entry){
+      table[[root_keys[[i]]]] <- entry[[key]]
+    }
+  }
+  return(table)
+}
+
+#' Collapse time series column. Compile column entries and place new column in table. 
+#' @export
+#' @param list table: Metadata
+#' @param list entry: Time series entry
+#' @param char pc: paleoData or chronData
+#' @return list table: Metadata
+collapse_column <- function(table, entry, pc){
+  new_column <- list()
+  interp <- list()
+  calib <- list()
+  include <- c("paleoData", "chronData", "interpretation", "calibration") 
+  exclude <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey")
+  ts_keys <- names(entry)
+  tryCatch({
+    for(i in 1:length(ts_keys)){
+      if (grepl("interpretation", ts_keys[[i]])){
+        # ts_key / 1,1 "interpretation1_direction" / 1,2 "interpretation" / 1,3: "1" /  1,4: "direction"
+        ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)(\\d+)[_](\\w+)")
+        if(!isNullOb(ts_key[[1]])){
+          tryCatch({
+            interp[[as.numeric(ts_key[[1]][[3]])]] <- entry[[ts_keys[[i]]]]
+          }, error=function(cond){
+            interp[[as.numeric(ts_key[[1]][[3]])]] <- list()
+            interp[[as.numeric(ts_key[[1]][[3]])]] <- entry[[ts_keys[[i]]]]
+          })
+        }
+      }
+      else if (grepl("calibration", ts_keys[[i]])){
+        ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)(\\d+)[_](\\w+)")
+        if(!isNullOb(ts_key[[1]])){
+          tryCatch({
+            calib[[as.numeric(ts_key[[1]][[3]])]] <- entry[[ts_keys[[i]]]]
+          }, error=function(cond){
+            calib[[as.numeric(ts_key[[1]][[3]])]] <- list()
+            calib[[as.numeric(ts_key[[1]][[3]])]] <- entry[[ts_keys[[i]]]]
+          })
+        }
+      } else {
+        # ts_key / 1,1 "paleoData" / 1,2 "_" / 1,3 "someKey"
+        ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)[_](\\w+)")
+        if(!isNullOb(ts_key[[1]])){
+          # Not a root table key, and pc matches the given mode
+          if(!ts_key[[1]][[3]] %in% exclude && ts_key[[1]][[2]] == pc){
+            # set ts entry value to new entry in column
+            new_column[[ts_key[[1]][[3]]]] <- entry[[ts_keys[[i]]]]
+          }
+        }
+      }
+    }
+    # Add the special sub-lists if data was found
+    if(!isNullOb(interp)){
+      new_column[["interpretation"]] <- interp
+    }
+    if(!isNullOb(calib)){
+      new_column[["calibration"]] <- calib
+    }
+    vn <- new_column[["variableName"]]
+    # Set the new column into the table using the variableName
+    table[[vn]] <- new_column
+  }, error=function(cond){
+    print(paste0("Error: collapse_column: ", cond))
+  })
+  return(table)
 }
 
 #' Use regex to split the tableName into a crumbs path
