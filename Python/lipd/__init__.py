@@ -23,6 +23,7 @@ from collections import OrderedDict
 def run():
     """
     Initialize and start objects. This is called automatically when importing the package.
+
     :return none:
     """
     # GLOBALS
@@ -40,9 +41,11 @@ def run():
 
 def readLipd(usr_path=""):
     """
-    Wrapper function: LiPD file read
-    :param str usr_path: Path to file (optional)
-    :return dict _d: LiPD data
+    Read LiPD file(s).
+    Enter a file path, directory path, or leave args blank to trigger gui.
+
+    :param str usr_path: Path to file / directory (optional)
+    :return dict _d: Metadata
     """
     global cwd, settings, files
     if settings["verbose"]:
@@ -59,9 +62,11 @@ def readLipd(usr_path=""):
 
 def readExcel(usr_path=""):
     """
-    Wrapper function: Excel file read
-    :param str usr_path: Path to file (optional)
-    :return str cwd: Current Working Directory
+    Read Excel file(s)
+    Enter a file path, directory path, or leave args blank to trigger gui.
+
+    :param str usr_path: Path to file / directory (optional)
+    :return str cwd: Current working directory
     """
     global cwd, files
     start = clock()
@@ -74,9 +79,11 @@ def readExcel(usr_path=""):
 
 def readNoaa(usr_path=""):
     """
-    Wrapper function: NOAA file read
-    :param str usr_path: Path to file
-    :return str cwd: Current Working Directory
+    Read NOAA file(s)
+    Enter a file path, directory path, or leave args blank to trigger gui.
+
+    :param str usr_path: Path to file / directory (optional)
+    :return str cwd: Current working directory
     """
     global cwd, files
     start = clock()
@@ -89,9 +96,12 @@ def readNoaa(usr_path=""):
 
 def readAll(usr_path=""):
     """
-    Wrapper function: Read all file types at once
-    :param str usr_path: Path to directory
-    :return str cwd: Current Working Directory
+    Read all approved file types at once.
+    Enter a file path, directory path, or leave args blank to trigger gui.
+
+
+    :param str usr_path: Path to file / directory (optional)
+    :return str cwd: Current working directory
     """
     global cwd, files
     start = clock()
@@ -111,11 +121,11 @@ def excel():
     """
     Convert Excel files to LiPD files. LiPD data is returned directly from this function.
 
-    Example
-    1: lipd.readExcel()
-    2: D = lipd.excel()
+    | Example
+    | 1: lipd.readExcel()
+    | 2: D = lipd.excel()
 
-    :return dict _d: LiPD data
+    :return dict _d: Metadata
     """
     global files, cwd, settings
     _d = {}
@@ -148,15 +158,15 @@ def excel():
 
 def noaa(d=None):
     """
-    Wrapper function: Convert between NOAA and LiPD files
+    Convert between NOAA and LiPD files
 
-    Example: LiPD to NOAA converter
-    1: D = lipd.readLipd()
-    2: lipd.noaa(D)
+    | Example: LiPD to NOAA converter
+    | 1: D = lipd.readLipd()
+    | 2: lipd.noaa(D)
 
-    Example: NOAA to LiPD converter
-    1: readNoaa()
-    2: lipd.noaa()
+    | Example: NOAA to LiPD converter
+    | 1: readNoaa()
+    | 2: lipd.noaa()
 
     :return none:
     """
@@ -198,9 +208,9 @@ def doi():
     """
     Update publication information using data DOIs. Updates LiPD files on disk, not in memory.
 
-    Example
-    1: lipd.readLipd()
-    2: lipd.doi()
+    | Example
+    | 1: lipd.readLipd()
+    | 2: lipd.doi()
 
     :return none:
     """
@@ -246,6 +256,7 @@ def doi():
 def addEnsemble(D, dsn, ensemble):
     """
     Create ensemble entry and then add it to the specified LiPD dataset.
+
     :param dict D: LiPD data
     :param str dsn: Dataset name
     :param list ensemble: Nested numpy array of ensemble column data.
@@ -274,6 +285,7 @@ def addEnsemble(D, dsn, ensemble):
 def ensToDf(ensemble):
     """
     Create an ensemble data frame from some given nested numpy arrays
+
     :param list ensemble: Ensemble data
     :return obj df: Pandas dataframe
     """
@@ -302,6 +314,7 @@ def tsToDf(tso):
     """
     Create Pandas DataFrame from TimeSeries object.
     Use: Must first extractTs to get a time series. Then pick one item from time series and pass it through
+
     :param dict tso: Time series entry
     :return dict dfs: Pandas dataframes
     """
@@ -337,15 +350,15 @@ def extractTs(d, chron=False):
     """
     Create a time series using LiPD data (uses paleoData by default)
 
-    Example : paleoData
-    1. D = lipd.readLipd()
-    2. ts = lipd.extractTs(D)
+    | Example : paleoData
+    | 1. D = lipd.readLipd()
+    | 2. ts = lipd.extractTs(D)
 
-    Example : chronData
-    1. D = lipd.readLipd()
-    2. ts = lipd.extractTs(D, chron=True)
+    | Example : chronData
+    | 1. D = lipd.readLipd()
+    | 2. ts = lipd.extractTs(D, chron=True)
 
-    :param dict d: LiPD data
+    :param dict d: Metadata
     :param bool chron: Create a chronData time series
     :return list l: Time series
     """
@@ -396,13 +409,13 @@ def collapseTs(ts=None):
     """
     Collapse a time series back into LiPD record form.
 
-    Example
-    1. D = lipd.readLipd()
-    2. ts = lipd.extractTs(D)
-    3. New_D = lipd.collapseTs(ts)
+    | Example
+    | 1. D = lipd.readLipd()
+    | 2. ts = lipd.extractTs(D)
+    | 3. New_D = lipd.collapseTs(ts)
 
     :param list ts: Time series
-    :return dict: LiPD data
+    :return dict: Metadata
     """
     _d = {}
     if not ts:
@@ -425,11 +438,11 @@ def filterTs(ts, expression):
     """
     Create a new time series that only contains entries that match the given expression.
 
-    Example:
-    D = lipd.loadLipd()
-    ts = lipd.extractTs(D)
-    new_ts = filterTs(ts, "archiveType == marine sediment")
-    new_ts = filterTs(ts, "paleoData_variableName == sst")
+    | Example:
+    | D = lipd.loadLipd()
+    | ts = lipd.extractTs(D)
+    | new_ts = filterTs(ts, "archiveType == marine sediment")
+    | new_ts = filterTs(ts, "paleoData_variableName == sst")
 
     :param str expression: Expression
     :param list ts: Time series
@@ -448,11 +461,11 @@ def queryTs(ts, expression):
     """
     Find the indices of the time series entries that match the given expression.
 
-    Example:
-    D = lipd.loadLipd()
-    ts = lipd.extractTs(D)
-    matches = queryTs(ts, "archiveType == marine sediment")
-    matches = queryTs(ts, "geo_meanElev <= 2000")
+    | Example:
+    | D = lipd.loadLipd()
+    | ts = lipd.extractTs(D)
+    | matches = queryTs(ts, "archiveType == marine sediment")
+    | matches = queryTs(ts, "geo_meanElev <= 2000")
 
     :param str expression: Expression
     :param list ts: Time series
@@ -471,10 +484,10 @@ def viewTs(ts):
     """
     View the contents of one time series entry in a nicely formatted way
 
-    Example
-    1. D = lipd.readLipd()
-    2. ts = lipd.extractTs(D)
-    3. viewTs(ts[0])
+    | Example
+    | 1. D = lipd.readLipd()
+    | 2. ts = lipd.extractTs(D)
+    | 3. viewTs(ts[0])
 
     :param dict ts: One time series entry
     :return none:
@@ -544,8 +557,8 @@ def showLipds(D=None):
     """
     Display the dataset names of a given LiPD data
 
-    Example
-    lipd.showLipds(D)
+    | Example
+    | lipd.showLipds(D)
 
     :pararm dict D: LiPD data
     :return none:
@@ -563,8 +576,8 @@ def showMetadata(dat):
     """
     Display the metadata specified LiPD in pretty print
 
-    Example
-    showMetadata(D["Africa-ColdAirCave.Sundqvist.2013"])
+    | Example
+    | showMetadata(D["Africa-ColdAirCave.Sundqvist.2013"])
 
     :param dict dat: Metadata
     :return none:
@@ -574,25 +587,10 @@ def showMetadata(dat):
     return
 
 
-
-def showTso(tso):
-    """
-    Display contents of one time series entry.
-    :param str tso: Time series entry
-    :return none:
-    """
-    try:
-        for key, value in sorted(tso.items()):
-            print("{0:20}: {1}".format(key, value))
-    except Exception as e:
-        print("Unable to list contents: {}".format(e))
-    # print("Process Complete")
-    return
-
-
 def showDfs(d):
     """
     Display the available data frame names in a given data frame collection
+
     :param dict d: Dataframe collection
     :return none:
     """
@@ -624,8 +622,8 @@ def getLipdNames(D=None):
     """
     Get a list of all LiPD names in the library
 
-    Example
-    names = lipd.getLipdNames(D)
+    | Example
+    | names = lipd.getLipdNames(D)
 
     :return list f_list: File list
     """
@@ -644,8 +642,8 @@ def getMetadata(L):
     """
     Get metadata from a LiPD data in memory
 
-    Example
-    m = lipd.getMetadata(D["Africa-ColdAirCave.Sundqvist.2013"])
+    | Example
+    | m = lipd.getMetadata(D["Africa-ColdAirCave.Sundqvist.2013"])
 
     :param dict L: One LiPD record
     :return dict d: LiPD record (metadata only)
@@ -664,10 +662,10 @@ def getMetadata(L):
 
 def getCsv(L=None):
     """
-    Get CSV from LiPD data
+    Get CSV from LiPD metadata
 
-    Example
-    c = lipd.getCsv(D["Africa-ColdAirCave.Sundqvist.2013"])
+    | Example
+    | c = lipd.getCsv(D["Africa-ColdAirCave.Sundqvist.2013"])
 
     :param dict L: One LiPD record
     :return dict d: CSV data
@@ -687,14 +685,13 @@ def getCsv(L=None):
     return _c
 
 
-
 # WRITE
-
 
 def writeLipd(dat, usr_path="", filename=""):
     """
     Write LiPD data to file(s)
-    :param dict dat: LiPD data
+
+    :param dict dat: Metadata
     :param str usr_path: Destination (optional)
     :param str filename: LiPD filename, for writing one specific file (optional)
     :return none:
@@ -713,6 +710,7 @@ def writeLipd(dat, usr_path="", filename=""):
 def __universal_read(file_path, file_type):
     """
     Use a file path to create file metadata and load a file in the appropriate way, according to the provided file type.
+
     :param str file_path: Path to file
     :param str file_type: One of approved file types: xls, xlsx, txt, lpd
     :return none:
@@ -755,6 +753,7 @@ def __universal_read(file_path, file_type):
 def __read(usr_path, file_type):
     """
     Determine what path needs to be taken to read in file(s)
+
     :param str usr_path: Path  (optional)
     :param str file_type: File type to read
     :return none:
@@ -799,7 +798,8 @@ def __read(usr_path, file_type):
 def __read_lipd_contents():
     """
     Use the file metadata to read in the LiPD file contents as a dictionary "library"
-    :return dict: LiPD data
+
+    :return dict: Metadata
     """
     global files
     _d = {}
@@ -811,6 +811,7 @@ def __read_lipd_contents():
 def __read_file(usr_path, file_type):
     """
     Universal read file. Given a path and a type, it will do the appropriate read actions
+
     :param str usr_path: Path to file
     :param str file_type: One of approved file types: xls, xlsx, txt, lpd
     :return none:
@@ -836,6 +837,7 @@ def __read_file(usr_path, file_type):
 def __read_directory(usr_path, file_type):
     """
     Universal read directory. Given a path and a type, it will do the appropriate read actions
+
     :param str usr_path: Path to directory
     :param str file_type: .xls, .xlsx, .txt, .lpd
     :return none:
@@ -870,6 +872,7 @@ def __read_directory(usr_path, file_type):
 def __write_lipd(dat, usr_path, filename):
     """
     Write LiPD data to file, provided an output directory and filename.
+
     :param dict dat: LiPD data
     :param str usr_path: Directory destination
     :param str filename: Target file
@@ -909,6 +912,7 @@ def __write_lipd(dat, usr_path, filename):
 def __disclaimer(opt=""):
     """
     Print the disclaimers once. If they've already been shown, skip over.
+
     :return none:
     """
     global settings
