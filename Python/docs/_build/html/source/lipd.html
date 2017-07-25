@@ -159,28 +159,42 @@
 <dl class="function">
 <dt id="lipd.addEnsemble">
 <code class="descclassname">lipd.</code><code class="descname">addEnsemble</code><span class="sig-paren">(</span><em>D</em>, <em>dsn</em>, <em>ensemble</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.addEnsemble" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create ensemble entry and then add it to the specified LiPD dataset.
-:param dict D: LiPD data
-:param str dsn: Dataset name
-:param list ensemble: Nested numpy array of ensemble column data.
-:return dict D: LiPD data</p>
+<dd><p>Create ensemble entry and then add it to the specified LiPD dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>D</strong> (<em>dict</em>) – LiPD data</li>
+<li><strong>dsn</strong> (<em>str</em>) – Dataset name</li>
+<li><strong>ensemble</strong> (<em>list</em>) – Nested numpy array of ensemble column data.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict D:</th><td class="field-body"><p class="first last">LiPD data</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.collapseTs">
 <code class="descclassname">lipd.</code><code class="descname">collapseTs</code><span class="sig-paren">(</span><em>ts=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.collapseTs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Collapse a time series back into LiPD record form.</p>
-<p>Example
-1. D = lipd.readLipd()
-2. ts = lipd.extractTs(D)
-3. New_D = lipd.collapseTs(ts)</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">1. D = lipd.readLipd()</div>
+<div class="line">2. ts = lipd.extractTs(D)</div>
+<div class="line">3. New_D = lipd.collapseTs(ts)</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ts</strong> (<em>list</em>) – Time series</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return dict:</th><td class="field-body">LiPD data</td>
+<tr class="field-even field"><th class="field-name">Return dict:</th><td class="field-body">Metadata</td>
 </tr>
 </tbody>
 </table>
@@ -190,9 +204,11 @@
 <dt id="lipd.doi">
 <code class="descclassname">lipd.</code><code class="descname">doi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update publication information using data DOIs. Updates LiPD files on disk, not in memory.</p>
-<p>Example
-1: lipd.readLipd()
-2: lipd.doi()</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">1: lipd.readLipd()</div>
+<div class="line">2: lipd.doi()</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -206,23 +222,33 @@
 <dl class="function">
 <dt id="lipd.ensToDf">
 <code class="descclassname">lipd.</code><code class="descname">ensToDf</code><span class="sig-paren">(</span><em>ensemble</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.ensToDf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an ensemble data frame from some given nested numpy arrays
-:param list ensemble: Ensemble data
-:return obj df: Pandas dataframe</p>
+<dd><p>Create an ensemble data frame from some given nested numpy arrays</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ensemble</strong> (<em>list</em>) – Ensemble data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return obj df:</th><td class="field-body">Pandas dataframe</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.excel">
 <code class="descclassname">lipd.</code><code class="descname">excel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert Excel files to LiPD files. LiPD data is returned directly from this function.</p>
-<p>Example
-1: lipd.readExcel()
-2: D = lipd.excel()</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">1: lipd.readExcel()</div>
+<div class="line">2: D = lipd.excel()</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return dict _d:</th><td class="field-body">LiPD data</td>
+<tr class="field-odd field"><th class="field-name">Return dict _d:</th><td class="field-body">Metadata</td>
 </tr>
 </tbody>
 </table>
@@ -232,18 +258,22 @@
 <dt id="lipd.extractTs">
 <code class="descclassname">lipd.</code><code class="descname">extractTs</code><span class="sig-paren">(</span><em>d</em>, <em>chron=False</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.extractTs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a time series using LiPD data (uses paleoData by default)</p>
-<p>Example : paleoData
-1. D = lipd.readLipd()
-2. ts = lipd.extractTs(D)</p>
-<p>Example : chronData
-1. D = lipd.readLipd()
-2. ts = lipd.extractTs(D, chron=True)</p>
+<div class="line-block">
+<div class="line">Example : paleoData</div>
+<div class="line">1. D = lipd.readLipd()</div>
+<div class="line">2. ts = lipd.extractTs(D)</div>
+</div>
+<div class="line-block">
+<div class="line">Example : chronData</div>
+<div class="line">1. D = lipd.readLipd()</div>
+<div class="line">2. ts = lipd.extractTs(D, chron=True)</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>d</strong> (<em>dict</em>) – LiPD data</li>
+<li><strong>d</strong> (<em>dict</em>) – Metadata</li>
 <li><strong>chron</strong> (<em>bool</em>) – Create a chronData time series</li>
 </ul>
 </td>
@@ -259,11 +289,13 @@
 <dt id="lipd.filterTs">
 <code class="descclassname">lipd.</code><code class="descname">filterTs</code><span class="sig-paren">(</span><em>ts</em>, <em>expression</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.filterTs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new time series that only contains entries that match the given expression.</p>
-<p>Example:
-D = lipd.loadLipd()
-ts = lipd.extractTs(D)
-new_ts = filterTs(ts, “archiveType == marine sediment”)
-new_ts = filterTs(ts, “paleoData_variableName == sst”)</p>
+<div class="line-block">
+<div class="line">Example:</div>
+<div class="line">D = lipd.loadLipd()</div>
+<div class="line">ts = lipd.extractTs(D)</div>
+<div class="line">new_ts = filterTs(ts, “archiveType == marine sediment”)</div>
+<div class="line">new_ts = filterTs(ts, “paleoData_variableName == sst”)</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -285,9 +317,11 @@ new_ts = filterTs(ts, “paleoData_variableName == sst”)</p>
 <dl class="function">
 <dt id="lipd.getCsv">
 <code class="descclassname">lipd.</code><code class="descname">getCsv</code><span class="sig-paren">(</span><em>L=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.getCsv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get CSV from LiPD data</p>
-<p>Example
-c = lipd.getCsv(D[“Africa-ColdAirCave.Sundqvist.2013”])</p>
+<dd><p>Get CSV from LiPD metadata</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">c = lipd.getCsv(D[“Africa-ColdAirCave.Sundqvist.2013”])</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -304,8 +338,10 @@ c = lipd.getCsv(D[“Africa-ColdAirCave.Sundqvist.2013”])</p>
 <dt id="lipd.getLipdNames">
 <code class="descclassname">lipd.</code><code class="descname">getLipdNames</code><span class="sig-paren">(</span><em>D=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.getLipdNames" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of all LiPD names in the library</p>
-<p>Example
-names = lipd.getLipdNames(D)</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">names = lipd.getLipdNames(D)</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -321,8 +357,10 @@ names = lipd.getLipdNames(D)</p>
 <dt id="lipd.getMetadata">
 <code class="descclassname">lipd.</code><code class="descname">getMetadata</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.getMetadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get metadata from a LiPD data in memory</p>
-<p>Example
-m = lipd.getMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">m = lipd.getMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -338,13 +376,17 @@ m = lipd.getMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</p>
 <dl class="function">
 <dt id="lipd.noaa">
 <code class="descclassname">lipd.</code><code class="descname">noaa</code><span class="sig-paren">(</span><em>d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.noaa" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper function: Convert between NOAA and LiPD files</p>
-<p>Example: LiPD to NOAA converter
-1: D = lipd.readLipd()
-2: lipd.noaa(D)</p>
-<p>Example: NOAA to LiPD converter
-1: readNoaa()
-2: lipd.noaa()</p>
+<dd><p>Convert between NOAA and LiPD files</p>
+<div class="line-block">
+<div class="line">Example: LiPD to NOAA converter</div>
+<div class="line">1: D = lipd.readLipd()</div>
+<div class="line">2: lipd.noaa(D)</div>
+</div>
+<div class="line-block">
+<div class="line">Example: NOAA to LiPD converter</div>
+<div class="line">1: readNoaa()</div>
+<div class="line">2: lipd.noaa()</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -359,11 +401,13 @@ m = lipd.getMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</p>
 <dt id="lipd.queryTs">
 <code class="descclassname">lipd.</code><code class="descname">queryTs</code><span class="sig-paren">(</span><em>ts</em>, <em>expression</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.queryTs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the indices of the time series entries that match the given expression.</p>
-<p>Example:
-D = lipd.loadLipd()
-ts = lipd.extractTs(D)
-matches = queryTs(ts, “archiveType == marine sediment”)
-matches = queryTs(ts, “geo_meanElev &lt;= 2000”)</p>
+<div class="line-block">
+<div class="line">Example:</div>
+<div class="line">D = lipd.loadLipd()</div>
+<div class="line">ts = lipd.extractTs(D)</div>
+<div class="line">matches = queryTs(ts, “archiveType == marine sediment”)</div>
+<div class="line">matches = queryTs(ts, “geo_meanElev &lt;= 2000”)</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -385,56 +429,109 @@ matches = queryTs(ts, “geo_meanElev &lt;= 2000”)</p>
 <dl class="function">
 <dt id="lipd.readAll">
 <code class="descclassname">lipd.</code><code class="descname">readAll</code><span class="sig-paren">(</span><em>usr_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.readAll" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper function: Read all file types at once
-:param str usr_path: Path to directory
-:return str cwd: Current Working Directory</p>
+<dd><p>Read all approved file types at once.
+Enter a file path, directory path, or leave args blank to trigger gui.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>usr_path</strong> (<em>str</em>) – Path to file / directory (optional)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return str cwd:</th><td class="field-body">Current working directory</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.readExcel">
 <code class="descclassname">lipd.</code><code class="descname">readExcel</code><span class="sig-paren">(</span><em>usr_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.readExcel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper function: Excel file read
-:param str usr_path: Path to file (optional)
-:return str cwd: Current Working Directory</p>
+<dd><p>Read Excel file(s)
+Enter a file path, directory path, or leave args blank to trigger gui.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>usr_path</strong> (<em>str</em>) – Path to file / directory (optional)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return str cwd:</th><td class="field-body">Current working directory</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.readLipd">
 <code class="descclassname">lipd.</code><code class="descname">readLipd</code><span class="sig-paren">(</span><em>usr_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.readLipd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper function: LiPD file read
-:param str usr_path: Path to file (optional)
-:return dict _d: LiPD data</p>
+<dd><p>Read LiPD file(s).
+Enter a file path, directory path, or leave args blank to trigger gui.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>usr_path</strong> (<em>str</em>) – Path to file / directory (optional)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict _d:</th><td class="field-body">Metadata</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.readNoaa">
 <code class="descclassname">lipd.</code><code class="descname">readNoaa</code><span class="sig-paren">(</span><em>usr_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.readNoaa" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper function: NOAA file read
-:param str usr_path: Path to file
-:return str cwd: Current Working Directory</p>
+<dd><p>Read NOAA file(s)
+Enter a file path, directory path, or leave args blank to trigger gui.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>usr_path</strong> (<em>str</em>) – Path to file / directory (optional)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return str cwd:</th><td class="field-body">Current working directory</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.run">
 <code class="descclassname">lipd.</code><code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize and start objects. This is called automatically when importing the package.
-:return none:</p>
+<dd><p>Initialize and start objects. This is called automatically when importing the package.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.showDfs">
 <code class="descclassname">lipd.</code><code class="descname">showDfs</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.showDfs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Display the available data frame names in a given data frame collection
-:param dict d: Dataframe collection
-:return none:</p>
+<dd><p>Display the available data frame names in a given data frame collection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>dict</em>) – Dataframe collection</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.showLipds">
 <code class="descclassname">lipd.</code><code class="descname">showLipds</code><span class="sig-paren">(</span><em>D=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.showLipds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display the dataset names of a given LiPD data</p>
-<p>Example
-lipd.showLipds(D)</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">lipd.showLipds(D)</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -451,8 +548,10 @@ lipd.showLipds(D)</p>
 <dt id="lipd.showMetadata">
 <code class="descclassname">lipd.</code><code class="descname">showMetadata</code><span class="sig-paren">(</span><em>dat</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.showMetadata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display the metadata specified LiPD in pretty print</p>
-<p>Example
-showMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">showMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -466,30 +565,33 @@ showMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="lipd.showTso">
-<code class="descclassname">lipd.</code><code class="descname">showTso</code><span class="sig-paren">(</span><em>tso</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.showTso" title="Permalink to this definition">¶</a></dt>
-<dd><p>Display contents of one time series entry.
-:param str tso: Time series entry
-:return none:</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="lipd.tsToDf">
 <code class="descclassname">lipd.</code><code class="descname">tsToDf</code><span class="sig-paren">(</span><em>tso</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.tsToDf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create Pandas DataFrame from TimeSeries object.
-Use: Must first extractTs to get a time series. Then pick one item from time series and pass it through
-:param dict tso: Time series entry
-:return dict dfs: Pandas dataframes</p>
+Use: Must first extractTs to get a time series. Then pick one item from time series and pass it through</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tso</strong> (<em>dict</em>) – Time series entry</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return dict dfs:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">Pandas dataframes</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="lipd.viewTs">
 <code class="descclassname">lipd.</code><code class="descname">viewTs</code><span class="sig-paren">(</span><em>ts</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.viewTs" title="Permalink to this definition">¶</a></dt>
 <dd><p>View the contents of one time series entry in a nicely formatted way</p>
-<p>Example
-1. D = lipd.readLipd()
-2. ts = lipd.extractTs(D)
-3. viewTs(ts[0])</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">1. D = lipd.readLipd()</div>
+<div class="line">2. ts = lipd.extractTs(D)</div>
+<div class="line">3. viewTs(ts[0])</div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -505,11 +607,22 @@ Use: Must first extractTs to get a time series. Then pick one item from time ser
 <dl class="function">
 <dt id="lipd.writeLipd">
 <code class="descclassname">lipd.</code><code class="descname">writeLipd</code><span class="sig-paren">(</span><em>dat</em>, <em>usr_path=''</em>, <em>filename=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.writeLipd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write LiPD data to file(s)
-:param dict dat: LiPD data
-:param str usr_path: Destination (optional)
-:param str filename: LiPD filename, for writing one specific file (optional)
-:return none:</p>
+<dd><p>Write LiPD data to file(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dat</strong> (<em>dict</em>) – Metadata</li>
+<li><strong>usr_path</strong> (<em>str</em>) – Destination (optional)</li>
+<li><strong>filename</strong> (<em>str</em>) – LiPD filename, for writing one specific file (optional)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
