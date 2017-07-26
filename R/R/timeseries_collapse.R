@@ -13,6 +13,7 @@ collapseTs <- function(ts){
       print(paste0("collapsing: ", dsn))
       # Create a new entry for this dataset
       D[[dsn]] <- ts[[i]][["raw"]]
+      D[[dsn]] <- rm_existing_tables(D[[dsn]], pc)
     }
     # Use the time series entry to overwrite the (old) raw data for this column
     D[[dsn]] <- collapse_table(D[[dsn]], ts[[i]], pc)    
@@ -25,6 +26,15 @@ collapseTs <- function(ts){
   return(D)
 }
 
+
+collapse_root <- function(){
+  
+}
+
+collapse_author <- function(){
+  
+}
+
 #' Collapse time series section; paleo or chron 
 #' @export
 #' @param list d: Metadata
@@ -35,12 +45,11 @@ collapse_table <- function(d, entry, pc){
   # Get the crumbs to the target table
   m <- get_crumbs(entry)
   # Get the existing target table
-  # table <- get_table(d, m, pc)
-  table <- list()
+  table <- get_table(d, m, pc)
   table <- collapse_table_root(table, entry, pc)
   table <- collapse_column(table, entry, pc)
   # Put the new modified table back into the metadata
-  d <- put_table(d, m, table)
+  d <- put_table(d, m, pc, table)
   return(d)
 }
 
@@ -148,6 +157,12 @@ get_crumbs <- function(ts){
   return(matches)
 }
 
+#' Get the target table
+#' @export
+#' @param list d: Metadata
+#' @param list m: Regex match
+#' @param char pc: paleoData or chronData
+#' @return list table: Metadata
 get_table <- function(d, m, pc){
   # Measurement table
   if(m[[3]] == "measurement"){
@@ -160,6 +175,13 @@ get_table <- function(d, m, pc){
   return(table)
 }
 
+#' Put the target table
+#' @export
+#' @param list d: Metadata
+#' @param list m: Regex match
+#' @param char pc: paleoData or chronData
+#' @param list table: Metadata (to be placed)
+#' @return list d: Metadata
 put_table <- function(d, m, pc, table){
   # Measurement table
   if(m[[3]] == "measurement"){
@@ -168,6 +190,33 @@ put_table <- function(d, m, pc, table){
   # Model - summary table
   else {
     d[[pc]][[as.numeric(m[[2]])]][[m[[3]]]][[as.numeric(m[[4]])]][[paste0(m[[5]], "Table")]][[as.numeric(m[[6]])]] <- table
+  }
+  return(d)
+}
+
+#' Remove any measurement or summary tables in the metadata for the given mode
+#' @export
+#' @param list d: Metadata
+#' @param char pc: paleoData or chronData
+#' @return list d: Metadata
+rm_existing_tables <- function(d, pc){
+  if(pc %in% names(d)){
+    for(i in 1:length(d)){
+      if("measurementTable" %in% names(d[[i]])){
+        for(j in 1:length(d[[i]][["measurementTable"]])){
+          d[[i]][["measurementTable"]][[j]] <- list()
+        }
+      }
+      if("model" %in% names(d[[i]])){
+        for(j in 1:length(d[[i]][["model"]])){
+          if("summaryTable" %in% d[[i]][["model"]][[j]]){
+            for(k in 1:length(d[[i]][["model"]][[j]][["summaryTable"]])){
+              d[[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
+            }
+          }
+        }
+      }
+    }
   }
   return(d)
 }
