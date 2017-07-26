@@ -21,7 +21,7 @@ add_created_by <- function(d){
 #' @export
 #' @keywords internal
 #' @param list d: Metadata
-#' @return numeric version: Version number
+#' @return list tmp: Version number and meta
 get_lipd_version <- function(d){
   version <- NULL
   keys <- c("lipdVersion", "liPDVersion", "LiPDVersion")
@@ -40,7 +40,10 @@ get_lipd_version <- function(d){
   else if (!(version %in% c(1, 1.0, 1.1, 1.2, 1.3))){
     print(sprintf("LiPD version is invalid: %s", version))
   }
-  return(version)
+  tmp <- list()
+  tmp[["meta"]] <- d
+  tmp[["version"]] <- version
+  return(tmp)
 }
 
 
@@ -53,28 +56,30 @@ get_lipd_version <- function(d){
 #' @return d Metadata
 update_lipd_version <- function(d){
   tryCatch({
-    # Get the lipd version number.
-    version <- get_lipd_version(d)
+    # Get the lipd version number, and updated meta
+    tmp <- get_lipd_version(d)
+    version <- tmp[["version"]]
+    d <- tmp[["meta"]]
     
     # Update from (N/A or 1.0) to 1.1
     if (version == 1.0 || version == "1.0"){
       d = update_lipd_v1_1(d)
       version <- 1.1
-      print("updating to 1.1")
+      # print("updating to 1.1")
     }
     
     # Update from 1.1 to 1.2
     if (version == 1.1 || version == "1.1"){
       d = update_lipd_v1_2(d)
       version = 1.2
-      print("updating to 1.2")
+      # print("updating to 1.2")
     }
     
     # Update from 1.2 to 1.3
     if(version == 1.2 || version == "1.2"){
       d = update_lipd_v1_3(d)
       version = 1.3
-      print("updating to 1.3")
+      # print("updating to 1.3")
     }
   }, error=function(cond){
     print(paste0("Error: update_lipd_version: v", version, ": ", cond))

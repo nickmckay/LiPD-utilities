@@ -6,13 +6,13 @@
 all we can do is use the default bag function by calling the
 full python file on a directory. This will create a bag.}
 \usage{
-bagit(data.dir, initial.dir)
+bagit(data.dir)
 }
 \arguments{
-\item{path}{The path to the directory that needs to be bagged}
+\item{char}{data.dir: The path to the directory that needs to be bagged}
 }
 \value{
-none
+bool: Bagit success
 }
 \description{
 Since we don't have a way of getting the bagit module in R,

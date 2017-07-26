@@ -147,33 +147,37 @@ get_csv_from_columns <- function(table){
     # list to hold each column for this table
     vals <- list()
     new <- list()
+    
+    # if table and columns exist
     if (!is.null(table)){
-      # if a columns entry exists
       if (!is.null(table[["columns"]])){
         curr.num <- 1
-        # name.paleoData1.paleoModel1.summaryTable $columns
+
         for (k in 1:length(table[["columns"]])){
           # add values for this column to the main list, then remove values
           if (!is.null(table[["columns"]][[k]][["values"]])){
-            vals[[k]] <- table[["columns"]][[k]][["values"]]
-            len <- NCOL(table[["columns"]][[k]][["values"]])
+            len <- length(table[["columns"]][[k]][["values"]][[1]])
             # remove the "number" entry for the column, then replace it with the index of this loop
             # however, if it's an ensemble table with many "numbers"/columns, then we'll keep it.
             if (len > 1){
-              # this is multiple columns in one. most likely an ensemble
+              # Ensemble Table
               # the end of the range is the start col + the cols in the matrix
-              num.cols <- dim(table[["columns"]][[k]][["values"]])[2]
+              # num.cols <- dim(table[["columns"]][[k]][["values"]])[2]
               # set the range as the number
-              nums <- createRange(curr.num, num.cols)
+              for (i in 1:len){
+                vals[[length(vals)+1]] <- table[["columns"]][[k]][["values"]][[i]]
+              }
+              nums <- create_range(curr.num, length(table[["columns"]][[k]][["values"]]))
               table[["columns"]][[k]][["number"]] <- nums
               # the beginning point for the next loop is right after the finish of this loop.
-              curr.num <- curr.num + num.cols
+              curr.num <- curr.num + len
             }
             else if (len <= 1){
+              vals[[k]] <- table[["columns"]][[k]][["values"]]
               table[["columns"]][[k]][["number"]] <- curr.num
               curr.num <- curr.num + 1
             }
-            # remove 'values' from the column
+            # remove values from the column
             table[["columns"]][[k]][["values"]] <- NULL
           }
         }

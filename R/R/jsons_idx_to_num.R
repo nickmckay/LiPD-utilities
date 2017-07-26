@@ -28,7 +28,7 @@ export_section <- function(section, pc){
             section[[i]][["measurementTable"]] <- idx_table_by_num(section[[i]][["measurementTable"]])
           }
           if("model" %in% names(section[[i]])){
-            section[[i]][["model"]] <- export_model(section[[i]][["model"]], pc)
+            section[[i]][["model"]] <- export_model(section[[i]][["model"]])
           }
           # TODO WHAT IS THIS???          
           # if section contains a bunch of table names, then use idx_table_by_num.
@@ -40,7 +40,7 @@ export_section <- function(section, pc){
         }
       } # end section
   }, error=function(cond){
-    print(paste0("Error: export_data: ", cond))
+    print(paste0("Error: export_section: ", cond))
   })
   return(section)
 }

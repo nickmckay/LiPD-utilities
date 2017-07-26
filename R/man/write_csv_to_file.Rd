@@ -3,19 +3,19 @@
 \name{write_csv_to_file}
 \alias{write_csv_to_file}
 \title{Write out each CSV file for this LiPD recorde
-csv.data format: [ some_filename.csv $columns.data ]}
+csvs format: [ some_filename.csv $columns.data ]}
 \usage{
-write_csv_to_file(csv.data)
+write_csv_to_file(csvs)
 }
 \arguments{
-\item{csv.data}{List of Lists of csv column data}
+\item{list}{csvs: CSV data}
 }
 \value{
-success Boolean for successful csv write
+bool success: CSV write success or fail
 }
 \description{
 Write out each CSV file for this LiPD recorde
-csv.data format: [ some_filename.csv $columns.data ]
+csvs format: [ some_filename.csv $columns.data ]
 }
 \keyword{internal}
 

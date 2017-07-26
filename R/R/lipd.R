@@ -6,6 +6,7 @@
 #' @param working.dir Directory that contains the target files
 #' @return d LiPD File
 lipd_read <- function(path){
+  
   j <- list()
   dir_original = getwd()
   tryCatch({
@@ -15,13 +16,11 @@ lipd_read <- function(path){
     data_dir <- find_data_dir()
     setwd(data_dir)
     j <- read_jsonld()
-    # TODO?
     # j = rm_empty_doi(j)
     j <- rm_empty_fields(j)
     j <- update_lipd_version(j)
     j <- merge_csv_metadata(j)
     j <- idx_num_to_name(j)
-    # TODO?
     # j = put_tsids(j)
     setwd(dir_original)
     unlink(dir_tmp, recursive=TRUE)
@@ -60,17 +59,16 @@ lipd_write <- function(j, path, dsn){
     j <- idx_name_to_num(j)
     dat <- get_csv_from_metadata(j, dsn)
     write_csv_to_file(dat[["csvs"]])
-    j <- remove_empty_fields(dat[["meta"]])
+    j <- rm_empty_fields(dat[["meta"]])
     j <- jsonlite::toJSON(j, pretty=TRUE, auto_unbox = TRUE)
     write(j, file="metadata.jsonld")
-    bag.success <- bagit(dir_bag, dir_original)
-    zipper(dir_original, dir_tmp, dsn)
+    bag.success <- bagit(dir_bag)
+    zipper(path, dir_tmp, dsn)
     unlink(dir_tmp, recursive=TRUE)
     setwd(dir_original)
   }, error=function(cond){
-    print(paste0("Error: lipd_write ", cond))
+    print(paste0("Error: lipd_write: ", cond))
   })
   unlink(dir_tmp, recursive=TRUE)
   setwd(dir_original)
-  return()
 }

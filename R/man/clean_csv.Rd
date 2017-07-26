@@ -4,7 +4,7 @@
 \alias{clean_csv}
 \title{Replace all blank values in csv matrices}
 \usage{
-clean_csv(csv)
+clean_csv(csvs)
 }
 \arguments{
 \item{csv}{All csv data}

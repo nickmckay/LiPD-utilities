@@ -4,7 +4,7 @@
 #' @param start Number to start at
 #' @param len Amount of times to loop
 #' @return l A vectory of column ints
-createRange <- function(start, len){
+create_range <- function(start, len){
   l <- c()
   for (i in 1:len){
     l[[i]] <- start

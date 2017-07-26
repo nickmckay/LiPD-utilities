@@ -3,29 +3,24 @@
 #' @keywords internal
 #' @param csv All csv data
 #' @return csv All csv data
-clean_csv <- function(csv){
+clean_csv <- function(csvs){
   tryCatch({
-    blanks <- c("", " ", "NA", "NaN", "NAN", "nan")
-    file.len <- length(csv)
-    if (file.len>0){
-      for (file in 1:file.len){
-        col.len <- length(csv[[file]])
-        if (col.len>0){
-          for (cols in 1:col.len){
-            # get one column (matrix)
-            col <- csv[[file]][[cols]]
-            # replace all blanks in it
-            col[is.na(col) | is.nan(col)] <- NA
-            # set column back in columns
-            csv[[file]][[cols]] <- col
-          }
-        }
+    # blanks <- c("", " ", "NA", "NaN", "NAN", "nan")
+    for (file in 1:length(csvs)){
+      for (j in 1:length(csvs[[file]])){
+        # get one column (matrix)
+        column <- csvs[[file]][[j]]
+        # replace all blanks in it
+        # col[is.na(col) | is.nan(col)] <- NA
+        column <- lapply(column, f=function(x) ifelse(is.na(x), "NaN", x), how="replace" )
+        # set column back in columns
+        csvs[[file]][[j]]<- column
       }
     }
   }, error=function(cond){
     print(paste0("Error: clean_csv: ", cond))
   })
-  return(csv)
+  return(csvs)
 }
 
 #' Opens the target CSV file and creates a dictionary with one list for each CSV column.
@@ -46,27 +41,28 @@ read_csv_from_file <- function(){
 
 
 #' Write out each CSV file for this LiPD recorde
-#' csv.data format: [ some_filename.csv $columns.data ]
+#' csvs format: [ some_filename.csv $columns.data ]
 #' @export
 #' @keywords internal
-#' @param csv.data List of Lists of csv column data
-#' @return success Boolean for successful csv write
-write_csv_to_file <- function(csv.data){
+#' @param list csvs: CSV data
+#' @return bool success: CSV write success or fail
+write_csv_to_file <- function(csvs){
   tryCatch({
     success <- TRUE
-    csv.data <- clean_csv(csv.data)
-    csv.names <- names(csv.data)
+    # csvs <- clean_csv(csvs)
+    entries <- names(csvs)
     
     # loop for csv file
-    for (f in 1:length(csv.names)){
+    for (f in 1:length(entries)){
       tmp <- matrix()
       
       # one csv file: list of lists. [V1: [column values], V2: [columns values], etc.]
-      ref.name <- csv.names[[f]]
-      if(!isNullOb(csv.data[[ref.name]])){
-        for (i in 1:length(csv.data[[ref.name]])){
-          col <- csv.data[[ref.name]][[i]]
-          
+      entry <- entries[[f]]
+      if(!isNullOb(csvs[[entry]])){
+        # Loop over csv cols
+        for (i in 1:length(csvs[[entry]])){
+          # one column of values
+          col <- csvs[[entry]][[i]]
           # convert to numeric if needed
           if (is.list(col)){
             col <- as.numeric(col)
@@ -79,7 +75,7 @@ write_csv_to_file <- function(csv.data){
             tmp <- tryCatch({
               cbind(col, deparse.level = 0)
             }, error = function(cond){
-              print(sprintf("cbind error: %s", ref.name))
+              print(sprintf("cbind error: %s", entry))
               return(NULL)
             })
           }else{
@@ -92,7 +88,7 @@ write_csv_to_file <- function(csv.data){
                   col <- t(col)
                   cbind(tmp, col, deparse.level = 0)
                 }, error = function(cond){
-                  print(sprintf("cbind error: %s", ref.name))
+                  print(sprintf("cbind error: %s", entry))
                   return(NULL)
                 })
               }
@@ -110,10 +106,10 @@ write_csv_to_file <- function(csv.data){
       }
       if (!is.null(tmp)){
         success <- tryCatch({
-          write.table(tmp, file=ref.name, col.names = FALSE, row.names=FALSE, sep=",")
+          write.table(tmp, file=entry, col.names = FALSE, row.names=FALSE, sep=",")
           success <- TRUE
         }, error=function(cond){
-          print(paste0("Error: write_csv_to_file: write.table: ", ref.name, cond))
+          print(paste0("Error: write_csv_to_file: write.table: ", entry, cond))
           print("Check data for unequal row or column lengths")
           return(NULL)
         })
@@ -122,5 +118,4 @@ write_csv_to_file <- function(csv.data){
   }, error=function(cond){
     print(paste0("Error: write_csv_to_file: ", cond))
   })
-  return()
 }

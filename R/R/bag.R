@@ -4,9 +4,9 @@
 #' full python file on a directory. This will create a bag.
 #' @export
 #' @keywords internal
-#' @param path The path to the directory that needs to be bagged
-#' @return none
-bagit <- function(data.dir, initial.dir){
+#' @param char data.dir: The path to the directory that needs to be bagged
+#' @return bool: Bagit success
+bagit <- function(data.dir){
   # if the bagit path isn't loaded into the global env yet (first run), then locate it and write the location
   if(!exists("bagit.script",where = .GlobalEnv)){
     # locate the bagit py file included with the lipdR package

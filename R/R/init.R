@@ -14,16 +14,17 @@ readLipd <- function(path=NULL){
   # Ask user where files are stored, or sort the given path parameter
   path <- get_src_or_dst(path)
   # Get the explicit full paths for each lipd file
-  files <- get_lipd_paths(path)
+  entries <- get_lipd_paths(path)
 
-  if (isNullOb(files)){
+  if (isNullOb(entries)){
     # Files is empty. Either not lipd files were in that path, or we had an error somewhere
     print("LiPD file(s) not found in the given path")
   } else {
-    for (i in 1:length(files)){
+    for (i in 1:length(entries)){
       j <- list()
       # Entry is one file path
-      entry <- files[[i]]
+      entry <- entries[[i]]
+      print(paste0("reading: ", basename(entry)))
       # Do initial set up
       dir_source <- dirname(entry)
       # assign("directory_source", directory_source, envir = .GlobalEnv)
@@ -57,12 +58,14 @@ writeLipd <- function(d, path=NULL){
       setwd(path)
     }
     if ("paleoData" %in% names(d)){
+      print(paste0("writing: ", d[["dataSetName"]]))
       lipd_write(d, path, d[["dataSetName"]])
     } else {
-      dsns <- names(d)
-      for (i in 1:length(dsns)){
-        dsn <- dsns[[i]]
-        lipd_write(d[[dsn]], path, dsn)
+      entries <- names(d)
+      for (i in 1:length(entries)){
+        print(paste0("writing: ", basename(entry)))
+        entry <- dsns[[i]]
+        lipd_write(d[[entry]], path, entry)
       }
     }
   }, error=function(cond){

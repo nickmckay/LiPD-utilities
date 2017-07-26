@@ -4,15 +4,15 @@
 \alias{merge_csv_columns}
 \title{Merge values into each column}
 \usage{
-merge_csv_columns(csv.cols, meta.cols)
+merge_csv_columns(csvs, meta)
 }
 \arguments{
-\item{list}{csv.cols: Values, sorted by column}
+\item{list}{csvs: Values, sorted by column}
 
-\item{list}{meta.cols: Metadata, sorted by column}
+\item{list}{meta: Metadata, sorted by column}
 }
 \value{
-list meta.cols: Metadata
+list meta: Metadata
 }
 \description{
 Merge values into each column
