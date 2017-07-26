@@ -19,7 +19,7 @@ class PostInstall(install):
         install.run(self)
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.2.3'
+version = '0.2.2.6'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -59,7 +59,7 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
-            'lipd= lipd.__main__:main'
+            'lipd= lipd.__init__:run'
         ]
     },
     cmdclass={

@@ -10,7 +10,7 @@ get_lipd_version(d)
 \item{list}{d: Metadata}
 }
 \value{
-numeric version: Version number
+list tmp: Version number and meta
 }
 \description{
 Check what version of LiPD this file is using. If none is found, assume it's using version 1.0

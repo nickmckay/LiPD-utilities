@@ -10,12 +10,12 @@ collapseTs <- function(ts){
     # First occurance of this dataset. Add the raw data to the dataset library.
     if(!ts[[i]][["dataSetName"]] %in% names(D)){
       dsn <- ts[[i]][["dataSetName"]]
-      print(paste0("processing: ", dsn))
+      print(paste0("collapsing: ", dsn))
       # Create a new entry for this dataset
       D[[dsn]] <- ts[[i]][["raw"]]
     }
     # Use the time series entry to overwrite the (old) raw data for this column
-    D[[dsn]] <- collapse_pc(D[[dsn]], ts[[i]], pc)    
+    D[[dsn]] <- collapse_table(D[[dsn]], ts[[i]], pc)    
   }
   
   # Is there only one dataset after all this? Set it directly in D. 
@@ -31,7 +31,7 @@ collapseTs <- function(ts){
 #' @param list entry: Time series entry
 #' @param char pc: paleoData or chronData
 #' @return list d: Metadata
-collapse_pc <- function(d, entry, pc){
+collapse_table <- function(d, entry, pc){
   # Get the crumbs to the target table
   m <- get_crumbs(entry)
   # Get the existing target table
@@ -40,7 +40,7 @@ collapse_pc <- function(d, entry, pc){
   table <- collapse_table_root(table, entry, pc)
   table <- collapse_column(table, entry, pc)
   # Put the new modified table back into the metadata
-  d <- put_table(d, m, pc, table)
+  d <- put_table(d, m, table)
   return(d)
 }
 

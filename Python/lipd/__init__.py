@@ -1,16 +1,16 @@
-from .io import lipd_read, lipd_write
-from .timeseries import extract, collapse, mode_ts, translate_expression, get_matches
-from .doi_main import doi_main
-from .csvs import get_csv_from_metadata
-from .excel import excel_main
-from .noaa import noaa_prompt, noaa_to_lpd, lpd_to_noaa
-from .dataframes import *
-from .directory import get_src_or_dst, list_files, collect_metadata_file
-from .loggers import create_logger, log_benchmark, create_benchmark
-from .misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields
-from .ensembles import create_ensemble, insert_ensemble
-from .validator_api import get_validator_results, display_results
-from .alternates import FILE_TYPE_MAP
+from lipd.lipd_io import lipd_read, lipd_write
+from lipd.timeseries import extract, collapse, mode_ts, translate_expression, get_matches
+from lipd.doi_main import doi_main
+from lipd.csvs import get_csv_from_metadata
+from lipd.excel import excel_main
+from lipd.noaa import noaa_prompt, noaa_to_lpd, lpd_to_noaa
+from lipd.dataframes import *
+from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
+from lipd.loggers import create_logger, log_benchmark, create_benchmark
+from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields
+from lipd.ensembles import create_ensemble, insert_ensemble
+from lipd.validator_api import get_validator_results, display_results
+from lipd.alternates import FILE_TYPE_MAP
 
 from time import clock
 import os
