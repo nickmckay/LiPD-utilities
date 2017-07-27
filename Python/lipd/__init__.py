@@ -797,14 +797,21 @@ def __read(usr_path, file_type):
 
 def __read_lipd_contents():
     """
-    Use the file metadata to read in the LiPD file contents as a dictionary "library"
+    Use the file metadata to read in the LiPD file contents as a dataset library
 
     :return dict: Metadata
     """
     global files
     _d = {}
-    for file in files[".lpd"]:
-        _d[file["filename_no_ext"]] = lipd_read(file["full_path"])
+
+    try:
+        if len(files) == 1:
+            _d = lipd_read(files[0]["full_path"])
+        else:
+            for file in files[".lpd"]:
+                _d[file["filename_no_ext"]] = lipd_read(file["full_path"])
+    except Exception as e:
+        print("Error: read_lipd_contents: {}".format(e))
     return _d
 
 
