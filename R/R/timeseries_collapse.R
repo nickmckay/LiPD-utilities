@@ -4,35 +4,77 @@
 #' @return D LiPD data, sorted by dataset name
 collapseTs <- function(ts){
   D <- list()
-  # Do some collapse stuff
-  for(i in 1:length(ts)){
-    pc <- paste0(ts[[i]][["mode"]], "Data")
-    # First occurance of this dataset. Add the raw data to the dataset library.
-    if(!ts[[i]][["dataSetName"]] %in% names(D)){
-      dsn <- ts[[i]][["dataSetName"]]
-      print(paste0("collapsing: ", dsn))
-      # Create a new entry for this dataset
-      D[[dsn]] <- ts[[i]][["raw"]]
-      D[[dsn]] <- rm_existing_tables(D[[dsn]], pc)
+  tryCatch({
+    # Do some collapse stuff
+    for(i in 1:length(ts)){
+      pc <- paste0(ts[[i]][["mode"]], "Data")
+      # First occurance of this dataset. Add the raw data to the dataset library.
+      if(!ts[[i]][["dataSetName"]] %in% names(D)){
+        dsn <- ts[[i]][["dataSetName"]]
+        print(paste0("collapsing: ", dsn))
+        # Recover paleoData and chronData from raw data
+        D[[dsn]] <- put_base_data(ts[[i]])
+        # Remove the old summary and measurement tables, as we'll be writing these fresh. Other tables as-is.
+        D[[dsn]] <- rm_existing_tables(D[[dsn]], pc)
+        # Collapse root data keys (pub, funding, archiveType, etc)
+        D[[dsn]] <- collapse_root(D[[dsn]], ts[[i]], pc)
+      }
+      # Use the time series entry to overwrite the (old) raw data for this column
+      D[[dsn]] <- collapse_table(D[[dsn]], ts[[i]], pc)    
     }
-    # Use the time series entry to overwrite the (old) raw data for this column
-    D[[dsn]] <- collapse_table(D[[dsn]], ts[[i]], pc)    
-  }
-  
-  # Is there only one dataset after all this? Set it directly in D. 
-  if(length(D)==1){
-    D<-D[[1]]
-  }
+    # Is there only one dataset after all this? Set it directly in D. 
+    if(length(D)==1){
+      D<-D[[1]]
+    }
+  }, error=function(cond){
+    print(paste0("Error: collapseTs: ", cond))
+  })
   return(D)
 }
 
-
-collapse_root <- function(){
-  
+collapse_root <- function(d, entry, pc){
+  exclude <- c("mode", "measurementTableNumber", "paleoNumber", "summaryTableNumber", 
+               "raw", "depth", "depthUnits", "age", "ageUnits")
+  ts_keys <- names(entry)
+  pub <- list()
+  funding <- list()
+  geo <- list(geometry=list(coordinates=list(NA, NA, NA), type="Point"), properties=list())
+  for(i in 1:length(ts_keys)){
+    key <- ts_keys[[i]]
+    # Filter all the keys we don't want
+    if(!(grepl(pc, key)) && !(key %in% exclude)){
+      if(grepl("geo", key)){
+        m <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
+        g_key = m[[1]][[3]]
+        if(g_key == "longitude" || g_key == "meanLon"){
+          geo[["geometry"]][["coordinates"]][[1]] <- entry[[key]]
+        } else if (g_key == "latitude" || g_key == "meanLat"){
+          geo[["geometry"]][["coordinates"]][[2]] <- entry[[key]]
+        } else if (g_key == "elevation" || g_key == "meanElev"){
+          geo[["geometry"]][["coordinates"]][[3]] <- entry[[key]]
+        } else if (g_key == "type"){
+          geo[["type"]] <- entry[[key]]
+        } else {
+          geo[["properties"]][[g_key]] <- entry[[key]]
+        }
+      } else if(grepl("pub", key)){
+        pub <- collapse_block(entry, pub, key)
+      } else if(grepl("funding", key)){
+        funding <- collapse_block(entry, funding, key)
+      } else{
+        # Root key that is not a special case; move it right on over
+        d[[key]] <- entry[[key]]
+      }
+    }
+  }
+  d[["pub"]] <- pub
+  d[["funding"]] <- funding
+  d[["geo"]] <- geo
+  return(d)
 }
 
-collapse_author <- function(){
-  
+collapse_author <- function(d, entry){
+  return(d)
 }
 
 #' Collapse time series section; paleo or chron 
@@ -86,27 +128,10 @@ collapse_column <- function(table, entry, pc){
   tryCatch({
     for(i in 1:length(ts_keys)){
       if (grepl("interpretation", ts_keys[[i]])){
-        # ts_key / 1,1 "interpretation1_direction" / 1,2 "interpretation" / 1,3: "1" /  1,4: "direction"
-        ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)(\\d+)[_](\\w+)")
-        if(!isNullOb(ts_key[[1]])){
-          tryCatch({
-            interp[[as.numeric(ts_key[[1]][[3]])]] <- entry[[ts_keys[[i]]]]
-          }, error=function(cond){
-            interp[[as.numeric(ts_key[[1]][[3]])]] <- list()
-            interp[[as.numeric(ts_key[[1]][[3]])]] <- entry[[ts_keys[[i]]]]
-          })
-        }
+        interp <- collapse_block(entry, interp, ts_keys[[i]])
       }
       else if (grepl("calibration", ts_keys[[i]])){
-        ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)(\\d+)[_](\\w+)")
-        if(!isNullOb(ts_key[[1]])){
-          tryCatch({
-            calib[[as.numeric(ts_key[[1]][[3]])]] <- entry[[ts_keys[[i]]]]
-          }, error=function(cond){
-            calib[[as.numeric(ts_key[[1]][[3]])]] <- list()
-            calib[[as.numeric(ts_key[[1]][[3]])]] <- entry[[ts_keys[[i]]]]
-          })
-        }
+        calib <- collapse_block(entry, calib, ts_keys[[i]])
       } else {
         # ts_key / 1,1 "paleoData" / 1,2 "_" / 1,3 "someKey"
         ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)[_](\\w+)")
@@ -155,6 +180,26 @@ get_crumbs <- function(ts){
     stop(paste0("Error: ", cond))
   })
   return(matches)
+}
+
+#' Collapse all blocks listed: funding, publication calibration, interpretation
+#' These follow the regex format of "<key1><idx>_<key2>"
+#' @export
+#' @param list entry: Time series entry
+#' @param list l: Metadata (to append to)
+#' @param char key: Key from time series entry
+#' @return list l: Metadata
+collapse_block <- function(entry, l, key){
+  match <- stringr::str_match_all(key, "(\\w+)(\\d+)[_](\\w+)")
+  if(!isNullOb(match[[1]])){
+    tryCatch({
+      l[[as.numeric(match[[1]][[3]])]] <- entry[[key]]
+    }, error=function(cond){
+      l[[as.numeric(match[[1]][[3]])]] <- list()
+      l[[as.numeric(match[[1]][[3]])]] <- entry[[key]]
+    })
+  }
+  return(l)
 }
 
 #' Get the target table
@@ -217,6 +262,22 @@ rm_existing_tables <- function(d, pc){
         }
       }
     }
+  }
+  return(d)
+}
+
+#' Put in paleoData and chronData as the base for this dataset using the pre-extractTs data.  
+#' @export
+#' @param list d: Metadata
+#' @param char pc: paleoData or chronData
+#' @return list d: Metadata
+put_base_data <- function(entry){
+  d <- list()
+  if("paleoData" %in% names(entry[["raw"]])){
+    d[["paleoData"]] <- entry[["raw"]][["paleoData"]]
+  }
+  if("chronData" %in% names(entry[["raw"]])){
+    d[["chronData"]] <- entry[["raw"]][["chronData"]]
   }
   return(d)
 }
