@@ -2,6 +2,10 @@ function [ newname ,changed] = convertName(field,name)
 %converts variable name to standardized name
 load nameCon.mat
 
+if ~exist('lastUpdated')
+   lastUpdated =  0;
+end
+
 if ((now-lastUpdated)*1440)>30
     updateNameConverterFromGoogle;
 end

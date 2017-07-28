@@ -1,8 +1,11 @@
 
 function writeLiPDFile(LiPDStruct,bagit,outdir)
 load LiPDUtilitiesPreferences.mat
-LiPDVersion = '1.3';
-LiPDStruct.LiPDVersion = LiPDVersion;
+if ~isfield(LiPDStruct,'LiPDVersion')
+    LiPDVersion = '1.2';
+    LiPDStruct.LiPDVersion = LiPDVersion;
+end
+
 LiPDStruct.createdBy = 'matlab';
 
 

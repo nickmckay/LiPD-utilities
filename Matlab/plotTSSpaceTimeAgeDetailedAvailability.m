@@ -28,7 +28,7 @@ style_t = {'FontName',FontName,'Fontweight','Bold','Fontsize',16};
 style_l = {'FontName',FontName};
 %figpath = '../../figs/synopsis/';
 
-%%
+
 TSall = TS;
 values = {TS.paleoData_values};
 cellcol = find(cellfun(@iscell,{TS.paleoData_values}));
@@ -38,6 +38,9 @@ good = setdiff(1:length(TSall),allnan);
 TS=TSall(good);
 
 notCell = find(~cellfun(@iscell,{TS.age}) & ~cellfun(@isempty,{TS.age}));
+check = find(cellfun(@iscell,{TS.age}));
+
+
 if length(notCell)>1
 TS=TS(notCell);
 end
@@ -48,7 +51,7 @@ maxage = num2cell(cellfun(@nanmax,{TS.age}));
 [TS.maxage] = maxage{:};
 
 
-%%
+
 %pull relevant data from TS
 TS = convertNamesTS(TS,'archiveType');
 archive={TS.archiveType}';
@@ -70,6 +73,7 @@ ageMin(ageMin < 000) = 000;
 ageMin(ageMin > 10000) = 10000;
 ageMax(ageMax < 000) = 000;
 
+
 p_lon = nan(length(TS),1);
 p_lat=p_lon;
 goodLon = find(~cellfun(@isempty,{TS.geo_meanLon}));
@@ -77,6 +81,8 @@ goodLat = find(~cellfun(@isempty,{TS.geo_meanLat}));
 
 p_lon(goodLon)=cell2mat({TS.geo_meanLon}');
 p_lat(goodLat)=cell2mat({TS.geo_meanLat}');
+
+medRes = calculateMedianResolutionTS(TS,'age',0,10000);
 
 %%
 % extract archive types and assign colors
@@ -112,7 +118,7 @@ end
 Graph=Graph([2 5 3 9 10 11],:);
 
 
-%%
+
 % DEFINE TIME AXIS AND AVAILABILITY
 % avail = ~isnan(proxy);
 ny = length(age);
@@ -142,19 +148,19 @@ for a = 1:na % loop over archive types
     leg_lbl{a} = [archiveType{a} ' (' int2str(nArch(a)) ')'];
     %disp(leg_lbl{a})
 end
-
+%%
 % =============
 % PLOT SPACETIME COVERAGE
 % =============
 n1000 = ceil(sum(nproxy(age == 1000,:))/10)*10;
 ns    = length(unique({TS.dataSetName})); % # of sites
-versl = strrep(vers,'_','.');
+%versl = strrep(vers,'_','.');
 fig('OnsetSpaceTime'), clf
 orient landscape
 set(gcf,'PaperPositionMode','auto')
 set(gcf, 'Position', [440   144   896   654])
 % plot spatial distribution
-hmap=axes('Position', [.05 0.45 0.75 0.5]);
+hmap=axes('Position', [.0 0.45 0.45 0.5]);
 m_proj('stereographic','lat',90,'long',45,'radius',35,'rotangle',45)
 m_coast('patch',[.9 .9 .9]);
 m_grid('xtick',6,'ytick',[60 70 80],'xticklabel',[ ],'xlabeldir','middle', 'fontsize',4,'fontname',FontName);
@@ -162,34 +168,63 @@ m_grid('xtick',6,'ytick',[60 70 80],'xticklabel',[ ],'xlabeldir','middle', 'font
 for r = 1:nr
     h(r) = m_line(p_lon(r),p_lat(r),'marker',Graph{p_code(r),2},'MarkerEdgeColor',edgec{r},'MarkerFaceColor',Graph{p_code(r),1},'linewidth',[1],'MarkerSize',[7],'linestyle','none');
 end
-text(-2,1.75,['Iso2k network version ' versl ' (',int2str(nr) , ' records from ', int2str(ns), ' sites)'],style_t{:});
-% legend
-hl = legend(h(pind),leg_lbl,'location',[.84 .6 .1 .2],style_l{:});
-set(hl, 'FontName', FontName,'box','off');
+text(-2,1.75,[int2str(nr) , ' records from ', int2str(ns), ' sites'],style_t{:});
+title('a) Archive Type',style_t{:});
+
+
+
 % TEMPORAL AVAILABILITY
 hstack=axes('Position', [0.1 0.1 0.8 0.29]);
 cmap=cell2mat(Graph(:,1));
-colormap(cmap);
+colormap(hstack,cmap);
 area(age,nproxy,'EdgeColor','w'), set(gca,'YAxisLocation','Right');
 xlim([0 10000])
 set(gca,'XDir','reverse')
 fancyplot_deco('','age (yr BP)','# timeseries',14,'Helvetica');
-title('Temporal Availability',style_t{:})
-% inset
-if inset
-frac=.5;
-hstackin=axes('Position', [0.1 0.2 frac*.8 0.14]);
-area(age,nproxy,'EdgeColor','w')
-axis([1 1000 0 n1000])
-set(hstackin,'xtick',[],'box','off','TickDir','out','TickLength',[.02 .02],'YMinorTick','on', 'YGrid','on')
-set(hstackin,'YAxisLocation','Right')
-set(hstackin,'FontName',FontName,'YColor', [.3 .3 .3])
-title('First Millennium',style_l{:})
+title('c) Temporal Availability',style_t{:})
+
+
+% legend
+hl = legend(h(pind),leg_lbl,'location',[.34 .75 .1 .2],style_l{:});
+set(hl, 'FontName', FontName,'box','on');
+
+
+%plot resolution
+hmap2=axes('Position', [.45 0.45 0.45 0.5]);
+m_proj('stereographic','lat',90,'long',45,'radius',35,'rotangle',45)
+m_coast('patch',[.9 .9 .9]);
+m_grid('xtick',6,'ytick',[60 70 80],'xticklabel',[ ],'xlabeldir','middle', 'fontsize',4,'fontname',FontName);
+scheme = 'RdYlBu'; cx = [1,500];
+nc = 11; % number of color contours
+colR = t2c_brewer(medRes,nc,scheme,cx);
+% loop over records
+for r = 1:nr
+    h(r) = m_line(p_lon(r),p_lat(r),'marker',Graph{p_code(r),2},'MarkerEdgeColor','none','MarkerFaceColor',colR(r,:),'linewidth',0.5,'MarkerSize',7,'linestyle',':');
 end
+
+
+% colorbar
+ogSize = get(gca, 'Position'); caxis(cx)
+hc = colorbar(); dtm = 1/12;
+ytl = [1, 100, 200, 300, 400, 500]';
+yt = (ytl);
+pos = get(hc,'Position');
+set(hc,'YTick',yt,'YLim',cx,'Position',[pos(1)+0.05,pos(2),pos(3),pos(4)]);
+set(hc,'YTickLabel',rats(ytl),'FontName','Helvetica');
+ylabel(hc,'Median Resolution (yr)','FontName','Helvetica','FontName','Helvetica','FontSize',round(.86*14));
+set(gca,'Position',ogSize);
+title('b) Resolution',style_t{:});
+hold on
+
+
+
+%%
+
+
 %pause; % manually adjust the size of the figure
    %figpath = [strrep(userpath,':','/') 'tempfigs/'];
-   fname = ['~/Dropbox/AHT/OnsetPaper/Manuscript/Figures/Onset_spacetime.tif'];
-   export_fig([fname],'-r300');
+   fname = ['~/Dropbox/AHT/OnsetPaper/Manuscript/Figures/Onset_spacetime.pdf'];
+   export_fig([fname]);
    %hepta_figprint(['../../figs/synopsis/PAGES2K_phase2_' vers '_spacetime']);
    %saveFigure([figpath fname '_saveFigure.pdf']); %'painters', true
    %plot2svg([figpath fname '.svg']);

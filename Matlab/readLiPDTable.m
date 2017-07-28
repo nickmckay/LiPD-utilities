@@ -71,6 +71,12 @@ newMethod = 1;%use read table if possible
                         catch DO3
                             try  cT.columns{j}.values=cell2mat(cT.columns{j}.values);
                             catch DO4
+                                try  cT.columns{j}.values=forceCell2Mat(cT.columns{j}.values);
+                                catch DO5
+                                end
+                                
+                                
+                                
                             end
                             
                         end

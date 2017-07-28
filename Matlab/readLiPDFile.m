@@ -166,7 +166,7 @@ cd(p)
 %%%%%UPDATE TO MOST RECENT VERSION
 P=convertLiPD1_0to1_1(P);
 P=convertLiPD1_1to1_2(P);
-%P=convertLiPD1_2to1_3(P);
+P=convertLiPD1_2to1_3(P);
 
 
 %end

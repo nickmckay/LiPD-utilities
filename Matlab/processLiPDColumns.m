@@ -22,23 +22,54 @@ for j=1:length(I.columns)
     
     I.(newname)=I.columns{j};
     
-        
+    %try to make cells, not cells
+    
+    
+    
     %calculate summary statistics on columns
     values = I.(newname).values;
-    if ~iscell(values)
-    I.(newname).hasMaxValue = nanmax(values);
-    I.(newname).hasMinValue = nanmin(values);
-    I.(newname).hasMeanValue = nanmean(values);
-    I.(newname).hasMedianValue = nanmedian(values);
     
+    %replace missing values
+    if isfield(I.(newname),'missingValue')
+        torep = find(strcmp(I.(newname).missingValue,values));
+        if length(torep)>0
+            if ~iscell(values)
+                values(torep)   = nan(length(torep),1);
+            else
+                values(torep)   = repmat({NaN},length(torep),1);
+            end
+        end
+    end
+    
+    %also replace NaN and NA
+    torep = find(strcmpi('NaN',values) | strcmp('NA',values));
+    if length(torep)>0
+        if ~iscell(values)
+            values(torep)   = nan(length(torep),1);
+        else
+            values(torep)   = repmat({NaN},length(torep),1);
+        end
+    end
+    
+    
+    I.(newname).missingValue = 'NaN';
+    
+    if ~iscell(values)
+        I.(newname).hasMaxValue = nanmax(values);
+        I.(newname).hasMinValue = nanmin(values);
+        I.(newname).hasMeanValue = nanmean(values);
+        I.(newname).hasMedianValue = nanmedian(values);
+        
     else
         
     end
-    I.(newname).missingValue = NaN;
     
     
-
-
+    I.(newname).values = values;
+    
+    
+    
+    
     
 end
 I=rmfield(I,'columns');

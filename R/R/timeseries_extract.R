@@ -124,28 +124,46 @@ extractTs= function(D, chron=NULL){
           #loop through all of these. 
           for(hi in hierData){#Currently, this only handles numbered instances (like interpretation) at the second level...
             thisHierData = coldata[[hi]]
-            hierGrab = which(!sapply(thisHierData,is.list))
+            #hierGrab = which(!sapply(thisHierData,is.list))
+            hierGrab = 1:length(thisHierData)
+            
+  
+            
+            
             for(hieri in hierGrab){
-              #assign in non lists
-              TS[[ts]][[paste0(names(coldata)[hi],"_",names(thisHierData)[hieri])]] = thisHierData[[hieri]] 
               
-              hierListGrab = which(sapply(thisHierData,is.list))#find lists within the hierData (this is the last level for now)
-              for(hieriListi in hierListGrab){
-                doubleHierGrab = 1:length(thisHierData[[hieriListi]]) #grab everything inside that list
+              #is it an unnamed, instanced, list?
+              if(is.null(names(thisHierData))){#if so, we want to add in a number:
+                thdNumber = as.character(hieri)
+              }else{
+                thdNumber = ""
+              }
+              
+              
+              
+              
+              if(!is.list(thisHierData[[hieri]])){
+              #assign in non lists
+              TS[[ts]][[paste0(names(coldata)[hi],thdNumber,"_",names(thisHierData)[hieri])]] = thisHierData[[hieri]] 
+              
+              }else{
+              #hierListGrab = which(sapply(thisHierData,is.list))#find lists within the hierData (this is the last level for now)
+              #for(hieriListi in hierListGrab){
+                doubleHierGrab = 1:length(thisHierData[[hieri]]) #grab everything inside that list
                 
                 
                 
                 #assign in
                 for(dhieri in doubleHierGrab){
                   #is it an unnamed, instanced, list?
-                  if(is.null(names(thisHierData[[hieriListi]]))){#if so, we want to add in a number:
-                    for(unni in 1:length(thisHierData[[hieriListi]])){
-                      for(inunni in 1:length(names(thisHierData[[hieriListi]][[dhieri]])))
-                        TS[[ts]][[paste0(names(coldata)[hi],"_",names(thisHierData)[hieriListi],as.character(unni),"_",names(thisHierData[[hieriListi]][[dhieri]])[inunni])]] = thisHierData[[hieriListi]][[dhieri]][[inunni]]
+                  if(is.null(names(thisHierData[[hieri]]))){#if so, we want to add in a number:
+                    for(unni in 1:length(thisHierData[[hieri]])){
+                      for(inunni in 1:length(names(thisHierData[[hieri]][[dhieri]])))
+                        TS[[ts]][[paste0(names(coldata)[hi],thdNumber,"_",names(thisHierData)[hieri],as.character(unni),"_",names(thisHierData[[hieri]][[dhieri]])[inunni])]] = thisHierData[[hieri]][[dhieri]][[inunni]]
                     }
                     
                   }else{#then just assign in normally
-                    TS[[ts]][[paste0(names(coldata)[hi],"_",names(thisHierData)[hieriListi],"_",names(thisHierData[[hieriListi]])[dhieri])]] = thisHierData[[hieriListi]][[dhieri]]
+                    TS[[ts]][[paste0(names(coldata)[hi],thdNumber,"_",names(thisHierData[[hieri]])[dhieri])]] = thisHierData[[hieri]][[dhieri]]
                     
                   }
                   
