@@ -51,10 +51,15 @@ create_tmp_dir <- function(){
 #' @param char path Target path
 #' @return char path Directory or file path
 get_src_or_dst<- function(path){
+  print(path)
   if (!(isNullOb(path))){
     # If the provided path is not a directory and not a lipd file path, then it's not valid
+    print("Path is provided. NOT null.")
+    print(paste0("file extension: ", tools::file_ext(path)))
+    print(paste0("isDirectory?: ", isDirectory(path)))
     if (!isDirectory(path) && tools::file_ext(path) != "lpd"){
       # Not a lipd file and not a directory. Stop execution and quit. 
+      print("Reached the error.")
       stop("Error: The provided path must be a directory or a LiPD file")
     } 
   } else {

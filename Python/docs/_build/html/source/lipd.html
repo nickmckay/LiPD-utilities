@@ -94,7 +94,7 @@
 <li><a class="reference internal" href="#module-lipd.ensembles">ensembles</a></li>
 <li><a class="reference internal" href="#module-lipd.excel">excel</a></li>
 <li><a class="reference internal" href="#module-lipd.inferred_data">inferred_data</a></li>
-<li><a class="reference internal" href="#module-lipd.io">io</a></li>
+<li><a class="reference internal" href="#io">io</a></li>
 <li><a class="reference internal" href="#module-lipd.jsons">jsons</a></li>
 <li><a class="reference internal" href="#module-lipd.loggers">loggers</a></li>
 <li><a class="reference internal" href="#module-lipd.lpd_noaa">lpd_noaa</a></li>
@@ -1258,41 +1258,8 @@ Keep a growing list of all titles that are being used in the json_ld context
 </dd></dl>
 
 </div>
-<div class="section" id="module-lipd.io">
-<span id="io"></span><h2>io<a class="headerlink" href="#module-lipd.io" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="lipd.io.lipd_read">
-<code class="descclassname">lipd.io.</code><code class="descname">lipd_read</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.io.lipd_read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads a LiPD file from local path. Unzip, read, and process data
-Steps: create tmp, unzip lipd, read files into memory, manipulate data, move to original dir, delete tmp.
-:param str path: Source path
-:return none:</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="lipd.io.lipd_write">
-<code class="descclassname">lipd.io.</code><code class="descname">lipd_write</code><span class="sig-paren">(</span><em>_json</em>, <em>path</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.io.lipd_write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves current state of LiPD object data. Outputs to a LiPD file.
-Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,</p>
-<blockquote>
-<div>zip up bag folder, place lipd in target dst, move to original dir, delete tmp</div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>_json</strong> (<em>dict</em>) – Metadata</li>
-<li><strong>path</strong> (<em>str</em>) – Destination path</li>
-<li><strong>name</strong> (<em>str</em>) – Filename w/o extension</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<div class="section" id="io">
+<h2>io<a class="headerlink" href="#io" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-lipd.jsons">
 <span id="jsons"></span><h2>jsons<a class="headerlink" href="#module-lipd.jsons" title="Permalink to this headline">¶</a></h2>
