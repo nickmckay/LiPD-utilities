@@ -53,20 +53,6 @@ hasData <- function(path, i){
 #' @return boolean
 isNullOb <- function(x) is.null(x) | all(sapply(x, is.null))
 
-#' Checks if a path is a directory or not a directory
-#' @export
-#' @keywords internal
-#' @param s Target path
-#' @return boolean
-isDirectory <- function(s){
-  # Get the basename (last item in file path), and check it for a file extension
-  # If there is not a file extension (like below), then we can assume that it's a directory
-  if (tools::file_ext(basename(s)) == ""){
-    return(TRUE)
-  }
-  # No file extension. Assume it's a file and not a directory
-  return(FALSE)
-} 
 
 #' Make geo semi-flat. Remove unnecessary levels between us and data.
 #' @export

@@ -51,22 +51,22 @@ create_tmp_dir <- function(){
 #' @param char path Target path
 #' @return char path Directory or file path
 get_src_or_dst<- function(path){
-  print(path)
-  if (!(isNullOb(path))){
-    # If the provided path is not a directory and not a lipd file path, then it's not valid
-    print("Path is provided. NOT null.")
-    print(paste0("file extension: ", tools::file_ext(path)))
-    print(paste0("isDirectory?: ", isDirectory(path)))
-    if (!isDirectory(path) && tools::file_ext(path) != "lpd"){
-      # Not a lipd file and not a directory. Stop execution and quit. 
-      print("Reached the error.")
-      stop("Error: The provided path must be a directory or a LiPD file")
-    } 
-  } else {
-    # Path was not given. Start prompts
-    ans <- ask_how_many()
-    path <- browse_dialog(ans)
-  }
+  tryCatch({
+    if (!(isNullOb(path))){
+      # If the provided path is not a directory and not a lipd file path, then it's not valid
+      if (!isDirectory(path) && tools::file_ext(path) != "lpd"){
+        # Not a lipd file and not a directory. Stop execution and quit. 
+        stop("Error: The provided path must be a directory or a LiPD file")
+      } 
+    } else {
+      # Path was not given. Start prompts
+      ans <- ask_how_many()
+      path <- browse_dialog(ans)
+    }
+  }, error=function(cond){
+    print(paste0("Error: get_src_or_dst: ", cond))
+  })
+
   return(path)
 }
 
@@ -77,16 +77,11 @@ get_src_or_dst<- function(path){
 #' @return list files File paths to LiPD files
 get_lipd_paths <- function(path){
   files <- list()
-  print(paste0("Path Given: ", path))
   if (isDirectory(path)){
-    print(paste0("Path is a directory"))
     files <- list.files(path=path, pattern='\\.lpd$', full.names = TRUE)
   } else if(tools::file_ext(path) == "lpd"){
-    print(paste0("Path is a file"))
     files[[1]] <- path
   }
-  print("Files found: ")
-  print(files)
   return(files)
 }
 
@@ -119,5 +114,20 @@ find_data_dir <- function(){
   dir_data <- dirname(files[[1]])
   return(dir_data)
 }
+
+#' Checks if a path is a directory or not a directory
+#' @export
+#' @keywords internal
+#' @param s Target path
+#' @return boolean
+isDirectory <- function(s){
+  # Get the basename (last item in file path), and check it for a file extension
+  # If there is not a file extension (like below), then we can assume that it's a directory
+  if (tools::file_ext(basename(s)) == ""){
+    return(FALSE)
+  }
+  # No file extension. Assume it's a file and not a directory
+  return(TRUE)
+} 
 
 
