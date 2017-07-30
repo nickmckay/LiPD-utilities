@@ -66,7 +66,6 @@ get_src_or_dst<- function(path){
   }, error=function(cond){
     print(paste0("Error: get_src_or_dst: ", cond))
   })
-
   return(path)
 }
 
@@ -123,11 +122,12 @@ find_data_dir <- function(){
 isDirectory <- function(s){
   # Get the basename (last item in file path), and check it for a file extension
   # If there is not a file extension (like below), then we can assume that it's a directory
+  print(tools::file_ext(basename(s)))
   if (tools::file_ext(basename(s)) == ""){
-    return(FALSE)
+    return(TRUE)
   }
   # No file extension. Assume it's a file and not a directory
-  return(TRUE)
+  return(FALSE)
 } 
 
 

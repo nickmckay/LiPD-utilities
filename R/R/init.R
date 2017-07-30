@@ -15,10 +15,10 @@ readLipd <- function(path=NULL){
   path <- get_src_or_dst(path)
   # Get the explicit full paths for each lipd file
   entries <- get_lipd_paths(path)
-
   if (isNullOb(entries)){
     # Files is empty. Either not lipd files were in that path, or we had an error somewhere
     print("LiPD file(s) not found in the given path")
+    print(paste0("Path: ", path))
   } else {
     for (i in 1:length(entries)){
       j <- list()
