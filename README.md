@@ -4,7 +4,6 @@
 [![PyPI](https://img.shields.io/badge/python-3.4-yellow.svg)]()
 [![license](https://img.shields.io/github/license/nickmckay/LiPD-utilities.svg?maxAge=2592000)]()
 
-
 # LiPD Utilities
 
 Input/output and manipulation utilities for LiPD files in
@@ -28,11 +27,13 @@ Python v3.4+ is required
 
 `pip install LiPD`
 
+
 **R:**
 
 Using the devtools package:
 
 `devtools::install_github("nickmckay/LiPD-Utilities", subdir = "R")`
+
 
 **Matlab:**
 
@@ -44,11 +45,16 @@ Use the "Clone or download" button on the [Github repository](https://github.com
 
 The functions below are considered the core functions of the LiPD package. These functions are consistent across the 3 languages. The function names, parameters and returned data is the same.
 
-> `readLipd(path="")`
+ `readLipd(path="")`
+
 `writeLipd(data, path="")`
+
 `extractTs(data, chron=False)`
+
 `collapseTs(timeseries)`
+
 `filterTs(timeseries, expression)`
+
 `queryTs(timeseries, expression)`
 
 
@@ -94,15 +100,23 @@ You'll also find a set of [Jupyter](http://jupyter.org) notebooks in the example
 ## Requirements
 
 **Python**
+
 [Python 3.4+](https://www.python.org)
+
 Python IDE (Spyder or PyCharm are highly recommended)
+
 [pip](https://pip.pypa.io/en/stable/installing/)
 
+
 **R**
+
 [R language](https://cran.r-project.org)
+
 [R Studio](https://www.rstudio.com)
 
+
 **Matlab**
+
 [Matlab](https://www.mathworks.com)
 
 <!-- FURTHER INFORMATION -->
@@ -110,8 +124,11 @@ Python IDE (Spyder or PyCharm are highly recommended)
 ## Further information
 
 [Github - LiPD-utilities](https://github.com/nickmckay/LiPD-utilities)
+
 [Github - GeoChronR](https://github.com/nickmckay/GeoChronR)
+
 [Linked Earth Wiki](http://wiki.linked.earth/Main_Page)
+
 [Jupyter Documentation](www.jupyter.org)
 
 ## Contact
@@ -123,3 +140,4 @@ If you are having issues, please let me know at [heiser@nau.edu](mailto:heiser@n
 ## License
 
 The project is licensed under the [            GNU Public License](https://github.com/nickmckay/LiPD-utilities/blob/master/Python/LICENSE).
+
