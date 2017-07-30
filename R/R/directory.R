@@ -122,7 +122,6 @@ find_data_dir <- function(){
 isDirectory <- function(s){
   # Get the basename (last item in file path), and check it for a file extension
   # If there is not a file extension (like below), then we can assume that it's a directory
-  print(tools::file_ext(basename(s)))
   if (tools::file_ext(basename(s)) == ""){
     return(TRUE)
   }
