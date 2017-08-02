@@ -8,7 +8,7 @@ from .misc import is_ensemble, get_ensemble_counts
 logger_validator_api = create_logger('validator_api')
 
 
-def get_validator_format(data_json, data_csv, filenames):
+def get_validator_format(D):
     """
     Format the LIPD data in the layout that the Lipd.net validator accepts.
     Example of one _file metadata. _file_list will contain 1 or more _file's
@@ -20,9 +20,7 @@ def get_validator_format(data_json, data_csv, filenames):
         "pretty": ""
     }
 
-    :param dict data_json: Metadata
-    :param dict data_csv: CSV data
-    :param list filenames: All files found in LiPD archive
+    :param dict D: Metadata
     :return list: Validator-formatted data
     """
     # Store the metadata for each file in the _file_list

@@ -30,12 +30,10 @@ def excel_main(file):
     """
 
     os.chdir(file["dir"])
-
     name_ext = file["filename_ext"]
 
     # Filename without extension
     name = file["filename_no_ext"]
-    name_lpd = name + ".lpd"
     # remove foreign characters to prevent wiki uploading errors
     name = normalize_name(name)
     print("processing: {}".format(name_ext))
@@ -83,9 +81,9 @@ def excel_main(file):
             final = cells_dn_meta(workbook, metadata_str, 0, 0, final)
 
         # Now that we have the dataSetName, we can use it to build filenames
-        name = __get_datasetname(final, name)
-        name_lpd = name + ".lpd"
-        sheets = __set_sheet_filenames(sheets, name)
+        dsn = __get_datasetname(final, name)
+        filename = str(dsn) + ".lpd"
+        sheets = __set_sheet_filenames(sheets, dsn)
 
         dir_bag = os.path.join(dir_tmp, name)
         dir_data = os.path.join(dir_bag, 'data')
@@ -146,12 +144,12 @@ def excel_main(file):
         os.chdir(file["dir"])
 
         # Check if same lpd file exists. If so, delete so new one can be made
-        if os.path.isfile(name_lpd):
-            os.remove(name_lpd)
+        if os.path.isfile(filename):
+            os.remove(filename)
 
         # Zip dir_bag. Creates in dir_root directory
         logger_excel.info("re-zip and rename")
-        zipper(path_name_ext=name_lpd, root_dir=dir_tmp, name=name)
+        zipper(path_name_ext=filename, root_dir=dir_tmp, name=name)
 
     # Move back to dir_root for next loop.
     os.chdir(file["dir"])
@@ -159,7 +157,7 @@ def excel_main(file):
     # Cleanup and remove tmp directory
     shutil.rmtree(dir_tmp)
 
-    return name_lpd
+    return dsn
 
 
 # SORT THROUGH WORKSHEETS

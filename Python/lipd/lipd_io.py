@@ -4,7 +4,7 @@ from .bag import create_bag
 from .csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata
 from .jsons import write_json_to_file, idx_num_to_name, idx_name_to_num, rm_empty_fields, read_jsonld
 from .loggers import create_logger
-from .misc import put_tsids, check_dsn, rm_empty_doi, rm_values_fields
+from .misc import put_tsids, check_dsn, get_dsn, rm_empty_doi, rm_values_fields
 from .versions import update_lipd_version
 
 import copy
@@ -22,6 +22,7 @@ def lipd_read(path):
     """
     Loads a LiPD file from local path. Unzip, read, and process data
     Steps: create tmp, unzip lipd, read files into memory, manipulate data, move to original dir, delete tmp.
+
     :param str path: Source path
     :return none:
     """
@@ -58,14 +59,14 @@ def lipd_read(path):
 # WRITE
 
 
-def lipd_write(_json, path, name):
+def lipd_write(_json, path):
     """
     Saves current state of LiPD object data. Outputs to a LiPD file.
     Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,
         zip up bag folder, place lipd in target dst, move to original dir, delete tmp
+
     :param dict _json: Metadata
     :param str path: Destination path
-    :param str name: Filename w/o extension
     :return none:
     """
     # Json is pass by reference. Make a copy so we don't mess up the original data.
@@ -76,8 +77,7 @@ def lipd_write(_json, path, name):
         dir_bag = os.path.join(dir_tmp, "bag")
         os.mkdir(dir_bag)
         os.chdir(dir_bag)
-        _json_tmp = check_dsn(name, _json_tmp)
-        _dsn = _json_tmp["dataSetName"]
+        _dsn = get_dsn(_json_tmp)
         _dsn_lpd = _dsn + ".lpd"
         _json_tmp, _csv = get_csv_from_metadata(_dsn, _json_tmp)
         write_csv_to_file(_csv)
@@ -92,6 +92,7 @@ def lipd_write(_json, path, name):
         shutil.rmtree(dir_tmp)
     except Exception as e:
         logger_lipd.error("lipd_write: {}".format(e))
+        print("Error: lipd_write: {}".format(e))
     return
 
 

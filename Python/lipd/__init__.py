@@ -9,7 +9,7 @@ from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
 from lipd.loggers import create_logger, log_benchmark, create_benchmark
 from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields
 from lipd.ensembles import create_ensemble, insert_ensemble
-from lipd.validator_api import get_validator_results, display_results
+from lipd.validator_api import get_validator_results, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
 
 from time import clock
@@ -55,7 +55,6 @@ def readLipd(usr_path=""):
     __read(usr_path, ".lpd")
     _d = __read_lipd_contents()
     end = clock()
-    print("Finished read: {} records".format(len(_d)))
     logger_benchmark.info(log_benchmark("readLipd", start, end))
     return _d
 
@@ -139,15 +138,15 @@ def excel():
     # Loop for each excel file
     for file in files[".xls"]:
         # Convert excel file to LiPD
-        filename = excel_main(file)
+        dsn = excel_main(file)
         try:
             # Read the new LiPD file back in, to get fixes, inferred calculations, updates, etc.
-            _d[filename] = readLipd(os.path.join(file["dir"], filename))
+            _d[dsn] = readLipd(os.path.join(file["dir"], dsn, ".lpd"))
             # Write the modified LiPD file back out again.
-            writeLipd(_d, cwd, filename)
         except Exception as e:
-            logger_start.error("excel: Unable to read/write new LiPD file, {}".format(e))
-            print("Error: Unable to process new LiPD file: {}, {}".format(filename, e))
+            logger_start.error("excel: Unable to read new LiPD file, {}".format(e))
+            print("Error: Unable to read new LiPD file: {}, {}".format(dsn, e))
+    writeLipd(_d, cwd)
     # Time!
     end = clock()
     logger_benchmark.info(log_benchmark("excel", start, end))
@@ -219,35 +218,28 @@ def doi():
     return
 
 
-# TODO Not adapted to objectless utilties. Does it need an update?
-# def validate(detailed=True, fetch_new_results=True):
-#     """
-#     Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
-#     Display the PASS/FAIL results. Display detailed results if the option is chosen.
-#     :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors.
-#     :param bool fetch_new_results: Defaults to fetching new validation results each call
-#     :return none:
-#     """
-#     start = clock()
-#     print("\n")
-#     # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
-#     if fetch_new_results:
-#         print("Fetching results from validator at lipd.net/validator... this may take a few moments.\n")
-#         # Get the validator-formatted data for each LiPD file in the LiPD Library.
-#         # A list of lists of LiPD-content metadata
-#         d = lipd_lib.get_data_for_validator()
-#         results = get_validator_results(d)
-#         display_results(results, detailed)
-#         # Set the results inside of each LiPD object
-#         for entry in results:
-#             lipd_lib.put_validator_results(entry)
-#     # Check for previous validator results. Display those rather than running the validator again. (faster)
-#     else:
-#         results = lipd_lib.get_validator_results()
-#         display_results(results, detailed)
-#     end = clock()
-#     logger_benchmark.info(log_benchmark("validate", start, end))
-#     return
+def validate(D, detailed=True):
+    """
+    Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
+    Display the PASS/FAIL results. Display detailed results if the option is chosen.
+
+    :param dict D: Metadata
+    :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors
+    :return none:
+    """
+    start = clock()
+    print("\n")
+    # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
+    print("Fetching results from validator at lipd.net/validator... this may take a few moments.\n")
+    # Get the validator-formatted data for each dataset.
+    _d = get_validator_format(D)
+    # A list of lists of LiPD-content metadata
+    results = get_validator_results(_d)
+    display_results(results, detailed)
+
+    end = clock()
+    logger_benchmark.info(log_benchmark("validate", start, end))
+    return
 
 
 # PUT
@@ -687,18 +679,17 @@ def getCsv(L=None):
 
 # WRITE
 
-def writeLipd(dat, usr_path="", filename=""):
+def writeLipd(dat, path=""):
     """
     Write LiPD data to file(s)
 
     :param dict dat: Metadata
-    :param str usr_path: Destination (optional)
-    :param str filename: LiPD filename, for writing one specific file (optional)
+    :param str path: Destination (optional)
     :return none:
     """
     global settings
     start = clock()
-    __write_lipd(dat, usr_path, filename)
+    __write_lipd(dat, path)
     end = clock()
     logger_benchmark.info(log_benchmark("writeLipd", start, end))
     return
@@ -803,13 +794,14 @@ def __read_lipd_contents():
     """
     global files
     _d = {}
-
     try:
-        if len(files) == 1:
-            _d = lipd_read(files[0]["full_path"])
+        if len(files[".lpd"]) == 1:
+            _d = lipd_read(files[".lpd"][0]["full_path"])
+            print("Finished read: 1 record")
         else:
             for file in files[".lpd"]:
                 _d[file["filename_no_ext"]] = lipd_read(file["full_path"])
+            print("Finished read: {} records".format(len(_d)))
     except Exception as e:
         print("Error: read_lipd_contents: {}".format(e))
     return _d
@@ -876,13 +868,13 @@ def __read_directory(usr_path, file_type):
     return
 
 
-def __write_lipd(dat, usr_path, filename):
+def __write_lipd(dat, usr_path):
     """
-    Write LiPD data to file, provided an output directory and filename.
+    Write LiPD data to file, provided an output directory and dataset name.
 
-    :param dict dat: LiPD data
-    :param str usr_path: Directory destination
-    :param str filename: Target file
+    :param dict dat: Metadata
+    :param str usr_path: Destination path
+    :param str dsn: Dataset name of one specific file to write
     :return none:
     """
     global settings
@@ -895,13 +887,15 @@ def __write_lipd(dat, usr_path, filename):
     # If dir path is valid
     if valid_path:
         # Filename is given, write out one file
-        if filename:
+        if "paleoData" in dat:
             try:
                 if settings["verbose"]:
-                    print("writing: {}".format(filename))
-                lipd_write(dat[filename], usr_path, filename)
+                    print("writing: {}".format(dat["dataSetName"]))
+                lipd_write(dat, usr_path)
+            except KeyError as ke:
+                print("Error: Unable to write file: unknown, {}".format(ke))
             except Exception as e:
-                print("Error: Unable to write file: {}, {}".format(filename, e))
+                print("Error: Unable to write file: {}, {}".format(dat["dataSetName"], e))
         # Filename is not given, write out whole library
         else:
             if dat:
@@ -909,7 +903,7 @@ def __write_lipd(dat, usr_path, filename):
                     try:
                         if settings["verbose"]:
                             print("writing: {}".format(name))
-                        lipd_write(lipd_dat, usr_path, name)
+                        lipd_write(lipd_dat, usr_path)
                     except Exception as e:
                         print("Error: Unable to write file: {}, {}".format(name, e))
 

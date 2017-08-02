@@ -227,12 +227,13 @@ def _get_inferred_data_column(column):
     return column
 
 
-def get_inferred_data_table(pc, table):
+def get_inferred_data_table(table, pc):
     """
     Table level: Dive down, calculate data, then return the new table with the inferred data.
-    :param str pc: Paleo or Chron table type
-    :param dict table: Table data
-    :return dict table: Table with new data
+
+    :param str pc: paleo or chron
+    :param dict table: Metadata
+    :return dict table: Metadata
     """
     age = None
     if pc == "paleo":

@@ -21,6 +21,7 @@ logger_misc = create_logger("misc")
 def cast_values_csvs(d, idx, x):
     """
     Attempt to cast string to float. If error, keep as a string.
+
     :param dict d: Data
     :param int idx: Index number
     :param str x: Data
@@ -41,6 +42,7 @@ def cast_values_csvs(d, idx, x):
 def cast_float(x):
     """
     Attempt to cleanup string or convert to number value.
+
     :param any x:
     :return float:
     """
@@ -57,6 +59,7 @@ def cast_float(x):
 def cast_int(x):
     """
     Cast unknown type into integer
+
     :param any x:
     :return int:
     """
@@ -85,6 +88,7 @@ def check_dsn(name, _json):
 def clean_doi(doi_string):
     """
     Use regex to extract all DOI ids from string (i.e. 10.1029/2005pa001215)
+
     :param str doi_string: Raw DOI string value from input file. Often not properly formatted.
     :return list: DOI ids. May contain 0, 1, or multiple ids.
     """
@@ -103,6 +107,7 @@ def fix_coordinate_decimal(d):
     """
     Coordinate decimal degrees calculated by an excel formula are often too long as a repeating decimal.
     Round them down to 5 decimals
+
     :param dict d: Metadata
     :return dict d: Metadata
     """
@@ -117,6 +122,7 @@ def fix_coordinate_decimal(d):
 def generate_timestamp(fmt=None):
     """
     Generate a timestamp to mark when this file was last modified.
+
     :param str fmt: Special format instructions
     :return str: YYYY-MM-DD format, or specified format
     """
@@ -131,7 +137,8 @@ def generate_tsid(size=8):
     """
     Generate a TSid string. Use the "PYT" prefix for traceability, and 8 trailing generated characters
     ex: PYT9AG234GS
-    :return:
+
+    :return str: TSid
     """
     chars = string.ascii_uppercase + string.digits
     _gen = "".join(random.choice(chars) for _ in range(size))
@@ -143,6 +150,7 @@ def get_appended_name(name, columns):
     Append numbers to a name until it no longer conflicts with the other names in a column.
     Necessary to avoid overwriting columns and losing data. Loop a preset amount of times to avoid an infinite loop.
     There shouldn't ever be more than two or three identical variable names in a table.
+
     :param str name: Variable name in question
     :param dict columns: Columns listed by variable name
     :return str: Appended variable name
@@ -163,6 +171,7 @@ def get_authors_as_str(x):
     """
     Take author or investigator data, and convert it to a concatenated string of names.
     Author data structure has a few variations, so account for all.
+
     :param any x: Author data
     :return str: Author string
     """
@@ -204,6 +213,7 @@ def get_authors_as_str(x):
 def get_dsn(d):
     """
     Get the dataset name from a record
+
     :param dict d: Metadata
     :return str: Dataset name
     """
@@ -211,15 +221,16 @@ def get_dsn(d):
     try:
         return d["dataSetName"]
     except Exception as e:
-        logger_misc.warn("get_dsn: Exception: No datasetname found: {}".format(e))
-        return "unknown_dataset"
+        logger_misc.warn("get_dsn: Exception: No datasetname found, unable to continue: {}".format(e))
+        exit(1)
 
 
 def get_ensemble_counts(d):
     """
     Determine if this is a 1 or 2 column ensemble. Then determine how many columns and rows it has.
-    :param d:
-    :return:
+
+    :param dict d: Metadata (table)
+    :return dict _rows_cols: Row and column counts
     """
     _rows_cols = {"rows": 0, "cols": 0}
     try:
@@ -255,8 +266,9 @@ def get_missing_value_key(d):
     """
     Get the Missing Value entry from a table of data. If none is found, try the columns.
     If still none found, prompt user.
+
     :param dict d: Table of data
-    :return str: Missing Value
+    :return str _mv: Missing Value
     """
     _mv = "nan"
 
@@ -292,8 +304,9 @@ def get_missing_value_key(d):
 def get_variable_name_col(d):
     """
     Get the variable name from a table or column
-    :param dict d: Metadata
-    :return str:
+
+    :param dict d: Metadata (column)
+    :return str var: Variable name
     """
     var = ""
     try:
@@ -313,10 +326,11 @@ def get_variable_name_col(d):
 def get_table_key(key, d, fallback=""):
     """
     Try to get a table name from a data table
+
     :param str key: Key to try first
     :param dict d: Data table
     :param str fallback: (optional) If we don't find a table name, use this as a generic name fallback.
-    :return str: Data table name
+    :return str var: Data table name
     """
     try:
         var = d[key]
@@ -329,6 +343,7 @@ def get_table_key(key, d, fallback=""):
 def is_ensemble(d):
     """
     Check if a table of data is an ensemble table. Is the first values index a list? ensemble. Int/float? not ensemble.
+
     :param dict d: Table data
     :return bool: Ensemble or not ensemble
     """
@@ -344,9 +359,10 @@ def is_ensemble(d):
 def load_fn_matches_ext(file_path, file_type):
     """
     Check that the file extension matches the target extension given.
+
     :param str file_path: Path to be checked
     :param str file_type: Target extension
-    :return bool:
+    :return bool correct_ext: Extension match or does not match
     """
     correct_ext = False
     curr_ext = os.path.splitext(file_path)[1]
@@ -369,10 +385,11 @@ def load_fn_matches_ext(file_path, file_type):
 def match_operators(inp, relate, cut):
     """
     Compare two items. Match a string operator to an operator function
+
     :param str inp: Comparison item
     :param str relate: Comparison operator
     :param any cut: Comparison item
-    :return bool: Comparison truth
+    :return bool truth: Comparison truth
     """
     logger_misc.info("enter match_operators")
     ops = {'>': operator.gt,
@@ -393,6 +410,7 @@ def match_operators(inp, relate, cut):
 def match_arr_lengths(l):
     """
     Check that all the array lengths match so that a DataFrame can be created successfully.
+
     :param list l: Nested arrays
     :return bool: Valid or invalid
     """
@@ -419,6 +437,7 @@ def match_arr_lengths(l):
 def mv_files(src, dst):
     """
     Move all files from one directory to another
+
     :param str src: Source directory
     :param str dst: Destination directory
     :return none:
@@ -435,8 +454,9 @@ def mv_files(src, dst):
 def normalize_name(s):
     """
     Remove foreign accents and characters to normalize the string. Prevents encoding errors.
-    :param str s:
-    :return str:
+
+    :param str s: String
+    :return str s: String
     """
     # Normalize the string into a byte string form
     s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore')
@@ -448,9 +468,10 @@ def normalize_name(s):
 def path_type(path, target):
     """
     Determine if given path is file, directory, or other. Compare with target to see if it's the type we wanted.
+
     :param str path: Path
     :param str target: Target type wanted
-    :return bool:
+    :return bool: Path is what it claims to be (True) or mismatch (False)
     """
     if os.path.isfile(path) and target == "file":
         return True
@@ -461,18 +482,10 @@ def path_type(path, target):
     return False
 
 
-def _prompt_filename():
-    """
-    Ask user if they want to provide a filename, or choose a generic time-stamped filename.
-    :return:
-    """
-    filename = ""
-    return filename
-
-
 def prompt_protocol():
     """
     Prompt user if they would like to save pickle file as a dictionary or an object.
+
     :return str: Answer
     """
     stop = 3
@@ -494,10 +507,11 @@ def prompt_protocol():
 
 def put_tsids(x):
     """
-    Recursively add in TSids into any columns that do not have them.
+    (Recursive) Add in TSids into any columns that do not have them.
     Look for "columns" keys, and then start looping and adding generated TSids to each column
-    :param any x: Recursive, so could be any data type.
-    :return any x: Recursive, so could be any data type.
+
+    :param any x: Unknown
+    :return any x: Unknown
     """
     try:
         if isinstance(x, dict):
@@ -538,9 +552,10 @@ def put_tsids(x):
 
 def rm_empty_fields(x):
     """
-    Go through N number of nested data types and remove all empty entries. Recursion
-    :param any x: Dictionary, List, or String of data
-    :return any: Returns a same data type as original, but without empties.
+    (Recursive) Go through N number of nested data types and remove all empty entries.
+
+    :param any x: Unknown
+    :return any x: Unknown
     """
     # No logger here because the function is recursive.
     # Int types don't matter. Return as-is.
@@ -579,8 +594,9 @@ def rm_empty_fields(x):
 def rm_empty_doi(d):
     """
     If an "identifier" dictionary has no doi ID, then it has no use. Delete it.
-    :param dict d: JSON Metadata
-    :return dict: JSON Metadata
+
+    :param dict d: Metadata
+    :return dict d: Metadata
     """
     logger_misc.info("enter remove_empty_doi")
     try:
@@ -605,6 +621,7 @@ def rm_empty_doi(d):
 def rm_files(path, extension):
     """
     Remove all files in the given directory with the given extension
+
     :param str path: Directory
     :param str extension: File type to remove
     :return none:
@@ -618,9 +635,10 @@ def rm_files(path, extension):
 
 def rm_values_fields(x):
     """
-    (recursive) Remove all "values" fields from the metadata
+    (Recursive) Remove all "values" fields from the metadata
+
     :param any x: Any data type
-    :return dict: metadata without "values"
+    :return dict x: Metadata (values removed)
     """
     if isinstance(x, dict):
         if "values" in x:
@@ -641,8 +659,9 @@ def rm_values_fields(x):
 def rm_missing_values_table(d):
     """
     Loop for each table column and remove the missingValue key & data
-    :param dict d: Table data
-    :return dict d: Table data
+
+    :param dict d: Metadata (table)
+    :return dict d: Metadata (table)
     """
     try:
         for k, v in d["columns"].items():
@@ -656,9 +675,10 @@ def rm_missing_values_table(d):
 def rm_keys_from_dict(d, keys):
     """
     Given a dictionary and a key list, remove any data in the dictionary with the given keys.
-    :param dict d: Data
-    :param list keys: List of key data to remove
-    :return dict d: Data (with keys + data removed)
+
+    :param dict d: Metadata
+    :param list keys: Keys to be removed
+    :return dict d: Metadata
     """
     # Loop for each key given
     for key in keys:
@@ -675,9 +695,10 @@ def rm_keys_from_dict(d, keys):
 def _replace_missing_values_table(values, mv):
     """
     Receive all table column values as a list of lists. Loop for each column of values
-    :param list values: One list per column
-    :param any mv: Missing Value being used
-    :return list: List of lists with updated "nan" missing values
+
+    :param list values: Metadata (columns)
+    :param any mv: Missing value currently in use
+    :return list: Metadata (columns)
     """
 
     for idx, column in enumerate(values):
@@ -688,9 +709,10 @@ def _replace_missing_values_table(values, mv):
 
 def _replace_missing_values_column(values, mv):
     """
-    Replace Missing Values in the values list where applicable
-    :param list values: One column of values
-    :return list: Column with updated "nan" missing values
+    Replace missing values in the values list where applicable
+
+    :param list values: Metadata (column values)
+    :return list values: Metadata (column values)
     """
     for idx, v in enumerate(values):
         try:
@@ -709,8 +731,10 @@ def _replace_missing_values_column(values, mv):
 def split_path_and_file(s):
     """
     Given a full path to a file, split and return a path and filename
-    :param str s: Full path
-    :return str str: Path, filename
+
+    :param str s: Path
+    :return str _path: Directory Path
+    :return str _filename: Filename
     """
     _path = s
     _filename = ""
@@ -727,8 +751,9 @@ def split_path_and_file(s):
 def unwrap_arrays(l):
     """
     Unwrap nested lists to be one "flat" list of lists. Mainly for prepping ensemble data for DataFrame() creation
+
     :param list l: Nested lists
-    :return list: Flattened lists
+    :return list l2: Flattened lists
     """
     # keep processing until all nesting is removed
     process = True

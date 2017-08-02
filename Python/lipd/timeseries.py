@@ -475,11 +475,11 @@ def _collapse_root(master, current, dsn, pc):
                     key = k.split('_')
                     # Coordinates - [LON, LAT, ELEV]
                     if key[1] in _c_keys:
-                        if key[1] == 'meanLon':
+                        if key[1] == 'meanLon' or key[1] == "longitude":
                             _c_vals[0] = v
-                        elif key[1] == 'meanLat':
+                        elif key[1] == 'meanLat' or key[1] == "latitude":
                             _c_vals[1] = v
-                        elif key[1] == 'meanElev':
+                        elif key[1] == 'meanElev' or key[1] == "elevation":
                             _c_vals[2] = v
                     # Properties
                     elif key[1] in _p_keys:
