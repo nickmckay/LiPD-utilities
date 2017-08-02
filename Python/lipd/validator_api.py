@@ -1,55 +1,64 @@
 # -*- coding: utf-8 -*-
 import json
 import requests
+import copy
 import os
 from .loggers import create_logger
-from .misc import is_ensemble, get_ensemble_counts
+from .misc import is_ensemble, get_ensemble_counts, rm_values_fields
+from .csvs import get_csv_from_metadata
 
 logger_validator_api = create_logger('validator_api')
 
 
-def get_validator_format(D):
+def get_validator_format(L):
     """
     Format the LIPD data in the layout that the Lipd.net validator accepts.
-    Example of one _file metadata. _file_list will contain 1 or more _file's
-    _file = {
-        "type": "bagit/json/csv",
-        "filenameFull": /path/to/filename.txt,
-        "filenameShort": filename.txt,
-        "data": "",
-        "pretty": ""
-    }
 
-    :param dict D: Metadata
-    :return list: Validator-formatted data
+    '_format' example:
+     [
+        {"type": "csv", "filenameFull": /path/to/filename.csv, "data": "", ...},
+        {"type": "json", "filenameFull": /path/to/metadata.jsonld, "data": "", ...},
+        ...
+    ]
+
+    :param dict L: Metadata
+    :return list _api_data: Data formatted for validator API
     """
-    # Store the metadata for each file in the _file_list
-    _file_lst = []
+    _api_data = []
+
+    _j, _csvs = get_csv_from_metadata(L["dataSetName"], L)
+    _j = rm_values_fields(copy.deepcopy(L))
+
+    # All the filenames being processed
+    _filenames = ["metadata.jsonld", "bagit.txt", "bag-info.txt", "manifest-md5.txt", "tagmanifest-md5.txt"]\
+                 + [k for k,v in _csvs.items()]
+
     # Loop for each filename
-    for filename in filenames:
+    for filename in _filenames:
         # Create a blank template
         _file = {"type": "", "filenameFull": "", "filenameShort": "", "data": "", "pretty": ""}
         # filename, no path prefix
-        _short = os.path.basename(filename)
+        # _short = os.path.basename(filename)
+        _short = filename
         # Bagit files
         if filename.endswith(".txt"):
             _file = {"type": "bagit", "filenameFull": filename, "filenameShort": _short}
         # JSONLD files
         elif filename.endswith(".jsonld"):
-            _file = {"type": "json", "filenameFull": filename, "filenameShort": _short, "data": data_json}
+            _file = {"type": "json", "filenameFull": filename, "filenameShort": _short, "data": _j}
 
         # CSV files
         elif filename.endswith(".csv"):
             _cols_rows = {"cols": 0, "rows": 0}
-            ensemble = is_ensemble(data_csv[_short])
+            ensemble = is_ensemble(_csvs[_short])
             # special case for calculating ensemble rows and columns
             if ensemble:
-                _cols_rows = get_ensemble_counts(data_csv[_short])
+                _cols_rows = get_ensemble_counts(_csvs[_short])
 
             # all other non-ensemble csv files.
             else:
-                _cols_rows["cols"] = len(data_csv[_short])
-                for k, v in data_csv[_short].items():
+                _cols_rows["cols"] = len(_csvs[_short])
+                for k, v in _csvs[_short].items():
                     _cols_rows["rows"] = len(v["values"])
                     break
 
@@ -57,34 +66,39 @@ def get_validator_format(D):
             _file = {"type": "csv", "filenameFull": filename, "filenameShort": _short,
                      "data": _cols_rows}
 
-        _file_lst.append(_file)
+        _api_data.append(_file)
 
-    return _file_lst
+    return _api_data
 
 
-def create_detailed_results(data):
+def create_detailed_results(result):
     """
+    Use the result from the API call to create an organized single string output for printing to the console.
+
+    :param dict result: Results from API call for one file
+    :return str string: Organized results for printing
     """
     string = ""
     # Validation Response output
     # string += "VALIDATION RESPONSE\n"
-    string += "STATUS: {}\n".format(data["status"])
-    if data["feedback"]:
-        string += "WARNINGS: {}\n".format(len(data["feedback"]["wrnMsgs"]))
+    string += "STATUS: {}\n".format(result["status"])
+    if result["feedback"]:
+        string += "WARNINGS: {}\n".format(len(result["feedback"]["wrnMsgs"]))
         # Loop through and output the Warnings
-        for msg in data["feedback"]["wrnMsgs"]:
+        for msg in result["feedback"]["wrnMsgs"]:
             string += "- {}\n".format(msg)
-        string += "ERRORS: {}\n".format(len(data["feedback"]["errMsgs"]))
+        string += "ERRORS: {}\n".format(len(result["feedback"]["errMsgs"]))
         # Loop through and output the Errors
-        for msg in data["feedback"]["errMsgs"]:
+        for msg in result["feedback"]["errMsgs"]:
             string += "- {}\n".format(msg)
     return string
 
 
-def display_results(data, detailed=False):
+def display_results(results, detailed=False):
     """
-    Display the results from the validator in a brief or detailed way.
-    :param dict data: Results, sorted by dataset name
+    Display the results from the validator in a brief or detailed output
+
+    :param list results: API results, sorted by dataset name (multiple)
     :param bool detailed: Detailed results on or off
     :return none:
     """
@@ -94,77 +108,52 @@ def display_results(data, detailed=False):
     if not detailed:
         print('FILENAME......................................... STATUS..........')
 
-    for lipd in data:
+    for entry in results:
         try:
             if detailed:
-                print("\n{}".format(lipd["filename"]))
-                print(create_detailed_results(lipd))
+                print("\n{}".format(entry["filename"]))
+                print(create_detailed_results(entry))
             else:
-                print("{:<50}{}".format(lipd["filename"], lipd["status"]))
+                print("{:<50}{}".format(entry["filename"], entry["status"]))
         except Exception as e:
             logger_validator_api.debug("display_results: Exception: {}".format(e))
-            print("Error: {}".format(e))
+            print("Error: display_results: {}".format(e))
 
     return
 
 
-def get_validator_results(data):
-    """
-    Send LiPD data to the Lipd.net validator and get the results back.
-    :param data:
-    :return:
-    """
-    # results = {"detailed": "", "raw": {}, "status": "", "filename":""}
-    results = []
-
-    for file in data:
-        # Add this single results to the growing list of results.
-        result = _call_validator_api(file)
-        results.append(result)
-
-    return results
-
-
-def _get_failed_filename(files):
-    """
-    File has failed JSON dump. Find the filename so we can notify the user.
-    :param list files:
-    :return:
-    """
-    for idx, file in enumerate(files):
-        try:
-            _filename = file["filenameFull"].split("/")[0]
-            if _filename:
-                return _filename + ".lpd"
-        except Exception:
-            pass
-    _filename = "unknown file"
-    return _filename
-
-
-def _call_validator_api(data):
+def call_validator_api(dsn, api_data):
     """
     Single call to the lipd.net validator API
-    Returns data in format: {"dat": <dict>, "feedback": <dict>, "filename": "", "status": ""}
 
-    :param list data: Prepared payload. JSON dumped data. Single or batch.
-    :return list: Validator results
+    'api_data' format:
+     [
+        {"type": "csv", "filenameFull": /path/to/filename.csv, "data": "", ...},
+        {"type": "json", "filenameFull": /path/to/metadata.jsonld, "data": "", ...},
+        ...
+    ]
+    Result format:
+        {"dat": <dict>, "feedback": <dict>, "filename": "", "status": ""}
+
+    :param str dsn: Dataset name
+    :param list api_data: Prepared payload for one LiPD dataset. All the sorted files (txt, jsonld, csv), API formatted
+    :return list result: Validator result for one file
     """
-    _filename = _get_failed_filename(data)
+    _filename = dsn + ".lpd"
 
     try:
         # Contact server and send LiPD metadata as the payload
         # print("Sending request to LiPD.net validator...\n")
-        data = json.dumps(data)
+        api_data = json.dumps(api_data)
 
         # The payload that is going to be sent with the JSON request
-        payload = {'json_payload': data, 'apikey': 'lipd_linked'}
+        payload = {'json_payload': api_data, 'apikey': 'lipd_linked'}
 
         # Development Link
-        response = requests.post('http://localhost:3000/api/validator', data=payload)
+        # response = requests.post('http://localhost:3000/api/validator', data=payload)
 
         # Production Link
-        # response = requests.post('http://www.lipd.net/api/validator', data=payload)
+        response = requests.post('http://www.lipd.net/api/validator', data=payload)
 
         if response.status_code == 413:
             result = {"dat": {}, "feedback": {}, "filename": _filename,

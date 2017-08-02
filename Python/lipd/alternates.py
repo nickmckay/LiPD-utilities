@@ -24,8 +24,6 @@ VER_1_3 = {
 
         "paleoMeasurementTableMD5": "tableMD5",
         "chronMeasurementTableMD5": "tableMD5",
-
-        "name": "tableName",
     },
 }
 

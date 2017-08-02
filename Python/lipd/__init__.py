@@ -9,7 +9,7 @@ from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
 from lipd.loggers import create_logger, log_benchmark, create_benchmark
 from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields
 from lipd.ensembles import create_ensemble, insert_ensemble
-from lipd.validator_api import get_validator_results, display_results, get_validator_format
+from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
 
 from time import clock
@@ -223,7 +223,7 @@ def validate(D, detailed=True):
     Use the Validator API for lipd.net to validate all LiPD files in the LiPD Library.
     Display the PASS/FAIL results. Display detailed results if the option is chosen.
 
-    :param dict D: Metadata
+    :param dict D: Metadata (single or multiple datasets)
     :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors
     :return none:
     """
@@ -231,11 +231,21 @@ def validate(D, detailed=True):
     print("\n")
     # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
     print("Fetching results from validator at lipd.net/validator... this may take a few moments.\n")
-    # Get the validator-formatted data for each dataset.
-    _d = get_validator_format(D)
-    # A list of lists of LiPD-content metadata
-    results = get_validator_results(_d)
-    display_results(results, detailed)
+    try:
+        results = []
+        # Get the validator-formatted data for each dataset.
+        if "paleoData" in D:
+            _api_data = get_validator_format(D)
+            # A list of lists of LiPD-content metadata
+            results.append(call_validator_api(D["dataSetName"], _api_data))
+        else:
+            for dsn, dat in D.items():
+                _api_data = get_validator_format(dat)
+                # A list of lists of LiPD-content metadata
+                results.append(call_validator_api(dsn, _api_data))
+        display_results(results, detailed)
+    except Exception as e:
+        print("Error: validate: {}".format(e))
 
     end = clock()
     logger_benchmark.info(log_benchmark("validate", start, end))
@@ -667,10 +677,9 @@ def getCsv(L=None):
         if not L:
             print("Error: LiPD data not provided. Pass LiPD data into the function.")
         else:
-            _l = copy.deepcopy(L)
-            _j, _c = get_csv_from_metadata(_l["dataSetName"], _l)
+            _j, _c = get_csv_from_metadata(L["dataSetName"], L)
     except KeyError as ke:
-        print("Error: Unable to get data. Please check that input is LiPD data: {}".format(ke))
+        print("Error: Unable to get data. Please check that input is one LiPD dataset: {}".format(ke))
     except Exception as e:
         print("Error: Unable to get data. Something went wrong: {}".format(e))
         logger_start.warn("getCsv: Exception: Unable to process lipd data: {}".format(e))
