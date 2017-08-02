@@ -26,7 +26,9 @@ VERSION: LiPD v1.2
 def excel_main(file):
     """
     Parse data from Excel spreadsheets into LiPD files.
-    :return list: Filenames of LiPD files created
+
+    :param dict file: File metadata (source, name, etc)
+    :return str dsn: Dataset name
     """
 
     os.chdir(file["dir"])
@@ -85,7 +87,7 @@ def excel_main(file):
         filename = str(dsn) + ".lpd"
         sheets = __set_sheet_filenames(sheets, dsn)
 
-        dir_bag = os.path.join(dir_tmp, name)
+        dir_bag = os.path.join(dir_tmp, "bag")
         dir_data = os.path.join(dir_bag, 'data')
 
         # Make folders in tmp
@@ -149,7 +151,7 @@ def excel_main(file):
 
         # Zip dir_bag. Creates in dir_root directory
         logger_excel.info("re-zip and rename")
-        zipper(path_name_ext=filename, root_dir=dir_tmp, name=name)
+        zipper(root_dir=dir_tmp, name="bag", path_name_ext=os.path.join(file["dir"], filename))
 
     # Move back to dir_root for next loop.
     os.chdir(file["dir"])

@@ -48,9 +48,10 @@ def lipd_read(path):
         os.chdir(dir_original)
         shutil.rmtree(dir_tmp)
     except FileNotFoundError:
-        print("Error: LiPD file not found. Please make sure the filename includes the .lpd extension")
+        print("Error: lipd_read: LiPD file not found. Please make sure the filename includes the .lpd extension")
     except Exception as e:
-        print("Error: unable to read LiPD: {}".format(e))
+        logger_lipd.error("lipd_read: {}".format(e))
+        print("Error: lipd_read: unable to read LiPD: {}".format(e))
     os.chdir(dir_original)
     logger_lipd.info("lipd_read: record loaded: {}".format(path))
     return _j

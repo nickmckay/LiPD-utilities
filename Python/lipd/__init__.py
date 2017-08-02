@@ -141,12 +141,12 @@ def excel():
         dsn = excel_main(file)
         try:
             # Read the new LiPD file back in, to get fixes, inferred calculations, updates, etc.
-            _d[dsn] = readLipd(os.path.join(file["dir"], dsn, ".lpd"))
+            _d[dsn] = readLipd(os.path.join(file["dir"], dsn + ".lpd"))
             # Write the modified LiPD file back out again.
+            writeLipd(_d[dsn], cwd)
         except Exception as e:
             logger_start.error("excel: Unable to read new LiPD file, {}".format(e))
             print("Error: Unable to read new LiPD file: {}, {}".format(dsn, e))
-    writeLipd(_d, cwd)
     # Time!
     end = clock()
     logger_benchmark.info(log_benchmark("excel", start, end))
@@ -801,16 +801,18 @@ def __read_lipd_contents():
 
     :return dict: Metadata
     """
-    global files
+    global files, settings
     _d = {}
     try:
         if len(files[".lpd"]) == 1:
             _d = lipd_read(files[".lpd"][0]["full_path"])
-            print("Finished read: 1 record")
+            if settings["verbose"]:
+                print("Finished read: 1 record")
         else:
             for file in files[".lpd"]:
                 _d[file["filename_no_ext"]] = lipd_read(file["full_path"])
-            print("Finished read: {} records".format(len(_d)))
+            if settings["verbose"]:
+                print("Finished read: {} records".format(len(_d)))
     except Exception as e:
         print("Error: read_lipd_contents: {}".format(e))
     return _d

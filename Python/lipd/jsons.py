@@ -17,24 +17,28 @@ def read_jsonld():
     """
     _d = {}
 
-    # Find a jsonld file in cwd. If none, fallback for a json file. If neither found, return empty.
-    _filename = [file for file in os.listdir() if file.endswith(".jsonld")][0]
-    if not _filename:
-        _filename = [file for file in os.listdir() if file.endswith(".json")][0]
+    try:
+        # Find a jsonld file in cwd. If none, fallback for a json file. If neither found, return empty.
+        _filename = [file for file in os.listdir() if file.endswith(".jsonld")][0]
+        if not _filename:
+            _filename = [file for file in os.listdir() if file.endswith(".json")][0]
 
-    if _filename:
-        try:
-            # Load and decode
-            _d = demjson.decode_file(_filename, decode_float=float)
-            logger_jsons.info("Read JSONLD successful: {}".format(_filename))
-        except FileNotFoundError as fnf:
-            print("Error: metadata file not found: {}".format(_filename))
-            logger_jsons.error("read_jsonld: FileNotFound: {}, {}".format(_filename, fnf))
-        except Exception as e:
-            print("Error: unable to read metadata file: {}".format(e))
-            logger_jsons.error("read_jsonld: Exception: {}, {}".format(_filename, e))
-    else:
-        print("Error: metadata file (.jsonld) not found in LiPD archive")
+        if _filename:
+            try:
+                # Load and decode
+                _d = demjson.decode_file(_filename, decode_float=float)
+                logger_jsons.info("Read JSONLD successful: {}".format(_filename))
+            except FileNotFoundError as fnf:
+                print("Error: metadata file not found: {}".format(_filename))
+                logger_jsons.error("read_jsonld: FileNotFound: {}, {}".format(_filename, fnf))
+            except Exception as e:
+                print("Error: unable to read metadata file: {}".format(e))
+                logger_jsons.error("read_jsonld: Exception: {}, {}".format(_filename, e))
+        else:
+            print("Error: metadata file (.jsonld) not found in LiPD archive")
+    except Exception as e:
+        print("Error: Unable to find jsonld file in LiPD archive. This may be a corrupt file.")
+        logger_jsons.error("Error: Unable to find jsonld file in LiPD archive. This may be a corrupt file.")
     logger_jsons.info("exit read_json_from_file")
     return _d
 
