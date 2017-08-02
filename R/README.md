@@ -67,15 +67,21 @@ And that's it! You have successfully installed the LiPD utilities and are ready 
 ## Core functions
 
 > **Notation:**
+>
 >  This guide uses notation that may be new to you. In case you are unfamiliar with these terms, the list below provides an explanation for each. Please feel free to name your own variables as you move through the guide.
 > 
 > **D**
+>
 > Represents multiple datasets read into a single variable. Each dataset is organized by its dataset name.   `D[["ODP1098B13"]][["paleoData"]]`
 >
+>
 > **L**
+>
 > Represents a single dataset. The dataset does not need to be organized by name.  `L[["paleoData"]]` 
 > 
+>
 > **ts**
+>
 > A time series. The `ts` notation is used both in variable names and time series related functions, like `extractTs` 
 
 -----
@@ -86,17 +92,21 @@ And that's it! You have successfully installed the LiPD utilities and are ready 
 Reads LiPD files from a source path into the environment. Read in a single file, or a directory of multiple files.
 
 **Parameters:**
+>
 > **path** (optional)
 > 
 > The path to the locally stored file or directory that you would like to read into the workspace
 >
 >Example: Provide a path to a file
+>
 > `L = readLipd("/Users/bobsmith/Downloads/filename.lpd")`
 >
 >Example: Provide a path to a directory
+>
 > `D = readLipd("/Users/bobsmith/Desktop")`
 > 
 > Example: Browse for file or directory
+>
 > ` D = readLipd()`
 
 
@@ -131,6 +141,7 @@ A quick look at `L` shows that the data is at the root of the variable, as expec
 **Example 2: Browse for directory** 
 
 > **NOTE:**
+>
 > Reading a directory is most commonly used for reading multiple files. I have added LiPD files to my source folder and will load them into variable `D`.
 > 
 
@@ -143,6 +154,7 @@ Leave the path empty in this example.  A prompt will ask you to choose to read a
 ![readlipd_browse_dir_dialog](https://www.dropbox.com/s/bxndk6abu7a70rh/readlipd_2_browse_dir.png?raw=1)
 
 > **NOTE:**
+> 
 > Due to a bug in R, we are not able to use the module for choosing a directory with the GUI. It causes R Studio to crash and that's not an experience we want to give you. The instructions below are a workaround that will provide the same result.  
 
 A browse dialog opens. Please choose **any** LiPD file **within** the directory that you want. For example, I want to load all the LiPD files in the `quickstart` directory,  so I will choose the `ODP1098B13.lpd`. Choosing either of the other two LiPD files has the same outcome. 
@@ -160,6 +172,7 @@ A quick look at `D` shows that the datasets are sorted by dataset names, as expe
 ![readlipd_browse_dir_D2](https://www.dropbox.com/s/gvoyijx44j6zisc/readlipd_2_D_2.png?raw=1)
 
 > **REMEMBER**
+> 
 > Since `D` contains multiple datasets, we organize the data by `dataSetName`. Since `L` only holds one dataset, we do not use this `dataSetName` layer, and instead link directly to the data. 
 
 ----------
