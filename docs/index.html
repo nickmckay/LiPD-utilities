@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="chrome=1" http-equiv="X-UA-Compatible">
+    <title>LiPD Utilities by nickmckay</title>
+    <link href="stylesheets/styles.css" rel="stylesheet">
+    <link href="stylesheets/github-light.css" rel="stylesheet">
+    <meta content="width=device-width" name="viewport">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
+    </script>
+    <link href="stylesheets/jquery.bxslider.css" rel="stylesheet">
+    <script src="javascripts/jquery.bxslider.min.js">
+    </script>
+    <script src="javascripts/scale.fix.js">
+    </script>
+    <script type="text/javascript">
+            $(document).ready(function(){
+                $('.bxslider').bxSlider(
+                    {
+                    	mode: 'fade',
+                    	auto: true,
+                    	pager: false,
+                    	autoControls: false,
+                    	pause: 4000,
+                    	speed: 2000,
+                    	slideWidth: 400
+
+                });
+            });
+    </script>
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <h1><a href="https://nickmckay.github.io/LiPD-utilities/" style=
+            "color:black;">LiPD Utilities</a></h1>
+            <p>Input/output and manipulation utilities for LiPD files in
+            Matlab, R and Python</p>
+            <ul>
+                <li>
+                    <a href=
+                    "https://github.com/nickmckay/LiPD-utilities/zipball/master">
+                    Download <strong>ZIP File</strong></a>
+                </li>
+                <li>
+                    <a href=
+                    "https://github.com/nickmckay/LiPD-utilities/tarball/master">
+                    Download <strong>TAR Ball</strong></a>
+                </li>
+                <li>
+                    <a href="https://github.com/nickmckay/LiPD-utilities">View
+                    On <strong>GitHub</strong></a>
+                </li>
+            </ul>
+            <p class="view"><a href=
+            "https://nickmckay.github.io/LiPD-utilities/about">About the
+            Project</a></p>
+            <p class="view"><a href=
+            "https://nickmckay.github.io/LiPD-utilities/community">Community</a></p>
+        </header>
+        <section>
+
+            <!-- LIPD -->
+            <h1><a aria-hidden="true" class="anchor" href="#lipd" id=
+            "lipd"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>LiPD</h1>
+            <p>Input/output and manipulation utilities for LiPD files in
+            Matlab, R and Python.</p>
+
+            <!-- WHAT IS IT -->
+            <h2><a aria-hidden="true" class="anchor" href="#what-is-it" id=
+            "what-is-it"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>What is it?</h2>
+            <p>LiPD is short for Linked PaleoData. LiPD files are the data
+            standard for storing and exchanging data amongst paleoclimate
+            scientists. The package will help you convert your existing
+            paleoclimate observations into LiPD files that can be shared and
+            analyzed.</p>
+            <p>Organizing and using your observation data can be time
+            consuming. Our goal is to let you focus on more important tasks
+            than data wrangling.</p>
+
+            <!-- INSTALLATION -->
+            <h2><a aria-hidden="true" class="anchor" href="#installation" id=
+            "installation"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>Installation</h2>
+            <p>Python:</p>
+            <p>Python v3.4+ is required</p>
+            <pre><code>pip install LiPD</code></pre>
+            <br>
+            <p>R:</p>
+            <p>'devtools package' is required</p>
+            <pre><code>devtools::install_github("nickmckay/LiPD-Utilities", subdir = "R")</code></pre>
+            <br>
+            <p>Matlab:</p>
+            <p>Use the "Clone or download" button on the <a href="https://github.com/nickmckay/LiPD-utilities">Github repository</a> page to get a copy of the LiPD Utilities code on your computer. Note where the code is saved, and add the the path in you Matlab search paths.</p>
+
+            <!-- USAGE -->
+            <h2><a aria-hidden="true" class="anchor" href="#usage" id=
+            "usage"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>Usage</h2>
+            <p>The functions below are considered the core functions of the LiPD package. These functions are consistent across the 3 languages. There may be some slight differences in calling the functions, but the names, parameters and returned data is the same.</p>
+
+            <pre><code>readLipd(path="")
+</code></pre>
+            <pre><code>writeLipd(data, path="")
+</code></pre>
+            <pre><code>extractTs(data, chron=False)
+</code></pre>
+            <pre><code>collapseTs(timeseries)
+</code></pre>
+            <pre><code>filterTs(timeseries, expression)
+</code></pre>
+            <pre><code>queryTs(timeseries, expression)
+</code></pre>
+
+            <!-- SPECIFIC DOC LINKS -->
+            <h2><a aria-hidden="true" class="anchor" href="#docs" id=
+            "docs"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>Language-specific Documentation</h2>
+            <p>The core functions are consistent across the 3 languages; However, each language has some nuances that you may be unfamiliar with. For example, in Python you may call 'lipd.readLipd()', whereas in R you may call the same function with 'lipd::readLipd()' or 'readLipd()'. Not only that, but we have included additional functions in Python that you may be interested in. The language-specific documentation linked below will go into detail about all the functions included in each language.</p>
+            <a href="docs_py/index.html">Python Docs</a><br>
+            <p>R Docs (website coming soon, also available using the '??<function>' command in RStudio)</p><br>
+            <p>Matlab Docs (coming soon)</p><br>
+
+
+            <!-- FEATURES -->
+            <h2><a aria-hidden="true" class="anchor" href="#features" id=
+            "features"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>Features</h2>
+            <ul>
+                <li>Read & write LiPD files</li>
+                <li>Extract & collapse a time series for data analysis</li>
+                <li>Filter & query a time series for subset data</li>
+                <li>Convert Excel files to LiPD files (Python only)</li>
+                <li>Convert NOAA files to/from LiPD files (Python only)</li>
+                <li>Update LiPD publication data through DOI.org (Python only)</li>
+                <li>Validate LiPD files through lipd.net API (Python only)
+            </ul>
+
+            <!-- EXAMPLES -->
+            <h2><a aria-hidden="true" class="anchor" href="#examples" id=
+            "examples"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>Example Files</h2>
+            <p><a href=
+            "https://github.com/nickmckay/LiPD-utilities/tree/master/Examples">Examples
+            Folder</a></p>
+            <p>The examples folder contains blank templates and example files.
+            Use the blank templates to insert your own data for conversion, or
+            test out the package using some of the example files.</p>
+            <p>You'll also find a set of <a href="http://jupyter.org">Jupyter
+            Notebooks</a> in the examples folder. Notebooks are an
+            instructional tool to show examples of python code and code output.
+            Use these Notebooks as a guide to getting familiar with LiPD and
+            its functions.</p>
+            <p><i>Jupyter is not required to use the LiPD package.</i></p>
+
+            <!-- REQUIREMENTS -->
+            <h2><a aria-hidden="true" class="anchor" href="#requirements" id=
+            "requirements"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>Requirements</h2>
+            <p>Please refer to the <a href=
+            "https://github.com/nickmckay/LiPD-utilities/blob/master/Python/REQUIREMENTS">
+            requirements</a> file</p>
+
+            <!-- FURTHER INFORMATION -->
+            <h2><a aria-hidden="true" class="anchor" href=
+            "#further-information" id="further-information"><span aria-hidden=
+            "true" class="octicon octicon-link"></span></a>Further
+            information</h2><a href=
+            "https://github.com/nickmckay/LiPD-utilities">Github -
+            LiPD-utilities</a><br>
+            <a href="https://github.com/nickmckay/GeoChronR">Github -
+            GeoChronR</a><br>
+            <a href="http://wiki.linked.earth/Main_Page">Linked Earth
+            Wiki</a><br>
+            <a href="www.jupyter.org">Jupyter Documentation</a>
+            <p></p><br>
+            <h2><a aria-hidden="true" class="anchor" href="#contact" id=
+            "contact"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>Contact</h2>
+            <p>If you are having issues, please let me know at <a href=
+            "mailto:heiser@nau.edu">heiser@nau.edu</a>.</p>
+
+            <!-- LICENSE -->
+            <h2><a aria-hidden="true" class="anchor" href="#license" id=
+            "license"><span aria-hidden="true" class=
+            "octicon octicon-link"></span></a>License</h2>
+            <p>The project is licensed under the <a href=
+            "https://github.com/nickmckay/LiPD-utilities/blob/master/Python/LICENSE">
+            GNU Public License</a>.</p>
+            <p><small>Hosted on GitHub Pages &mdash; Theme by <a href=
+            "https://github.com/orderedlist">orderedlist</a></small></p>
+        </section>
+
+        <footer>
+        <div class="slider" style="max-width: 100%;">
+        <ul class="bxslider" style="padding:0px;">
+            <li><img src="images/logo-usc.png"></li>
+            <li><img src="images/logo-nsf.jpg"></li>
+            <li><img src="images/logo-nau.png"></li>
+            <li><img src="images/logo-lipd.png"></li>
+            <li><img src="images/logo-r.jpg"></li>
+            <li><img src="images/logo-python.png"></li>
+            <li><img src="images/logo-matlab.jpg"></li>
+
+        </ul>
+    		</div>
+        </footer>
+
+    </div>
+
+    <script src="javascripts/scale.fix.js">
+    </script>
+</body>
+</html>
