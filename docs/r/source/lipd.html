@@ -1,0 +1,2040 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>lipd package &mdash; LiPD_Utilities  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="LiPD_Utilities  documentation" href="../index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> LiPD_Utilities
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <!-- Local TOC -->
+                <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">lipd package</a><ul>
+<li><a class="reference internal" href="#module-lipd">Module contents</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-lipd.alternates">alternates</a></li>
+<li><a class="reference internal" href="#module-lipd.bag">bag</a></li>
+<li><a class="reference internal" href="#module-lipd.blanks">blanks</a></li>
+<li><a class="reference internal" href="#module-lipd.csvs">csvs</a></li>
+<li><a class="reference internal" href="#module-lipd.dataframes">dataframes</a></li>
+<li><a class="reference internal" href="#module-lipd.directory">directory</a></li>
+<li><a class="reference internal" href="#module-lipd.doi_main">doi_main</a></li>
+<li><a class="reference internal" href="#module-lipd.doi_resolver">doi_resolver</a></li>
+<li><a class="reference internal" href="#module-lipd.ensembles">ensembles</a></li>
+<li><a class="reference internal" href="#module-lipd.excel">excel</a></li>
+<li><a class="reference internal" href="#module-lipd.inferred_data">inferred_data</a></li>
+<li><a class="reference internal" href="#module-lipd.io">io</a></li>
+<li><a class="reference internal" href="#module-lipd.jsons">jsons</a></li>
+<li><a class="reference internal" href="#module-lipd.loggers">loggers</a></li>
+<li><a class="reference internal" href="#module-lipd.lpd_noaa">lpd_noaa</a></li>
+<li><a class="reference internal" href="#module-lipd.misc">misc</a></li>
+<li><a class="reference internal" href="#module-lipd.noaa">noaa</a></li>
+<li><a class="reference internal" href="#module-lipd.noaa_lpd">noaa_lpd</a></li>
+<li><a class="reference internal" href="#module-lipd.regexes">regexes</a></li>
+<li><a class="reference internal" href="#module-lipd.timeseries">timeseries</a></li>
+<li><a class="reference internal" href="#module-lipd.validator_api">validator_api</a></li>
+<li><a class="reference internal" href="#module-lipd.versions">versions</a></li>
+<li><a class="reference internal" href="#module-lipd.zips">zips</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">LiPD_Utilities</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>lipd package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/source/lipd.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="lipd-package">
+<h1>lipd package<a class="headerlink" href="#lipd-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-lipd">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lipd" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.addEnsemble">
+<code class="descclassname">lipd.</code><code class="descname">addEnsemble</code><span class="sig-paren">(</span><em>D</em>, <em>dsn</em>, <em>ensemble</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.addEnsemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create ensemble entry and then add it to the specified LiPD dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>D</strong> (<em>dict</em>) – LiPD data</li>
+<li><strong>dsn</strong> (<em>str</em>) – Dataset name</li>
+<li><strong>ensemble</strong> (<em>list</em>) – Nested numpy array of ensemble column data.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict D:</th><td class="field-body"><p class="first last">LiPD data</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.collapseTs">
+<code class="descclassname">lipd.</code><code class="descname">collapseTs</code><span class="sig-paren">(</span><em>ts=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.collapseTs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collapse a time series back into LiPD record form.</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">1. D = lipd.readLipd()</div>
+<div class="line">2. ts = lipd.extractTs(D)</div>
+<div class="line">3. New_D = lipd.collapseTs(ts)</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ts</strong> (<em>list</em>) – Time series</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict:</th><td class="field-body">Metadata</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.doi">
+<code class="descclassname">lipd.</code><code class="descname">doi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update publication information using data DOIs. Updates LiPD files on disk, not in memory.</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">1: lipd.readLipd()</div>
+<div class="line">2: lipd.doi()</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.ensToDf">
+<code class="descclassname">lipd.</code><code class="descname">ensToDf</code><span class="sig-paren">(</span><em>ensemble</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.ensToDf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an ensemble data frame from some given nested numpy arrays</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ensemble</strong> (<em>list</em>) – Ensemble data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return obj df:</th><td class="field-body">Pandas dataframe</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel">
+<code class="descclassname">lipd.</code><code class="descname">excel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert Excel files to LiPD files. LiPD data is returned directly from this function.</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">1: lipd.readExcel()</div>
+<div class="line">2: D = lipd.excel()</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return dict _d:</th><td class="field-body">Metadata</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.extractTs">
+<code class="descclassname">lipd.</code><code class="descname">extractTs</code><span class="sig-paren">(</span><em>d</em>, <em>chron=False</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.extractTs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a time series using LiPD data (uses paleoData by default)</p>
+<div class="line-block">
+<div class="line">Example : paleoData</div>
+<div class="line">1. D = lipd.readLipd()</div>
+<div class="line">2. ts = lipd.extractTs(D)</div>
+</div>
+<div class="line-block">
+<div class="line">Example : chronData</div>
+<div class="line">1. D = lipd.readLipd()</div>
+<div class="line">2. ts = lipd.extractTs(D, chron=True)</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>d</strong> (<em>dict</em>) – Metadata</li>
+<li><strong>chron</strong> (<em>bool</em>) – Create a chronData time series</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return list l:</th><td class="field-body"><p class="first last">Time series</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.filterTs">
+<code class="descclassname">lipd.</code><code class="descname">filterTs</code><span class="sig-paren">(</span><em>ts</em>, <em>expression</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.filterTs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new time series that only contains entries that match the given expression.</p>
+<div class="line-block">
+<div class="line">Example:</div>
+<div class="line">D = lipd.loadLipd()</div>
+<div class="line">ts = lipd.extractTs(D)</div>
+<div class="line">new_ts = filterTs(ts, “archiveType == marine sediment”)</div>
+<div class="line">new_ts = filterTs(ts, “paleoData_variableName == sst”)</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>expression</strong> (<em>str</em>) – Expression</li>
+<li><strong>ts</strong> (<em>list</em>) – Time series</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return list new_ts:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first last">Filtered time series that matches the expression</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.getCsv">
+<code class="descclassname">lipd.</code><code class="descname">getCsv</code><span class="sig-paren">(</span><em>L=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.getCsv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get CSV from LiPD metadata</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">c = lipd.getCsv(D[“Africa-ColdAirCave.Sundqvist.2013”])</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>L</strong> (<em>dict</em>) – One LiPD record</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict d:</th><td class="field-body">CSV data</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.getLipdNames">
+<code class="descclassname">lipd.</code><code class="descname">getLipdNames</code><span class="sig-paren">(</span><em>D=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.getLipdNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of all LiPD names in the library</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">names = lipd.getLipdNames(D)</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Return list f_list:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">File list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.getMetadata">
+<code class="descclassname">lipd.</code><code class="descname">getMetadata</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.getMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get metadata from a LiPD data in memory</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">m = lipd.getMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>L</strong> (<em>dict</em>) – One LiPD record</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict d:</th><td class="field-body">LiPD record (metadata only)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.noaa">
+<code class="descclassname">lipd.</code><code class="descname">noaa</code><span class="sig-paren">(</span><em>d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.noaa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert between NOAA and LiPD files</p>
+<div class="line-block">
+<div class="line">Example: LiPD to NOAA converter</div>
+<div class="line">1: D = lipd.readLipd()</div>
+<div class="line">2: lipd.noaa(D)</div>
+</div>
+<div class="line-block">
+<div class="line">Example: NOAA to LiPD converter</div>
+<div class="line">1: readNoaa()</div>
+<div class="line">2: lipd.noaa()</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.queryTs">
+<code class="descclassname">lipd.</code><code class="descname">queryTs</code><span class="sig-paren">(</span><em>ts</em>, <em>expression</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.queryTs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the indices of the time series entries that match the given expression.</p>
+<div class="line-block">
+<div class="line">Example:</div>
+<div class="line">D = lipd.loadLipd()</div>
+<div class="line">ts = lipd.extractTs(D)</div>
+<div class="line">matches = queryTs(ts, “archiveType == marine sediment”)</div>
+<div class="line">matches = queryTs(ts, “geo_meanElev &lt;= 2000”)</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>expression</strong> (<em>str</em>) – Expression</li>
+<li><strong>ts</strong> (<em>list</em>) – Time series</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return list _idx:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"><p class="first last">Indices of entries that match the criteria</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.readAll">
+<code class="descclassname">lipd.</code><code class="descname">readAll</code><span class="sig-paren">(</span><em>usr_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.readAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all approved file types at once.
+Enter a file path, directory path, or leave args blank to trigger gui.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>usr_path</strong> (<em>str</em>) – Path to file / directory (optional)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return str cwd:</th><td class="field-body">Current working directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.readExcel">
+<code class="descclassname">lipd.</code><code class="descname">readExcel</code><span class="sig-paren">(</span><em>usr_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.readExcel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read Excel file(s)
+Enter a file path, directory path, or leave args blank to trigger gui.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>usr_path</strong> (<em>str</em>) – Path to file / directory (optional)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return str cwd:</th><td class="field-body">Current working directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.readLipd">
+<code class="descclassname">lipd.</code><code class="descname">readLipd</code><span class="sig-paren">(</span><em>usr_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.readLipd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read LiPD file(s).
+Enter a file path, directory path, or leave args blank to trigger gui.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>usr_path</strong> (<em>str</em>) – Path to file / directory (optional)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict _d:</th><td class="field-body">Metadata</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.readNoaa">
+<code class="descclassname">lipd.</code><code class="descname">readNoaa</code><span class="sig-paren">(</span><em>usr_path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.readNoaa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read NOAA file(s)
+Enter a file path, directory path, or leave args blank to trigger gui.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>usr_path</strong> (<em>str</em>) – Path to file / directory (optional)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return str cwd:</th><td class="field-body">Current working directory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.run">
+<code class="descclassname">lipd.</code><code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize and start objects. This is called automatically when importing the package.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.showDfs">
+<code class="descclassname">lipd.</code><code class="descname">showDfs</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.showDfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the available data frame names in a given data frame collection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>dict</em>) – Dataframe collection</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.showLipds">
+<code class="descclassname">lipd.</code><code class="descname">showLipds</code><span class="sig-paren">(</span><em>D=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.showLipds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the dataset names of a given LiPD data</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">lipd.showLipds(D)</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Pararm dict D:</th><td class="field-body">LiPD data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.showMetadata">
+<code class="descclassname">lipd.</code><code class="descname">showMetadata</code><span class="sig-paren">(</span><em>dat</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.showMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the metadata specified LiPD in pretty print</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">showMetadata(D[“Africa-ColdAirCave.Sundqvist.2013”])</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dat</strong> (<em>dict</em>) – Metadata</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.tsToDf">
+<code class="descclassname">lipd.</code><code class="descname">tsToDf</code><span class="sig-paren">(</span><em>tso</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.tsToDf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create Pandas DataFrame from TimeSeries object.
+Use: Must first extractTs to get a time series. Then pick one item from time series and pass it through</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tso</strong> (<em>dict</em>) – Time series entry</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return dict dfs:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">Pandas dataframes</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.viewTs">
+<code class="descclassname">lipd.</code><code class="descname">viewTs</code><span class="sig-paren">(</span><em>ts</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.viewTs" title="Permalink to this definition">¶</a></dt>
+<dd><p>View the contents of one time series entry in a nicely formatted way</p>
+<div class="line-block">
+<div class="line">Example</div>
+<div class="line">1. D = lipd.readLipd()</div>
+<div class="line">2. ts = lipd.extractTs(D)</div>
+<div class="line">3. viewTs(ts[0])</div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ts</strong> (<em>dict</em>) – One time series entry</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.writeLipd">
+<code class="descclassname">lipd.</code><code class="descname">writeLipd</code><span class="sig-paren">(</span><em>dat</em>, <em>usr_path=''</em>, <em>filename=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.writeLipd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write LiPD data to file(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dat</strong> (<em>dict</em>) – Metadata</li>
+<li><strong>usr_path</strong> (<em>str</em>) – Destination (optional)</li>
+<li><strong>filename</strong> (<em>str</em>) – LiPD filename, for writing one specific file (optional)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-lipd.alternates">
+<span id="alternates"></span><h2>alternates<a class="headerlink" href="#module-lipd.alternates" title="Permalink to this headline">¶</a></h2>
+<p>List of alternate and synonym keys</p>
+</div>
+<div class="section" id="module-lipd.bag">
+<span id="bag"></span><h2>bag<a class="headerlink" href="#module-lipd.bag" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.bag.create_bag">
+<code class="descclassname">lipd.bag.</code><code class="descname">create_bag</code><span class="sig-paren">(</span><em>dir_bag</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.bag.create_bag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Bag out of given files.
+:param str dir_bag: Directory that contains csv, jsonld, and changelog files.
+:return obj: Bag</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.bag.finish_bag">
+<code class="descclassname">lipd.bag.</code><code class="descname">finish_bag</code><span class="sig-paren">(</span><em>dir_bag</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.bag.finish_bag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closing steps for creating a bag
+:param obj dir_bag:
+:return None:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.bag.open_bag">
+<code class="descclassname">lipd.bag.</code><code class="descname">open_bag</code><span class="sig-paren">(</span><em>dir_bag</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.bag.open_bag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open Bag at the given path
+:param str dir_bag: Path to Bag
+:return obj: Bag</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.bag.resolved_flag">
+<code class="descclassname">lipd.bag.</code><code class="descname">resolved_flag</code><span class="sig-paren">(</span><em>bag</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.bag.resolved_flag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check DOI flag in bag.info to see if doi_resolver has been previously run
+:param obj bag: Bag
+:return bool: Flag</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.bag.validate_md5">
+<code class="descclassname">lipd.bag.</code><code class="descname">validate_md5</code><span class="sig-paren">(</span><em>bag</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.bag.validate_md5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if Bag is valid
+:param obj bag: Bag
+:return None:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.blanks">
+<span id="blanks"></span><h2>blanks<a class="headerlink" href="#module-lipd.blanks" title="Permalink to this headline">¶</a></h2>
+<p>List of empty and ignored keys</p>
+</div>
+<div class="section" id="module-lipd.csvs">
+<span id="csvs"></span><h2>csvs<a class="headerlink" href="#module-lipd.csvs" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.csvs.get_csv_from_metadata">
+<code class="descclassname">lipd.csvs.</code><code class="descname">get_csv_from_metadata</code><span class="sig-paren">(</span><em>name</em>, <em>metadata</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.csvs.get_csv_from_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Two goals. Get all csv from metadata, and return new metadata with generated filenames to match files.
+:param str name: LiPD dataset name
+:param dict metadata: Metadata
+:return dict: Csv Data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.csvs.merge_csv_metadata">
+<code class="descclassname">lipd.csvs.</code><code class="descname">merge_csv_metadata</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.csvs.merge_csv_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Using the given metadata dictionary, retrieve CSV data from CSV files, and insert the CSV
+values into their respective metadata columns. Checks for both paleoData and chronData tables.
+:param dict d: Metadata
+:return dict: Modified metadata dictionary</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.csvs.read_csv_from_file">
+<code class="descclassname">lipd.csvs.</code><code class="descname">read_csv_from_file</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.csvs.read_csv_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the target CSV file and creates a dictionary with one list for each CSV column.
+:param str filename:
+:return list of lists: column values</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.csvs.write_csv_to_file">
+<code class="descclassname">lipd.csvs.</code><code class="descname">write_csv_to_file</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.csvs.write_csv_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes columns of data to a target CSV file.
+:param dict d: A dictionary containing one list for every data column. Keys: int, Values: list
+:return None:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.dataframes">
+<span id="dataframes"></span><h2>dataframes<a class="headerlink" href="#module-lipd.dataframes" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.dataframes.create_dataframe">
+<code class="descclassname">lipd.dataframes.</code><code class="descname">create_dataframe</code><span class="sig-paren">(</span><em>ensemble</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.dataframes.create_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a data frame from given nested lists of ensemble data
+:param list ensemble: Ensemble data
+:return obj: Dataframe</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.dataframes.get_filtered_dfs">
+<code class="descclassname">lipd.dataframes.</code><code class="descname">get_filtered_dfs</code><span class="sig-paren">(</span><em>lib</em>, <em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.dataframes.get_filtered_dfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main: Get all data frames that match the given expression
+:return dict: Filenames and data frames (filtered)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.dataframes.lipd_to_df">
+<code class="descclassname">lipd.dataframes.</code><code class="descname">lipd_to_df</code><span class="sig-paren">(</span><em>metadata</em>, <em>csvs</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.dataframes.lipd_to_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an organized collection of data frames from LiPD data
+:param dict metadata: LiPD data
+:param dict csvs: Csv data
+:return dict: One data frame per table, organized in a dictionary by name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.dataframes.ts_to_df">
+<code class="descclassname">lipd.dataframes.</code><code class="descname">ts_to_df</code><span class="sig-paren">(</span><em>metadata</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.dataframes.ts_to_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a data frame from one TimeSeries object
+:param dict metadata: Time Series dictionary
+:return dict: One data frame per table, organized in a dictionary by name</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.directory">
+<span id="directory"></span><h2>directory<a class="headerlink" href="#module-lipd.directory" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.directory.browse_dialog_dir">
+<code class="descclassname">lipd.directory.</code><code class="descname">browse_dialog_dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.browse_dialog_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open up a GUI browse dialog window and let to user pick a target directory.
+:return str: Target directory path</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.browse_dialog_file">
+<code class="descclassname">lipd.directory.</code><code class="descname">browse_dialog_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.browse_dialog_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open up a GUI browse dialog window and let to user select one or more files
+:return str _path: Target directory path
+:return list _files: List of selected files</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.check_file_age">
+<code class="descclassname">lipd.directory.</code><code class="descname">check_file_age</code><span class="sig-paren">(</span><em>filename</em>, <em>days</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.check_file_age" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the target file has an older creation date than X amount of time.
+i.e. One day: 60*60*24
+:param str filename: Target filename
+:param int days: Limit in number of days
+:return bool: True - older than X time, False - not older than X time</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.collect_metadata_file">
+<code class="descclassname">lipd.directory.</code><code class="descname">collect_metadata_file</code><span class="sig-paren">(</span><em>full_path</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.collect_metadata_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the file metadata and add it to the appropriate section by file-type
+:param str full_path:
+:param dict existing_files:
+:return dict existing files:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.collect_metadata_files">
+<code class="descclassname">lipd.directory.</code><code class="descname">collect_metadata_files</code><span class="sig-paren">(</span><em>cwd</em>, <em>new_files</em>, <em>existing_files</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.collect_metadata_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect all files from a given path. Separate by file type, and return one list for each type
+If ‘files’ contains specific
+:param str cwd: Directory w/ target files
+:param list new_files: Specific new files to load
+:param dict existing_files: Files currently loaded, separated by type
+:return list: All files separated by type</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.create_tmp_dir">
+<code class="descclassname">lipd.directory.</code><code class="descname">create_tmp_dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.create_tmp_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates tmp directory in OS temp space.
+:return str: Path to tmp directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.dir_cleanup">
+<code class="descclassname">lipd.directory.</code><code class="descname">dir_cleanup</code><span class="sig-paren">(</span><em>dir_bag</em>, <em>dir_data</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.dir_cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves JSON and csv files to bag root, then deletes all the metadata bag files. We’ll be creating a new bag with
+the data files, so we don’t need the other text files and such.
+:param str dir_bag: Path to root of Bag
+:param str dir_data: Path to Bag /data subdirectory
+:return None:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.filename_from_path">
+<code class="descclassname">lipd.directory.</code><code class="descname">filename_from_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.filename_from_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the file name from a given file path.
+:param str path: File path
+:return str: File name with extension</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.find_files">
+<code class="descclassname">lipd.directory.</code><code class="descname">find_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.find_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for the directory containing jsonld and csv files. chdir and then quit.
+:return none:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.get_filenames_generated">
+<code class="descclassname">lipd.directory.</code><code class="descname">get_filenames_generated</code><span class="sig-paren">(</span><em>d</em>, <em>name=''</em>, <em>csvs=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.get_filenames_generated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the filenames that the LiPD utilities has generated (per naming standard), as opposed to the filenames that
+originated in the LiPD file (that possibly don’t follow the naming standard)
+:param dict d: Data
+:param str name: LiPD dataset name to prefix
+:param list csvs: Filenames list to merge with
+:return list: Filenames</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.get_filenames_in_lipd">
+<code class="descclassname">lipd.directory.</code><code class="descname">get_filenames_in_lipd</code><span class="sig-paren">(</span><em>path</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.get_filenames_in_lipd" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all the files contained in the LiPD archive. Bagit, JSON, and CSV
+:param str path: Directory to be listed
+:param str name: LiPD dataset name, if you want to prefix it to show file hierarchy
+:return list: Filenames found</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.get_src_or_dst">
+<code class="descclassname">lipd.directory.</code><code class="descname">get_src_or_dst</code><span class="sig-paren">(</span><em>mode</em>, <em>path_type</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.get_src_or_dst" title="Permalink to this definition">¶</a></dt>
+<dd><p>User sets the path to a LiPD source location
+:param str mode: “read” or “write” mode
+:param str path_type: “directory” or “file”
+:return str path: dir path to files
+:return list files: files chosen</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.get_src_or_dst_path">
+<code class="descclassname">lipd.directory.</code><code class="descname">get_src_or_dst_path</code><span class="sig-paren">(</span><em>prompt</em>, <em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.get_src_or_dst_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Let the user choose a path, and store the value.
+:return str _path: Target directory
+:return str count: Counter for attempted prompts</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.get_src_or_dst_prompt">
+<code class="descclassname">lipd.directory.</code><code class="descname">get_src_or_dst_prompt</code><span class="sig-paren">(</span><em>mode</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.get_src_or_dst_prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>String together the proper prompt based on the mode
+:param str mode: “read” or “write”
+:return str prompt: The prompt needed</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.list_files">
+<code class="descclassname">lipd.directory.</code><code class="descname">list_files</code><span class="sig-paren">(</span><em>x</em>, <em>path=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.list_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists file(s) in given path of the X type.
+:param str x: File extension that we are interested in.
+:param str path: Path, if user would like to check a specific directory outside of the CWD
+:return list of str: File name(s) to be worked on</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.rm_file_if_exists">
+<code class="descclassname">lipd.directory.</code><code class="descname">rm_file_if_exists</code><span class="sig-paren">(</span><em>path</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.rm_file_if_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a file if it exists. Useful for when we want to write a file, but it already exists in that locaiton.
+:param str filename: Filename
+:param str path: Directory
+:return none:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.directory.rm_files_in_dir">
+<code class="descclassname">lipd.directory.</code><code class="descname">rm_files_in_dir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.directory.rm_files_in_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all files within a directory, but does not delete the directory
+:param str path: Target directory
+:return none:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.doi_main">
+<span id="doi-main"></span><h2>doi_main<a class="headerlink" href="#module-lipd.doi_main" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.doi_main.doi_main">
+<code class="descclassname">lipd.doi_main.</code><code class="descname">doi_main</code><span class="sig-paren">(</span><em>files</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_main.doi_main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main function that controls the script. Take in directory containing the .lpd file(s). Loop for each file.
+:return None:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.doi_main.process_lpd">
+<code class="descclassname">lipd.doi_main.</code><code class="descname">process_lpd</code><span class="sig-paren">(</span><em>name</em>, <em>dir_tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_main.process_lpd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens up json file, invokes doi_resolver, closes file, updates changelog, cleans directory, and makes new bag.
+:param str name: Name of current .lpd file
+:param str dir_tmp: Path to tmp directory
+:return none:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.doi_main.prompt_force">
+<code class="descclassname">lipd.doi_main.</code><code class="descname">prompt_force</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_main.prompt_force" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask the user if they want to force update files that were previously resolved
+:return bool: response</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.doi_resolver">
+<span id="doi-resolver"></span><h2>doi_resolver<a class="headerlink" href="#module-lipd.doi_resolver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lipd.doi_resolver.DOIResolver">
+<em class="property">class </em><code class="descclassname">lipd.doi_resolver.</code><code class="descname">DOIResolver</code><span class="sig-paren">(</span><em>dir_root</em>, <em>name</em>, <em>root_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Use DOI id(s) to pull updated publication info from doi.org and overwrite file data.</p>
+<p>Input:  Original publication dictionary
+Output: Updated publication dictionary (success), original publication dictionary (fail)</p>
+<dl class="staticmethod">
+<dt id="lipd.doi_resolver.DOIResolver.compare_replace">
+<em class="property">static </em><code class="descname">compare_replace</code><span class="sig-paren">(</span><em>pub_dict</em>, <em>fetch_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.compare_replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take in our Original Pub, and Fetched Pub. For each Fetched entry that has data, overwrite the Original entry
+:param pub_dict: (dict) Original pub dictionary
+:param fetch_dict: (dict) Fetched pub dictionary from doi.org
+:return: (dict) Updated pub dictionary, with fetched data taking precedence</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="lipd.doi_resolver.DOIResolver.compile_authors">
+<em class="property">static </em><code class="descname">compile_authors</code><span class="sig-paren">(</span><em>authors</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.compile_authors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compiles authors “Last, First” into a single list
+:param list authors: Raw author data retrieved from doi.org
+:return list: Author objects</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="lipd.doi_resolver.DOIResolver.compile_date">
+<em class="property">static </em><code class="descname">compile_date</code><span class="sig-paren">(</span><em>date_parts</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.compile_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compiles date only using the year
+:param list date_parts: List of date parts retrieved from doi.org
+:return str: Date string or NaN</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.doi_resolver.DOIResolver.compile_fetch">
+<code class="descname">compile_fetch</code><span class="sig-paren">(</span><em>raw</em>, <em>doi_id</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.compile_fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loop over Raw and add selected items to Fetch with proper formatting
+:param dict raw: JSON data from doi.org
+:param str doi_id:
+:return dict:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.doi_resolver.DOIResolver.find_doi">
+<code class="descname">find_doi</code><span class="sig-paren">(</span><em>curr_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.find_doi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively search the file for the DOI id. More taxing, but more flexible when dictionary structuring isn’t absolute
+:param dict curr_dict: Current dictionary being searched
+:return dict bool: Recursive - Current dictionary, False flag that DOI was not found
+:return str bool: Final - DOI id, True flag that DOI was found</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.doi_resolver.DOIResolver.get_data">
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>doi_id</em>, <em>idx</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolve DOI and compile all attributes into one dictionary
+:param str doi_id:
+:param int idx: Publication index
+:return dict: Updated publication dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.doi_resolver.DOIResolver.illegal_doi">
+<code class="descname">illegal_doi</code><span class="sig-paren">(</span><em>doi_string</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.illegal_doi" title="Permalink to this definition">¶</a></dt>
+<dd><p>DOI string did not match the regex. Determine what the data is.
+:param doi_string: (str) Malformed DOI string
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.doi_resolver.DOIResolver.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main function that gets file(s), creates outputs, and runs all operations.
+:return dict: Updated or original data for jsonld file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.doi_resolver.DOIResolver.noaa_citation">
+<code class="descname">noaa_citation</code><span class="sig-paren">(</span><em>doi_string</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.noaa_citation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Special instructions for moving noaa data to the correct fields
+:param doi_string: (str) NOAA url
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.doi_resolver.DOIResolver.remove_empties">
+<code class="descname">remove_empties</code><span class="sig-paren">(</span><em>pub</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.doi_resolver.DOIResolver.remove_empties" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.ensembles">
+<span id="ensembles"></span><h2>ensembles<a class="headerlink" href="#module-lipd.ensembles" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.ensembles.create_ensemble">
+<code class="descclassname">lipd.ensembles.</code><code class="descname">create_ensemble</code><span class="sig-paren">(</span><em>ensemble</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.ensembles.create_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add ensemble data to a LiPD object
+:param list ensemble: Ensemble data nested lists
+:return dict: Structured Ensemble data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.ensembles.insert_ensemble">
+<code class="descclassname">lipd.ensembles.</code><code class="descname">insert_ensemble</code><span class="sig-paren">(</span><em>d</em>, <em>ens</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.ensembles.insert_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert the ensemble table dictionary into the LiPD metadata
+:param dict d: LiPD metadata
+:param dict ens: Ensemble data to insert
+:return dict:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.excel">
+<span id="excel"></span><h2>excel<a class="headerlink" href="#module-lipd.excel" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.excel.cells_dn_meta">
+<code class="descclassname">lipd.excel.</code><code class="descname">cells_dn_meta</code><span class="sig-paren">(</span><em>workbook</em>, <em>sheet</em>, <em>row</em>, <em>col</em>, <em>final_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.cells_dn_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traverse all cells in a column moving downward. Primarily created for the metadata sheet, but may use elsewhere.
+Check the cell title, and switch it to.
+:param obj workbook:
+:param str sheet:
+:param int row:
+:param int col:
+:param dict final_dict:
+:return: none</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.cells_rt_meta">
+<code class="descclassname">lipd.excel.</code><code class="descname">cells_rt_meta</code><span class="sig-paren">(</span><em>workbook</em>, <em>sheet</em>, <em>row</em>, <em>col</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.cells_rt_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traverse all cells in a row. If you find new data in a cell, add it to the list.
+:param obj workbook:
+:param str sheet:
+:param int row:
+:param int col:
+:return list: Cell data for a specific row</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.cells_rt_meta_pub">
+<code class="descclassname">lipd.excel.</code><code class="descname">cells_rt_meta_pub</code><span class="sig-paren">(</span><em>workbook</em>, <em>sheet</em>, <em>row</em>, <em>col</em>, <em>pub_qty</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.cells_rt_meta_pub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Publication section is special. It’s possible there’s more than one publication.
+:param obj workbook:
+:param str sheet:
+:param int row:
+:param int col:
+:param int pub_qty: Number of distinct publication sections in this file
+:return list: Cell data for a specific row</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.compile_authors">
+<code class="descclassname">lipd.excel.</code><code class="descname">compile_authors</code><span class="sig-paren">(</span><em>cell</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.compile_authors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split the string of author names into the BibJSON format.
+:param str cell: Data from author cell
+:return: (list of dicts) Author names</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.compile_fund">
+<code class="descclassname">lipd.excel.</code><code class="descname">compile_fund</code><span class="sig-paren">(</span><em>workbook</em>, <em>sheet</em>, <em>row</em>, <em>col</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.compile_fund" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile funding entries. Iter both rows at the same time. Keep adding entries until both cells are empty.
+:param obj workbook:
+:param str sheet:
+:param int row:
+:param int col:
+:return list of dict: l</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.compile_geo">
+<code class="descclassname">lipd.excel.</code><code class="descname">compile_geo</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.compile_geo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile top-level Geography dictionary.
+:param d:
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.compile_geometry">
+<code class="descclassname">lipd.excel.</code><code class="descname">compile_geometry</code><span class="sig-paren">(</span><em>lat</em>, <em>lon</em>, <em>elev</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.compile_geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take in lists of lat and lon coordinates, and determine what geometry to create
+:param list lat: Latitude values
+:param list lon: Longitude values
+:param float elev: Elevation value
+:return dict:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.compile_temp">
+<code class="descclassname">lipd.excel.</code><code class="descname">compile_temp</code><span class="sig-paren">(</span><em>d</em>, <em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.compile_temp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compiles temporary dictionaries for metadata. Adds a new entry to an existing dictionary.
+:param dict d:
+:param str key:
+:param any value:
+:return dict:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.count_chron_variables">
+<code class="descclassname">lipd.excel.</code><code class="descname">count_chron_variables</code><span class="sig-paren">(</span><em>temp_sheet</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.count_chron_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the number of chron variables
+:param obj temp_sheet:
+:return int: variable count</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.excel_main">
+<code class="descclassname">lipd.excel.</code><code class="descname">excel_main</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.excel_main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse data from Excel spreadsheets into LiPD files.
+:return list: Filenames of LiPD files created</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.extract_short">
+<code class="descclassname">lipd.excel.</code><code class="descname">extract_short</code><span class="sig-paren">(</span><em>string_in</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.extract_short" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the short name from a string that also has units.
+:param str string_in:
+:return str:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.extract_units">
+<code class="descclassname">lipd.excel.</code><code class="descname">extract_units</code><span class="sig-paren">(</span><em>string_in</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.extract_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract units from parenthesis in a string. i.e. “elevation (meters)”
+:param str string_in:
+:return str:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.geometry_linestring">
+<code class="descclassname">lipd.excel.</code><code class="descname">geometry_linestring</code><span class="sig-paren">(</span><em>lat</em>, <em>lon</em>, <em>elev</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.geometry_linestring" title="Permalink to this definition">¶</a></dt>
+<dd><p>GeoJSON Linestring. Latitude and Longitude have 2 values each.
+:param list lat: Latitude values
+:param list lon:  Longitude values
+:return dict:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.geometry_point">
+<code class="descclassname">lipd.excel.</code><code class="descname">geometry_point</code><span class="sig-paren">(</span><em>lat</em>, <em>lon</em>, <em>elev</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.geometry_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>GeoJSON point. Latitude and Longitude only have one value each
+:param list lat: Latitude values
+:param list lon: Longitude values
+:param float elev: Elevation value
+:return dict:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.geometry_range">
+<code class="descclassname">lipd.excel.</code><code class="descname">geometry_range</code><span class="sig-paren">(</span><em>crd_range</em>, <em>elev</em>, <em>crd_type</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.geometry_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Range of coordinates. (e.g. 2 latitude coordinates, and 0 longitude coordinates)
+:param crd_range: Latitude or Longitude values
+:param elev: Elevation value
+:param crd_type: Coordinate type, lat or lon
+:return dict:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.get_chron_data">
+<code class="descclassname">lipd.excel.</code><code class="descname">get_chron_data</code><span class="sig-paren">(</span><em>temp_sheet</em>, <em>row</em>, <em>total_vars</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.get_chron_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Capture all data in for a specific chron data row (for csv output)
+:param obj temp_sheet:
+:param int row:
+:param int total_vars:
+:return list: data_row</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.get_chron_var">
+<code class="descclassname">lipd.excel.</code><code class="descname">get_chron_var</code><span class="sig-paren">(</span><em>temp_sheet</em>, <em>start_row</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.get_chron_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Capture all the vars in the chron sheet (for json-ld output)
+:param obj temp_sheet:
+:param int start_row:
+:return: (list of dict) column data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.instance_str">
+<code class="descclassname">lipd.excel.</code><code class="descname">instance_str</code><span class="sig-paren">(</span><em>cell</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.instance_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Match data type and return string
+:param any cell:
+:return str:</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="lipd.excel.logger_excel">
+<code class="descclassname">lipd.excel.</code><code class="descname">logger_excel</code><em class="property"> = &lt;logging.Logger object&gt;</em><a class="headerlink" href="#lipd.excel.logger_excel" title="Permalink to this definition">¶</a></dt>
+<dd><p>VERSION: LiPD v1.2</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.name_to_jsonld">
+<code class="descclassname">lipd.excel.</code><code class="descname">name_to_jsonld</code><span class="sig-paren">(</span><em>title_in</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.name_to_jsonld" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert formal titles to camelcase json_ld text that matches our context file
+Keep a growing list of all titles that are being used in the json_ld context
+:param str title_in:
+:return str:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.traverse_to_chron_data">
+<code class="descclassname">lipd.excel.</code><code class="descname">traverse_to_chron_data</code><span class="sig-paren">(</span><em>temp_sheet</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.traverse_to_chron_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traverse down to the first row that has chron data
+:param obj temp_sheet:
+:return int: traverse_row</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.excel.traverse_to_chron_var">
+<code class="descclassname">lipd.excel.</code><code class="descname">traverse_to_chron_var</code><span class="sig-paren">(</span><em>temp_sheet</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.excel.traverse_to_chron_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traverse down to the row that has the first variable
+:param obj temp_sheet:
+:return int:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.inferred_data">
+<span id="inferred-data"></span><h2>inferred_data<a class="headerlink" href="#module-lipd.inferred_data" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.inferred_data.get_inferred_data_table">
+<code class="descclassname">lipd.inferred_data.</code><code class="descname">get_inferred_data_table</code><span class="sig-paren">(</span><em>pc</em>, <em>table</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.inferred_data.get_inferred_data_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table level: Dive down, calculate data, then return the new table with the inferred data.
+:param str pc: Paleo or Chron table type
+:param dict table: Table data
+:return dict table: Table with new data</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.io">
+<span id="io"></span><h2>io<a class="headerlink" href="#module-lipd.io" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.io.lipd_read">
+<code class="descclassname">lipd.io.</code><code class="descname">lipd_read</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.io.lipd_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a LiPD file from local path. Unzip, read, and process data
+Steps: create tmp, unzip lipd, read files into memory, manipulate data, move to original dir, delete tmp.
+:param str path: Source path
+:return none:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.io.lipd_write">
+<code class="descclassname">lipd.io.</code><code class="descname">lipd_write</code><span class="sig-paren">(</span><em>_json</em>, <em>path</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.io.lipd_write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves current state of LiPD object data. Outputs to a LiPD file.
+Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,</p>
+<blockquote>
+<div>zip up bag folder, place lipd in target dst, move to original dir, delete tmp</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>_json</strong> (<em>dict</em>) – Metadata</li>
+<li><strong>path</strong> (<em>str</em>) – Destination path</li>
+<li><strong>name</strong> (<em>str</em>) – Filename w/o extension</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return none:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.jsons">
+<span id="jsons"></span><h2>jsons<a class="headerlink" href="#module-lipd.jsons" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.jsons.get_csv_from_json">
+<code class="descclassname">lipd.jsons.</code><code class="descname">get_csv_from_json</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.jsons.get_csv_from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get CSV values when mixed into json data. Pull out the CSV data and put it into a dictionary.
+:param dict d: JSON with CSV values
+:return dict: CSV values. (i.e. { CSVFilename1: { Column1: [Values], Column2: [Values] }, CSVFilename2: … }</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.jsons.idx_name_to_num">
+<code class="descclassname">lipd.jsons.</code><code class="descname">idx_name_to_num</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.jsons.idx_name_to_num" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switch from index-by-name to index-by-number.
+:param dict d: Metadata
+:return dict: Modified metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.jsons.idx_num_to_name">
+<code class="descclassname">lipd.jsons.</code><code class="descname">idx_num_to_name</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.jsons.idx_num_to_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switch from index-by-number to index-by-name.
+:param dict d: Metadata
+:return dict: Modified Metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.jsons.read_json_from_file">
+<code class="descclassname">lipd.jsons.</code><code class="descname">read_json_from_file</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.jsons.read_json_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import the JSON data from target file.
+:param str filename: Target File
+:return dict: JSON data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.jsons.read_jsonld">
+<code class="descclassname">lipd.jsons.</code><code class="descname">read_jsonld</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.jsons.read_jsonld" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find jsonld file in the cwd (or within a 2 levels below cwd), and load it in.
+:return dict: Jsonld data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.jsons.remove_csv_from_json">
+<code class="descclassname">lipd.jsons.</code><code class="descname">remove_csv_from_json</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.jsons.remove_csv_from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all CSV data ‘values’ entries from paleoData table in the JSON structure.
+:param dict d: JSON data - old structure
+:return dict: Metadata dictionary without CSV values</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.jsons.write_json_to_file">
+<code class="descclassname">lipd.jsons.</code><code class="descname">write_json_to_file</code><span class="sig-paren">(</span><em>json_data</em>, <em>filename='metadata'</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.jsons.write_json_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write all JSON in python dictionary to a new json file.
+:param dict json_data: JSON data
+:param str filename: Target filename (defaults to ‘metadata.jsonld’)
+:return None:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.loggers">
+<span id="loggers"></span><h2>loggers<a class="headerlink" href="#module-lipd.loggers" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.loggers.create_benchmark">
+<code class="descclassname">lipd.loggers.</code><code class="descname">create_benchmark</code><span class="sig-paren">(</span><em>name</em>, <em>log_file</em>, <em>level=20</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.loggers.create_benchmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a logger for function benchmark times
+:param str name: Name of the logger
+:param str log_file: Filename
+:return obj: Logger</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.loggers.create_logger">
+<code class="descclassname">lipd.loggers.</code><code class="descname">create_logger</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.loggers.create_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a logger with the below attributes.
+:param str name: Name of the logger
+:return obj: Logger</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.loggers.log_benchmark">
+<code class="descclassname">lipd.loggers.</code><code class="descname">log_benchmark</code><span class="sig-paren">(</span><em>fn</em>, <em>start</em>, <em>end</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.loggers.log_benchmark" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log a given function and how long the function takes in seconds
+:param str fn: Function name
+:param float start: Function start time
+:param float end: Function end time
+:return none:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.loggers.update_changelog">
+<code class="descclassname">lipd.loggers.</code><code class="descname">update_changelog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.loggers.update_changelog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create or update the changelog txt file. Prompt for update description.
+:return None:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.lpd_noaa">
+<span id="lpd-noaa"></span><h2>lpd_noaa<a class="headerlink" href="#module-lipd.lpd_noaa" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lipd.lpd_noaa.LPD_NOAA">
+<em class="property">class </em><code class="descclassname">lipd.lpd_noaa.</code><code class="descname">LPD_NOAA</code><span class="sig-paren">(</span><em>dir_root</em>, <em>name</em>, <em>lipd_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.lpd_noaa.LPD_NOAA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Creates a NOAA object that contains all the functions needed to write out a LiPD file as a NOAA text file.
+Supports
+LiPD Version: v1.2
+NOAA txt template: v3.0</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return none:</th><td class="field-body">Writes NOAA text to file in local storage</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="lipd.lpd_noaa.LPD_NOAA.get_master">
+<code class="descname">get_master</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.lpd_noaa.LPD_NOAA.get_master" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the master json that has been modified
+:return dict: self.lipd_data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.lpd_noaa.LPD_NOAA.get_wdc_paleo_url">
+<code class="descname">get_wdc_paleo_url</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.lpd_noaa.LPD_NOAA.get_wdc_paleo_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>When a NOAA file is created, it creates a URL link to where the dataset will be hosted in NOAA’s archive
+Retrieve and add this link to the original LiPD file, so we can trace the dataset to NOAA.
+:return str:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lipd.lpd_noaa.LPD_NOAA.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.lpd_noaa.LPD_NOAA.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load in the template file, and run through the parser
+:return none:</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.misc">
+<span id="misc"></span><h2>misc<a class="headerlink" href="#module-lipd.misc" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.misc.cast_float">
+<code class="descclassname">lipd.misc.</code><code class="descname">cast_float</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.cast_float" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempt to cleanup string or convert to number value.
+:param any x:
+:return float:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.cast_int">
+<code class="descclassname">lipd.misc.</code><code class="descname">cast_int</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.cast_int" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cast unknown type into integer
+:param any x:
+:return int:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.cast_values_csvs">
+<code class="descclassname">lipd.misc.</code><code class="descname">cast_values_csvs</code><span class="sig-paren">(</span><em>d</em>, <em>idx</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.cast_values_csvs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempt to cast string to float. If error, keep as a string.
+:param dict d: Data
+:param int idx: Index number
+:param str x: Data
+:return any:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.check_dsn">
+<code class="descclassname">lipd.misc.</code><code class="descname">check_dsn</code><span class="sig-paren">(</span><em>name</em>, <em>_json</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.check_dsn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dataSetName. If one is not provided, then insert the filename as the dataSetName.
+:param str name: Filename w/o extension
+:param dict _json: Metadata
+:return dict _json: Metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.clean_doi">
+<code class="descclassname">lipd.misc.</code><code class="descname">clean_doi</code><span class="sig-paren">(</span><em>doi_string</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.clean_doi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use regex to extract all DOI ids from string (i.e. 10.1029/2005pa001215)
+:param str doi_string: Raw DOI string value from input file. Often not properly formatted.
+:return list: DOI ids. May contain 0, 1, or multiple ids.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.fix_coordinate_decimal">
+<code class="descclassname">lipd.misc.</code><code class="descname">fix_coordinate_decimal</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.fix_coordinate_decimal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinate decimal degrees calculated by an excel formula are often too long as a repeating decimal.
+Round them down to 5 decimals
+:param dict d: Metadata
+:return dict d: Metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.generate_timestamp">
+<code class="descclassname">lipd.misc.</code><code class="descname">generate_timestamp</code><span class="sig-paren">(</span><em>fmt=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.generate_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a timestamp to mark when this file was last modified.
+:param str fmt: Special format instructions
+:return str: YYYY-MM-DD format, or specified format</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.generate_tsid">
+<code class="descclassname">lipd.misc.</code><code class="descname">generate_tsid</code><span class="sig-paren">(</span><em>size=8</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.generate_tsid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a TSid string. Use the “PYT” prefix for traceability, and 8 trailing generated characters
+ex: PYT9AG234GS
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.get_appended_name">
+<code class="descclassname">lipd.misc.</code><code class="descname">get_appended_name</code><span class="sig-paren">(</span><em>name</em>, <em>columns</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.get_appended_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append numbers to a name until it no longer conflicts with the other names in a column.
+Necessary to avoid overwriting columns and losing data. Loop a preset amount of times to avoid an infinite loop.
+There shouldn’t ever be more than two or three identical variable names in a table.
+:param str name: Variable name in question
+:param dict columns: Columns listed by variable name
+:return str: Appended variable name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.get_authors_as_str">
+<code class="descclassname">lipd.misc.</code><code class="descname">get_authors_as_str</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.get_authors_as_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take author or investigator data, and convert it to a concatenated string of names.
+Author data structure has a few variations, so account for all.
+:param any x: Author data
+:return str: Author string</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.get_dsn">
+<code class="descclassname">lipd.misc.</code><code class="descname">get_dsn</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.get_dsn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the dataset name from a record
+:param dict d: Metadata
+:return str: Dataset name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.get_ensemble_counts">
+<code class="descclassname">lipd.misc.</code><code class="descname">get_ensemble_counts</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.get_ensemble_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if this is a 1 or 2 column ensemble. Then determine how many columns and rows it has.
+:param d:
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.get_missing_value_key">
+<code class="descclassname">lipd.misc.</code><code class="descname">get_missing_value_key</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.get_missing_value_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Missing Value entry from a table of data. If none is found, try the columns.
+If still none found, prompt user.
+:param dict d: Table of data
+:return str: Missing Value</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.get_table_key">
+<code class="descclassname">lipd.misc.</code><code class="descname">get_table_key</code><span class="sig-paren">(</span><em>key</em>, <em>d</em>, <em>fallback=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.get_table_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to get a table name from a data table
+:param str key: Key to try first
+:param dict d: Data table
+:param str fallback: (optional) If we don’t find a table name, use this as a generic name fallback.
+:return str: Data table name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.get_variable_name_col">
+<code class="descclassname">lipd.misc.</code><code class="descname">get_variable_name_col</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.get_variable_name_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the variable name from a table or column
+:param dict d: Metadata
+:return str:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.is_ensemble">
+<code class="descclassname">lipd.misc.</code><code class="descname">is_ensemble</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.is_ensemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a table of data is an ensemble table. Is the first values index a list? ensemble. Int/float? not ensemble.
+:param dict d: Table data
+:return bool: Ensemble or not ensemble</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.load_fn_matches_ext">
+<code class="descclassname">lipd.misc.</code><code class="descname">load_fn_matches_ext</code><span class="sig-paren">(</span><em>file_path</em>, <em>file_type</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.load_fn_matches_ext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that the file extension matches the target extension given.
+:param str file_path: Path to be checked
+:param str file_type: Target extension
+:return bool:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.match_arr_lengths">
+<code class="descclassname">lipd.misc.</code><code class="descname">match_arr_lengths</code><span class="sig-paren">(</span><em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.match_arr_lengths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that all the array lengths match so that a DataFrame can be created successfully.
+:param list l: Nested arrays
+:return bool: Valid or invalid</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.match_operators">
+<code class="descclassname">lipd.misc.</code><code class="descname">match_operators</code><span class="sig-paren">(</span><em>inp</em>, <em>relate</em>, <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.match_operators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare two items. Match a string operator to an operator function
+:param str inp: Comparison item
+:param str relate: Comparison operator
+:param any cut: Comparison item
+:return bool: Comparison truth</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.mv_files">
+<code class="descclassname">lipd.misc.</code><code class="descname">mv_files</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.mv_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move all files from one directory to another
+:param str src: Source directory
+:param str dst: Destination directory
+:return none:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.normalize_name">
+<code class="descclassname">lipd.misc.</code><code class="descname">normalize_name</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.normalize_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove foreign accents and characters to normalize the string. Prevents encoding errors.
+:param str s:
+:return str:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.path_type">
+<code class="descclassname">lipd.misc.</code><code class="descname">path_type</code><span class="sig-paren">(</span><em>path</em>, <em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.path_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if given path is file, directory, or other. Compare with target to see if it’s the type we wanted.
+:param str path: Path
+:param str target: Target type wanted
+:return bool:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.prompt_protocol">
+<code class="descclassname">lipd.misc.</code><code class="descname">prompt_protocol</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.prompt_protocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prompt user if they would like to save pickle file as a dictionary or an object.
+:return str: Answer</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.put_tsids">
+<code class="descclassname">lipd.misc.</code><code class="descname">put_tsids</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.put_tsids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively add in TSids into any columns that do not have them.
+Look for “columns” keys, and then start looping and adding generated TSids to each column
+:param any x: Recursive, so could be any data type.
+:return any x: Recursive, so could be any data type.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.rm_empty_doi">
+<code class="descclassname">lipd.misc.</code><code class="descname">rm_empty_doi</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.rm_empty_doi" title="Permalink to this definition">¶</a></dt>
+<dd><p>If an “identifier” dictionary has no doi ID, then it has no use. Delete it.
+:param dict d: JSON Metadata
+:return dict: JSON Metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.rm_empty_fields">
+<code class="descclassname">lipd.misc.</code><code class="descname">rm_empty_fields</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.rm_empty_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Go through N number of nested data types and remove all empty entries. Recursion
+:param any x: Dictionary, List, or String of data
+:return any: Returns a same data type as original, but without empties.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.rm_files">
+<code class="descclassname">lipd.misc.</code><code class="descname">rm_files</code><span class="sig-paren">(</span><em>path</em>, <em>extension</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.rm_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all files in the given directory with the given extension
+:param str path: Directory
+:param str extension: File type to remove
+:return none:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.rm_keys_from_dict">
+<code class="descclassname">lipd.misc.</code><code class="descname">rm_keys_from_dict</code><span class="sig-paren">(</span><em>d</em>, <em>keys</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.rm_keys_from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a dictionary and a key list, remove any data in the dictionary with the given keys.
+:param dict d: Data
+:param list keys: List of key data to remove
+:return dict d: Data (with keys + data removed)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.rm_missing_values_table">
+<code class="descclassname">lipd.misc.</code><code class="descname">rm_missing_values_table</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.rm_missing_values_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loop for each table column and remove the missingValue key &amp; data
+:param dict d: Table data
+:return dict d: Table data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.rm_values_fields">
+<code class="descclassname">lipd.misc.</code><code class="descname">rm_values_fields</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.rm_values_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>(recursive) Remove all “values” fields from the metadata
+:param any x: Any data type
+:return dict: metadata without “values”</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.split_path_and_file">
+<code class="descclassname">lipd.misc.</code><code class="descname">split_path_and_file</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.split_path_and_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a full path to a file, split and return a path and filename
+:param str s: Full path
+:return str str: Path, filename</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.misc.unwrap_arrays">
+<code class="descclassname">lipd.misc.</code><code class="descname">unwrap_arrays</code><span class="sig-paren">(</span><em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.misc.unwrap_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unwrap nested lists to be one “flat” list of lists. Mainly for prepping ensemble data for DataFrame() creation
+:param list l: Nested lists
+:return list: Flattened lists</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.noaa">
+<span id="noaa"></span><h2>noaa<a class="headerlink" href="#module-lipd.noaa" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.noaa.lpd_to_noaa">
+<code class="descclassname">lipd.noaa.</code><code class="descname">lpd_to_noaa</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.noaa.lpd_to_noaa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a LiPD format to NOAA format
+:param obj obj: LiPD object
+:return obj: LiPD object (modified)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.noaa.noaa_prompt">
+<code class="descclassname">lipd.noaa.</code><code class="descname">noaa_prompt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.noaa.noaa_prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert between NOAA and LiPD file formats.
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.noaa.noaa_to_lpd">
+<code class="descclassname">lipd.noaa.</code><code class="descname">noaa_to_lpd</code><span class="sig-paren">(</span><em>files</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.noaa.noaa_to_lpd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert NOAA format to LiPD format
+:param dict files: Files metadata
+:return None:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.noaa_lpd">
+<span id="noaa-lpd"></span><h2>noaa_lpd<a class="headerlink" href="#module-lipd.noaa_lpd" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="lipd.noaa_lpd.NOAA_LPD">
+<em class="property">class </em><code class="descclassname">lipd.noaa_lpd.</code><code class="descname">NOAA_LPD</code><span class="sig-paren">(</span><em>dir_root</em>, <em>dir_tmp</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.noaa_lpd.NOAA_LPD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="lipd.noaa_lpd.NOAA_LPD.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lipd.noaa_lpd.NOAA_LPD.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a NOAA text file into a lipds file.
+CSV files will be created if chronology or data sections are available.
+:return dict: Metadata Dictionary</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.regexes">
+<span id="regexes"></span><h2>regexes<a class="headerlink" href="#module-lipd.regexes" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-lipd.timeseries">
+<span id="timeseries"></span><h2>timeseries<a class="headerlink" href="#module-lipd.timeseries" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.timeseries.collapse">
+<code class="descclassname">lipd.timeseries.</code><code class="descname">collapse</code><span class="sig-paren">(</span><em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.timeseries.collapse" title="Permalink to this definition">¶</a></dt>
+<dd><p>LiPD Version 1.3
+Main function to initiate time series to LiPD conversion
+:param list l: Time series
+:return dict _master: LiPD data, sorted by dataset name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.timeseries.extract">
+<code class="descclassname">lipd.timeseries.</code><code class="descname">extract</code><span class="sig-paren">(</span><em>d</em>, <em>chron</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.timeseries.extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>LiPD Version 1.3
+Main function to initiate LiPD to TSOs conversion.
+:param dict d: Metadata for one LiPD file
+:param bool chron: Paleo mode (default) or Chron mode
+:return list _ts: Time series</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.timeseries.get_matches">
+<code class="descclassname">lipd.timeseries.</code><code class="descname">get_matches</code><span class="sig-paren">(</span><em>expr_lst</em>, <em>ts</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.timeseries.get_matches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of TimeSeries objects that match the given expression.
+:param list expr_lst: Expression
+:param list ts: TimeSeries
+:return list new_ts: Matched time series objects
+:return list idxs: Indices of matched objects</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.timeseries.mode_ts">
+<code class="descclassname">lipd.timeseries.</code><code class="descname">mode_ts</code><span class="sig-paren">(</span><em>ec</em>, <em>ts=None</em>, <em>b=None</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.timeseries.mode_ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get string for the mode
+:param bool b: Chron boolean (for extract)
+:param str ec: extract or collapse
+:param list ts: Time series (for collapse)
+:return str phrase: Phrase</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.timeseries.translate_expression">
+<code class="descclassname">lipd.timeseries.</code><code class="descname">translate_expression</code><span class="sig-paren">(</span><em>expression</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.timeseries.translate_expression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the expression is valid, then check turn it into an expression that can be used for filtering.
+:return list of lists: One or more matches. Each list has 3 strings.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.validator_api">
+<span id="validator-api"></span><h2>validator_api<a class="headerlink" href="#module-lipd.validator_api" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.validator_api.create_detailed_results">
+<code class="descclassname">lipd.validator_api.</code><code class="descname">create_detailed_results</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.validator_api.create_detailed_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="lipd.validator_api.display_results">
+<code class="descclassname">lipd.validator_api.</code><code class="descname">display_results</code><span class="sig-paren">(</span><em>data</em>, <em>detailed=False</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.validator_api.display_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the results from the validator in a brief or detailed way.
+:param dict data: Results, sorted by dataset name
+:param bool detailed: Detailed results on or off
+:return none:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.validator_api.get_validator_format">
+<code class="descclassname">lipd.validator_api.</code><code class="descname">get_validator_format</code><span class="sig-paren">(</span><em>data_json</em>, <em>data_csv</em>, <em>filenames</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.validator_api.get_validator_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format the LIPD data in the layout that the Lipd.net validator accepts.
+Example of one _file metadata. _file_list will contain 1 or more _file’s
+_file = {</p>
+<blockquote>
+<div>“type”: “bagit/json/csv”,
+“filenameFull”: /path/to/filename.txt,
+“filenameShort”: filename.txt,
+“data”: “”,
+“pretty”: “”</div></blockquote>
+<p>}</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data_json</strong> (<em>dict</em>) – Metadata</li>
+<li><strong>data_csv</strong> (<em>dict</em>) – CSV data</li>
+<li><strong>filenames</strong> (<em>list</em>) – All files found in LiPD archive</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return list:</th><td class="field-body"><p class="first last">Validator-formatted data</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.validator_api.get_validator_results">
+<code class="descclassname">lipd.validator_api.</code><code class="descname">get_validator_results</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.validator_api.get_validator_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send LiPD data to the Lipd.net validator and get the results back.
+:param data:
+:return:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.versions">
+<span id="versions"></span><h2>versions<a class="headerlink" href="#module-lipd.versions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.versions.get_lipd_version">
+<code class="descclassname">lipd.versions.</code><code class="descname">get_lipd_version</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.versions.get_lipd_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check what version of LiPD this file is using. If none is found, assume it’s using version 1.0
+:param dict d: Metadata
+:return float:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.versions.update_lipd_v1_1">
+<code class="descclassname">lipd.versions.</code><code class="descname">update_lipd_v1_1</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.versions.update_lipd_v1_1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update LiPD v1.0 to v1.1
+- chronData entry is a list that allows multiple tables
+- paleoData entry is a list that allows multiple tables
+- chronData now allows measurement, model, summary, modelTable, ensemble, calibratedAges tables
+- Added ‘lipdVersion’ key</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>dict</em>) – Metadata v1.0</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict d:</th><td class="field-body">Metadata v1.1</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.versions.update_lipd_v1_2">
+<code class="descclassname">lipd.versions.</code><code class="descname">update_lipd_v1_2</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.versions.update_lipd_v1_2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update LiPD v1.1 to v1.2
+- Added NOAA compatible keys : maxYear, minYear, originalDataURL, WDCPaleoURL, etc
+- ‘calibratedAges’ key is now ‘distribution’
+- paleoData structure mirrors chronData. Allows measurement, model, summary, modelTable, ensemble,</p>
+<blockquote>
+<div>distribution tables</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>dict</em>) – Metadata v1.1</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return dict d:</th><td class="field-body">Metadata v1.2</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.versions.update_lipd_v1_3">
+<code class="descclassname">lipd.versions.</code><code class="descname">update_lipd_v1_3</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.versions.update_lipd_v1_3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update LiPD v1.2 to v1.3
+- Added ‘createdBy’ key
+- Top-level folder inside LiPD archives are named “bag”. (No longer &lt;datasetname&gt;)
+- .jsonld file is now generically named ‘metadata.jsonld’ (No longer &lt;datasetname&gt;.lpd )
+- All “paleo” and “chron” prefixes are removed from “paleoMeasurementTable”, “paleoModel”, etc.
+- Merge isotopeInterpretation and climateInterpretation into “interpretation” block
+- ensemble table entry is a list that allows multiple tables
+- summary table entry is a list that allows multiple tables
+:param dict d: Metadata v1.2
+:return dict d: Metadata v1.3</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.versions.update_lipd_v1_3_names">
+<code class="descclassname">lipd.versions.</code><code class="descname">update_lipd_v1_3_names</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.versions.update_lipd_v1_3_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the key names and merge interpretation data
+:param dict d: Metadata
+:return dict d: Metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.versions.update_lipd_v1_3_structure">
+<code class="descclassname">lipd.versions.</code><code class="descname">update_lipd_v1_3_structure</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.versions.update_lipd_v1_3_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the structure for summary and ensemble tables
+:param dict d: Metadata
+:return dict d: Metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.versions.update_lipd_version">
+<code class="descclassname">lipd.versions.</code><code class="descname">update_lipd_version</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.versions.update_lipd_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metadata is indexed by number at this step.</p>
+<p>Use the current version number to determine where to start updating from. Use “chain versioning” to make it
+modular. If a file is a few versions behind, convert to EACH version until reaching current. If a file is one
+version behind, it will only convert once to the newest.
+:param dict d: Metadata
+:return dict d: Metadata</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-lipd.zips">
+<span id="zips"></span><h2>zips<a class="headerlink" href="#module-lipd.zips" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="lipd.zips.unzipper">
+<code class="descclassname">lipd.zips.</code><code class="descname">unzipper</code><span class="sig-paren">(</span><em>filename</em>, <em>dir_tmp</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.zips.unzipper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unzip .lpd file contents to tmp directory.
+:param str filename: filename.lpd
+:param str dir_tmp: Tmp folder to extract contents to
+:return None:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="lipd.zips.zipper">
+<code class="descclassname">lipd.zips.</code><code class="descname">zipper</code><span class="sig-paren">(</span><em>root_dir=''</em>, <em>name=''</em>, <em>path_name_ext=''</em><span class="sig-paren">)</span><a class="headerlink" href="#lipd.zips.zipper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zips up directory back to the original location
+:param str root_dir: Root directory of the archive
+:param str name: &lt;datasetname&gt;.lpd
+:param str path_name_ext: /path/to/filename.lpd</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, N. McKay; C. Heiser.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
