@@ -39,7 +39,31 @@ Now you can call any function in the LiPD package.
 
 ::
 
-    lipd.readLipds()
+    lipd.readLipd()
+
+::
+
+    lipd.writeLipd()
+
+::
+
+    lipd.extractTs()
+
+::
+
+    lipd.collapseTs()
+
+::
+
+    lipd.queryTs()
+
+::
+
+    lipd.filterTs()
+
+::
+
+    lipd.validate()
 
 ::
 
@@ -48,6 +72,11 @@ Now you can call any function in the LiPD package.
 ::
 
     lipd.doi()
+
+::
+
+    lipd.noaa()
+
 
 Getting started
 ---------------
