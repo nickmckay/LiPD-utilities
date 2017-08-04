@@ -403,8 +403,8 @@ lastPub = 20;
         end
     end
     Dnew.(makeValidName(udsn{i}))=convertLiPD1_1to1_2(Dnew.(makeValidName(udsn{i})),1);
-    Dnew.(makeValidName(udsn{i}))=convertLiPD1_2to1_3(Dnew.(makeValidName(udsn{i})),1);
-
+    
+    
     
     
 end
