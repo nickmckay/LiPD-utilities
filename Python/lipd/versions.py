@@ -4,22 +4,25 @@ from .loggers import create_logger
 logger_versions = create_logger("versions")
 
 
-def get_lipd_version(d):
+def get_lipd_version(L):
     """
     Check what version of LiPD this file is using. If none is found, assume it's using version 1.0
-    :param dict d: Metadata
+    :param dict L: Metadata
     :return float:
     """
     version = 1.0
-    if "LiPDVersion" in d:
-        version = d["LiPDVersion"]
-        # Cast the version number to a float
-        try:
-            version = float(version)
-        except AttributeError:
-            # If the casting failed, then something is wrong with the key so assume version is 1.0
-            version = 1.0
-    return version
+    _keys = ["LipdVersion", "LiPDVersion", "lipdVersion", "liPDVersion"]
+    for _key in _keys:
+        if _key in L:
+            version = L[_key]
+            # Cast the version number to a float
+            try:
+                version = float(version)
+            except AttributeError:
+                # If the casting failed, then something is wrong with the key so assume version is 1.0
+                version = 1.0
+            L.pop(_key)
+    return L, version
 
 
 def _merge_interpretations(d):
@@ -55,33 +58,34 @@ def _merge_interpretations(d):
     return d
 
 
-def update_lipd_version(d):
+def update_lipd_version(L):
     """
     Metadata is indexed by number at this step.
 
     Use the current version number to determine where to start updating from. Use "chain versioning" to make it
     modular. If a file is a few versions behind, convert to EACH version until reaching current. If a file is one
     version behind, it will only convert once to the newest.
-    :param dict d: Metadata
+    :param dict L: Metadata
     :return dict d: Metadata
     """
     # Get the lipd version number.
-    version = get_lipd_version(d)
+    L, version = get_lipd_version(L)
 
     # Update from (N/A or 1.0) to 1.1
     if version in [1.0, "1.0"]:
-        d = update_lipd_v1_1(d)
+        L = update_lipd_v1_1(L)
         version = 1.1
 
     # Update from 1.1 to 1.2
     if version in [1.1, "1.1"]:
-        d = update_lipd_v1_2(d)
+        L = update_lipd_v1_2(L)
         version = 1.2
     if version in [1.2, "1.2"]:
-        d = update_lipd_v1_3(d)
+        L = update_lipd_v1_3(L)
         version = 1.3
 
-    return d
+    L["lipdVersion"] = 1.3
+    return L
 
 
 def update_lipd_v1_1(d):
