@@ -10,9 +10,9 @@ extractTs(D, chron = NULL)
 \item{D}{LiPD data, sorted by dataset name}
 }
 \value{
-ts Time series
+ts:  Time series
 }
 \description{
-Extract time series from LiPD data
+Create a time series from a library of LiPD datasets. A Time series is a flattened version of LiPD data that can be queried and filtered for easier data analysis.
 }
 

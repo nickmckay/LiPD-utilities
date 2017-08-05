@@ -72,209 +72,152 @@ def read_json_from_file(filename):
     return d
 
 
-def idx_num_to_name(d):
+def idx_num_to_name(L):
     """
     Switch from index-by-number to index-by-name.
-    :param dict d: Metadata
-    :return dict: Modified Metadata
+
+    :param dict L: Metadata
+    :return dict L: Metadata
     """
     logger_jsons.info("enter idx_num_to_name")
 
     try:
-        if "paleoData" in d:
-            tmp_pd = _import_data(d["paleoData"], "paleo")
-            d["paleoData"] = tmp_pd
-        if "chronData" in d:
-            tmp_cd = _import_data(d["chronData"], "chron")
-            d["chronData"] = tmp_cd
+        if "paleoData" in L:
+            L["paleoData"] = _import_data(L["paleoData"], "paleo")
+        if "chronData" in L:
+            L["chronData"] = _import_data(L["chronData"], "chron")
     except Exception as e:
-        logger_jsons.error("idx_num_to_name: Exception: {}".format(e))
+        logger_jsons.error("idx_num_to_name: {}".format(e))
+        print("Error: idx_name_to_num: {}".format(e))
+
     logger_jsons.info("exit idx_num_to_name")
-    return d
+    return L
 
 
-def _import_data(section_data, crumbs):
+def _import_data(sections, crumbs):
     """
     Import the section metadata and change it to index-by-name.
-    :param list section_data: Section metadata
-    :param str pc: Paleo or Chron
-    :return dict: Modified paleoData
+
+    :param list sections: Metadata
+    :param str pc: paleo or chron
+    :return dict _sections: Metadata
     """
     logger_jsons.info("enter import_data: {}".format(crumbs))
-    d = OrderedDict()
+    _sections = OrderedDict()
     try:
-        for _idx, table in enumerate(section_data):
-            tmp_table = OrderedDict()
+        for _idx, section in enumerate(sections):
+            _tmp = OrderedDict()
 
             # Process the paleo measurement table
-            if "measurementTable" in table:
-                tmp_pmt = _import_meas(table["measurementTable"], "{}{}".format(crumbs, _idx))
-                tmp_table["measurementTable"] = tmp_pmt
+            if "measurementTable" in section:
+                _tmp["measurementTable"] = _idx_table_by_name(section["measurementTable"], "{}{}{}".format(crumbs, _idx, "measurement"))
 
             # Process the paleo model
-            if "model" in table:
-                tmp_cm = _import_model(table["model"], crumbs + str(_idx))
-                tmp_table["model"] = tmp_cm
+            if "model" in section:
+                _tmp["model"] = _import_model(section["model"], "{}{}{}".format(crumbs, _idx, "model"))
 
             # Get the table name from the first measurement table, and use that as the index name for this table
-            # _table_name = get_table_key("tableName", table, "{}{}".format(crumbs, _idx))
             _table_name = "{}{}".format(crumbs, _idx)
 
             # If we only have generic table names, and one exists already, don't overwrite. Create dynamic name
-            if _table_name in d:
+            if _table_name in _sections:
                 _table_name = "{}_{}".format(_table_name, _idx)
 
             # Put the final product into the output dictionary. Indexed by name
-            d[_table_name] = tmp_table
+            _sections[_table_name] = _tmp
 
     except Exception as e:
-        logger_jsons.info("import_data: Exception: {}".format(e))
+        logger_jsons.error("import_data: Exception: {}".format(e))
+        print("Error: import_data: {}".format(e))
+
     logger_jsons.info("exit import_data: {}".format(crumbs))
-    return d
+    return _sections
 
 
 def _import_model(models, crumbs):
     """
     Change the nested items of the paleoModel data. Overwrite the data in-place.
-    :param list models:
+
+    :param list models: Metadata
     :param str crumbs: Crumbs
-    :return list:
+    :return dict _models: Metadata
     """
     logger_jsons.info("enter import_model".format(crumbs))
-    crumbs += "model"
-    _table_new = OrderedDict()
+    _models = OrderedDict()
     try:
         for _idx, model in enumerate(models):
             # Keep the original dictionary, but replace the three main entries below
 
             # Do a direct replacement of chronModelTable columns. No table name, no table work needed.
             if "summaryTable" in model:
-                model["summaryTable"] = _import_model_2(model, "summaryTable",
-                                                                   "{}{}{}".format(crumbs, _idx, "summary"))
-            elif "modelTable" in model:
-                model["summaryTable"] = _import_model_2(model, "modelTable",
-                                                                 "{}{}{}".format(crumbs, _idx, "summary"))
-
+                model["summaryTable"] = _idx_table_by_name(model["summaryTable"], "{}{}{}".format(crumbs, _idx, "summary"))
             # Do a direct replacement of ensembleTable columns. No table name, no table work needed.
             if "ensembleTable" in model:
-                model["ensembleTable"] = _import_model_2(model, "ensembleTable",
-                                                                    "{}{}{}".format(crumbs, _idx, "ensemble"))
-
-            # Iter over each distribution. Check for calibrated ages (old) just in case
-            if "calibratedAges" in model:
-                model["distributionTable"] = _import_model_2(model, "calibratedAges",
-                                                             "{}{}{}".format(crumbs, _idx, "distribution"))
-                model.pop("calibratedAges")
-            elif "distributionTable" in model:
-                model["distributionTable"] = _import_model_2(model, "distributionTable",
-                                                             "{}{}{}".format(crumbs, _idx, "distribution"))
+                model["ensembleTable"] = _idx_table_by_name(model["ensembleTable"], "{}{}{}".format(crumbs, _idx, "ensemble"))
+            if "distributionTable" in model:
+                model["distributionTable"] = _idx_table_by_name(model["distributionTable"], "{}{}{}".format(crumbs, _idx, "distribution"))
 
             _table_name = "{}{}".format(crumbs, _idx)
-            _table_new[_table_name] = model
+            _models[_table_name] = model
     except Exception as e:
-        logger_jsons.error("import_model: Exception: {}".format(e))
+        logger_jsons.error("import_model: {}".format(e))
+        print("Error: import_model: {}".format(e))
     logger_jsons.info("exit import_model: {}".format(crumbs))
-    return _table_new
+    return _models
 
 
-def _import_meas(tables, crumbs):
+def _idx_table_by_name(tables, crumbs):
     """
-    Index the measurement table by name
-    :param dict tables: Table data
-    :param str crumbs: Crumbs
-    :return dict tables_new: Table data
+    Import summary, ensemble, or distribution data.
+
+    :param list tables: Metadata
+    :return dict _tables: Metadata
     """
-    logger_jsons.info("enter import_meas: {}".format(crumbs))
-    crumbs += "measurement"
-    _table_new = OrderedDict()
+    _tables = OrderedDict()
     try:
-        for _idx, table in enumerate(tables):
-            # Get the table name
-            # _table_name = get_table_key("tableName", table, "{}{}{}".format(crumbs, "measurement", _idx))
-            _table_name = "{}{}".format(crumbs, _idx)
-
+        for _idx, _table in enumerate(tables):
+            # Use "name" as tableName
+            _name = "{}{}".format(crumbs, _idx)
             # Call idx_table_by_name
-            _tmp_table = _idx_table_by_name(table)
-            # Enter the named table in the output dictionary
-            if _table_name in _table_new:
-                _fallback_name = "{}{}{}".format(crumbs, "measurement", _idx)
-                _tmp_table["tableName"] = _fallback_name
-                _table_new[_fallback_name] = _tmp_table
-            else:
-                _tmp_table["tableName"] = _table_name
-                _table_new[_table_name] = _tmp_table
-
+            _tmp = _idx_col_by_name(_table)
+            if _name in _tables:
+                _name = "{}_{}".format(_name, _idx)
+            _tmp["tableName"] = _name
+            _tables[_name] = _tmp
     except Exception as e:
-        logger_jsons.error("import_meas: Exception: {}".format(e))
-    logger_jsons.info("exit import_meas: {}".format(crumbs))
-    return _table_new
+        logger_jsons.error("idx_table_by_name: {}".format(e))
+        print("Error: idx_table_by_name: {}".format(e))
+
+    return _tables
 
 
-def _import_model_2(model, key, crumbs):
-    """
-    Import summary, ensemble, calibratedAges or distribution data.
-    :param model: Table metadata
-    :param key: calibratedAges or distributionTable
-    :return: Modified table metadata
-    """
-    _table_new = OrderedDict()
-    try:
-        for _idx, _table in enumerate(model[key]):
-            # Use "name" as table name
-            # _table_name = get_table_key("tableName", _table, "{}{}".format(crumbs, _idx))
-            _table_name = "{}{}".format(crumbs, _idx)
-            # Call idx_table_by_name
-            _tmp_table = _idx_table_by_name(_table)
-            if _table_name in _table_new:
-                _fallback_name = "{}_{}".format(crumbs, _idx)
-                _tmp_table["tableName"] = _fallback_name
-                _table_new[_fallback_name] = _tmp_table
-            else:
-                _tmp_table["tableName"] = _table_name
-                _table_new[_table_name] = _tmp_table
-    except Exception as e:
-        logger_jsons.error("import_model_2: Exception: {}".format(e))
-    return _table_new
-
-
-def _idx_table_by_name(d):
-    """
-    Switch a table of data from indexed-by-number into indexed-by-name using table names
-    :param dict d: Table data
-    :return dict d: Table data
-    """
-    try:
-        # Overwrite the columns entry with named columns
-        d["columns"] = _idx_col_by_name(d["columns"])
-    except Exception as e:
-        print("Error: Indexing table data: {}".format(e))
-        logger_jsons.info("idx_table_by_name: Exception: {}".format(e))
-    return d
-
-
-def _idx_col_by_name(l):
+def _idx_col_by_name(table):
     """
     Iter over columns list. Turn indexed-by-num list into an indexed-by-name dict. Keys are the variable names.
-    :param list l: Columns
-    :return dict: New columns indexed-by-name
+
+    :param dict table: Metadata
+    :return dict _table: Metadata
     """
-    cols_new = OrderedDict()
+    _columns = OrderedDict()
 
     # Iter for each column in the list
     try:
-        for col in l:
+        for _column in table["columns"]:
             try:
-                col_name = col["variableName"]
-                if col_name in cols_new:
-                    col_name = get_appended_name(col_name, cols_new)
-                cols_new[col_name] = col
-            except KeyError:
-                print("Error: missing 'variableName' in column")
-                logger_jsons.info("idx_col_by_name: KeyError: missing variableName key")
-    except Exception as e:
-        logger_jsons.info("idx_col_by_name: Exception: {}".format(e))
+                _name = _column["variableName"]
+                if _name in _columns:
+                    _name = get_appended_name(_name, _columns)
+                _columns[_name] = _column
+            except Exception as e:
+                print("Error: idx_col_by_name: inner: {}".format(e))
+                logger_jsons.info("idx_col_by_name: inner: {}".format(e))
 
-    return cols_new
+        table["columns"] = _columns
+    except Exception as e:
+        print("Error: idx_col_by_name: {}".format(e))
+        logger_jsons.error("idx_col_by_name: {}".format(e))
+
+    return table
 
 
 # PREP FOR EXPORT
@@ -386,157 +329,138 @@ def write_json_to_file(json_data, filename="metadata"):
     return
 
 
-def idx_name_to_num(d):
+def idx_name_to_num(L):
     """
     Switch from index-by-name to index-by-number.
-    :param dict d: Metadata
+    :param dict L: Metadata
     :return dict: Modified metadata
     """
     logger_jsons.info("enter idx_name_to_num")
 
     # Process the paleoData section
-    if "paleoData" in d:
-        d["paleoData"] = _export_data(d["paleoData"], "paleo")
+    if "paleoData" in L:
+        L["paleoData"] = _export_section(L["paleoData"], "paleo")
 
     # Process the chronData section
-    if "chronData" in d:
-        d["chronData"] = _export_data(d["chronData"], "chron")
+    if "chronData" in L:
+        L["chronData"] = _export_section(L["chronData"], "chron")
 
     logger_jsons.info("exit idx_name_to_num")
-    return d
+    return L
 
 
-def _export_data(section_data, pc):
+def _export_section(sections, pc):
     """
     Switch chron data to index-by-number
-    :param dict section_data: Metadata
-    :return list: Metadata
+    :param dict sections: Metadata
+    :return list _sections: Metadata
     """
     logger_jsons.info("enter export_data: {}".format(pc))
-    l = []
+    _sections = []
 
-    for name, table in section_data.items():
+    for name, section in sections.items():
 
         # Process chron models
-        if "model" in table:
-            table["model"] = _export_model(table["model"], pc)
+        if "model" in section:
+            section["model"] = _export_model(section["model"])
 
         # Process the chron measurement table
-        if "measurementTable" in table:
-            table["measurementTable"] = _export_measurement(table["measurementTable"], pc)
+        if "measurementTable" in section:
+            section["measurementTable"] = _idx_table_by_num(section["measurementTable"])
 
         # Add only the table to the output list
-        l.append(table)
+        _sections.append(section)
 
     logger_jsons.info("exit export_data: {}".format(pc))
-    return l
+    return _sections
 
 
-def _export_measurement(meas, pc):
-    """
-    Switch measurement tables to index-by-number
-    :param dict meas: Measurement metadata
-    :param str pc: Paleo or Chron
-    :return list: Measurement metadata
-    """
-    logger_jsons.info("enter export_measurement: {}".format(pc))
-    dt = []
-    for name, table in meas.items():
-        try:
-            # Get the modified table data
-            tmp = _idx_table_by_num(table)
-            # Append it to the growing calibrated age list of tables
-            dt.append(tmp)
-        except KeyError:
-            logger_jsons.debug("export_measurement: {}, KeyError: missing columns key".format(pc))
-    logger_jsons.info("exit export_measurement: {}".format(pc))
-    return dt
-
-
-def _export_model(models, pc):
+def _export_model(models):
     """
     Switch model tables to index-by-number
-    :param list models: Metadata
-    :return list: modified model
+
+    :param dict models: Metadata
+    :return dict _models: Metadata
     """
-    logger_jsons.info("enter export_model: {}".format(pc))
+    logger_jsons.info("enter export_model")
+    _models = []
     try:
-        for model in models:
+        for name, model in models.items():
 
             if "summaryTable" in model:
                 model["summaryTable"] = _idx_table_by_num(model["summaryTable"])
-
-            if "modelTable" in model:
-                model["summaryTable"] = _idx_table_by_num(model["modelTable"])
-                model.pop("modelTable")
 
             # Process ensemble table (special two columns)
             if "ensembleTable" in model:
                 model["ensembleTable"] = _idx_table_by_num(model["ensembleTable"])
 
             if "distributionTable" in model:
-                dt = []
-                for name, table in model["distributionTable"].items():
-                    try:
-                        # Get the modified table data
-                        tmp = _idx_table_by_num(table)
-                        # Append it to the growing calibrated age list of tables
-                        dt.append(tmp)
-                    except KeyError:
-                        logger_jsons.debug("export_model: {}, KeyError: missing columns key".format(pc))
+                model["distributionTable"] = _idx_table_by_num(model["distributionTable"])
 
-                # Insert the newly built list in-place over the dictionary
-                model["distributionTable"] = dt
+            _models.append(model)
 
-    except AttributeError:
-        logger_jsons.debug("export_model: {}, AttributeError: expected list type, received {} type".format(pc, type(models)))
-    logger_jsons.info("exit export_model: {}".format(pc))
-    return models
+    except Exception as e:
+        logger_jsons.error("export_model: {}".format(e))
+        print("Error: export_model: {}".format(e))
+    logger_jsons.info("exit export_model")
+    return _models
 
 
-def _idx_table_by_num(d):
+def _idx_table_by_num(tables):
     """
-    Append all the values from the dictionary to an output list. Drop the keys.
-    :return:
+    Switch tables to index-by-number
+
+    :param dict tables: Metadata
+    :return list _tables: Metadata
     """
-    if "columns" in d:
+    logger_jsons.info("enter idx_table_by_num")
+    _tables = []
+    for name, table in tables.items():
         try:
-            # Overwrite the columns dict with a new columns list
-            d["columns"] = _idx_col_by_num(d["columns"])
-        except AttributeError:
-            print("Error: table type is incorrect")
-            logger_jsons.debug("idx_table_by_num: AttributeError: expected type dict, given type {}".format(type(d)))
-    return d
+            # Get the modified table data
+            tmp = _idx_col_by_num(table)
+            # Append it to the growing calibrated age list of tables
+            _tables.append(tmp)
+        except Exception as e:
+            logger_jsons.error("idx_table_by_num: {}".format(e))
+    logger_jsons.info("exit idx_table_by_num")
+    return _tables
 
 
-def _idx_col_by_num(d):
+def _idx_col_by_num(table):
     """
     Index columns by number instead of by name. Use "number" key in column to maintain order
-    :param dict d: Column data
-    :return list: modified column data
+
+    :param dict table: Metadata
+    :return list _table: Metadata
     """
-    l = []
+    _columns = []
     try:
         # Create an empty list that matches the length of the column dictionary
-        l = [None for i in d]
+        _columns = [None for i in range(0, len(table["columns"]))]
 
         # Loop and start placing data in the output list based on its "number" entry
-        for var, data in d.items():
+        for _name, _dat in table["columns"].items():
             try:
                 # Special case for ensemble table "numbers" list
-                if isinstance(data["number"], list):
-                    l.append(data)
+                if isinstance(_dat["number"], list):
+                    _columns.append(_dat)
                 # Place at list index based on its column number
                 else:
                     # cast number to int, just in case it's stored as a string.
-                    n = int(data["number"])
-                    l[n - 1] = data
-            except KeyError:
-                print("Error: column is missing a 'number' key")
-                logger_jsons.debug("idx_col_by_num: KeyError: missing number key")
+                    n = int(_dat["number"])
+                    _columns[n - 1] = _dat
+            except KeyError as ke:
+                print("Error: idx_col_by_num: {}".format(ke))
+                logger_jsons.error("idx_col_by_num: KeyError: missing number key: {}, {}".format(_name, ke))
             except Exception as e:
-                logger_jsons.debug("idx_col_by_num: Exception: {}".format(e))
-    except AttributeError:
-        logger_jsons.debug("idx_col_by_num: AttributeError: expected dict type, given {} type".format(type(d)))
-    return l
+                print("Error: idx_col_by_num: {}".format(e))
+                logger_jsons.error("idx_col_by_num: Exception: {}".format(e))
+
+        table["columns"] = _columns
+    except Exception as e:
+        logger_jsons.error("idx_col_by_num: {}".format(e))
+        print("Error: idx_col_by_num: {}".format(e))
+
+    return table
 

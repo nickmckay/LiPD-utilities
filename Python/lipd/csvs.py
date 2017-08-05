@@ -1,5 +1,6 @@
 import csv
 import math
+import copy
 from collections import OrderedDict
 
 from .loggers import create_logger
@@ -256,21 +257,22 @@ def get_csv_from_metadata(dsn, d):
     """
     logger_csvs.info("enter get_csv_from_metadata")
     _csvs = OrderedDict()
+    _d = copy.deepcopy(d)
 
     try:
-        if "paleoData" in d:
+        if "paleoData" in _d:
             # Process paleoData section
-            d["paleoData"], _csvs = _get_csv_from_section(d["paleoData"], "{}.paleo".format(dsn), _csvs)
+            _d["paleoData"], _csvs = _get_csv_from_section(_d["paleoData"], "{}.paleo".format(dsn), _csvs)
 
-        if "chronData" in d:
-            d["chronData"], _csvs = _get_csv_from_section(d["chronData"], "{}.chron".format(dsn), _csvs)
+        if "chronData" in _d:
+            _d["chronData"], _csvs = _get_csv_from_section(_d["chronData"], "{}.chron".format(dsn), _csvs)
 
     except Exception as e:
         print("Error: get_csv_from_metadata: {}, {}".format(dsn, e))
         logger_csvs.error("get_csv_from_metadata: {}, {}".format(dsn, e))
 
     logger_csvs.info("exit get_csv_from_metadata")
-    return d, _csvs
+    return _d, _csvs
 
 
 def _get_csv_from_section(sections, crumbs, csvs):
@@ -319,13 +321,13 @@ def _get_csv_from_model(models, crumbs, csvs):
     try:
         for _name, _model in models.items():
             if "distributionTable" in _model:
-                models[_name], csvs = _get_csv_from_table(_model["distributionTable"], "{}{}{}".format(crumbs, _idx, "distribution"), csvs)
+                models[_name]["distributionTable"], csvs = _get_csv_from_table(_model["distributionTable"], "{}{}{}".format(crumbs, _idx, "distribution"), csvs)
 
             if "summaryTable" in _model:
-                models[_name], csvs = _get_csv_from_table(_model["summaryTable"], "{}{}{}".format(crumbs, _idx, "summary"), csvs)
+                models[_name]["summaryTable"], csvs = _get_csv_from_table(_model["summaryTable"], "{}{}{}".format(crumbs, _idx, "summary"), csvs)
 
             if "ensembleTable" in _model:
-                models[_name], csvs = _get_csv_from_table(_model["ensembleTable"], "{}{}{}".format(crumbs, _idx, "ensemble"), csvs)
+                models[_name]["ensembleTable"], csvs = _get_csv_from_table(_model["ensembleTable"], "{}{}{}".format(crumbs, _idx, "ensemble"), csvs)
             _idx += 1
     except Exception as e:
         print("Error: get_csv_from_model: {}, {}".format(crumbs, e))

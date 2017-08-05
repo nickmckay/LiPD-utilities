@@ -48,10 +48,10 @@ readLipd <- function(path=NULL){
 #' Write LiPD data onto disk as LiPD files
 #' @export
 #' @keywords internal
-#' @param list d: LiPD data
+#' @param list D: LiPD data
 #' @param char path: Destination path
 #' @return none:
-writeLipd <- function(d, path=NULL){
+writeLipd <- function(D, path=NULL){
   tryCatch({
     if(missing(path)){
       path <- browse_dialog("d")

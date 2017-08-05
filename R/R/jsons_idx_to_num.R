@@ -130,28 +130,3 @@ idx_col_by_num <- function(table){
   })
   return(tmp)
 }
-
-#' Unindex tables by name. Move to index by number. 
-#' @export
-#' @keywords internal
-#' @param table Table data
-#' @return table Modified table data
-idx_table_by_num_what <- function(table, pc, tableType){
-  d = list()
-  tryCatch({
-    tableNameKey = paste0(pc, "Name")
-    # loop, in case of multiple tables
-    for(i in 1:length(table)){
-      # the table name at the top level
-      tableNameVal = names(table)[[i]]
-      # Insert the table name into the table
-      table[[i]][[tableType]][[1]][[tableNameKey]] = tableNameVal
-      d[[i]] = table[[i]]
-    }
-    # table is still not sorted correctly. fix it here. s1 is still at top
-    return(d)
-  }, error=function(cond){
-    print(paste0("Error: idx_table_by_num: ", cond))
-  })
-  return(table)
-}
