@@ -47,7 +47,7 @@
 	        * `method`
 	            * Single entry
 	            * How the model was created
-	        * `paleoModelTable`
+	        * `summaryTable`
 	            * Single entry 
 	        * `ensembleTable`
 	            * Single entry
@@ -56,6 +56,7 @@
 
 * `chronData`
 	* `calibratedAges` is now named `distributionTable`
+	* `chronModelTable` is now names `summaryTable`
 
 **v1.3**
 
