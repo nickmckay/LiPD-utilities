@@ -196,7 +196,7 @@ if isfield(LiPDStruct,'paleoData')
                             end
                             DT=rmfield(DT,colnames{c});
                         end
-                        csvname=[goodOutName '.paleo' num2str(chr) '.Model' num2str(cm) '.EnsembleTable' num2str(pet) 'e.csv'];
+                        csvname=[goodOutName '.paleo' num2str(chr) '.Model' num2str(cm) '.EnsembleTable' num2str(pet) '.csv'];
                         DT.filename=csvname;
                         
                         
