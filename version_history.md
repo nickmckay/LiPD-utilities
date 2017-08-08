@@ -18,18 +18,18 @@
 
 * `chronData`
   * Support for nested tables within each entry
-   * `chronMeasurementTable`
-      * Equivalent to the tables found in v1.0
-   * `chronModel`
+    * `chronMeasurementTable`
+       * Equivalent to the tables found in v1.0
+    * `chronModel`
          * Support for multiple entries
-	     * `method`
-	           * Single entry
+	        * `method`
+	            * Single entry
 	           * How the model was created
-	     * `chronModelTable`
+	        * `chronModelTable`
 	           * Single entry 
-	     * `ensembleTable`
+	        * `ensembleTable`
 	           * Single entry
-	     * `calibratedAges`
+	        * `calibratedAges`
 	           *  Multiple entries
 	  
 
@@ -44,15 +44,15 @@
 		* Equivalent to tables found in v1.0 & v1.1
 	* `paleoModel`
 		* Support for multiple entries
-	     * `method`
-	           * Single entry
-	           * How the model was created
-	     * `paleoModelTable`
-	           * Single entry 
-	     * `ensembleTable`
-	           * Single entry
-	     * `distributionTable`
-	           *  Multiple entries
+	        * `method`
+	            * Single entry
+	            * How the model was created
+	        * `paleoModelTable`
+	            * Single entry 
+	        * `ensembleTable`
+	            * Single entry
+	        * `distributionTable`
+	            *  Multiple entries
 
 * `chronData`
 	* `calibratedAges` is now named `distributionTable`
