@@ -38,25 +38,29 @@ if ~isnan(toct) %if there are chron tables, load em in
             for cm=1:length(I.chronData{i}.model)
                 CMS = I.chronData{i}.model{cm};
                 
-                %%%%% CHRON MODEL TABLE
+                %%%%% chron SUMMARY TABLE
                 if isfield(CMS,'summaryTable')
-                    CMT=readLiPDTable(CMS.summaryTable,dirname);
-                    CMT=processLiPDColumns(CMT);
-                    if size(I.chronSummaryTableMD5,1)>=i
-                        CMT.summaryTableMD5=I.chronSummaryTableMD5{i,2};
+                    for ccc = 1:length(CMS.summaryTable)
+                        CMT=readLiPDTable(CMS.summaryTable{ccc},dirname);
+                        CMT=processLiPDColumns(CMT);
+%                         if size(I.paleoSummaryTableMD5,1)>=i
+%                             CMT.summaryTableMD5=I.chronSummaryTableMD5{i,2};
+%                         end
+                        
+                        C{i}.model{cm}.summaryTable{ccc}=CMT;
                     end
-                    
-                    C{i}.model{cm}.summaryTable=cT;
                 end
                 
-                %%%%% CHRON ENS TABLE
+                %%%%% chron ENS TABLE
                 if isfield(CMS,'ensembleTable')
-                    CME=readLiPDTable(CMS.ensembleTable,dirname);
-                    CME=processLiPDColumns(CME);
-                    if size(I.chronEnsMD5,1)>=i
-                        CME.chronEnsembleMD5=I.chronEnsMD5{i,2};
+                    for ccc = 1:length(CMS.ensembleTable)
+                        CME=readLiPDTable(CMS.ensembleTable{ccc},dirname);
+                        CME=processLiPDColumns(CME);
+%                         if size(I.paleoEnsTableMD5,1)>=i
+%                             CME.paleoEnsembleMD5=I.chronEnsMD5{i,2};
+%                         end
+                        C{i}.model{cm}.ensembleTable{ccc}=CME;
                     end
-                    C{i}.model{cm}.ensembleTable=CME;
                     
                 end
                 

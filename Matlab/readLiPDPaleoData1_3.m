@@ -38,23 +38,27 @@ if ~isnan(toct) %if there are paleo tables, load em in
                 
                 %%%%% paleo SUMMARY TABLE
                 if isfield(CMS,'summaryTable')
-                    CMT=readLiPDTable(CMS.summaryTable,dirname);
-                    CMT=processLiPDColumns(CMT);
-                    if size(I.paleoSummaryTableMD5,1)>=i
-                        CMT.summaryTableMD5=I.paleoSummaryTableMD5{i,2};
+                    for ccc = 1:length(CMS.summaryTable)
+                        CMT=readLiPDTable(CMS.summaryTable{ccc},dirname);
+                        CMT=processLiPDColumns(CMT);
+%                         if size(I.paleoSummaryTableMD5,1)>=i
+%                             CMT.summaryTableMD5=I.paleoSummaryTableMD5{i,2};
+%                         end
+                        
+                        C{i}.model{cm}.summaryTable{ccc}=CMT;
                     end
-                    
-                    C{i}.model{cm}.summaryTable=CMT;
                 end
                 
                 %%%%% paleo ENS TABLE
                 if isfield(CMS,'ensembleTable')
-                    CME=readLiPDTable(CMS.ensembleTable,dirname);
-                    CME=processLiPDColumns(CME);
-                    if size(I.paleoEnsTableMD5,1)>=i
-                        CME.paleoEnsembleMD5=I.paleoEnsMD5{i,2};
+                    for ccc = 1:length(CMS.ensembleTable)
+                        CME=readLiPDTable(CMS.ensembleTable{ccc},dirname);
+                        CME=processLiPDColumns(CME);
+%                         if size(I.paleoEnsTableMD5,1)>=i
+%                             CME.paleoEnsembleMD5=I.paleoEnsMD5{i,2};
+%                         end
+                        C{i}.model{cm}.ensembleTable{ccc}=CME;
                     end
-                    C{i}.model{cm}.ensembleTable=CME;
                     
                 end
                 

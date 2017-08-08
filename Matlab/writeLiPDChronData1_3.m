@@ -48,7 +48,7 @@ if isfield(LiPDStruct,'chronData')
                             if ~isfield(DT.(colnames{c}),'variableName')
                                 DT.(colnames{c}).variableName=colnames{c};
                             end
-                            cN=cN+1;
+                            cN=cN(end)+(1:size(DT.(colnames{c}).values,2)); 
                             DT.(colnames{c}).number=cN;
                             if exist('outTable')
                                 if iscell(DT.(colnames{c}).values)
@@ -121,7 +121,7 @@ if isfield(LiPDStruct,'chronData')
                                     warnings=[warnings {warning('No values field in structure, this shouldn''t be')}];
                                 else
                                     DT.(colnames{c}).variableName=colnames{c};
-                                    cN=cN+1;
+                                    cN=cN(end)+(1:size(DT.(colnames{c}).values,2)); 
                                     DT.(colnames{c}).number=cN;
                                     if exist('outTable')
                                         if iscell(DT.(colnames{c}).values)
@@ -181,7 +181,7 @@ if isfield(LiPDStruct,'chronData')
                                     warnings=[warnings {warning('No values field in structure, this shouldn''t be')}];
                                 else
                                     DT.(colnames{c}).variableName=colnames{c};
-                                    cN=cN+(1:size(DT.(colnames{c}).values,2));
+                                    cN=cN(end)+(1:size(DT.(colnames{c}).values,2));
                                     DT.(colnames{c}).number=cN;
                                     if iscell(DT.(colnames{c}).values)
                                         error('Ensemble Tables need to number only matrices, not cells')
@@ -234,7 +234,7 @@ if isfield(LiPDStruct,'chronData')
                             else
                                 if writeDistributionTable
                                     DT.(colnames{c}).variableName=colnames{c};
-                                    cN=cN+(1:size(DT.(colnames{c}).values,2));
+                                    cN=cN(end)+(1:size(DT.(colnames{c}).values,2));
                                     DT.(colnames{c}).number=cN;
                                     if iscell(DT.(colnames{c}).values)
                                         error('distrubtion data need to have only matrices, not cells')

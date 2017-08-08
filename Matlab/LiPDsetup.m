@@ -17,6 +17,20 @@ goog=GetGoogleSpreadsheet('1C135kP-SRRGO331v9d8fqJfa3ydmkG2QQ5tiXEHj5us' ) ;
 save localRenameTS.mat goog lastSync
 save LiPDUtilitiesPreferences.mat githubPath
 
+%setup bagit for mac. Deduce python version
+if ismac
+    out = dir('/Library/Frameworks/Python.framework/Versions');
+    pyVers = out(end).name;
+    
+    buffer = fileread([githubPath '/bagit.py']) ;
+ buffer = regexprep(buffer, 'Versions/3.4/bin/', ['Versions/' pyVers '/bin/']) ;
+ fid = fopen([githubPath '/bagit.py'], 'w') ;
+ fwrite(fid, buffer) ;
+ fclose(fid) ;
+    
+end
+
+
 
 updateNameConverterFromGoogle
 

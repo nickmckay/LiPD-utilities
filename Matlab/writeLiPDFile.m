@@ -1,5 +1,5 @@
 
-function writeLiPDFile(LiPDStruct,bagit,outdir)
+function writeLiPDFile(LiPDStruct,outdir)
 load LiPDUtilitiesPreferences.mat
 if ~isfield(LiPDStruct,'lipdVersion')
     lipdVersion = 1.3;
@@ -11,25 +11,19 @@ LiPDStruct.createdBy = 'matlab';
 
 %LiPD exporter
 curdir=pwd;
+
+
 if nargin<2
-    bagit=1;
+    writedir=pwd;
+else
+    writedir=outdir;
 end
 
-if bagit
-    if nargin<3
-        writedir=pwd;
-    else
-        writedir=outdir;
-    end
-    outdir=[tempdir 'lpdTemp/'];
-    if isdir(outdir);
+outdir=[tempdir 'lpdTemp/'];
+if isdir(outdir);
     rmdir(outdir,'s');
-    end
-elseif nargin<3
-    outdir='~/Dropbox/LiPD/library/';
-    % elseif ~strcmp(outdir(end),'/')
-    %     outdir=[outdir '/'];
 end
+
 
 
 
@@ -77,8 +71,7 @@ if isunix
     fixUnicodeFile(['metadata.jsonld'])
 end
 
-if bagit
-    
+if isunix
     %2. bagit
     system([githubPath '/bagit.py  ' outdir '/bag'])
     
@@ -86,8 +79,13 @@ if bagit
     system(['cd ' outdir '; zip -r ' outdir goodOutName '.lpd ' goodDirName]);
     system(['cp ' outdir goodOutName '.lpd ' writedir '/']);
     rmdir([outdir goodDirName],'s');
-
+else
+    error('write functionality is not yet supported on windows')
+    
+    
 end
+
+
 
 cd(curdir);
 
