@@ -123,7 +123,8 @@ merge_csv_columns <- function(csvs, meta){
         for (j in 1:length(nums)){
           tmp[[j]] <- csvs[[nums[[j]]]]
         }
-        meta[[i]][["values"]] <- tmp
+        meta[[i]][["values"]] <- matrix(unlist(tmp), ncol=length(tmp))
+        # meta[[i]][["values"]] <- as.matrix(as.data.frame(tmp))
         # turn the columns into a matrix - transpose
         # meta[[i]][["values"]] <- t(do.call(rbind, tmp))
       }
