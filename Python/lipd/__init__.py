@@ -155,18 +155,19 @@ def excel():
     return _d
 
 
-def noaa(d=None):
+def noaa(D="", path=""):
     """
     Convert between NOAA and LiPD files
 
     | Example: LiPD to NOAA converter
     | 1: D = lipd.readLipd()
-    | 2: lipd.noaa(D)
+    | 2: lipd.noaa(D, "/Users/bobsmith/Desktop")
 
     | Example: NOAA to LiPD converter
-    | 1: readNoaa()
+    | 1: lipd.readNoaa()
     | 2: lipd.noaa()
 
+    :param dict D: Metadata
     :return none:
     """
     global files, cwd
@@ -178,18 +179,26 @@ def noaa(d=None):
     start = clock()
     # LiPD mode: Convert LiPD files to NOAA files
     if _mode == "1":
-        if not d:
+        if not D:
             print("Error: LiPD data must be provided for LiPD -> NOAA conversions")
         else:
-            # For each LiPD file in the LiPD Library
-            for dsn, dat in d.items():
-                _l = copy.deepcopy(dat)
-                # Process this data through the converter
-                _l_modified = lpd_to_noaa(_l)
-                # Overwrite the data in the LiPD object with our new data.
-                d[dsn] = _l_modified
+            if "paleoData" in D:
+                _d = copy.deepcopy(D)
+                D = lpd_to_noaa(_d, path)
+            else:
+                # For each LiPD file in the LiPD Library
+                for dsn, dat in D.items():
+                    _d = copy.deepcopy(dat)
+                    # Process this data through the converter
+                    _d = lpd_to_noaa(_d, path)
+                    # Overwrite the data in the LiPD object with our new data.
+                    D[dsn] = _d
             # Write out the new LiPD files, since they now contain the new NOAA URL data
-            writeLipd(d, cwd)
+            if(path):
+                writeLipd(D, path)
+            else:
+                print("Path not provided. Writing to CWD...")
+                writeLipd(D, cwd)
 
     # NOAA mode: Convert NOAA files to LiPD files
     elif _mode == "2":

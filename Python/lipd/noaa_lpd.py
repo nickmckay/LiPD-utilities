@@ -17,13 +17,13 @@ logger_noaa_lpd = create_logger("noaa_lpd")
 
 class NOAA_LPD(object):
 
-    def __init__(self, dir_root, dir_tmp, name):
+    def __init__(self, dir_root, dir_tmp, dsn):
         self.dir_root = dir_root
         self.dir_tmp = dir_tmp
-        self.dir_bag = os.path.join(dir_tmp, name)
-        self.name = name
-        self.name_txt = name + '.txt'
-        self.name_lpd = name + '.lpd'
+        self.dir_bag = os.path.join(dir_tmp, "bag")
+        self.dsn = dsn
+        self.filename_txt = dsn + '.txt'
+        self.filename_lpd = dsn + '.lpd'
         self.metadata = {}
 
     def main(self):
@@ -36,7 +36,7 @@ class NOAA_LPD(object):
         # Run the file through the parser
         # Sets self.metadata, Creates CSVs in dir_tmp
         os.chdir(self.dir_tmp)
-        os.mkdir(self.name)
+        os.mkdir("bag")
         os.chdir(self.dir_root)
         self.__parse()
         os.chdir(self.dir_bag)
@@ -100,8 +100,8 @@ class NOAA_LPD(object):
 
         try:
             # Open the text file in read mode. We'll read one line at a time until EOF
-            with open(self.name_txt, 'r') as f:
-                logger_noaa_lpd.info("opened noaa file: {}".format(self.name_txt))
+            with open(self.filename_txt, 'r') as f:
+                logger_noaa_lpd.info("opened noaa file: {}".format(self.filename_txt))
                 for line in iter(f):
                     line_num += 1
 
@@ -209,7 +209,7 @@ class NOAA_LPD(object):
                                     except NameError:
                                         logger_noaa_lpd.debug(
                                             "parse: chronology_on: NameError: chron_csv ref before assignment, {}".format(
-                                                self.name_txt))
+                                                self.filename_txt))
                                         print(
                                             "Chronology section is incorrectly formatted. "
                                             "Section data will not be converted")
@@ -218,7 +218,7 @@ class NOAA_LPD(object):
                             except NameError:
                                 logger_noaa_lpd.debug(
                                     "parse: chronology_on: NameError: chron_start_line ref before assignment, {}".format(
-                                        self.name_txt))
+                                        self.filename_txt))
                                 print("Chronology section is incorrectly formatted. Section data will not be converted")
 
                         # Data values line. Split, then write to CSV file
@@ -229,14 +229,14 @@ class NOAA_LPD(object):
                             except NameError:
                                 logger_noaa_lpd.debug(
                                     "parse: chronology_on: NameError: csv writer ref before assignment, {}".format(
-                                        self.name_txt))
+                                        self.filename_txt))
                                 print("Chronology section is incorrectly formatted. Section data will not be converted")
 
                         else:
                             try:
                                 # Chron variable headers line
                                 if line and line[0] != "#":
-                                    chron_filename = self.name + '.chron1.measurementTable1.csv'
+                                    chron_filename = self.dsn + '.chron1.measurementTable1.csv'
                                     # Organize the var header into a dictionary
                                     variables = self.__reorganize_chron_header(line)
 
@@ -335,7 +335,7 @@ class NOAA_LPD(object):
                                 except NameError:
                                     logger_noaa_lpd.debug(
                                         "parse: data_on: NameError: csv writer ref before assignment, {}".format(
-                                            self.name_txt))
+                                            self.filename_txt))
 
                             # Check for the line of variables
                             else:
@@ -345,7 +345,7 @@ class NOAA_LPD(object):
                                     data_vals_on = True
                                     logger_noaa_lpd.info("start section: Data_Values")
                                     # Open CSV for writing
-                                    data_filename = "{}.paleoData1.measurementTable1.csv".format(self.name)
+                                    data_filename = "{}.paleoData1.measurementTable1.csv".format(self.dsn)
                                     csv_path = os.path.join(self.dir_bag, data_filename)
                                     data_csv = open(csv_path, 'w+', newline='')
                                     logger_noaa_lpd.info("opened csv file: {}".format(data_filename))

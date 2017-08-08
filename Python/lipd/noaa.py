@@ -6,6 +6,7 @@ from .zips import zipper
 from .lpd_noaa import LPD_NOAA
 from .noaa_lpd import NOAA_LPD
 from .loggers import create_logger
+from .misc import get_dsn
 
 
 logger_noaa = create_logger("noaa")
@@ -51,7 +52,7 @@ def noaa_to_lpd(files):
                 print("Error: Unable to convert file: {}, {}".format(file["filename_no_ext"], e))
 
             # Create the lipd archive in the original file's directory.
-            zipper(path_name_ext=os.path.join(file["dir"], file["filename_no_ext"] + ".lpd"), root_dir=dir_tmp, name=file["filename_no_ext"])
+            zipper(root_dir=dir_tmp, name="bag", path_name_ext=os.path.join(file["dir"], file["filename_no_ext"] + ".lpd"))
             # Delete tmp folder and all contents
             os.chdir(file["dir"])
             try:
@@ -64,34 +65,30 @@ def noaa_to_lpd(files):
     return
 
 
-def lpd_to_noaa(obj):
+def lpd_to_noaa(D, path=""):
     """
     Convert a LiPD format to NOAA format
-    :param obj obj: LiPD object
-    :return obj: LiPD object (modified)
+
+    :param dict D: Metadata
+    :return dict D: Metadata
     """
     logger_noaa.info("enter process_lpd")
-
+    d = D
     try:
-        os.chdir(obj.dir_root)
-        # Get the json data from the lipd object
-        d = obj.get_master()
+        dsn = get_dsn(D)
         # Create the conversion object, and start the conversion process
-        _convert_obj = LPD_NOAA(obj.dir_root, obj.name, d)
+        _convert_obj = LPD_NOAA(D, dsn, path)
         _convert_obj.main()
         # get our new, modified master JSON from the conversion object
-        m = _convert_obj.get_master()
+        d = _convert_obj.get_master()
         # remove any root level urls that are deprecated
-        m = __rm_wdc_url(m)
-        obj.put_master(m)
-        obj.put_metadata(d)
+        d = __rm_wdc_url(d)
+    except Exception as e:
+        logger_noaa.error("lpd_to_noaa: {}".format(e))
+        print("Error: lpd_to_noaa: {}".format(e))
 
-    except FileNotFoundError:
-        logger_noaa.debug("process_lpd: FileNotFound: tmp directory not found")
-        print("Error: Unable to process {}".format(obj.name))
-
-    logger_noaa.info("exit process_lpd")
-    return obj
+    # logger_noaa.info("exit lpd_to_noaa")
+    return d
 
 
 def __rm_wdc_url(d):

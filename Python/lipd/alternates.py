@@ -275,6 +275,8 @@ LIPD_NOAA_MAP_FLAT = {
     "timeUnit": "Time_Unit",
     'datasetDOI': "Dataset_DOI",
     'LiPDVersion': 'LiPD_Version',
+    "lipdVersion": "lipdVersion",
+    "liPDVersion": "lipdVersion",
     'abstract': 'Abstract',
     'agency': 'Funding_Agency_Name',
     'archiveType': 'Archive',

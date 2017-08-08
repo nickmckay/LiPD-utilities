@@ -1,6 +1,6 @@
 import re
 from collections import defaultdict, OrderedDict
-
+import os
 # NOAA SECTIONS is for writing keys in order, and for mapping keys to their proper sections
 # NOAA KEYS is for converting keys from LPD to NOAA
 from .alternates import NOAA_KEYS_BY_SECTION, LIPD_NOAA_MAP_FLAT, LIPD_NOAA_MAP_BY_SECTION
@@ -20,20 +20,19 @@ class LPD_NOAA(object):
     :return none: Writes NOAA text to file in local storage
     """
 
-    def __init__(self, dir_root, name, lipd_dict):
+    def __init__(self, D, dsn, path):
         """
-        :param str dir_root: Path to dir containing all .lpd files
-        :param str name: Name of current .lpd file
-        :param dict root_dict: Full dict loaded from jsonld file
+
+        :param dict D: Metadata
         """
-        # Directory where this LiPD file was read from
-        self.dir_root = dir_root
+
+        self.path = path
         # LiPD dataset name
-        self.name = name
+        self.dsn = dsn
         # Dataset name with LiPD extension
-        self.name_lpd = name + ".lpd"
+        self.filename_lpd = dsn + ".lpd"
         # Dataset name with TXT extension
-        self.name_txt = name + '.txt'
+        self.filename_txt = dsn + '.txt'
         # List of filenames to write out. One .txt file per data table set.
         self.output_filenames = []
         # Amount of .txt files to be written
@@ -48,15 +47,15 @@ class LPD_NOAA(object):
             "qc": []
         }
         # NOAA url, to landing page where this dataset will be stored on NOAA's servers
-        self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}".format(self.name_txt)
+        self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}".format(self.filename_txt)
         # List of all DOIs found in this dataset
         self.doi = []
         # Avoid writing identical pub citations. Store here as intermediate check.
         self.data_citation = {}
         # noaa dict has all metadata with noaa keys
-        self.noaa_data = lipd_dict
+        self.noaa_data = D
         # the raw dictionary imported from jsonld file
-        self.lipd_data = lipd_dict
+        self.lipd_data = D
         # jsonld data sorted according to noaa d sections
         self.noaa_data_sorted = {
             "Top": {},
@@ -106,8 +105,8 @@ class LPD_NOAA(object):
         self.__get_table_count()
 
         # Get measurement tables from metadata, and sort into object self
-        self.__put_tables_in_self(["paleo", "paleoData", "paleoMeasurementTable"])
-        self.__put_tables_in_self(["chron", "chronData", "chronMeasurementTable"])
+        self.__put_tables_in_self(["paleo", "paleoData", "measurementTable"])
+        self.__put_tables_in_self(["chron", "chronData", "measurementTable"])
 
         # how many measurement tables exist? this will tell use how many noaa files to create
         self.__get_table_pairs()
@@ -651,47 +650,69 @@ class LPD_NOAA(object):
     # GET
 
     @staticmethod
-    def __get_author_last_name(_author):
+    def __get_author_last_name(author):
         """
         Take a string of author(s), get the first author name, then get the first authors last name only.
-        :param str _author: Author(s)
+
+        :param str author: Author(s)
         :return str _author: First author's last name
         """
-        try:
-            # If this is a list of authors, try to split it and just get the first author.
-            if " and " in _author:
-                _author = _author.split(" and ")[0]
-            elif ";" in _author:
-                _author = _author.split(";")[0]
-        except Exception:
-            pass
-        try:
-            _author = _author.replace(" ", "")
-            if "," in _author:
-                _author = _author.split(",")[0]
-        except Exception:
-            pass
+        _author = ""
+        if isinstance(author, str):
+            try:
+                # example:   'Ahmed, Moinuddin and Anchukaitis, Kevin J and ...'
+                # If this is a list of authors, try to split it and just get the first author.
+                if " and " in author:
+                    _author = author.split(" and ")[0]
+                # 'Ahmed, Moinuddin; Anchukaitis, Kevin J;  ...'
+                elif ";" in author:
+                    _author = author.split(";")[0]
+            except Exception:
+                _author = ""
+            try:
+                # example :  'Ahmed Moinuddin,  Anchukaitis Kevin J,  ...'
+                _author = author.replace(" ", "")
+                if "," in author:
+                    _author = author.split(",")[0]
+            except Exception:
+                _author = ""
+        elif isinstance(author, list):
+            try:
+                # example:  [{'name': 'Ahmed, Moinuddin'}, {'name': 'Anchukaitis, Kevin J.'}, ..]
+                # just get the last name of the first author. this could get too long.
+                _author = author[0]["name"].split(",")[0]
+            except Exception as e:
+                _author = ""
 
         return _author
 
-    def __get_pub_author(self):
+    def __create_author_investigator_str(self):
         """
         When investigators is empty, try to get authors from the first publication instead.
         :return str author: Author names
         """
-        author = ""
+        _author = ""
         try:
             for pub in self.noaa_data_sorted["Publication"]:
                 if "author" in pub:
                     if pub["author"]:
-                        author = pub["author"]
-                        if " and " in author:
-                            author = author.replace(" and ", ";")
-                        break
+                        _author_src = pub["author"]
+                        if isinstance(_author_src, str):
+                            try:
+                                if " and " in _author_src:
+                                    _author = _author_src.replace(" and ", ";")
+                                break
+                            except Exception as e:
+                                _author = ""
+                        elif isinstance(_author_src, list):
+                            try:
+                                for _entry in _author_src:
+                                    _author += _entry["name"].split(",")[0] + ", "
+                            except Exception as e:
+                                _author = ""
         except Exception:
-            pass
-
-        return author
+            _author = ""
+        return _author
 
     @staticmethod
     def __get_pub_type(pub):
@@ -775,7 +796,7 @@ class LPD_NOAA(object):
         try:
             noaa_key = LIPD_NOAA_MAP_FLAT[lipd_key]
         except KeyError:
-            logger_lpd_noaa.warning("lpd_noaa: map_key: unable to find noaa mapping for lipd key: {}".format(lipd_key))
+            # logger_lpd_noaa.warning("lpd_noaa: map_key: unable to find noaa mapping for lipd key: {}".format(lipd_key))
             return lipd_key
         return noaa_key
 
@@ -922,7 +943,7 @@ class LPD_NOAA(object):
         """
         # if there is only one file, use the normal filename with nothing appended.
         if len(self.noaa_data_sorted["Data"]) == 1:
-            self.output_filenames.append(self.name_txt)
+            self.output_filenames.append(self.filename_txt)
 
         # if there are multiple files that need to be written out, (multiple data table pairs), then append numbers
         elif len(self.noaa_data_sorted["Data"]) > 1:
@@ -1027,11 +1048,11 @@ class LPD_NOAA(object):
 
         for idx, filename in enumerate(self.output_filenames):
             try:
-                self.noaa_txt = open(filename, "w+")
+                self.noaa_txt = open(os.path.join(self.path, filename), "w+")
                 print("writing: {}".format(filename))
                 logger_lpd_noaa.info("write_file: opened output txt file")
             except Exception as e:
-                logger_lpd_noaa.debug("write_file: failed to open output txt file, {}".format(e))
+                logger_lpd_noaa.error("write_file: failed to open output txt file, {}".format(e))
                 return
 
             self.__get_max_min_time_1(self.noaa_data_sorted["Data"][idx]["paleo"])
@@ -1072,7 +1093,7 @@ class LPD_NOAA(object):
         # We don't know what the full online resource path will be yet, so leave the base path only
         self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}".format(filename), top=True)
         self.__write_k_v("Online_Resource_Description", " This file.  NOAA WDS Paleo formatted metadata and data for version 2.0.0 of this dataset.", indent=True)
-        self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}".format(self.name_lpd), top=True)
+        self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/pages2k-temperature-v2-2017/data-version-2.0.0/{}".format(self.filename_lpd), top=True)
         self.__write_k_v("Online_Resource_Description", " Linked Paleo Data (LiPD) formatted file containing the same metadata and data as this file, for version 2.0.0 of this dataset.", indent=True)
         self.__write_k_v("Original_Source_URL", self.noaa_data_sorted["Top"]['Original_Source_URL'], top=True)
         self.noaa_txt.write("\n# Description/Documentation lines begin with #\n# Data lines have no #\n#")
@@ -1117,7 +1138,7 @@ class LPD_NOAA(object):
                 val = get_authors_as_str(d)
                 # If we don't have investigator data, use the authors from the first publication entry
                 if not val:
-                    val = self.__get_pub_author()
+                    val = self.__create_author_investigator_str()
             # lipd uses a singular "author" key, while NOAA uses plural "authors" key.
             elif key in ["Author", "Authors"]:
                 # "d" has all publication data, so only pass through the d["Authors"] piece
