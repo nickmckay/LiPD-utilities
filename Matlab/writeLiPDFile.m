@@ -1,9 +1,9 @@
 
 function writeLiPDFile(LiPDStruct,bagit,outdir)
 load LiPDUtilitiesPreferences.mat
-if ~isfield(LiPDStruct,'LiPDVersion')
-    LiPDVersion = '1.2';
-    LiPDStruct.LiPDVersion = LiPDVersion;
+if ~isfield(LiPDStruct,'lipdVersion')
+    lipdVersion = 1.3;
+    LiPDStruct.lipdVersion = lipdVersion;
 end
 
 LiPDStruct.createdBy = 'matlab';
@@ -55,10 +55,10 @@ LiPDStruct = writeLiPDGeo1_0(LiPDStruct);
 LiPDStruct = writeLiPDPub1_0(LiPDStruct);
 
 %%%%%Write Paleodata SECTION%%%%%%%
-LiPDStruct = writeLiPDPaleoData1_2(LiPDStruct,goodOutName);
+LiPDStruct = writeLiPDPaleoData1_3(LiPDStruct,goodOutName);
 
 %%%%%Write Chrondata SECTION%%%%%%%
-LiPDStruct = writeLiPDChronData1_2(LiPDStruct,goodOutName,1);
+LiPDStruct = writeLiPDChronData1_3(LiPDStruct,goodOutName,1);
 
 
 %%%%%%Remove unneeded fields

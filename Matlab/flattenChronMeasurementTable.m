@@ -1,11 +1,11 @@
 function [CTS,L] = flattenChronMeasurementTable(L)
 
 %if no verions, force to 1.0
-if ~isfield(L,'LiPDVersion')
-    L.LiPDVersion = 1.0;
+if ~isfield(L,'lipdVersion')
+    L.lipdVersion = 1.0;
 end
 
-if L.LiPDVersion == 1.0
+if L.lipdVersion == 1.0
     display('updating LiPD file to current version')
     L = convertLiPD1_0to1_1(L);
 end

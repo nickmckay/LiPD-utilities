@@ -8,16 +8,16 @@ checkGoogleTokens;
 L = authorCell2BibtexAuthorString(L);
 
 %if no verions, force to 1.0
-if ~isfield(L,'LiPDVersion')
-    L.LiPDVersion = 1.0;
+if ~isfield(L,'lipdVersion')
+    L.lipdVersion = 1.0;
 end
 
-if L.LiPDVersion == 1.0
+if L.lipdVersion == 1.0
     display('updating LiPD file to current version')
     L = convertLiPD1_0to1_1(L);
 end
 
-if L.LiPDVersion == 1.1
+if L.lipdVersion == 1.1
     display('updating LiPD file to current version')
     L = convertLiPD1_1to1_2(L);
 end
@@ -191,7 +191,7 @@ prefixTR = {'pub','geo','funding','chron','google'};
 
 %and also these variables
 torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','paleoData_values',...
-    'LiPDVersion','archiveType','dataSetName','metadataMD5','tagMD5','paleoData_chronDataMD5','paleoData_number',...
+    'lipdVersion','archiveType','dataSetName','metadataMD5','tagMD5','paleoData_chronDataMD5','paleoData_number',...
     'paleoData_dataType','paleoData_missingValue'};
 TS=rmfieldsoft(TS,torem);
 
@@ -253,7 +253,7 @@ if isfield(L,'chronData')
     
     %and also these variables
     torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','chronData_values',...
-        'LiPDVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number'};
+        'lipdVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number'};
     CTS=rmfieldsoft(CTS,torem);
     
     for ii = 1:length(prefixTR)

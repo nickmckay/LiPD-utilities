@@ -261,7 +261,7 @@ if isstruct(GTSC)
     
     %collapse the chron TS
     CD=collapseTSChron(GTSC);
-    CD=rmfieldsoft(CD,'LiPDVersion');
+    CD=rmfieldsoft(CD,'lipdVersion');
     %CD should only inlcude one file... if it doesn't then thats a problem.
     cnames=fieldnames(CD);
     

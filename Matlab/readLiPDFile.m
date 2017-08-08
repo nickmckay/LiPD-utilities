@@ -76,10 +76,16 @@ if isfield(I,'LiPDVersion')
     if ischar(vers)
         vers=str2num(vers);
     end
+elseif isfield(I,'lipdVersion')
+    vers=I.lipdVersion;
+    if ischar(vers)
+        vers=str2num(vers);
+    end
 else
     vers = 1.0;
 end
-I.LiPDVersion = vers;
+I.lipdVersion = vers;
+I = rmfieldsoft(I,'LiPDVersion');
 %load in version information
 assignSubcomponentVersions;
 

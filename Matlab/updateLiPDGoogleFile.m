@@ -179,7 +179,7 @@ else
         
         %and also these variables
         torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','paleoData_values',...
-            'LiPDVersion','archiveType','dataSetName','metadataMD5','tagMD5','paleoData_chronDataMD5','paleoData_number',...
+            'lipdVersion','archiveType','dataSetName','metadataMD5','tagMD5','paleoData_chronDataMD5','paleoData_number',...
             'paleoData_dataType','paleoData_missingValue'};
         TS=rmfieldsoft(TS,torem);
         
@@ -243,7 +243,7 @@ else
                 
                 %and also these variables
                 torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','chronData_values',...
-                    'LiPDVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number'};
+                    'lipdVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number'};
                 CTS=rmfieldsoft(CTS,torem);
                 
                 for ii = 1:length(prefixTR)

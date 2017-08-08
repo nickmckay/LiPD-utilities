@@ -3,7 +3,7 @@ function D = readLiPD(path)
 
 %ui selection
 if nargin<1
-    answer = input('Do you want to load a single file (s) or a directory (d)?)');
+    answer = input('Do you want to load a single file (''s'') or a directory (''d'')?)');
     if strncmpi(answer,'d',1)
         lpdpath = uigetdir;
         multiFlag = 1;
