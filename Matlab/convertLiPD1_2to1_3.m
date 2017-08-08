@@ -41,6 +41,11 @@ if L.LiPDVersion == 1.2 | forceConvert
                         newSum{1} = CM.summaryTable;
                         CM.summaryTable=newSum;
                     end
+                    if isfield(CM,'ensembleTable')
+                        newEns = cell(1,1);
+                        newEns{1} = CM.ensembleTable;
+                        CM.ensembleTable=newEns;
+                    end
                     C.model{j} = CM;
                 end
             end
@@ -126,6 +131,11 @@ if L.LiPDVersion == 1.2 | forceConvert
                         newSum = cell(1,1);
                         newSum{1} = CM.summaryTable;
                         CM.summaryTable=newSum;
+                    end
+                    if isfield(CM,'ensembleTable')
+                        newEns = cell(1,1);
+                        newEns{1} = CM.ensembleTable;
+                        CM.ensembleTable=newEns;
                     end
                     C.model{j} = CM;
                 end
