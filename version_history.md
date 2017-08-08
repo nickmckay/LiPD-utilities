@@ -3,10 +3,10 @@
 * Began use of Bagit for LiPD archives
 
 * `paleoData`
-  * Support for multiple entries
+  * Supports multiple entries
 
 * `chronData`
-  * Support for multiple entries
+  * Supports one entry
 
 **v1.1**
 
@@ -19,18 +19,19 @@
 * `chronData`
   * Support for nested tables within each entry
     * `chronMeasurementTable`
+       * Supports one entry
        * Equivalent to the tables found in v1.0
     * `chronModel`
-         * Support for multiple entries
+         * Supports multiple entries
 	        * `method`
-	            * Single entry
+	           * Supports one entry
 	           * How the model was created
 	        * `chronModelTable`
-	           * Single entry 
+	           * Supports one entry
 	        * `ensembleTable`
-	           * Single entry
+	           * Supports one entry
 	        * `calibratedAges`
-	           *  Multiple entries
+	           * Supports multiple entries
 	  
 
 **v1.2**
@@ -41,22 +42,23 @@
 	* Redesigned to match the structure of `chronData` from v1.1
 	* Support for nested tables within each entry
 	* `paleoMeasurementTable`
+		* Supports multiple entries
 		* Equivalent to tables found in v1.0 & v1.1
 	* `paleoModel`
-		* Support for multiple entries
+		* Supports multiple entries
 	        * `method`
-	            * Single entry
+	            * Supports one entry
 	            * How the model was created
 	        * `summaryTable`
-	            * Single entry 
+	            * Supports one entry 
 	        * `ensembleTable`
-	            * Single entry
+	            * Supports one entry
 	        * `distributionTable`
-	            *  Multiple entries
+	            * Supports multiple entries
 
 * `chronData`
 	* `calibratedAges` is now named `distributionTable`
-	* `chronModelTable` is now names `summaryTable`
+	* `chronModelTable` is now named `summaryTable`
 
 **v1.3**
 
@@ -66,11 +68,19 @@
 * Root
 	* Added `createdBy` key
 * `paleoData` & `chronData`
-	* `paleo` and `chron` prefixes are removed from metadata keys (i.e. `paleoMeasurementTable` and `chronMeasurementTable` each become `measurementTable`)
+	* `paleo` and `chron` prefixes are removed from metadata keys
+		* `paleoMeasurementTable` & `chronMeasurementTable` become `measurementTable`
+		* `paleoModel` & `chronModel` become `model`
+	* All table name keys are removed in favor of `tableName`
+		* Added `tableName` key
+		* Removed `paleoDataTableName` & `chronDataTableName`
+		* Removed `paleoMeasurementTableName` & `chronMeasurementTableName`
+		* < There quite a few variations, so I will not list them all >
 	* `interpretation`
+		* Supports multiple entries
 		*  interpretation key replaces `isotopeInterpretation` and `climateInterpretation` keys.  Data is merged.
 	* `model`
 		* `summaryTable`
-			* Support for multiple entries
+			* Supports multiple entries
 		* `ensembleTable`
-			* Support for multiple entries
+			* Supports multiple entries
