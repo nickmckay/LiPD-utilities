@@ -38,6 +38,12 @@
 
 * Root
   * Added `WDCPaleoUrl` key
+* Resolution and Inferred data
+   * Added `hasMean` key
+   * Added `hasMedian` key
+   * Added `hasMax` key
+   * Added `hasMin` key
+   * Added `hasResolution` key
 *  `paleoData`
 	* Redesigned to match the structure of `chronData` from v1.1
 	* Support for nested tables within each entry
