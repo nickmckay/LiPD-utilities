@@ -6,7 +6,7 @@
   * Supports multiple entries
 
 * `chronData`
-  * Supports one entry
+  * Supports multiple entries
 
 **v1.1**
 
