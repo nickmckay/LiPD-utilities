@@ -57,15 +57,15 @@ writeLipd <- function(D, path=NULL){
       path <- browse_dialog("d")
       setwd(path)
     }
-    if ("paleoData" %in% names(d)){
-      print(paste0("writing: ", d[["dataSetName"]]))
-      lipd_write(d, path, d[["dataSetName"]])
+    if ("paleoData" %in% names(D)){
+      print(paste0("writing: ", D[["dataSetName"]]))
+      lipd_write(D, path, D[["dataSetName"]])
     } else {
-      entries <- names(d)
+      entries <- names(D)
       for (i in 1:length(entries)){
         print(paste0("writing: ", basename(entry)))
         entry <- dsns[[i]]
-        lipd_write(d[[entry]], path, entry)
+        lipd_write(D[[entry]], path, entry)
       }
     }
   }, error=function(cond){
