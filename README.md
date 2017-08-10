@@ -89,8 +89,6 @@ The language-specific documentation linked below will go into detail about all t
 
 The examples folder contains blank templates and example files. Use the blank templates to insert your own data for conversion, or test out the package using some of the example files.
 
-You'll also find a set of [Jupyter](http://jupyter.org) notebooks in the examples folder. Notebooks are used to show examples of python code and code output. Use these notebooks as a guide to getting familiar with LiPD Utilities and its functions.
-
 <!-- REQUIREMENTS -->
 
 ## Requirements
@@ -121,7 +119,6 @@ You'll also find a set of [Jupyter](http://jupyter.org) notebooks in the example
 
 [Linked Earth Wiki](http://wiki.linked.earth/Main_Page)
 
-[Jupyter Documentation](www.jupyter.org)
 
 ## Contact
 
