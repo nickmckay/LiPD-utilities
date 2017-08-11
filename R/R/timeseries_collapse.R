@@ -32,17 +32,28 @@ collapseTs <- function(ts){
   return(D)
 }
 
+is_include_key <- function(key, exclude, pc){
+  for(i in 1:length(exclude)){
+    if(key == exclude[[i]] || grepl(pc, key) || grepl(exclude[[i]], key)){
+      return(FALSE)
+    }
+  }
+  return(TRUE)
+} 
+
 collapse_root <- function(d, entry, pc){
   exclude <- c("mode", "measurementTableNumber", "paleoNumber", "summaryTableNumber", 
-               "raw", "depth", "depthUnits", "age", "ageUnits")
+               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution")
   ts_keys <- names(entry)
   pub <- list()
   funding <- list()
   geo <- list(geometry=list(coordinates=list(NA, NA, NA), type="Point"), properties=list())
   for(i in 1:length(ts_keys)){
     key <- ts_keys[[i]]
+    # Is this a key that should be added
+    include <- is_include_key(key, exclude, pc)
     # Filter all the keys we don't want
-    if(!(grepl(pc, key)) && !(key %in% exclude)){
+    if(include){
       if(grepl("geo", key)){
         m <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
         g_key = m[[1]][[3]]
@@ -67,9 +78,11 @@ collapse_root <- function(d, entry, pc){
       }
     }
   }
-  d[["pub"]] <- pub
-  d[["funding"]] <- funding
-  d[["geo"]] <- geo
+  # Only add these lists if they're not empty 
+  if(!isNullOb(pub)){ d[["pub"]] <- pub }
+  if(!isNullOb(funding)){ d[["funding"]] <- funding }
+  if(!isNullOb(geo)){ d[["geo"]] <- geo }
+  d[["@context"]] <- "context.jsonld"
   return(d)
 }
 
@@ -105,7 +118,7 @@ collapse_table_root <- function(table, entry, pc){
   root_keys <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey")
   for(i in 1:length(root_keys)){
     key <- paste0(pc, "_", root_keys[[i]])
-    if(key %in% entry){
+    if(key %in% names(entry)){
       table[[root_keys[[i]]]] <- entry[[key]]
     }
   }
@@ -122,16 +135,18 @@ collapse_column <- function(table, entry, pc){
   new_column <- list()
   interp <- list()
   calib <- list()
-  include <- c("paleoData", "chronData", "interpretation", "calibration") 
+  res <- list()
+  include <- c("paleoData", "chronData", "interpretation", "calibration", "hasResolution") 
   exclude <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey")
   ts_keys <- names(entry)
   tryCatch({
     for(i in 1:length(ts_keys)){
       if (grepl("interpretation", ts_keys[[i]])){
         interp <- collapse_block(entry, interp, ts_keys[[i]])
-      }
-      else if (grepl("calibration", ts_keys[[i]])){
+      } else if (grepl("calibration", ts_keys[[i]])){
         calib <- collapse_block(entry, calib, ts_keys[[i]])
+      } else if (grepl("hasResolution", ts_keys[[i]])){
+        calib <- collapse_block(entry, res, ts_keys[[i]])
       } else {
         # ts_key / 1,1 "paleoData" / 1,2 "_" / 1,3 "someKey"
         ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)[_](\\w+)")
@@ -150,6 +165,9 @@ collapse_column <- function(table, entry, pc){
     }
     if(!isNullOb(calib)){
       new_column[["calibration"]] <- calib
+    }
+    if(!isNullOb(calib)){
+      new_column[["hasResolution"]] <- res
     }
     vn <- new_column[["variableName"]]
     # Set the new column into the table using the variableName
