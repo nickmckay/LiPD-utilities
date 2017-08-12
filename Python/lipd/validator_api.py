@@ -6,6 +6,7 @@ import os
 from .loggers import create_logger
 from .misc import is_ensemble, get_ensemble_counts, rm_values_fields
 from .csvs import get_csv_from_metadata
+from .jsons import idx_name_to_num
 
 logger_validator_api = create_logger('validator_api')
 
@@ -28,6 +29,7 @@ def get_validator_format(L):
 
     _j, _csvs = get_csv_from_metadata(L["dataSetName"], L)
     _j = rm_values_fields(copy.deepcopy(L))
+    _j = idx_name_to_num(_j)
 
     # All the filenames being processed
     _filenames = ["metadata.jsonld", "bagit.txt", "bag-info.txt", "manifest-md5.txt", "tagmanifest-md5.txt"]\
