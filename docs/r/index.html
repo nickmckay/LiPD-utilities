@@ -39,6 +39,7 @@
 </li>
 <li><a href="#help">Help</a><ul>
 <li><a href="#what-is-a-time-series">What is a time series?</a></li>
+<li><a href="#how-are-queryts-and-filterts-different">How are queryTs and filterTs different?</a></li>
 </ul>
 </li>
 </ul>
@@ -330,6 +331,8 @@ Creates a time series from LiPD datasets. <br>
 
 <hr>
 
+
+
 <h3 id="collapsetsts"><strong>collapseTs(ts)</strong></h3>
 
 <p><strong>Purpose:</strong>  <br>
@@ -373,7 +376,7 @@ Collapse a time series back into LiPD datasets. This function is lossless and wi
 <h3 id="querytsts-expression"><strong>queryTs(ts, expression)</strong></h3>
 
 <p><strong>Purpose:</strong>  <br>
-Find all the entries in a time series that match your specified criteria. For example, if you only want data located at a certain latitude, or if you only want data of a certain archive type.</p>
+Find all the <em>objects</em> in a time series that match your specified criteria. For example, if you only want data located at a certain latitude, or if you only want data of a certain archive type.</p>
 
 <p><a href="#helpqueryfilter">How are queryTs and filterTs different?</a></p>
 
@@ -394,20 +397,20 @@ Find all the entries in a time series that match your specified criteria. For ex
 <blockquote>
   <p><strong>matches</strong></p>
   
-  <p>The  index numbers for all entries that match the expression. </p>
+  <p>The  index numbers for all <em>time series objects</em> that match the expression. </p>
 </blockquote>
 
 <p>For this example, I’ve read and created a time series using multiple datasets to emphasize the point of querying. All the steps are shown below:</p>
 
 <p><img src="https://www.dropbox.com/s/chg23m4lc7qb7n4/filterTs_prestart.png?raw=1" alt="filterts_prestart" title=""></p>
 
-<p>I’ll use the expression <code>paleoData_variableName == d18O</code> to get the index numbers of  all time series entries that represent d18O measurements.</p>
+<p>I’ll use the expression <code>paleoData_variableName == d18O</code> to get the index numbers of  all time series objects that represent d18O measurements.</p>
 
 <p>Call <code>queryTs</code> as shown below: </p>
 
 <p><img src="https://www.dropbox.com/s/ng62tmjmxxocsvl/queryTs_call.png?raw=1" alt="queryts_call" title=""></p>
 
-<p>A list of index numbers is returned as <code>matches</code> and shows you all the entry numbers that match the <code>paleoData_variableName == d18O</code> expression. The <code>ts</code> time series variable has 9 entries, and 2 of those entries are <code>d18O</code> entries. Index number 1 and index number 3. </p>
+<p>A list of index numbers is returned as <code>matches</code> and shows you all the time series object index numbers that match the <code>paleoData_variableName == d18O</code> expression. The <code>ts</code> time series variable has 9 <em>objects</em> (denoted as <code>elements</code> in the R Studio environment), and 2 of those <em>objects</em> are <code>d18O</code> entries. Index number 1 and index number 3. </p>
 
 <p><img src="https://www.dropbox.com/s/sud31wot97si34p/queryTs_done.png?raw=1" alt="queryts_done" title=""></p>
 
@@ -416,7 +419,7 @@ Find all the entries in a time series that match your specified criteria. For ex
 <h3 id="filtertsts-expression"><strong>filterTs(ts, expression)</strong></h3>
 
 <p><strong>Purpose:</strong>  <br>
-Create a new, smaller,  time series that only contains entries that match your specified criteria. For example, if you only want data located at a certain latitude, or if you only want data of a certain archive type.</p>
+Create a new, smaller,  time series that only contains <em>objects</em> that match your specified criteria. For example, if you only want data located at a certain latitude, or if you only want data of a certain archive type.</p>
 
 <p><a href="#helpqueryfilter">How are queryTs and filterTs different?</a></p>
 
@@ -451,7 +454,7 @@ Create a new, smaller,  time series that only contains entries that match your s
   below also shows a small sample of the <code>ts</code> variable that I’m using now. </p>
 </blockquote>
 
-<p>I’ll use the expression <code>paleoData_variableName == d18O</code> to get all time series entries that represent d18O measurements.</p>
+<p>I’ll use the expression <code>paleoData_variableName == d18O</code> to get all time series objects that represent d18O measurements.</p>
 
 <p>Call <code>filterTs</code> as shown below: </p>
 
@@ -469,12 +472,14 @@ Create a new, smaller,  time series that only contains entries that match your s
 
 <h3 id="what-is-a-time-series"><a></a><strong>What is a time series?</strong></h3>
 
-<p>A time series is a flattened set of data that makes data more approachable and is used to perform data analysis. The LiPD dataset hierarchy is great for organization and giving context to data, but can be more difficult to sift through to find relevant information since it can often go 10+ levels deep. </p>
+<p>The LiPD dataset hierarchy is great for organization and giving context to data, but can be more difficult to sift through to find relevant information since it can often go 10+ levels deep. </p>
+
+<p>A time series is a flattened set of data that makes data more approachable and is used to perform data analysis. A time series is a collection of <em>time series objects</em>.</p>
 
 <p><strong>1-to-1 ratio</strong> <br>
-1 time series entry = 1 measurement table column</p>
+1 time series object = 1 measurement table column</p>
 
-<p>Each entry within a time series is made from one column of data in a <strong>measurement</strong> table. It’s important to note that this only pertains to measurement table data. All model data (ensemble, distribution, summary) are not included when creating a time series. </p>
+<p>Each <em>object</em> within a time series is made from one column of data in a <strong>measurement</strong> table. It’s important to note that this only pertains to measurement table data. All model data (ensemble, distribution, summary) are not included when creating a time series. </p>
 
 <p><strong>Example 1: One dataset</strong></p>
 
@@ -485,7 +490,7 @@ Create a new, smaller,  time series that only contains entries that match your s
 <ul><li>depth,  depth1,  SST,  TEX86,  age</li></ul></li></ul></li></ul></li>
 </ul>
 
-<p><code>extractTs</code> creates a time series (<code>ts</code>) of <strong>5</strong> entries</p>
+<p><code>extractTs</code> creates a time series (<code>ts</code>) of <strong>5</strong> objects</p>
 
 <p><strong>Example 2: Multiple datasets</strong></p>
 
@@ -507,7 +512,7 @@ Create a new, smaller,  time series that only contains entries that match your s
 <ul><li>d18O, year</li></ul></li></ul></li></ul></li>
 </ul>
 
-<p><code>extractTs</code> creates a time series (<code>ts</code>) of <strong>9</strong> entries</p>
+<p><code>extractTs</code> creates a time series (<code>ts</code>) of <strong>9</strong> objects</p>
 
 <hr>
 
@@ -517,9 +522,9 @@ Create a new, smaller,  time series that only contains entries that match your s
 
 <p><code>queryTs</code>: </p>
 
-<p>This function returns the <strong>index numbers</strong> of entries that match your expression.</p>
+<p>This function returns the <strong>index numbers</strong> of objects that match your expression.</p>
 
 <p><code>filterTs</code>:</p>
 
-<p>This function returns the <strong>actual data</strong> of entries that match your expression. </p></div></body>
+<p>This function returns the <strong>actual data</strong> of objects that match your expression. </p></div></body>
 </html>

@@ -8,6 +8,13 @@
 
 Welcome to LiPD Utilities in R . This guide will provide everything you need to get up and running with the LiPD Utilities in R,  and show you how to use the core functions in the LiPD package. 
 
+## Table of contents
+
+-----
+
+
+[TOC]
+
 
 -----
 
@@ -305,7 +312,7 @@ Expanding `L2` in the environment shows that the data has returned to the LiPD d
 ### **queryTs(ts, expression)**
 
 **Purpose:** 
-Find all the entries in a time series that match your specified criteria. For example, if you only want data located at a certain latitude, or if you only want data of a certain archive type.
+Find all the _objects_ in a time series that match your specified criteria. For example, if you only want data located at a certain latitude, or if you only want data of a certain archive type.
 
 [How are queryTs and filterTs different?](#helpqueryfilter)
 
@@ -323,7 +330,7 @@ Find all the entries in a time series that match your specified criteria. For ex
 > 
 > **matches**
 > 
-> The  index numbers for all entries that match the expression. 
+> The  index numbers for all _time series objects_ that match the expression. 
 > 
 
 
@@ -331,13 +338,13 @@ For this example, I've read and created a time series using multiple datasets to
 
 ![filterts_prestart](https://www.dropbox.com/s/chg23m4lc7qb7n4/filterTs_prestart.png?raw=1)
 
-I'll use the expression `paleoData_variableName == d18O` to get the index numbers of  all time series entries that represent d18O measurements.
+I'll use the expression `paleoData_variableName == d18O` to get the index numbers of  all time series objects that represent d18O measurements.
 
 Call `queryTs` as shown below: 
 
 ![queryts_call](https://www.dropbox.com/s/ng62tmjmxxocsvl/queryTs_call.png?raw=1)
 
-A list of index numbers is returned as `matches` and shows you all the entry numbers that match the `paleoData_variableName == d18O` expression. The `ts` time series variable has 9 entries, and 2 of those entries are `d18O` entries. Index number 1 and index number 3. 
+A list of index numbers is returned as `matches` and shows you all the time series object index numbers that match the `paleoData_variableName == d18O` expression. The `ts` time series variable has 9 _objects_ (denoted as `elements` in the R Studio environment), and 2 of those _objects_ are `d18O` entries. Index number 1 and index number 3. 
 
 ![queryts_done](https://www.dropbox.com/s/sud31wot97si34p/queryTs_done.png?raw=1)
 
@@ -347,7 +354,7 @@ A list of index numbers is returned as `matches` and shows you all the entry num
 ### **filterTs(ts, expression)**
 
 **Purpose:** 
-Create a new, smaller,  time series that only contains entries that match your specified criteria. For example, if you only want data located at a certain latitude, or if you only want data of a certain archive type.
+Create a new, smaller,  time series that only contains _objects_ that match your specified criteria. For example, if you only want data located at a certain latitude, or if you only want data of a certain archive type.
 
 [How are queryTs and filterTs different?](#helpqueryfilter)
 
@@ -377,7 +384,7 @@ For this example, I've read and created a time series using multiple datasets to
 > the time series variable in your environment (`ts`), you'll be able to see the searchable terms. The image 
 > below also shows a small sample of the `ts` variable that I'm using now. 
 
-I'll use the expression `paleoData_variableName == d18O` to get all time series entries that represent d18O measurements.
+I'll use the expression `paleoData_variableName == d18O` to get all time series objects that represent d18O measurements.
 
 Call `filterTs` as shown below: 
 
@@ -395,12 +402,14 @@ A new, filtered time series is created as `new_ts` and the original time series 
 
 ### <a name="helptimeseries"></a>**What is a time series?**
 
-A time series is a flattened set of data that makes data more approachable and is used to perform data analysis. The LiPD dataset hierarchy is great for organization and giving context to data, but can be more difficult to sift through to find relevant information since it can often go 10+ levels deep. 
+The LiPD dataset hierarchy is great for organization and giving context to data, but can be more difficult to sift through to find relevant information since it can often go 10+ levels deep. 
+
+A time series is a flattened set of data that makes data more approachable and is used to perform data analysis. A time series is a collection of _time series objects_.
 
 **1-to-1 ratio**
-1 time series entry = 1 measurement table column
+1 time series object = 1 measurement table column
 
-Each entry within a time series is made from one column of data in a **measurement** table. It's important to note that this only pertains to measurement table data. All model data (ensemble, distribution, summary) are not included when creating a time series. 
+Each _object_ within a time series is made from one column of data in a **measurement** table. It's important to note that this only pertains to measurement table data. All model data (ensemble, distribution, summary) are not included when creating a time series. 
 
 **Example 1: One dataset**
 
@@ -409,7 +418,7 @@ Each entry within a time series is made from one column of data in a **measureme
 		- 5 columns
 			- depth,  depth1,  SST,  TEX86,  age
 
-`extractTs` creates a time series (`ts`) of **5** entries
+`extractTs` creates a time series (`ts`) of **5** objects
 
 **Example 2: Multiple datasets**
 
@@ -428,7 +437,7 @@ Each entry within a time series is made from one column of data in a **measureme
 		- 2 columns
 			- d18O, year
 			
-`extractTs` creates a time series (`ts`) of **9** entries
+`extractTs` creates a time series (`ts`) of **9** objects
 
 
 -----
@@ -439,8 +448,8 @@ It's easy to confuse these two functions as they are almost identical in purpose
 
 `queryTs`: 
 
-This function returns the **index numbers** of entries that match your expression.
+This function returns the **index numbers** of objects that match your expression.
 
 `filterTs`:
 
-This function returns the **actual data** of entries that match your expression. 
+This function returns the **actual data** of objects that match your expression. 
