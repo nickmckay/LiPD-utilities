@@ -8,13 +8,6 @@
 
 Welcome to LiPD Utilities in R . This guide will provide everything you need to get up and running with the LiPD Utilities in R,  and show you how to use the core functions in the LiPD package. 
 
-## Table of contents
-
------
-
-
-[TOC]
-
 
 -----
 
@@ -264,8 +257,12 @@ Creates a time series from LiPD datasets.
 
 Call `extractTs` as shown below:
 
+![extractts_call](https://www.dropbox.com/s/e2aebrn33u2v570/extractTs_start.png?raw=1)
 
 The time series is created and placed in the `ts` variable. Click the arrow next to the `ts` variable in the environment to see the what the contents look like.  
+
+![extractts_done](https://www.dropbox.com/s/27s93kgnnwnuj65/extractTs_finish.png?raw=1)
+
 
 ---
 
@@ -433,6 +430,8 @@ Each entry within a time series is made from one column of data in a **measureme
 			
 `extractTs` creates a time series (`ts`) of **9** entries
 
+
+-----
 
 ### <a name="helpqueryfilter"></a>**How are queryTs and filterTs different?**
 
