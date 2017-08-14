@@ -7,6 +7,19 @@
 #' @keywords internal
 #' @param path Source path (optional)
 #' @return D LiPD data
+#' @examples 
+#' # read in multiple datasets (no path argument)
+#' D <- readLipd()   # choose option 'd' for directory
+#'
+#' read in multiple datasets (with path argument)
+#' D <- readLipd("/Users/bobsmith/Desktop/lipd_files")
+#' 
+#' # read in one dataset (no path argument)
+#' L <- readLipd()  # choose option "s" for single file
+#' 
+#' # read in one dataset (with path argument)
+#' L <- readLipd(/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
+#' 
 readLipd <- function(path=NULL){
   D = list()
   # Warnings are annoying, we don't want them
@@ -51,6 +64,14 @@ readLipd <- function(path=NULL){
 #' @param list D: LiPD data
 #' @param char path: Destination path
 #' @return none:
+#' @examples 
+#' 
+#' # write (without path argument)
+#' writeLipd(D)
+#' 
+#' # write (with path argument)
+#' writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
+#' 
 writeLipd <- function(D, path=NULL){
   tryCatch({
     if(missing(path)){

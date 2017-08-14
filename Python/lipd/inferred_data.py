@@ -151,8 +151,8 @@ def __get_inferred_data_res_2(v=None, calc=True):
     try:
         if calc:
             d = {
-                "hasMinValue": np.min(v), "hasMaxValue": np.max(v),
-                "hasMeanValue": np.mean(v), "hasMedianValue": np.median(v),
+                "hasMinValue": np.nanmin(v), "hasMaxValue": np.nanmax(v),
+                "hasMeanValue": np.nanmean(v), "hasMedianValue": np.nanmedian(v),
             }
     except Exception as e:
         logger_inferred_data.error("get_inferred_data_res_2: {}".format(e))
@@ -174,7 +174,10 @@ def _get_inferred_data_res(column, age):
             values = column["values"]
             # Make sure that age and values are numpy arrays
             _values = np.array(copy.copy(values), dtype=float)
+            # _values = _values[np.where(~np.isnan(_values))[0]]
             _age = np.array(age, dtype=float)
+            # _age = _age[np.where(~np.isnan(_age))[0]]
+
             # If we have values, keep going
             if len(_values) != 0:
                 # Get the resolution for this age and column values data

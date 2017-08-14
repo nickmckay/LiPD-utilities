@@ -15,4 +15,10 @@ D LiPD data, sorted by dataset name
 \description{
 Collapse time series into LiPD dataset form
 }
+\examples{
+D <- readLipds()
+ts <- extractTs(D)
+D <- collapseTs(ts)
+
+}
 
