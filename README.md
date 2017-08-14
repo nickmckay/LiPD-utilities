@@ -63,11 +63,11 @@ The core functions are consistent across the 3 languages; However, each language
 Additionally, while the core functions remain the same, we chose to take advantage of the strengths of each language. The Python utilities have additional functions for converting and validating data. The R and Matlab utilities are better suited for data analyzation.
 The language-specific documentation linked below will go into detail about all the functions included in each language.
 
-* [Python Docs](docs_py/index.html)
+* [Python Docs](http://nickmckay.github.io/LiPD-utilities/python/index.html)
 
-* R Docs (website coming soon, also available using the '??<function>' command in RStudio)
+* [R Docs](http://nickmckay.github.io/LiPD-utilities/r/index.html)
 
-* Matlab Docs (coming soon)
+* [Matlab Docs](http://nickmckay.github.io/LiPD-utilities/matlab/index.html)
 
 <!-- FEATURES -->
 
