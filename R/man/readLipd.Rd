@@ -4,10 +4,10 @@
 \alias{readLipd}
 \title{Read LiPD files into R workspace}
 \usage{
-readLipd(path = NULL)
+readLipd(path)
 }
 \arguments{
-\item{path}{Source path (optional)}
+\item{path}{Source path (optional) : char}
 }
 \value{
 D : LiPD dataset(s)

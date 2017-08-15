@@ -1,8 +1,9 @@
 #' Collapse time series into LiPD dataset form
 #' @export
 #' @author Chris Heiser
-#' @param ts Time series
-#' @return D:  LiPD data, sorted by dataset name
+#' @param ts Time series : list
+#' @usage collapseTs(ts)
+#' @return D: LiPD data, sorted by dataset name : list
 #' @examples 
 #' D <- readLipds()
 #' ts <- extractTs(D)

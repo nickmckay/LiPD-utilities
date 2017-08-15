@@ -10,10 +10,10 @@ filterTs(ts, expression)
 \arguments{
 \item{ts}{Time series}
 
-\item{expression}{Search expression}
+\item{expression}{Search expression : char}
 }
 \value{
-new.ts : Time series
+new.ts : Time series : list
 }
 \description{
 Valid operators : ==, =, <=, >=, <, >

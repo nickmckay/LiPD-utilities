@@ -6,7 +6,8 @@
 #' @export
 #' @author Chris Heiser
 #' @keywords internal
-#' @param path Source path (optional)
+#' @param path Source path (optional) : char
+#' @usage readLipd(path)
 #' @return D : LiPD dataset(s)
 #' @examples
 #' read in multiple datasets - no path argument
@@ -63,15 +64,16 @@ readLipd <- function(path=NULL){
 #' @export
 #' @author Chris Heiser
 #' @keywords internal
-#' @param list D: LiPD data
-#' @param char path: Destination path
-#' @return none:
+#' @param D LiPD datasets : list
+#' @param path Destination path : char
+#' @usage writeLipd(D, path)
+#' @return none
 #' @examples 
 #' 
-#' # write (without path argument)
+#' # write - without path argument
 #' writeLipd(D)
 #' 
-#' # write (with path argument)
+#' # write - with path argument
 #' writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
 #' 
 writeLipd <- function(D, path=NULL){

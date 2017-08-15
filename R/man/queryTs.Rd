@@ -10,12 +10,12 @@ Valid operators : ==, =, <=, >=, <, >}
 queryTs(ts, expression)
 }
 \arguments{
-\item{ts}{Time series}
+\item{ts}{Time series : list}
 
-\item{expression}{Search expression}
+\item{expression}{Search expression : char}
 }
 \value{
-idxs Matching indices
+idxs: Matching indices : list
 }
 \description{
 Find all the time series entries that match a given search expression, 

@@ -4,9 +4,10 @@
 #' Valid operators : ==, =, <=, >=, <, >
 #' @export
 #' @author Chris Heiser
-#' @param ts Time series
-#' @param expression Search expression
-#' @return idxs Matching indices
+#' @param ts Time series : list
+#' @param expression Search expression : char
+#' @usage queryTs(ts, expression)
+#' @return idxs: Matching indices : list
 #' @examples 
 #' 
 #' # Time series
@@ -37,8 +38,9 @@ queryTs= function(ts, expression){
 #' @export
 #' @author Chris Heiser
 #' @param ts Time series
-#' @param expression Search expression
-#' @return new.ts : Time series
+#' @param expression Search expression : char
+#' @usage filterTs(ts, expression)
+#' @return new.ts : Time series : list
 #' @examples 
 #' 
 #' # Time series
