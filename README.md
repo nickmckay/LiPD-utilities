@@ -3,7 +3,8 @@
 [![PyPI](https://img.shields.io/badge/python-3.4-yellow.svg)]()
 [![license](https://img.shields.io/github/license/nickmckay/LiPD-utilities.svg?maxAge=2592000)]()
 
-# LiPD Utilities
+![](https://www.dropbox.com/s/kgeyec2b8cft5mo/lipd4.png?raw=1)
+
 
 Input/output and manipulation utilities for LiPD files in Matlab, R and Python.
 
