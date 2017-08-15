@@ -1,5 +1,6 @@
 #' Collapse time series into LiPD dataset form
 #' @export
+#' @author Chris Heiser
 #' @param ts Time series
 #' @return D:  LiPD data, sorted by dataset name
 #' @examples 

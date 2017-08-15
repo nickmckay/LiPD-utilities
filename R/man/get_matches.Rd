@@ -14,5 +14,8 @@ get_matches(ts, m)
 \description{
 Use the regex match groups and the time series to compile two lists: matching indices, and matching entries.
 }
+\author{
+Chris Heiser
+}
 \keyword{internal}
 

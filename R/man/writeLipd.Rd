@@ -17,5 +17,17 @@ none:
 \description{
 Write LiPD data onto disk as LiPD files
 }
+\examples{
+
+# write (without path argument)
+writeLipd(D)
+
+# write (with path argument)
+writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
+
+}
+\author{
+Chris Heiser
+}
 \keyword{internal}
 

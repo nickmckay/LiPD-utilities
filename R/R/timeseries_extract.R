@@ -1,5 +1,6 @@
 #' Extract time series from LiPD data
 #' @export
+#' @author Nick McKay
 #' @description Create a time series from a library of LiPD datasets. A Time series is a flattened version of LiPD data that can be queried and filtered for easier data analysis.
 #' @param D LiPD data, sorted by dataset name
 #' @return ts:  Time series

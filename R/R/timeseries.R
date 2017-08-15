@@ -3,9 +3,25 @@
 #' indices = queryTs(ts, "archiveType == marine sediment")
 #' Valid operators : ==, =, <=, >=, <, >
 #' @export
+#' @author Chris Heiser
 #' @param ts Time series
 #' @param expression Search expression
-#' @return idx Matching indices
+#' @return idxs Matching indices
+#' @examples 
+#' 
+#' # Time series
+#' ts = [ object1, object2, object3, object4 ]
+#'
+#' # Example 1
+#' idxs = filterTs(ts, "archiveType == marine sediment")
+#' # result 
+#' [1, 3, 4]
+#' 
+#' # Example 2
+#' idxs = filterTs(ts, "paleoData_variableName == d18O")
+#' # result
+#' [2]
+#' 
 queryTs= function(ts, expression){
   ops = c("<", "<=", "==", "=", ">=", ">", "less than", "more than", "is")
   idxs <- list()
@@ -14,14 +30,31 @@ queryTs= function(ts, expression){
   return(results[["idx"]])
 }
 
-#' Find all the time series entries that match a given search expression, 
-#' and return a new time series with the matching entries
-#' new.ts = filterTs(ts, "archiveType == marine sediment")
+#' Find all the time series objects that match a given search expression, 
+#' and return a new time series with the matching objects
+#' 
 #' Valid operators : ==, =, <=, >=, <, >
 #' @export
+#' @author Chris Heiser
 #' @param ts Time series
 #' @param expression Search expression
-#' @return new.ts Time series
+#' @return new.ts : Time series
+#' @examples 
+#' 
+#' # Time series
+#' ts = [ object1, object2, object3, object4 ]
+#'
+#' # Example 1
+#' new.ts = filterTs(ts, "archiveType == marine sediment")
+#' # result 
+#' [object1, object3, object4]
+#' 
+#' # Example 2
+#' new.ts = filterTs(ts, "paleoData_variableName == d18O")
+#' # result
+#' [object2]
+#' 
+#' 
 filterTs= function(ts, expression){
   new.ts <- list()
   # use the regex to get the <key><operator><value> groups from the given expression
@@ -33,6 +66,7 @@ filterTs= function(ts, expression){
 
 #' Use the regex match groups and the time series to compile two lists: matching indices, and matching entries. 
 #' @export
+#' @author Chris Heiser
 #' @keywords internal
 #' @param ts Time series
 #' @param m Regex match groups

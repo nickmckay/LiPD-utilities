@@ -15,12 +15,31 @@ queryTs(ts, expression)
 \item{expression}{Search expression}
 }
 \value{
-idx Matching indices
+idxs Matching indices
 }
 \description{
 Find all the time series entries that match a given search expression, 
 and return vector of the indices that match. 
 indices = queryTs(ts, "archiveType == marine sediment")
 Valid operators : ==, =, <=, >=, <, >
+}
+\examples{
+
+# Time series
+ts = [ object1, object2, object3, object4 ]
+
+# Example 1
+idxs = filterTs(ts, "archiveType == marine sediment")
+# result 
+[1, 3, 4]
+
+# Example 2
+idxs = filterTs(ts, "paleoData_variableName == d18O")
+# result
+[2]
+
+}
+\author{
+Chris Heiser
 }
 

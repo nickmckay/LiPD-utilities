@@ -10,7 +10,7 @@ collapseTs(ts)
 \item{ts}{Time series}
 }
 \value{
-D LiPD data, sorted by dataset name
+D:  LiPD data, sorted by dataset name
 }
 \description{
 Collapse time series into LiPD dataset form
@@ -20,5 +20,8 @@ D <- readLipds()
 ts <- extractTs(D)
 D <- collapseTs(ts)
 
+}
+\author{
+Chris Heiser
 }
 

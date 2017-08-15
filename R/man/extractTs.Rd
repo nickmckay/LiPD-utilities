@@ -15,4 +15,12 @@ ts:  Time series
 \description{
 Create a time series from a library of LiPD datasets. A Time series is a flattened version of LiPD data that can be queried and filtered for easier data analysis.
 }
+\examples{
+D <- readLipds()
+ts <- extractTs(D)
+
+}
+\author{
+Nick McKay
+}
 

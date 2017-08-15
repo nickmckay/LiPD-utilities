@@ -4,21 +4,22 @@
 
 #' Read LiPD files into R workspace
 #' @export
+#' @author Chris Heiser
 #' @keywords internal
 #' @param path Source path (optional)
-#' @return D LiPD data
-#' @examples 
-#' # read in multiple datasets (no path argument)
+#' @return D : LiPD dataset(s)
+#' @examples
+#' read in multiple datasets - no path argument
 #' D <- readLipd()   # choose option 'd' for directory
 #'
-#' read in multiple datasets (with path argument)
+#' read in multiple datasets - with path argument
 #' D <- readLipd("/Users/bobsmith/Desktop/lipd_files")
 #' 
-#' # read in one dataset (no path argument)
+#' read in one dataset - no path argument
 #' L <- readLipd()  # choose option "s" for single file
 #' 
-#' # read in one dataset (with path argument)
-#' L <- readLipd(/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
+#' read in one dataset - with path argument
+#' L <- readLipd("/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
 #' 
 readLipd <- function(path=NULL){
   D = list()
@@ -60,6 +61,7 @@ readLipd <- function(path=NULL){
 
 #' Write LiPD data onto disk as LiPD files
 #' @export
+#' @author Chris Heiser
 #' @keywords internal
 #' @param list D: LiPD data
 #' @param char path: Destination path
