@@ -482,6 +482,18 @@ def path_type(path, target):
     return False
 
 
+def print_filename(path):
+    """
+    Print out lipd filename that is being read or written
+
+    :param str path: all file metadata
+    :return str: filename
+    """
+
+    if os.path.basename(path):
+        return os.path.basename(path)
+    return path
+
 def prompt_protocol():
     """
     Prompt user if they would like to save pickle file as a dictionary or an object.
