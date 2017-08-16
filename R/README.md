@@ -1,4 +1,5 @@
 # LiPD Utilities - R
+-----
 
 [![DOI](https://zenodo.org/badge/23949/chrismheiser/lipdR.svg)](https://zenodo.org/badge/latestdoi/23949/chrismheiser/lipdR)
 [![R](https://img.shields.io/badge/R-3.3.1-blue.svg)]()
@@ -15,6 +16,14 @@ Welcome to LiPD Utilities in R . This guide will provide everything you need to 
 
 [TOC]
 
+
+-----
+
+## Features
+
+*   Read & write LiPD files
+*   Extract & collapse a time series for data analysis
+*   Filter & query a time series for subset data
 
 -----
 

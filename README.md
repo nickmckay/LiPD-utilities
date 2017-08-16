@@ -1,14 +1,9 @@
-[![DOI](https://zenodo.org/badge/24036/nickmckay/LiPD-utilities.svg)](https://zenodo.org/badge/latestdoi/24036/nickmckay/LiPD-utilities)
-[![PyPI](https://img.shields.io/pypi/v/LiPD.svg?maxAge=2592000)]()
-[![PyPI](https://img.shields.io/badge/python-3.4-yellow.svg)]()
-[![license](https://img.shields.io/github/license/nickmckay/LiPD-utilities.svg?maxAge=2592000)]()
-
 ![](https://www.dropbox.com/s/kgeyec2b8cft5mo/lipd4.png?raw=1)
 
 
 Input/output and manipulation utilities for LiPD files in Matlab, R and Python.
 
-<!-- WHAT IS IT -->
+-----
 
 ### What is it?
 
@@ -16,46 +11,46 @@ LiPD is short for Linked PaleoData. LiPD files are the data standard for storing
 
 Organizing and using your observation data can be time  consuming. Our goal is to let you focus on more important tasks  than data wrangling.
 
-<!-- INSTALLATION -->
 
-### Installation
+--------
 
-**Python:**
+## Core functions
 
-Python v3.4+ is required
+The functions below are considered the core functions of the LiPD package. These functions are consistent in Matlab, Python, and R. The function names, parameters and returned data is the same.
 
-`pip install LiPD`
+### LiPD I/O functions
+Getting LiPD data in and out of the stored files is the most important part! These are the two functions that allow that to happen. 
 
-**R:**
+#### readLipd
 
-Using the devtools package:
+Read LiPD files from your computer into your workspace
 
-`devtools::install_github("nickmckay/LiPD-Utilities", subdir = "R")`
+#### writeLipd
 
-**Matlab:**
+Write LiPD data from your workspace onto your computer.
 
-Use the "Clone or download" button on the [Github repository](https://github.com/nickmckay/LiPD-utilities) page to get a copy of the LiPD Utilities code on your computer. Note where the code is saved, and add the the path in you Matlab search path.
+### Time series functions
 
-<!-- USAGE -->
+[What is a time series?](something)
+The FAQ explains what a time series is. Once you have a basic understanding of a time series, the functions below will be much more relevant!
 
-## Usage
+#### extractTs
 
-The functions below are considered the core functions of the LiPD package. These functions are consistent across the 3 languages. The function names, parameters and returned data is the same.
+Extract a time series from one or more datasets in the workspace. Your hierarchical LiPD data structure is extracted into a flattened time series structure.
 
-`readLipd(path="")`
+### collapseTs
 
-`writeLipd(data, path="")`
+Collapse a time series back into LiPD dataset form in the workspace. Your flattened time series structure is condensed back into a hierarchical LiPD data structure
 
-`extractTs(data, chron=False)`
+### filterTs
 
-`collapseTs(timeseries)`
+Retrieve **time series objects** that match a specific criteria. This filters out the data that you don't want, and returns a **new time series** of data that you do want.
 
-`filterTs(timeseries, expression)`
+### queryTs
 
-`queryTs(timeseries, expression)`
+Retrieve the **index numbers** of time series objects that match a specific criteria. This filters out the data that you don't want, and returns a list of **index numbers** of the data that you do want. 
 
-
-<!-- SPECIFIC DOC LINKS -->
+------
 
 ## Language-specific Documentation
 
@@ -70,19 +65,7 @@ The language-specific documentation linked below will go into detail about all t
 
 * [Matlab Docs](http://nickmckay.github.io/LiPD-utilities/matlab/index.html)
 
-<!-- FEATURES -->
-
-## Features
-
-*   Read & write LiPD files
-*   Extract & collapse a time series for data analysis
-*   Filter & query a time series for subset data
-*   Convert Excel files to LiPD files (Python only)
-*   Convert NOAA files to/from LiPD files (Python only)
-*   Update LiPD publication data through DOI.org (Python only)
-*   Validate LiPD files through lipd.net API (Python only)
-
-<!-- EXAMPLES -->
+------
 
 ## Example Files
 
@@ -90,29 +73,7 @@ The language-specific documentation linked below will go into detail about all t
 
 The examples folder contains blank templates and example files. Use the blank templates to insert your own data for conversion, or test out the package using some of the example files.
 
-<!-- REQUIREMENTS -->
-
-## Requirements
-
-**Python**
-
-- [Python 3.4+](https://www.python.org)
-
-- Python IDE (Spyder or PyCharm are highly recommended)
-
-- [pip](https://pip.pypa.io/en/stable/installing/)
-
-**R**
-
-- [R language](https://cran.r-project.org)
-
-- [R Studio](https://www.rstudio.com)
-
-**Matlab**
-
-- [Matlab](https://www.mathworks.com)
-
-<!-- FURTHER INFORMATION -->
+------
 
 ## Further information
 
@@ -120,13 +81,16 @@ The examples folder contains blank templates and example files. Use the blank te
 
 [Linked Earth Wiki](http://wiki.linked.earth/Main_Page)
 
+------
 
 ## Contact
 
 If you are having issues, please let me know at [heiser@nau.edu](mailto:heiser@nau.edu).
 
-<!-- LICENSE -->
+
+------
+
 
 ## License
 
-The project is licensed under the [            GNU Public License](https://github.com/nickmckay/LiPD-utilities/blob/master/Python/LICENSE).
+The project is licensed under the [GNU Public License](https://github.com/nickmckay/LiPD-utilities/blob/master/Python/LICENSE).
