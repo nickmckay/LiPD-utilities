@@ -143,6 +143,9 @@ def __get_inferred_data_res_2(v=None, calc=True):
     :param bool calc: If false, we don't need calculations
     :return dict:  Results of calculation
     """
+
+
+
     # Base: If something goes wrong, or if there are no values, then use "NaN" placeholders.
     d = {
         "hasMinValue": "nan", "hasMaxValue": "nan",
@@ -150,9 +153,25 @@ def __get_inferred_data_res_2(v=None, calc=True):
     }
     try:
         if calc:
+            _min = np.nanmin(v)
+            _max = np.nanmax(v)
+            _mean = np.nanmean(v)
+            _med = np.nanmedian(v)
+
+            if np.isnan(_min):
+                _min = "nan"
+            if np.isnan(_max):
+                _max = "nan"
+            if np.isnan(_mean):
+                _mean = "nan"
+            if np.isnan(_med):
+                _med = "nan"
+
             d = {
-                "hasMinValue": np.nanmin(v), "hasMaxValue": np.nanmax(v),
-                "hasMeanValue": np.nanmean(v), "hasMedianValue": np.nanmedian(v),
+                "hasMinValue": _min,
+                "hasMaxValue": _max,
+                "hasMeanValue": _mean,
+                "hasMedianValue": _med
             }
     except Exception as e:
         logger_inferred_data.error("get_inferred_data_res_2: {}".format(e))
