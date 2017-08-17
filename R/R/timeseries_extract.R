@@ -133,11 +133,8 @@ extractTs= function(D, chron=NULL){
             #hierGrab = which(!sapply(thisHierData,is.list))
             hierGrab = 1:length(thisHierData)
             
-  
-            
-            
             for(hieri in hierGrab){
-              
+
               #is it an unnamed, instanced, list?
               if(is.null(names(thisHierData))){#if so, we want to add in a number:
                 thdNumber = as.character(hieri)
@@ -146,17 +143,13 @@ extractTs= function(D, chron=NULL){
               }
               
               
-              
-              
               if(!is.list(thisHierData[[hieri]])){
-              #assign in non lists
-              TS[[ts]][[paste0(names(coldata)[hi],thdNumber,"_",names(thisHierData)[hieri])]] = thisHierData[[hieri]] 
-              
+                #assign in non lists
+                TS[[ts]][[paste0(names(coldata)[hi],thdNumber,"_",names(thisHierData)[hieri])]] = thisHierData[[hieri]] 
               }else{
               #hierListGrab = which(sapply(thisHierData,is.list))#find lists within the hierData (this is the last level for now)
               #for(hieriListi in hierListGrab){
                 doubleHierGrab = 1:length(thisHierData[[hieri]]) #grab everything inside that list
-                
                 
                 
                 #assign in
@@ -164,13 +157,13 @@ extractTs= function(D, chron=NULL){
                   #is it an unnamed, instanced, list?
                   if(is.null(names(thisHierData[[hieri]]))){#if so, we want to add in a number:
                     for(unni in 1:length(thisHierData[[hieri]])){
-                      for(inunni in 1:length(names(thisHierData[[hieri]][[dhieri]])))
+                      for(inunni in 1:length(names(thisHierData[[hieri]][[dhieri]]))){
                         TS[[ts]][[paste0(names(coldata)[hi],thdNumber,"_",names(thisHierData)[hieri],as.character(unni),"_",names(thisHierData[[hieri]][[dhieri]])[inunni])]] = thisHierData[[hieri]][[dhieri]][[inunni]]
+                      }
                     }
                     
                   }else{#then just assign in normally
                     TS[[ts]][[paste0(names(coldata)[hi],thdNumber,"_",names(thisHierData[[hieri]])[dhieri])]] = thisHierData[[hieri]][[dhieri]]
-                    
                   }
                   
                 }#end second hierarchy assignment loop

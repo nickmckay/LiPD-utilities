@@ -44,7 +44,7 @@ lipd_read <- function(path){
 #' @return none:
 lipd_write <- function(j, path, dsn){
   tryCatch({
-    dsn <- replace_invalid_chars(dsn)
+    # dsn <- replace_invalid_chars(dsn)
     dir_original <- getwd()
     dir_tmp <- create_tmp_dir()
     setwd(dir_tmp)

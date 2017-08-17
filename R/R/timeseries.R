@@ -23,11 +23,11 @@
 #' # result
 #' [2]
 #' 
-queryTs= function(ts, expression){
+queryTs= function(ts, expression, exact=FALSE){
   ops = c("<", "<=", "==", "=", ">=", ">", "less than", "more than", "is")
   idxs <- list()
   m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-]+)")
-  results <- get_matches(ts, m)
+  results <- get_matches(ts, m, exact)
   return(results[["idx"]])
 }
 
@@ -57,11 +57,11 @@ queryTs= function(ts, expression){
 #' [object2]
 #' 
 #' 
-filterTs= function(ts, expression){
+filterTs= function(ts, expression, exact=FALSE){
   new.ts <- list()
   # use the regex to get the <key><operator><value> groups from the given expression
-  m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-]+)")
-  results <- get_matches(ts, m)
+  m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-\\/]+)")
+  results <- get_matches(ts, m, exact)
   return(results[["new_ts"]])
 }
 
@@ -72,7 +72,7 @@ filterTs= function(ts, expression){
 #' @keywords internal
 #' @param ts Time series
 #' @param m Regex match groups
-get_matches <- function(ts, m){
+get_matches <- function(ts, m, exact){
   tmp = list()
   idx = list()
   new_ts = list()
@@ -96,31 +96,18 @@ get_matches <- function(ts, m){
       for (i in 1:length(ts)){
         tryCatch({
           entry <- ts[[i]]
-          if (key %in% names(entry)){
-            if(op == "<"){
-              if (entry[[key]] < val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
-              }
-            } else if (op == "<="){
-              if (entry[[key]] < val || entry[[key]] == val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
-              }
-            } else if (op == "==" || op == "="){
-              if (entry[[key]] == val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
-              }
-            } else if (op == ">="){
-              if (entry[[key]] > val || entry[[key]] == val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
-              }
-            } else if (op == ">"){
-              if (entry[[key]] > val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
+          if (exact && key %in% names(entry)){
+            res <- check_match(entry, new_ts, idx, key, op, val, i)
+            idx <- res[["idx"]]
+            new_ts <- res[["new_ts"]]
+          }
+          else if (!exact){
+            for(j in 1:length(entry)){
+              entry_key <- names(entry)[[j]]
+              if(grepl(key, entry_key) || key == entry_key){
+                res <- check_match(entry, new_ts, idx, entry_key, op, val, i)
+                idx <- res[["idx"]]
+                new_ts <- res[["new_ts"]]
               }
             }
           }
@@ -136,4 +123,39 @@ get_matches <- function(ts, m){
   tmp[["new_ts"]] <- new_ts
   tmp[["idx"]] <- idx
   return(tmp)
+}
+
+
+check_match <- function(entry, new_ts, idx, key, op, val, i){
+  res <- list()
+  if(op == "<"){
+    if (entry[[key]] < val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  } else if (op == "<="){
+    if (entry[[key]] < val || entry[[key]] == val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  } else if (op == "==" || op == "="){
+    if (entry[[key]] == val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  } else if (op == ">="){
+    if (entry[[key]] > val || entry[[key]] == val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  } else if (op == ">"){
+    if (entry[[key]] > val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  }
+  
+  res[["new_ts"]] <- new_ts
+  res[["idx"]] <-idx
+  return(res)
 }
