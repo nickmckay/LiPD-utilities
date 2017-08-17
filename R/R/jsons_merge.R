@@ -129,8 +129,12 @@ merge_csv_columns <- function(csvs, meta){
         # meta[[i]][["values"]] <- t(do.call(rbind, tmp))
       }
       else {
+        idx <- meta[[i]][["number"]]
+        if(is.character(idx)){
+          idx <- as.numeric(idx)
+        }
         # assign values. already numeric
-        meta[[i]][["values"]] <- csvs[[meta[[i]][["number"]]]]
+        meta[[i]][["values"]] <- csvs[[idx]]
       }
     }
   }, error=function(cond){
