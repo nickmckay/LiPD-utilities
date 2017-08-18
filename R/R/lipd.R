@@ -66,6 +66,8 @@ lipd_write <- function(j, path, dsn){
     write(j, file="metadata.jsonld")
     bagit(dir_bag)
     print("zipping")
+    print("tmp dir")
+    print(dir_tmp)
     zipper(path, dir_tmp, dsn)
     print("unlinking")
     unlink(dir_tmp, recursive=TRUE)
