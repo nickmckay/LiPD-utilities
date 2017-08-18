@@ -24,7 +24,11 @@ zipper <- function(dir_original, dir_tmp, dsn){
   print(include.files)
   print("zipping folder")
   print(getwd())
-  BBmisc::suppressAll(zip(getwd(), include.files))
+  tryCatch({
+    zip(getwd(), include.files)
+  }, error=function(cond){
+    print(paste0("Zipping failed: ", cond))
+  })
   setwd(dir_tmp)
   # rename
   if (file.exists("zip.zip")){
