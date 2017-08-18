@@ -73,7 +73,7 @@ lipd_write <- function(j, path, dsn){
     setwd(dir_original)
   }, error=function(cond){
     print(paste0("Error: lipd_write: ", cond))
+    unlink(dir_tmp, recursive=TRUE)
+    setwd(dir_original)
   })
-  unlink(dir_tmp, recursive=TRUE)
-  setwd(dir_original)
 }
