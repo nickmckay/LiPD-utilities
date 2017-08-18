@@ -26,7 +26,6 @@ bagit <- function(data.dir){
     # give user permissions on bagit file
     Sys.chmod(bagit.script, "777")
     # do a system call for bagit on the tmp folder
-    print("bagit sys call")
     ret <- system(paste0(bagit.script, " ", data.dir), ignore.stdout = TRUE, ignore.stderr = TRUE)
     # do soft bagit if system call status returns 1 (error)
     if (ret == 1){
