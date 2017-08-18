@@ -26,8 +26,10 @@ zipper <- function(dir_original, dir_tmp, dsn){
   print(getwd())
   tryCatch({
     zip(getwd(), include.files)
+    print("zip complete")
     setwd(dir_tmp)
     # rename
+    print("attempting rename")
     if (file.exists("zip.zip")){
       print("renaming zip")
       file.rename("zip.zip", paste0(dsn, ".lpd"))
