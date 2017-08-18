@@ -34,6 +34,10 @@ get_lipd_version <- function(d){
   }
   version <- as.numeric(version)
   if (isNullOb(version) || is.na(version)){
+    #TODO make a prompt that asks if they KNOW what lipd version this file is. 
+    
+    # TODO if they say they don't know, then tell them we'll guess, but it may not be the correct guess.
+    
     # Since R does not yet do all the version 1.3 changes, we have to assume 1.2 for now.
     version <- 1.1
   }
