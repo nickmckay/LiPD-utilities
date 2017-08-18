@@ -8,10 +8,8 @@
 #' @return bool: Bagit success
 bagit <- function(data.dir){
   tryCatch({
-    print("starting bagit function")
     # if the bagit path isn't loaded into the global env yet (first run), then locate it and write the location
     if(!exists("bagit.script",where = .GlobalEnv)){
-      print("bagit not in global")
       # locate the bagit py file included with the lipdR package
       bagit.script <- system.file(package="lipdR", file.path("exec","bagit.py"))
       # was the package bagit file found ?

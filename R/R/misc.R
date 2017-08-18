@@ -193,3 +193,20 @@ replace_invalid_chars <- function(dsn){
   dsn <- gsub("[.]", "-", dsn)
   return(dsn)
 }
+
+
+#' Detect the OS being used
+#' @export
+#' @keywords internal
+#' @return char: OS name
+get_os <- function() {
+  if (.Platform$OS.type == "windows") { 
+    return("win")
+  } else if (Sys.info()["sysname"] == "Darwin") {
+    return("mac") 
+  } else if (.Platform$OS.type == "unix") { 
+    return("unix")
+  } else {
+    return("unknown")
+  }
+}

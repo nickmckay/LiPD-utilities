@@ -57,6 +57,8 @@ lipd_write <- function(j, path, dsn){
     dir_bag <- file.path(dir_zip, "bag")
     setwd("bag")
     j <- idx_name_to_num(j)
+    tmp <- get_lipd_version(j)
+    j <- tmp[["meta"]]
     dat <- get_csv_from_metadata(j, dsn)
     write_csv_to_file(dat[["csvs"]])
     j <- rm_empty_fields(dat[["meta"]])

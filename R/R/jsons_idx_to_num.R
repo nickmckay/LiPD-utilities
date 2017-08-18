@@ -104,17 +104,17 @@ idx_col_by_num <- function(table){
       if (is.list(table[[i]])){
         # set the column data into the new.cols at the current index
         new.cols[[length(new.cols) + 1]] <- table[[i]]
-        # attempt to get the variable name from this table column
-        vn <- tryCatch({
-          vn <- table[[i]][["variableName"]]
-        }, error = function(cond){
-          # if you don't get the variable name beacuse it's missing the key, return none.
-          return(NULL)
-        })
-        # variableName not found, 
-        if (is.null(vn)){
-          new.cols[[i]][["variableName"]] <- tnames[[i]]
-        }
+        # # attempt to get the variable name from this table column
+        # vn <- tryCatch({
+        #   vn <- table[[i]][["variableName"]]
+        # }, error = function(cond){
+        #   # if you don't get the variable name beacuse it's missing the key, return none.
+        #   return(NULL)
+        # })
+        # # variableName not found, 
+        # if (is.null(vn)){
+        #   new.cols[[i]][["variableName"]] <- tnames[[i]]
+        # }
       }
       else {
         # table item is not a column (list). Therefore, it's a root item so set it at the root of the new table
