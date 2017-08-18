@@ -203,7 +203,7 @@ get_os <- function() {
   if (.Platform$OS.type == "windows") { 
     return("win")
   } else if (Sys.info()["sysname"] == "Darwin") {
-    return("mac") 
+    return("osx") 
   } else if (.Platform$OS.type == "unix") { 
     return("unix")
   } else {

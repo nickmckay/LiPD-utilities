@@ -40,6 +40,8 @@ get_lipd_version <- function(d){
       vn <- readline("Enter the version number (1.0, 1.1, 1.2, 1.3): ")
       if(vn %in% c(1, 1.0, 1.1, 1.2, 1.3)){
         version <- vn
+      } else {
+        stop("That's not a valid response. Please try writeLipd again.")
       }
     } else if(yn == "n"){
       print("I'll assume this is a current version (v1.3) file, but that may be an incorrect assumption. Please keep a backup!")
@@ -50,6 +52,7 @@ get_lipd_version <- function(d){
     print(sprintf("LiPD version is invalid: %s", version))
   }
   tmp <- list()
+  d[["lipdVersion"]] <- version
   tmp[["meta"]] <- d
   tmp[["version"]] <- version
   return(tmp)
