@@ -67,7 +67,6 @@ fake_bagit <- function(dir_bag){
     for(i in 1:length(files)){
       file.rename(files[[i]], file.path(dir_bag, "data", files[[i]]))
     }
-    print("fake bagit success")
   }, error=function(cond){
     print(paste0("Error: fake_bagit: ", cond))
   })

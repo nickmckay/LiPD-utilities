@@ -19,24 +19,16 @@ unzipper <- function(path, dir_tmp){
 zipper <- function(dir_original, dir_tmp, dsn){
   # zip the top lipd directory. zip file is create one level up
   setwd(file.path(dir_tmp, "zip"))
-  print("zipping files")
   include.files <- list.files(getwd(), recursive = TRUE)
-  print(include.files)
-  print("zipping folder")
-  print(getwd())
   tryCatch({
     zip(getwd(), include.files)
-    print("zip complete")
     setwd(dir_tmp)
     # rename
-    print("attempting rename")
     if (file.exists("zip.zip")){
-      print("renaming zip")
       file.rename("zip.zip", paste0(dsn, ".lpd"))
     }
     # move
     if(file.exists(paste0(dsn, ".lpd"))){
-      print("moving lpd")
       file.copy(paste0(dsn, ".lpd"), dir_original, overwrite=TRUE)
     }
   }, error=function(cond){
