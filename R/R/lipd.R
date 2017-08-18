@@ -64,7 +64,7 @@ lipd_write <- function(j, path, dsn){
     j <- rm_empty_fields(dat[["meta"]])
     j <- jsonlite::toJSON(j, pretty=TRUE, auto_unbox = TRUE)
     write(j, file="metadata.jsonld")
-    bag.success <- bagit(dir_bag)
+    bagit(dir_bag)
     zipper(path, dir_tmp, dsn)
     unlink(dir_tmp, recursive=TRUE)
     setwd(dir_original)

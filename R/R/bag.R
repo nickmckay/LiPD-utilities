@@ -6,12 +6,12 @@
 #' 
 #' @export
 #' @keywords internal
-#' @param char data.dir: The path to the directory that needs to be bagged
+#' @param char dir_bag: The path to the directory that needs to be bagged
 #' @return bool: Bagit success
-bagit <- function(data.dir){
+bagit <- function(dir_bag){
   tryCatch({
     os <- get_os()
-    
+    os <- "windows"
     if(os=="osx" || os=="unix"){
       if(file.exists(file.path("exec", "bagit.py"))){
         # Found the bagit file included in the package.
@@ -30,23 +30,38 @@ bagit <- function(data.dir){
         # give user permissions on bagit file
         Sys.chmod(bagit.script, "777")
         # do a system call for bagit on the tmp folder
-        ret <- system(paste0(bagit.script, " ", data.dir), ignore.stdout = TRUE, ignore.stderr = TRUE)
-        if (ret == 0){
-          return(TRUE)
+        ret <- system(paste0(bagit.script, " ", dir_bag), ignore.stdout = TRUE, ignore.stderr = TRUE)
+        if (ret != 0){
+          print("Warning: Unable to use bagit module on LiPD data. Skipping...")
+          fake_bagit(dir_bag)
         }
       }, error=function(cond){
         print("Warning: Unable to use bagit module on LiPD data. Skipping...")
+        fake_bagit(dir_bag)
       })
 
     }
-    else if(os =="windows"){
+    else if(os =="windows" || os == "unknown"){
       print("Warning: OS - Windows. Unable to use bagit module on LiPD data. Skipping...")
-    } else {
-      print("Warning: OS - Unknown. Unable to use bagit module on LiPD data. Skipping...")
+      fake_bagit(dir_bag)
     }
-    return(FALSE)
   }, error=function(cond){
-    print("Error: Bagit failed. Skipping...")
-    return(FALSE)
+    print("Error: bagit: Bagit failed. Skipping...")
+    fake_bagit(dir_bag)
+  })
+}
+
+
+fake_bagit <- function(dir_bag){
+  tryCatch({
+    # make the data dir
+    dir.create(file.path(dir_bag, "data"))
+    # move all the files from dir_bag to dir_data
+    files <- list.files()
+    for(i in 1:length(files)){
+      file.rename(files[[i]], file.path(dir_bag, "data", files[[i]]))
+    }
+  }, error=function(cond){
+    print(paste0("Error: fake_bagit: ", cond))
   })
 }
