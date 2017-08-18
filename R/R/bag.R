@@ -52,6 +52,12 @@ bagit <- function(dir_bag){
 }
 
 
+#' Run a fake version of bagit. No bagit txt files are created
+#' 
+#' @export
+#' @keywords internal
+#' @param char dir_bag: The path to the directory that needs to be bagged
+#' @return none
 fake_bagit <- function(dir_bag){
   tryCatch({
     # make the data dir
