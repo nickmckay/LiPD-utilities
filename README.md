@@ -1,5 +1,14 @@
-![](https://www.dropbox.com/s/kgeyec2b8cft5mo/lipd4.png?raw=1)
+<h1 align="left">
+  <br>
+  <a href="http://www.lipd.net"><img src="https://www.dropbox.com/s/kgeyec2b8cft5mo/lipd4.png?raw=1" alt="LiPD" width="225"></a>
+</h1>
 
+<p align="left">
+  <a href="https://img.shields.io/badge/python-3.4-blue.svg"><img src="https://img.shields.io/badge/python-3.4-blue.svg"></a>
+    <a href="https://img.shields.io/badge/matlab-3.4-red.svg"><img src="https://img.shields.io/badge/matlab-3.4-red.svg"></a>
+      <a href="https://img.shields.io/badge/R-3.3.1-yellow.svg"><img src="https://img.shields.io/badge/R-3.3.1-yellow.svg"></a>
+      <a href="https://img.shields.io/badge/license-GPL-brightgreen.svg"><img src="https://img.shields.io/badge/license-GPL-brightgreen.svg"></a>
+</p>
 
 Input/output and manipulation utilities for LiPD files in Matlab, R and Python.
 
@@ -16,25 +25,18 @@ Organizing and using your observation data can be time  consuming. Our goal is t
 
 ## Core functions
 
-The functions below are considered the core functions of the LiPD package. These functions are consistent in Matlab, Python, and R. The function names, parameters and returned data is the same.
+The functions below are considered the core functions of the LiPD package. These functions are consistent in Matlab, Python, and R. The function names, parameters and returned data are the same.
 
-### LiPD I/O functions
-Getting LiPD data in and out of the stored files is the most important part! These are the two functions that allow that to happen. 
-
-#### readLipd
+### readLipd
 
 Read LiPD files from your computer into your workspace
 
-#### writeLipd
+### writeLipd
 
 Write LiPD data from your workspace onto your computer.
 
-### Time series functions
 
-[What is a time series?](something)
-The FAQ explains what a time series is. Once you have a basic understanding of a time series, the functions below will be much more relevant!
-
-#### extractTs
+### extractTs
 
 Extract a time series from one or more datasets in the workspace. Your hierarchical LiPD data structure is extracted into a flattened time series structure.
 
@@ -67,11 +69,48 @@ The language-specific documentation linked below will go into detail about all t
 
 ------
 
-## Example Files
+## FAQ
 
-* [Examples](https://github.com/nickmckay/LiPD-utilities/tree/master/Examples)
 
-The examples folder contains blank templates and example files. Use the blank templates to insert your own data for conversion, or test out the package using some of the example files.
+### What is a time series?
+
+The LiPD dataset hierarchy is great for organization and giving context to data, but can be more difficult to sift through to find relevant information since it can often go 10+ levels deep. 
+
+A time series is a flattened set of data that makes data more approachable and is used to perform data analysis. A time series is a collection of _time series objects_.
+
+**1-to-1 ratio**
+1 time series object = 1 measurement table column
+
+Each _object_ within a time series is made from one column of data in a **measurement** table. It's important to note that this only pertains to measurement table data. All model data (ensemble, distribution, summary) are not included when creating a time series. 
+
+**Example 1: One dataset**
+
+ - ODP1098B13
+	- 1 measurement table
+		- 5 columns
+			- depth,  depth1,  SST,  TEX86,  age
+
+`extractTs` creates a time series (`ts`) of **5** objects
+
+**Example 2: Multiple datasets**
+
+ - `ODP1098B13`
+	- 1 measurement table
+		- 5 columns
+			- depth,  depth1,  SST,  TEX86,  age
+			
+ - `Ant-CoastalDML.Thamban.2006`
+	- 1 measurement table
+		- 2 columns
+			- d18O, year
+
+ - `CO00COKY`
+	- 1 measurement table
+		- 2 columns
+			- d18O, year
+			
+`extractTs` creates a time series (`ts`) of **9** objects
+
 
 ------
 
