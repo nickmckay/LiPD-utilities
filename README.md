@@ -5,7 +5,7 @@
 
 <p align="left">
   <a href="https://img.shields.io/badge/python-3.4-blue.svg"><img src="https://img.shields.io/badge/python-3.4-blue.svg"></a>
-    <a href="https://img.shields.io/badge/matlab-3.4-red.svg"><img src="https://img.shields.io/badge/matlab-3.4-red.svg"></a>
+    <a href="https://img.shields.io/badge/matlab-R2017a-red.svg"><img src="https://img.shields.io/badge/matlab-R2017a-red.svg"></a>
       <a href="https://img.shields.io/badge/R-3.3.1-yellow.svg"><img src="https://img.shields.io/badge/R-3.3.1-yellow.svg"></a>
       <a href="https://img.shields.io/badge/license-GPL-brightgreen.svg"><img src="https://img.shields.io/badge/license-GPL-brightgreen.svg"></a>
 </p>
