@@ -4,7 +4,7 @@
 \alias{get_matches}
 \title{Use the regex match groups and the time series to compile two lists: matching indices, and matching entries.}
 \usage{
-get_matches(ts, m)
+get_matches(ts, m, exact)
 }
 \arguments{
 \item{ts}{Time series}
@@ -13,6 +13,9 @@ get_matches(ts, m)
 }
 \description{
 Use the regex match groups and the time series to compile two lists: matching indices, and matching entries.
+}
+\author{
+Chris Heiser
 }
 \keyword{internal}
 

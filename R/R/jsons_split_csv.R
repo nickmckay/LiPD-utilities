@@ -156,7 +156,13 @@ get_csv_from_columns <- function(table){
         for (k in 1:length(table[["columns"]])){
           # add values for this column to the main list, then remove values
           if (!is.null(table[["columns"]][[k]][["values"]])){
-            len <- length(table[["columns"]][[k]][["values"]][[1]])
+            
+            # Assume the table is an ensemble first, and get the 2nd dimension (cols) of the matrix
+            len <- dim(table[["columns"]][[k]][["values"]])[[2]]
+            if(is.null(len)){
+              # Ah, it's NOT an ensemble table. Get the length of the values, which should always = 1. 
+              len <- length(table[["columns"]][[k]][["values"]][[1]])
+            }
             # remove the "number" entry for the column, then replace it with the index of this loop
             # however, if it's an ensemble table with many "numbers"/columns, then we'll keep it.
             if (len > 1){
@@ -165,15 +171,15 @@ get_csv_from_columns <- function(table){
               # num.cols <- dim(table[["columns"]][[k]][["values"]])[2]
               # set the range as the number
               for (i in 1:len){
-                vals[[length(vals)+1]] <- table[["columns"]][[k]][["values"]][[i]]
+                vals[[length(vals)+1]] <- table[["columns"]][[k]][["values"]][,i]
               }
-              nums <- create_range(curr.num, length(table[["columns"]][[k]][["values"]]))
+              nums <- create_range(curr.num, len)
               table[["columns"]][[k]][["number"]] <- nums
               # the beginning point for the next loop is right after the finish of this loop.
               curr.num <- curr.num + len
             }
             else if (len <= 1){
-              vals[[k]] <- table[["columns"]][[k]][["values"]]
+              vals[[curr.num]] <- table[["columns"]][[k]][["values"]]
               table[["columns"]][[k]][["number"]] <- curr.num
               curr.num <- curr.num + 1
             }

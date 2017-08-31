@@ -3,40 +3,76 @@
 #' indices = queryTs(ts, "archiveType == marine sediment")
 #' Valid operators : ==, =, <=, >=, <, >
 #' @export
-#' @param ts Time series
-#' @param expression Search expression
-#' @return idx Matching indices
-queryTs= function(ts, expression){
+#' @author Chris Heiser
+#' @param ts Time series : list
+#' @param expression Search expression : char
+#' @usage queryTs(ts, expression)
+#' @return idxs: Matching indices : list
+#' @examples 
+#' 
+#' # Time series
+#' ts = [ object1, object2, object3, object4 ]
+#'
+#' # Example 1
+#' idxs = filterTs(ts, "archiveType == marine sediment")
+#' # result 
+#' [1, 3, 4]
+#' 
+#' # Example 2
+#' idxs = filterTs(ts, "paleoData_variableName == d18O")
+#' # result
+#' [2]
+#' 
+queryTs= function(ts, expression, exact=FALSE){
   ops = c("<", "<=", "==", "=", ">=", ">", "less than", "more than", "is")
   idxs <- list()
   m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-]+)")
-  results <- get_matches(ts, m)
+  results <- get_matches(ts, m, exact)
   return(results[["idx"]])
 }
 
-#' Find all the time series entries that match a given search expression, 
-#' and return a new time series with the matching entries
-#' new.ts = filterTs(ts, "archiveType == marine sediment")
+#' Find all the time series objects that match a given search expression, 
+#' and return a new time series with the matching objects
+#' 
 #' Valid operators : ==, =, <=, >=, <, >
 #' @export
+#' @author Chris Heiser
 #' @param ts Time series
-#' @param expression Search expression
-#' @return new.ts Time series
-filterTs= function(ts, expression){
+#' @param expression Search expression : char
+#' @usage filterTs(ts, expression)
+#' @return new.ts : Time series : list
+#' @examples 
+#' 
+#' # Time series
+#' ts = [ object1, object2, object3, object4 ]
+#'
+#' # Example 1
+#' new.ts = filterTs(ts, "archiveType == marine sediment")
+#' # result 
+#' [object1, object3, object4]
+#' 
+#' # Example 2
+#' new.ts = filterTs(ts, "paleoData_variableName == d18O")
+#' # result
+#' [object2]
+#' 
+#' 
+filterTs= function(ts, expression, exact=FALSE){
   new.ts <- list()
   # use the regex to get the <key><operator><value> groups from the given expression
-  m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-]+)")
-  results <- get_matches(ts, m)
+  m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-\\/]+)")
+  results <- get_matches(ts, m, exact)
   return(results[["new_ts"]])
 }
 
 
 #' Use the regex match groups and the time series to compile two lists: matching indices, and matching entries. 
 #' @export
+#' @author Chris Heiser
 #' @keywords internal
 #' @param ts Time series
 #' @param m Regex match groups
-get_matches <- function(ts, m){
+get_matches <- function(ts, m, exact){
   tmp = list()
   idx = list()
   new_ts = list()
@@ -60,31 +96,18 @@ get_matches <- function(ts, m){
       for (i in 1:length(ts)){
         tryCatch({
           entry <- ts[[i]]
-          if (key %in% names(entry)){
-            if(op == "<"){
-              if (entry[[key]] < val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
-              }
-            } else if (op == "<="){
-              if (entry[[key]] < val || entry[[key]] == val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
-              }
-            } else if (op == "==" || op == "="){
-              if (entry[[key]] == val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
-              }
-            } else if (op == ">="){
-              if (entry[[key]] > val || entry[[key]] == val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
-              }
-            } else if (op == ">"){
-              if (entry[[key]] > val){
-                new_ts[[length(new_ts) + 1]] <- entry
-                idx[[length(idx) + 1]] <- i
+          if (exact && key %in% names(entry)){
+            res <- check_match(entry, new_ts, idx, key, op, val, i)
+            idx <- res[["idx"]]
+            new_ts <- res[["new_ts"]]
+          }
+          else if (!exact){
+            for(j in 1:length(entry)){
+              entry_key <- names(entry)[[j]]
+              if(grepl(key, entry_key) || key == entry_key){
+                res <- check_match(entry, new_ts, idx, entry_key, op, val, i)
+                idx <- res[["idx"]]
+                new_ts <- res[["new_ts"]]
               }
             }
           }
@@ -100,4 +123,39 @@ get_matches <- function(ts, m){
   tmp[["new_ts"]] <- new_ts
   tmp[["idx"]] <- idx
   return(tmp)
+}
+
+
+check_match <- function(entry, new_ts, idx, key, op, val, i){
+  res <- list()
+  if(op == "<"){
+    if (entry[[key]] < val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  } else if (op == "<="){
+    if (entry[[key]] < val || entry[[key]] == val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  } else if (op == "==" || op == "="){
+    if (entry[[key]] == val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  } else if (op == ">="){
+    if (entry[[key]] > val || entry[[key]] == val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  } else if (op == ">"){
+    if (entry[[key]] > val){
+      new_ts[[length(new_ts) + 1]] <- entry
+      idx[[length(idx) + 1]] <- i
+    }
+  }
+  
+  res[["new_ts"]] <- new_ts
+  res[["idx"]] <-idx
+  return(res)
 }

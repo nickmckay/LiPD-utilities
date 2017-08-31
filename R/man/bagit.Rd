@@ -4,12 +4,13 @@
 \alias{bagit}
 \title{Since we don't have a way of getting the bagit module in R,
 all we can do is use the default bag function by calling the
-full python file on a directory. This will create a bag.}
+full python file on a directory. This will create a bag.
+Warning: This often has system call issues in windows OS.}
 \usage{
-bagit(data.dir)
+bagit(dir_bag)
 }
 \arguments{
-\item{char}{data.dir: The path to the directory that needs to be bagged}
+\item{char}{dir_bag: The path to the directory that needs to be bagged}
 }
 \value{
 bool: Bagit success
@@ -18,6 +19,7 @@ bool: Bagit success
 Since we don't have a way of getting the bagit module in R,
 all we can do is use the default bag function by calling the
 full python file on a directory. This will create a bag.
+Warning: This often has system call issues in windows OS.
 }
 \keyword{internal}
 

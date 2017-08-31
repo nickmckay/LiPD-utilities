@@ -4,9 +4,24 @@
 
 #' Read LiPD files into R workspace
 #' @export
+#' @author Chris Heiser
 #' @keywords internal
-#' @param path Source path (optional)
-#' @return D LiPD data
+#' @param path Source path (optional) : char
+#' @usage readLipd(path)
+#' @return D : LiPD dataset(s)
+#' @examples
+#' read in multiple datasets - no path argument
+#' D <- readLipd()   # choose option 'd' for directory
+#'
+#' read in multiple datasets - with path argument
+#' D <- readLipd("/Users/bobsmith/Desktop/lipd_files")
+#' 
+#' read in one dataset - no path argument
+#' L <- readLipd()  # choose option "s" for single file
+#' 
+#' read in one dataset - with path argument
+#' L <- readLipd("/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
+#' 
 readLipd <- function(path=NULL){
   D = list()
   # Warnings are annoying, we don't want them
@@ -47,25 +62,35 @@ readLipd <- function(path=NULL){
 
 #' Write LiPD data onto disk as LiPD files
 #' @export
+#' @author Chris Heiser
 #' @keywords internal
-#' @param list D: LiPD data
-#' @param char path: Destination path
-#' @return none:
+#' @param D LiPD datasets : list
+#' @param path Destination path : char
+#' @usage writeLipd(D, path)
+#' @return none
+#' @examples 
+#' 
+#' # write - without path argument
+#' writeLipd(D)
+#' 
+#' # write - with path argument
+#' writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
+#' 
 writeLipd <- function(D, path=NULL){
   tryCatch({
     if(missing(path)){
       path <- browse_dialog("d")
       setwd(path)
     }
-    if ("paleoData" %in% names(d)){
-      print(paste0("writing: ", d[["dataSetName"]]))
-      lipd_write(d, path, d[["dataSetName"]])
+    if ("paleoData" %in% names(D)){
+      print(paste0("writing: ", D[["dataSetName"]]))
+      lipd_write(D, path, D[["dataSetName"]])
     } else {
-      entries <- names(d)
+      entries <- names(D)
       for (i in 1:length(entries)){
         print(paste0("writing: ", basename(entry)))
         entry <- dsns[[i]]
-        lipd_write(d[[entry]], path, entry)
+        lipd_write(D[[entry]], path, entry)
       }
     }
   }, error=function(cond){

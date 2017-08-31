@@ -143,6 +143,9 @@ def __get_inferred_data_res_2(v=None, calc=True):
     :param bool calc: If false, we don't need calculations
     :return dict:  Results of calculation
     """
+
+
+
     # Base: If something goes wrong, or if there are no values, then use "NaN" placeholders.
     d = {
         "hasMinValue": "nan", "hasMaxValue": "nan",
@@ -150,9 +153,25 @@ def __get_inferred_data_res_2(v=None, calc=True):
     }
     try:
         if calc:
+            _min = np.nanmin(v)
+            _max = np.nanmax(v)
+            _mean = np.nanmean(v)
+            _med = np.nanmedian(v)
+
+            if np.isnan(_min):
+                _min = "nan"
+            if np.isnan(_max):
+                _max = "nan"
+            if np.isnan(_mean):
+                _mean = "nan"
+            if np.isnan(_med):
+                _med = "nan"
+
             d = {
-                "hasMinValue": np.min(v), "hasMaxValue": np.max(v),
-                "hasMeanValue": np.mean(v), "hasMedianValue": np.median(v),
+                "hasMinValue": _min,
+                "hasMaxValue": _max,
+                "hasMeanValue": _mean,
+                "hasMedianValue": _med
             }
     except Exception as e:
         logger_inferred_data.error("get_inferred_data_res_2: {}".format(e))
@@ -174,7 +193,10 @@ def _get_inferred_data_res(column, age):
             values = column["values"]
             # Make sure that age and values are numpy arrays
             _values = np.array(copy.copy(values), dtype=float)
+            # _values = _values[np.where(~np.isnan(_values))[0]]
             _age = np.array(age, dtype=float)
+            # _age = _age[np.where(~np.isnan(_age))[0]]
+
             # If we have values, keep going
             if len(_values) != 0:
                 # Get the resolution for this age and column values data

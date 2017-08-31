@@ -4,18 +4,30 @@
 \alias{writeLipd}
 \title{Write LiPD data onto disk as LiPD files}
 \usage{
-writeLipd(D, path = NULL)
+writeLipd(D, path)
 }
 \arguments{
-\item{list}{D: LiPD data}
+\item{D}{LiPD datasets : list}
 
-\item{char}{path: Destination path}
+\item{path}{Destination path : char}
 }
 \value{
-none:
+none
 }
 \description{
 Write LiPD data onto disk as LiPD files
+}
+\examples{
+
+# write - without path argument
+writeLipd(D)
+
+# write - with path argument
+writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
+
+}
+\author{
+Chris Heiser
 }
 \keyword{internal}
 

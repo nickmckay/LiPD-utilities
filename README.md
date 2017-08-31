@@ -1,13 +1,18 @@
-[![DOI](https://zenodo.org/badge/24036/nickmckay/LiPD-utilities.svg)](https://zenodo.org/badge/latestdoi/24036/nickmckay/LiPD-utilities)
-[![PyPI](https://img.shields.io/pypi/v/LiPD.svg?maxAge=2592000)]()
-[![PyPI](https://img.shields.io/badge/python-3.4-yellow.svg)]()
-[![license](https://img.shields.io/github/license/nickmckay/LiPD-utilities.svg?maxAge=2592000)]()
+<h1 align="left">
+  <br>
+  <a href="http://www.lipd.net"><img src="https://www.dropbox.com/s/kgeyec2b8cft5mo/lipd4.png?raw=1" alt="LiPD" width="225"></a>
+</h1>
 
-# LiPD Utilities
+<p align="left">
+  <a href="https://img.shields.io/badge/python-3.4-blue.svg"><img src="https://img.shields.io/badge/python-3.4-blue.svg"></a>
+    <a href="https://img.shields.io/badge/matlab-R2017a-red.svg"><img src="https://img.shields.io/badge/matlab-R2017a-red.svg"></a>
+      <a href="https://img.shields.io/badge/R-3.3.1-yellow.svg"><img src="https://img.shields.io/badge/R-3.3.1-yellow.svg"></a>
+      <a href="https://img.shields.io/badge/license-GPL-brightgreen.svg"><img src="https://img.shields.io/badge/license-GPL-brightgreen.svg"></a>
+</p>
 
 Input/output and manipulation utilities for LiPD files in Matlab, R and Python.
 
-<!-- WHAT IS IT -->
+-----
 
 ### What is it?
 
@@ -15,46 +20,39 @@ LiPD is short for Linked PaleoData. LiPD files are the data standard for storing
 
 Organizing and using your observation data can be time  consuming. Our goal is to let you focus on more important tasks  than data wrangling.
 
-<!-- INSTALLATION -->
 
-### Installation
+--------
 
-**Python:**
+## Core functions
 
-Python v3.4+ is required
+The functions below are considered the core functions of the LiPD package. These functions are consistent in Matlab, Python, and R. The function names, parameters and returned data are the same.
 
-`pip install LiPD`
+### readLipd
 
-**R:**
+Read LiPD files from your computer into your workspace
 
-Using the devtools package:
+### writeLipd
 
-`devtools::install_github("nickmckay/LiPD-Utilities", subdir = "R")`
-
-**Matlab:**
-
-Use the "Clone or download" button on the [Github repository](https://github.com/nickmckay/LiPD-utilities) page to get a copy of the LiPD Utilities code on your computer. Note where the code is saved, and add the the path in you Matlab search path.
-
-<!-- USAGE -->
-
-## Usage
-
-The functions below are considered the core functions of the LiPD package. These functions are consistent across the 3 languages. The function names, parameters and returned data is the same.
-
-`readLipd(path="")`
-
-`writeLipd(data, path="")`
-
-`extractTs(data, chron=False)`
-
-`collapseTs(timeseries)`
-
-`filterTs(timeseries, expression)`
-
-`queryTs(timeseries, expression)`
+Write LiPD data from your workspace onto your computer.
 
 
-<!-- SPECIFIC DOC LINKS -->
+### extractTs
+
+Extract a time series from one or more datasets in the workspace. Your hierarchical LiPD data structure is extracted into a flattened time series structure.
+
+### collapseTs
+
+Collapse a time series back into LiPD dataset form in the workspace. Your flattened time series structure is condensed back into a hierarchical LiPD data structure
+
+### filterTs
+
+Retrieve **time series objects** that match a specific criteria. This filters out the data that you don't want, and returns a **new time series** of data that you do want.
+
+### queryTs
+
+Retrieve the **index numbers** of time series objects that match a specific criteria. This filters out the data that you don't want, and returns a list of **index numbers** of the data that you do want. 
+
+------
 
 ## Language-specific Documentation
 
@@ -63,57 +61,58 @@ The core functions are consistent across the 3 languages; However, each language
 Additionally, while the core functions remain the same, we chose to take advantage of the strengths of each language. The Python utilities have additional functions for converting and validating data. The R and Matlab utilities are better suited for data analyzation.
 The language-specific documentation linked below will go into detail about all the functions included in each language.
 
-* [Python Docs](docs_py/index.html)
+* [Python Docs](http://nickmckay.github.io/LiPD-utilities/python/index.html)
 
-* R Docs (website coming soon, also available using the '??<function>' command in RStudio)
+* [R Docs](http://nickmckay.github.io/LiPD-utilities/r/index.html)
 
-* Matlab Docs (coming soon)
+* [Matlab Docs](http://nickmckay.github.io/LiPD-utilities/matlab/index.html)
 
-<!-- FEATURES -->
+------
 
-## Features
+## FAQ
 
-*   Read & write LiPD files
-*   Extract & collapse a time series for data analysis
-*   Filter & query a time series for subset data
-*   Convert Excel files to LiPD files (Python only)
-*   Convert NOAA files to/from LiPD files (Python only)
-*   Update LiPD publication data through DOI.org (Python only)
-*   Validate LiPD files through lipd.net API (Python only)
 
-<!-- EXAMPLES -->
+### What is a time series?
 
-## Example Files
+The LiPD dataset hierarchy is great for organization and giving context to data, but can be more difficult to sift through to find relevant information since it can often go 10+ levels deep. 
 
-* [Examples](https://github.com/nickmckay/LiPD-utilities/tree/master/Examples)
+A time series is a flattened set of data that makes data more approachable and is used to perform data analysis. A time series is a collection of _time series objects_.
 
-The examples folder contains blank templates and example files. Use the blank templates to insert your own data for conversion, or test out the package using some of the example files.
+**1-to-1 ratio**
+1 time series object = 1 measurement table column
 
-You'll also find a set of [Jupyter](http://jupyter.org) notebooks in the examples folder. Notebooks are used to show examples of python code and code output. Use these notebooks as a guide to getting familiar with LiPD Utilities and its functions.
+Each _object_ within a time series is made from one column of data in a **measurement** table. It's important to note that this only pertains to measurement table data. All model data (ensemble, distribution, summary) are not included when creating a time series. 
 
-<!-- REQUIREMENTS -->
+**Example 1: One dataset**
 
-## Requirements
+ - ODP1098B13
+	- 1 measurement table
+		- 5 columns
+			- depth,  depth1,  SST,  TEX86,  age
 
-**Python**
+`extractTs` creates a time series (`ts`) of **5** objects
 
-- [Python 3.4+](https://www.python.org)
+**Example 2: Multiple datasets**
 
-- Python IDE (Spyder or PyCharm are highly recommended)
+ - `ODP1098B13`
+	- 1 measurement table
+		- 5 columns
+			- depth,  depth1,  SST,  TEX86,  age
+			
+ - `Ant-CoastalDML.Thamban.2006`
+	- 1 measurement table
+		- 2 columns
+			- d18O, year
 
-- [pip](https://pip.pypa.io/en/stable/installing/)
+ - `CO00COKY`
+	- 1 measurement table
+		- 2 columns
+			- d18O, year
+			
+`extractTs` creates a time series (`ts`) of **9** objects
 
-**R**
 
-- [R language](https://cran.r-project.org)
-
-- [R Studio](https://www.rstudio.com)
-
-**Matlab**
-
-- [Matlab](https://www.mathworks.com)
-
-<!-- FURTHER INFORMATION -->
+------
 
 ## Further information
 
@@ -121,14 +120,16 @@ You'll also find a set of [Jupyter](http://jupyter.org) notebooks in the example
 
 [Linked Earth Wiki](http://wiki.linked.earth/Main_Page)
 
-[Jupyter Documentation](www.jupyter.org)
+------
 
 ## Contact
 
 If you are having issues, please let me know at [heiser@nau.edu](mailto:heiser@nau.edu).
 
-<!-- LICENSE -->
+
+------
+
 
 ## License
 
-The project is licensed under the [            GNU Public License](https://github.com/nickmckay/LiPD-utilities/blob/master/Python/LICENSE).
+The project is licensed under the [GNU Public License](https://github.com/nickmckay/LiPD-utilities/blob/master/Python/LICENSE).

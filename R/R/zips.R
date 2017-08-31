@@ -20,14 +20,19 @@ zipper <- function(dir_original, dir_tmp, dsn){
   # zip the top lipd directory. zip file is create one level up
   setwd(file.path(dir_tmp, "zip"))
   include.files <- list.files(getwd(), recursive = TRUE)
-  BBmisc::suppressAll(zip(getwd(), include.files))
-  setwd(dir_tmp)
-  # rename
-  if (file.exists("zip.zip")){
-    file.rename("zip.zip", paste0(dsn, ".lpd"))
-  }
-  # move
-  if(file.exists(paste0(dsn, ".lpd"))){
-    file.copy(paste0(dsn, ".lpd"), dir_original, overwrite=TRUE)
-  }
+  tryCatch({
+    zip(getwd(), include.files)
+    setwd(dir_tmp)
+    # rename
+    if (file.exists("zip.zip")){
+      file.rename("zip.zip", paste0(dsn, ".lpd"))
+    }
+    # move
+    if(file.exists(paste0(dsn, ".lpd"))){
+      file.copy(paste0(dsn, ".lpd"), dir_original, overwrite=TRUE)
+    }
+  }, error=function(cond){
+    print(paste0("Zipping failed: ", cond))
+  })
+
 }

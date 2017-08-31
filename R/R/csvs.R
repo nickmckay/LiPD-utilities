@@ -98,9 +98,9 @@ write_csv_to_file <- function(csvs){
             })
             # cbind didn't work here, it's possible the matrix is transposed wrong.
             # give it another try after transposing it.
-            if (is.null(tmp) & is.matrix(col)){
-              
-            }
+            # if (is.null(tmp) & is.matrix(col)){
+            #   
+            # }
           }
         }
       }

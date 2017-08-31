@@ -7,7 +7,7 @@ from lipd.noaa import noaa_prompt, noaa_to_lpd, lpd_to_noaa
 from lipd.dataframes import *
 from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
 from lipd.loggers import create_logger, log_benchmark, create_benchmark
-from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields
+from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields, print_filename
 from lipd.ensembles import create_ensemble, insert_ensemble
 from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
@@ -98,22 +98,22 @@ def readAll(usr_path=""):
     Read all approved file types at once.
     Enter a file path, directory path, or leave args blank to trigger gui.
 
-
     :param str usr_path: Path to file / directory (optional)
     :return str cwd: Current working directory
     """
-    global cwd, files
-    start = clock()
-    files = {".txt": [], ".lpd": [], ".xls": []}
-    if not usr_path:
-        usr_path, src_files = get_src_or_dst("read", "directory")
-    __read_directory(usr_path, ".lpd")
-    __read_directory(usr_path, ".xls")
-    __read_directory(usr_path, ".xlsx")
-    __read_directory(usr_path, ".txt")
-    end = clock()
-    logger_benchmark.info(log_benchmark("readAll", start, end))
-    return cwd
+    print("readAll: This function no longer exists. Sorry! :(")
+    # global cwd, files
+    # start = clock()
+    # files = {".txt": [], ".lpd": [], ".xls": []}
+    # if not usr_path:
+    #     usr_path, src_files = get_src_or_dst("read", "directory")
+    # __read_directory(usr_path, ".lpd")
+    # __read_directory(usr_path, ".xls")
+    # __read_directory(usr_path, ".xlsx")
+    # __read_directory(usr_path, ".txt")
+    # end = clock()
+    # logger_benchmark.info(log_benchmark("readAll", start, end))
+    # return cwd
 
 
 def excel():
@@ -737,8 +737,6 @@ def __universal_read(file_path, file_type):
 
         # get file metadata for one file
         file_meta = collect_metadata_file(file_path)
-        if settings["verbose"]:
-            print("reading: {}".format(file_meta["filename_ext"]))
 
         # append to global files, then load in D
         if file_type == ".lpd":
@@ -746,10 +744,13 @@ def __universal_read(file_path, file_type):
             files[".lpd"].append(file_meta)
         # append to global files
         elif file_type in [".xls", ".xlsx"]:
+            print("reading: {}".format(print_filename(file_meta["full_path"])))
             files[".xls"].append(file_meta)
         # append to global files
         elif file_type == ".txt":
+            print("reading: {}".format(print_filename(file_meta["full_path"])))
             files[".txt"].append(file_meta)
+
 
         # we want to move around with the files we load
         # change dir into the dir of the target file

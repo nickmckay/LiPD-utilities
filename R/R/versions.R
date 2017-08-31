@@ -34,13 +34,25 @@ get_lipd_version <- function(d){
   }
   version <- as.numeric(version)
   if (isNullOb(version) || is.na(version)){
-    # Since R does not yet do all the version 1.3 changes, we have to assume 1.2 for now.
-    version <- 1.1
+    # make a prompt that asks if they know what lipd version this file is. 
+    yn <- readline("I didn't find a LiPD version number for this file. Do you know the version number? (y/n)")
+    if(yn == "y"){
+      vn <- readline("Enter the version number (1.0, 1.1, 1.2, 1.3): ")
+      if(vn %in% c(1, 1.0, 1.1, 1.2, 1.3)){
+        version <- vn
+      } else {
+        stop("That's not a valid response. Please try writeLipd again.")
+      }
+    } else if(yn == "n"){
+      print("I'll assume this is a current version (v1.3) file, but that may be an incorrect assumption. Please keep a backup!")
+      version <- 1.3
+    }
   }
   else if (!(version %in% c(1, 1.0, 1.1, 1.2, 1.3))){
     print(sprintf("LiPD version is invalid: %s", version))
   }
   tmp <- list()
+  d[["lipdVersion"]] <- version
   tmp[["meta"]] <- d
   tmp[["version"]] <- version
   return(tmp)

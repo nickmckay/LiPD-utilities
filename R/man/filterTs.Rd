@@ -2,25 +2,40 @@
 % Please edit documentation in R/timeseries.R
 \name{filterTs}
 \alias{filterTs}
-\title{Find all the time series entries that match a given search expression, 
-and return a new time series with the matching entries
-new.ts = filterTs(ts, "archiveType == marine sediment")
-Valid operators : ==, =, <=, >=, <, >}
+\title{Find all the time series objects that match a given search expression, 
+and return a new time series with the matching objects}
 \usage{
 filterTs(ts, expression)
 }
 \arguments{
 \item{ts}{Time series}
 
-\item{expression}{Search expression}
+\item{expression}{Search expression : char}
 }
 \value{
-new.ts Time series
+new.ts : Time series : list
 }
 \description{
-Find all the time series entries that match a given search expression, 
-and return a new time series with the matching entries
-new.ts = filterTs(ts, "archiveType == marine sediment")
 Valid operators : ==, =, <=, >=, <, >
+}
+\examples{
+
+# Time series
+ts = [ object1, object2, object3, object4 ]
+
+# Example 1
+new.ts = filterTs(ts, "archiveType == marine sediment")
+# result 
+[object1, object3, object4]
+
+# Example 2
+new.ts = filterTs(ts, "paleoData_variableName == d18O")
+# result
+[object2]
+
+
+}
+\author{
+Chris Heiser
 }
 

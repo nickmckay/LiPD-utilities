@@ -4,16 +4,33 @@
 \alias{readLipd}
 \title{Read LiPD files into R workspace}
 \usage{
-readLipd(path = NULL)
+readLipd(path)
 }
 \arguments{
-\item{path}{Source path (optional)}
+\item{path}{Source path (optional) : char}
 }
 \value{
-D LiPD data
+D : LiPD dataset(s)
 }
 \description{
 Read LiPD files into R workspace
+}
+\examples{
+read in multiple datasets - no path argument
+D <- readLipd()   # choose option 'd' for directory
+
+read in multiple datasets - with path argument
+D <- readLipd("/Users/bobsmith/Desktop/lipd_files")
+
+read in one dataset - no path argument
+L <- readLipd()  # choose option "s" for single file
+
+read in one dataset - with path argument
+L <- readLipd("/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
+
+}
+\author{
+Chris Heiser
 }
 \keyword{internal}
 

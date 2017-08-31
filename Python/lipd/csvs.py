@@ -1,5 +1,6 @@
 import csv
 import math
+import sys
 import copy
 from collections import OrderedDict
 
@@ -117,7 +118,7 @@ def _merge_csv_table(tables, pc):
                     else:
                         print("No missing value found. You may encounter errors with this data.")
                 # Merge the values into the columns
-                _table = _merge_csv_column(_table, csvs)
+                _table, ensemble = _merge_csv_column(_table, csvs)
                 # Remove and missing values keys that are at the column level
                 _table = rm_missing_values_table(_table)
                 # Now put the missing value as "nan" (standard)
@@ -143,7 +144,9 @@ def _merge_csv_column(table, csvs):
     :param str crumbs: Hierarchy crumbs
     :param str pc: Paleo or Chron table type
     :return dict: Table metadata with csv "values" entry
+    :return bool ensemble: Ensemble data or not ensemble data
     """
+
     # Start putting CSV data into corresponding column "values" key
     try:
         ensemble = is_ensemble(table["columns"])
@@ -154,24 +157,34 @@ def _merge_csv_column(table, csvs):
                     _column["values"] = csvs
             # depth column + realization columns
             elif len(table["columns"]) == 2:
+                _multi_column = False
                 for _name, _column in table["columns"].items():
                     if isinstance(_column["number"], (int, float)):
                         col_num = cast_int(_column["number"])
                         _column['values'] = csvs[col_num - 1]
                     elif isinstance(_column["number"], list):
-                        _column["values"] = csvs[2:]
+                        if _multi_column:
+                            raise Exception("Error: merge_csv_column: This jsonld metadata looks wrong!\n"
+                                  "\tAn ensemble table depth should not reference multiple columns of CSV data.\n"
+                                  "\tPlease manually fix the ensemble columns in 'metadata.jsonld' inside of your LiPD file.")
+                        else:
+                            _multi_column = True
+                            _column["values"] = csvs[2:]
         else:
             for _name, _column in table['columns'].items():
                 col_num = cast_int(_column["number"])
                 _column['values'] = csvs[col_num - 1]
     except IndexError:
-        logger_csvs.warning("add_csv_to_columns: IndexError: index out of range of csv_data list")
+        logger_csvs.warning("merge_csv_column: IndexError: index out of range of csv_data list")
     except KeyError:
-        logger_csvs.error("add_csv_to_columns: KeyError: missing columns key")
+        logger_csvs.error("merge_csv_column: KeyError: missing columns key")
     except Exception as e:
-        logger_csvs.error("add_csv_to_columns: Unknown Error:  {}".format(e))
+        logger_csvs.error("merge_csv_column: Unknown Error:  {}".format(e))
+        print("Quitting...")
+        exit(1)
+
     # We want to keep one missing value ONLY at the table level. Remove MVs if they're still in column-level
-    return table
+    return table, ensemble
 
 
 # READ
@@ -188,6 +201,7 @@ def read_csv_from_file(filename):
     d = {}
     l = []
     try:
+        logger_csvs.info("open file: {}".format(filename))
         with open(filename, 'r') as f:
             r = csv.reader(f, delimiter=',')
 
@@ -351,6 +365,7 @@ def _get_csv_from_table(tables, crumbs, csvs):
         logger_csvs.error("Error: get_csv_from_table: {}, {}".format(crumbs, e))
 
     return tables, csvs
+
 
 def _get_csv_from_columns(table, filename, csvs):
     """

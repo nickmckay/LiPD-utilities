@@ -44,7 +44,7 @@ lipd_read <- function(path){
 #' @return none:
 lipd_write <- function(j, path, dsn){
   tryCatch({
-    dsn <- replace_invalid_chars(dsn)
+    # dsn <- replace_invalid_chars(dsn)
     dir_original <- getwd()
     dir_tmp <- create_tmp_dir()
     setwd(dir_tmp)
@@ -57,18 +57,20 @@ lipd_write <- function(j, path, dsn){
     dir_bag <- file.path(dir_zip, "bag")
     setwd("bag")
     j <- idx_name_to_num(j)
+    tmp <- get_lipd_version(j)
+    j <- tmp[["meta"]]
     dat <- get_csv_from_metadata(j, dsn)
     write_csv_to_file(dat[["csvs"]])
     j <- rm_empty_fields(dat[["meta"]])
     j <- jsonlite::toJSON(j, pretty=TRUE, auto_unbox = TRUE)
     write(j, file="metadata.jsonld")
-    bag.success <- bagit(dir_bag)
+    bagit(dir_bag)
     zipper(path, dir_tmp, dsn)
     unlink(dir_tmp, recursive=TRUE)
     setwd(dir_original)
   }, error=function(cond){
     print(paste0("Error: lipd_write: ", cond))
+    unlink(dir_tmp, recursive=TRUE)
+    setwd(dir_original)
   })
-  unlink(dir_tmp, recursive=TRUE)
-  setwd(dir_original)
 }

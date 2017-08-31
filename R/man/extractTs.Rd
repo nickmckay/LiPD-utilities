@@ -7,12 +7,20 @@
 extractTs(D, chron = NULL)
 }
 \arguments{
-\item{D}{LiPD data, sorted by dataset name}
+\item{D}{LiPD data, sorted by dataset name : list}
 }
 \value{
-ts:  Time series
+ts:  Time series : list
 }
 \description{
 Create a time series from a library of LiPD datasets. A Time series is a flattened version of LiPD data that can be queried and filtered for easier data analysis.
+}
+\examples{
+D <- readLipds()
+ts <- extractTs(D)
+
+}
+\author{
+Nick McKay
 }
 
