@@ -101,7 +101,7 @@ L.googleMetadataWorksheet=wsNames(1).worksheetKey;
 %edit that first sheet to become the metadatasheet
 
 %extract timeseries
-TS=extractTimeseries(L,1);
+TS=extractTs(L,1);
 
 
 %and also these variables

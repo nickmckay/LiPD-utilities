@@ -188,7 +188,7 @@ for d = 1:length(dsn)
                             end
                             for hieri = 1:length(thdNames)
                                 %assign = non lists
-                                TS(ts).([hierCellNames{hi} num2str(hi) '_' thdNames{hieri}]) = thisHierData{hii}.(thdNames{hieri});
+                                TS(ts).([hierCellNames{hi} num2str(hii) '_' thdNames{hieri}]) = thisHierData{hii}.(thdNames{hieri});
                             end
                             
                         end %end hii loop

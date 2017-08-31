@@ -74,6 +74,7 @@ if L.lipdVersion == 1.2 | forceConvert
                         if isfield(col,'climateInterpretation')
                             col.interpretation  = cell(1,1);
                             col.interpretation{1} = col.climateInterpretation;
+                            col.interpretation{1}.scope = 'climate';                           
                             col = rmfield(col,'climateInterpretation');
                         end
 
