@@ -56,7 +56,7 @@ maxage = num2cell(cellfun(@nanmax,{TS.age}));
 TS = convertNamesTS(TS,'archiveType');
 archive={TS.archiveType}';
 
-age=1:10000;
+age=1:2000;
 nr=length(TS);
 ageMin={TS.minage}';
 emptyageMin = find(cellfun(@isempty,ageMin));
@@ -68,9 +68,9 @@ emptyageMax = find(cellfun(@isempty,ageMax));
 ageMax(emptyageMax)=repmat({NaN},length(emptyageMax),1);
 ageMax=cell2mat(ageMax);
 
-ageMax(ageMax > 10000) = 10000;
+ageMax(ageMax > 2000) = 2000;
 ageMin(ageMin < 000) = 000;
-ageMin(ageMin > 10000) = 10000;
+ageMin(ageMin > 2000) = 2000;
 ageMax(ageMax < 000) = 000;
 
 
@@ -82,7 +82,7 @@ goodLat = find(~cellfun(@isempty,{TS.geo_meanLat}));
 p_lon(goodLon)=cell2mat({TS.geo_meanLon}');
 p_lat(goodLat)=cell2mat({TS.geo_meanLat}');
 
-medRes = calculateMedianResolutionTS(TS,'age',0,10000);
+medRes = calculateMedianResolutionTS(TS,'year',0,2000);
 
 %%
 % extract archive types and assign colors
@@ -178,7 +178,7 @@ hstack=axes('Position', [0.1 0.1 0.8 0.29]);
 cmap=cell2mat(Graph(:,1));
 colormap(hstack,cmap);
 area(age,nproxy,'EdgeColor','w'), set(gca,'YAxisLocation','Right');
-xlim([0 10000])
+xlim([0 2000])
 set(gca,'XDir','reverse')
 fancyplot_deco('','age (yr BP)','# timeseries',14,'Helvetica');
 title('c) Temporal Availability',style_t{:})

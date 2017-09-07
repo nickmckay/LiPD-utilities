@@ -1,4 +1,4 @@
-function Dnew=collapseTS(TS,yearTS)
+function Dnew=collapseTs(TS,yearTS)
 %tries to convert a LiPD Timeseries object back into a LiPD Hierarchical
 %object
 %TS is the TS structure
@@ -6,7 +6,7 @@ function Dnew=collapseTS(TS,yearTS)
 %year/age/etc
 
 if nargin<2
-    yearTS=0;
+    yearTS=1;
 end
 
 %create a LiPD object for every unique dataSetName
@@ -41,7 +41,13 @@ for i=1:length(udsn)
         %if there is a chronData, write it right in
         if ~isempty(ci)
             Dnew.(makeValidName(udsn{i})).chronData=T.chronData;
+        elseif isfield(T,'raw')
+            if isfield(T.raw,'chronData')
+                Dnew.(makeValidName(udsn{i})).chronData=T.raw.chronData;
+            end
         end
+        
+        
         
         %now create the base level index
         b=setdiff(b,yai);
@@ -99,16 +105,16 @@ for i=1:length(udsn)
             end
         end
         
-%         %assign in something in case there's no other publications
-%         if(~exist('pubNum'))
-%             lastPub=0;
-%         else
-%             lastPub=pubNum;
-%         end
-      
-
-%make all data pubs start at 20
-lastPub = 20;
+        %         %assign in something in case there's no other publications
+        %         if(~exist('pubNum'))
+        %             lastPub=0;
+        %         else
+        %             lastPub=pubNum;
+        %         end
+        
+        
+        %make all data pubs start at 20
+        lastPub = 20;
         
         %handle Data citations
         dp=find(strncmp('dataPub',fT,7));
@@ -149,78 +155,71 @@ lastPub = 20;
         
         %paleoData
         if f==1
-            Dnew.(makeValidName(udsn{i})).paleoData=struct; %assign paleoData to structure
+            Dnew.(makeValidName(udsn{i})).paleoData=cell(1,1); %assign paleoData to a  cell
         end
         pd=find(strncmp('paleoData_',fT,10));
         
         %get or create the name of the relevant paleodata table
-        if isfield(T,'paleoData_paleoNumber') & isfield(T,'paleoData_paleoMeasurementTableNumber')
+        if isfield(T,'paleoData_paleoNumber')
             if ischar(T.paleoData_paleoNumber)
                 T.paleoData_paleoNumber = str2num(T.paleoData_paleoNumber);
             end
+            pnum = T.paleoData_paleoNumber;
+        else
+            %assume its 1
+            pnum = 1;
+        end
+        if isfield(T,'paleoData_paleoMeasurementTableNumber') & isfield(T,'paleoData_measurementTableNumber')
             if ischar(T.paleoData_paleoMeasurementTableNumber)
                 T.paleoData_paleoMeasurementTableNumber = str2num(T.paleoData_paleoMeasurementTableNumber);
             end
-            pdName =['pt' num2str(T.paleoData_paleoNumber) '_'  num2str(T.paleoData_paleoMeasurementTableNumber)] ;
-            TS(fts(f)).paleoData_paleoDataTableName=pdName;
-            T.paleoData_paleoDataTableName=pdName;
-        elseif isfield(T,'paleoData_tableName')
+            mnum1 = T.paleoData_paleoMeasurementTableNumber;
+            if ischar(T.paleoData_measurementTableNumber)
+                T.paleoData_measurementTableNumber = str2num(T.paleoData_measurementTableNumber);
+            end
+            mnum2 = T.paleoData_measurementTableNumber;
             
-            pdName=T.paleoData_tableName;
-            TS(fts(f)).paleoData_paleoDataTableName=pdName;
+            mnum = max([mnum1 mnum2]);
+            T.paleoData_measurementTableNumber = mnum;
+            T = rmfield(T,'paleoData_paleoMeasurementTableNumber');
             
-        elseif isfield(T,'paleoData_paleoDataTableName')
-            pdName=T.paleoData_paleoDataTableName;
-                       
             
+        elseif isfield(T,'paleoData_paleoMeasurementTableNumber')
+            
+            if ischar(T.paleoData_paleoMeasurementTableNumber)
+                T.paleoData_paleoMeasurementTableNumber = str2num(T.paleoData_paleoMeasurementTableNumber);
+            end
+            mnum = T.paleoData_paleoMeasurementTableNumber;
+            T.paleoData_measurementTableNumber = mnum;
+            T = rmfield(T,'paleoData_paleoMeasurementTableNumber');
+        elseif isfield(T,'paleoData_measurementTableNumber')
+            
+            if ischar(T.paleoData_measurementTableNumber)
+                T.paleoData_measurementTableNumber = str2num(T.paleoData_measurementTableNumber);
+            end
+            mnum = T.paleoData_measurementTableNumber;
         else
-            pdName='s1';
-            T.paleoData_paleoDataTableName='s1';
-            TS(fts(f)).paleoData_paleoDataTableName=pdName;
-            
+            %assume its 1
+            mnum = 1;
         end
         
-        
-        
-      
-
-            
-        samei=find(strcmp(udsn{i},{TS.dataSetName}') & strcmp(pdName,{TS.paleoData_paleoDataTableName}'));
-        if length(samei)>1
-            clear dll
-            for dl=1:length(samei)
-                dll(dl)=length(TS(samei(dl)).paleoData_values);
-            end
-            
-            %if they're not all thesame length, rename all tables including the length
-            if length(unique(dll))>1
-                pdName=['pdt' num2str(length(T.paleoData_values))];
-            end
-        end
         
         
         %which variables should be at the measurement table level?
         amt = {'paleoDataTableName','paleoMeasurementTableName',...
             'number','paleoNumber',...
-            'paleoMeasurementTableNumber','paleoDataMD5',...
+            'measurementTableNumber','paleoDataMD5',...
             'googleWorkSheetKey'};
         
         for am =1:length(amt)
             if any(strcmp(['paleoData_' amt{am}],fT))
-                Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(amt{am})=T.(['paleoData_' amt{am}]);
+                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(amt{am})=T.(['paleoData_' amt{am}]);
+                
+                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(amt{am})=T.(['paleoData_' amt{am}]);
                 pd=setdiff(pd,find(strcmp(fT,['paleoData_' amt{am}])));
             end
             
         end
-        
-        
-        %assign in paleoData Table Name
-        
-        Dnew.(makeValidName(udsn{i})).paleoData.(pdName).paleoDataTableName=pdName;
-        
-        
-        
-        
         
         
         
@@ -228,7 +227,7 @@ lastPub = 20;
         variableName=makeValidName(T.paleoData_variableName);
         
         %see if that name has been used already
-        alreadyNames=fieldnames(Dnew.(makeValidName(udsn{i})).paleoData.(pdName));
+        alreadyNames=fieldnames(Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum});
         %iterate through numbers until it's unique
         aNi=1;
         origName=variableName;
@@ -238,18 +237,14 @@ lastPub = 20;
         end
         
         
-        
-        
-        
         %add in the variable
         for pdin=1:length(pd)
             pdVarName=fT{pd(pdin)};
-            
+            if ~strcmp(pdVarName,'paleoData_paleoMeasurementTableNumber');
             %add in parameter
-            Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
+            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
                 T.(fT{pd(pdin)});
-            
-            
+            end
         end
         
         
@@ -261,14 +256,14 @@ lastPub = 20;
             yearFlag=0;
             if any(strcmp('year',fT))
                 if length(T.year) == length(T.paleoData_values)
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.values=T.year;
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.units='AD';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.description='Year AD';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.variableName='year';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.dataType='float';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.variableType='inferred';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).year.inferredVariableType='year';
-
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.values=T.year;
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.units='AD';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.description='Year AD';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.variableName='year';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.dataType='float';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.variableType='inferred';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.inferredVariableType='year';
+                    
                     yearFlag=1;
                 end
             end
@@ -277,15 +272,15 @@ lastPub = 20;
             if any(strcmp('age',fT))
                 %don't add age if it's a different length than the data
                 if length(T.age) == length(T.paleoData_values)
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.values=T.age;
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.units='BP';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.description='Years before present (1950) BP';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.variableName='age';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.dataType='float';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.variableType='inferred';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).age.inferredVariableType='age';
-
-
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.values=T.age;
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.units='BP';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.description='Years before present (1950) BP';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.variableName='age';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.dataType='float';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.variableType='inferred';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.inferredVariableType='age';
+                    
+                    
                     ageFlag=1;
                 end
             end
@@ -294,32 +289,21 @@ lastPub = 20;
             if any(strcmp('depth',fT))
                 %don't add age if it's a different length than the data
                 if length(T.depth) == length(T.paleoData_values)
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.values=T.depth;
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.values=T.depth;
                     if isfield(T,'depthUnits')
-                        Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.units=T.depthUnits;
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.units=T.depthUnits;
                     end
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.description='depth';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.variableName='depth';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.dataType='float';
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).depth.variableType='measured';
-
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.description='depth';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.variableName='depth';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.dataType='float';
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.variableType='measured';
+                    
                     depthFlag=1;
                 end
             end
             if ~ageFlag && ~yearFlag && ~depthFlag
                 
                 error([makeValidName(udsn{i}) ': ' num2str(fts(f)) ': no age, year or depth data. The linearity (and existence) of time (or depth) are necessary assumptions in the LiPD framework | a likely problem is that the length of the data does not match the length of the year and/or age vectors'])
-            end
-        end
-        %check for climate interpretation
-        if any(strncmp('climateInterpretation_',fT,22))
-            ci=find(strncmp('climateInterpretation_',fT,22));
-            for cin=1:length(ci)
-                ciVarName=fT{ci(cin)};
-                
-                %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(variableName).climateInterpretation.(ciVarName(strfind(ciVarName,'_')+1:end))=...
-                    T.(fT{ci(cin)});
             end
         end
         
@@ -330,7 +314,7 @@ lastPub = 20;
                 caiVarName=fT{cai(cain)};
                 
                 %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
                     T.(fT{cai(cain)});
             end
         end
@@ -342,7 +326,7 @@ lastPub = 20;
                 caiVarName=fT{cai(cain)};
                 
                 %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(variableName).modernSystem.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).modernSystem.(caiVarName(strfind(caiVarName,'_')+1:end))=...
                     T.(fT{cai(cain)});
             end
         end
@@ -355,40 +339,29 @@ lastPub = 20;
                 caiVarName=fT{cai(cain)};
                 
                 %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(variableName).proxySystemModel.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).proxySystemModel.(caiVarName(strfind(caiVarName,'_')+1:end))=...
                     T.(fT{cai(cain)});
             end
         end
         
-        %check for isotope interpretation
-        if any(strncmp('isotopeInterpretation_',fT,22))
-            iii=find(strncmp('isotopeInterpretation_',fT,22));
+        %check for interpretation
+        if any(strncmp('interpretation',fT,14))
+            intnum = cellfun(@(x) x(regexp(x,'interpretation[0-9]','end')), fT,'UniformOutput',0);
+            %             intnumu = uniqueCell(intnum);
+            %             nInterp = max(cellfun(@str2num, intnumu(2:end)));%how many interpretations?
+            
+            
+            
+            iii=find(~cellfun(@isempty,intnum));
             for iiin=1:length(iii)
                 iiiVarName=fT{iii(iiin)};
+                thisIntNum = str2double(intnum(iii(iiin)));
                 iiname = iiiVarName(min(strfind(iiiVarName,'_'))+1:end);
-                %if there's no more underscores
-                if isempty(strfind(iiname,'_'))
-                    %add in parameter
-                    Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(variableName).isotopeInterpretation.(iiname)=...
-                        T.(fT{iii(iiin)});
-                else %then it's an independentVariable cell.
-                    if f==1
-                        Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(variableName).isotopeInterpretation.independentVariable=cell(1,1); %assign cell
-                    end
-                    iv=find(strncmp('isotopeInterpretation_independentVariable',fT,41));
-                    for ivin=1:length(iv)
-                        iVarName=fT{iv(ivin)};
-                        ivNum=str2num(iVarName(42:(max(strfind(iVarName,'_'))-1)));
-                        if isempty(ivNum)
-                            ivNum=1;
-                        end
-                        Dnew.(makeValidName(udsn{i})).paleoData.(pdName).(variableName).isotopeInterpretation.independentVariable{ivNum}.(iVarName(max(strfind(iVarName,'_'))+1:end))=...
-                            T.(fT{iv(ivin)});
-                    end
-                    
-                    
-                end
                 
+                if ~isempty(T.(iiiVarName))
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).interpretation{thisIntNum}.(iiname)=...
+                        T.(iiiVarName);
+                end
             end
         end
         
@@ -396,15 +369,9 @@ lastPub = 20;
     
     %remove empty pub cells
     Dnew.(makeValidName(udsn{i}))=removeEmptyPub(Dnew.(makeValidName(udsn{i})));
-    %force convert to new structure
-    if isfield(Dnew.(makeValidName(udsn{i})),'chronData')
-        if isstruct(Dnew.(makeValidName(udsn{i})).chronData)
-            Dnew.(makeValidName(udsn{i}))=convertLiPD1_0to1_1(Dnew.(makeValidName(udsn{i})),1);
-        end
-    end
-    Dnew.(makeValidName(udsn{i}))=convertLiPD1_1to1_2(Dnew.(makeValidName(udsn{i})),1);
-    Dnew.(makeValidName(udsn{i}))=convertLiPD1_2to1_3(Dnew.(makeValidName(udsn{i})),1);
-
+    
+    %remove raw
+    Dnew.(makeValidName(udsn{i}))=rmfieldsoft(Dnew.(makeValidName(udsn{i})),'raw');
     
     
 end

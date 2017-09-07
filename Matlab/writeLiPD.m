@@ -1,4 +1,4 @@
-function writeLiPD(Dout,overwrite,libDir)
+function didntwrite = writeLiPD(Dout,overwrite,libDir)
 %check to see if it's a single LiPD file
 if isfield(Dout,'dataSetName')
     newD.(makeValidName(Dout.dataSetName)) = Dout;
@@ -8,6 +8,7 @@ else
     single = 0;
 end
 
+dd=1;
 %write LiPD library
 if nargin < 3
     if single
@@ -43,11 +44,13 @@ for d=1:length(dnames)
     writeLiPDFile(Dout.(dnames{d}));
     display(['Writing ' dnames{d} '.lpd...'])
     catch ME
-        warning([dnames{d} ' encountered errors and didnt write out']);
-        proceed = input('Do you want to proceed?')
-            if strncmpi('y',proceed,1)
-            else
-                error('You chose to stop')
-            end
+        didntwrite{dd} = dnames{d};
+        dd=dd+1;
+         warning([dnames{d} ' encountered errors and didnt write out']);
+%         proceed = input('Do you want to proceed?')
+%             if strncmpi('y',proceed,1)
+%             else
+%                 error('You chose to stop')
+%             end
     end
 end

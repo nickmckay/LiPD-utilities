@@ -1,12 +1,14 @@
 function  TS = splitInterpretationByScope(TS)
+handle = waitbar(0,'splitting interpretations...');
+
 
 for i = 1:length(TS)
-    display(i)
+    waitbar(i/length(TS),handle);
     mts = TS(i);
     fnames = fieldnames(mts);
     intnumcell = uniqueCell(cellfun(@(x) x(regexp(x,'interpretation[0-9]','end')), fnames,'UniformOutput',0));
-          nInterp = max(cellfun(@str2num, intnumcell(2:end)));
-
+    nInterp = max(cellfun(@str2num, intnumcell(2:end)));
+    
     if nInterp>1%there are some!
         
         scopeType =cell(1,2);
@@ -39,14 +41,28 @@ for i = 1:length(TS)
                 thisKey = mts.([sch thisKeyName]);
                 if ~isempty(thisKey)
                     %WRITE IT!!!
-                  %  display(['writing TS.' thisScope 'Interpretation' num2str(thisNum) '_' thisKeyName])
+                    %  display(['writing TS.' thisScope 'Interpretation' num2str(thisNum) '_' thisKeyName])
+                    if isempty(thisScope)
+                        warning('no scope present! Can not split')
+                        display(['Interpretation number ' num2str(n)]);
+                        display(['Variable Name = ' mts.(['interpretation' num2str(n) '_variable'])])
+                        thisScope  = input('What scope should this be? (empty will stop this)');
+                        if isempty(thisScope)
+                            error('No scope');
+                        end
+                    end
                     [TS(i).([thisScope 'Interpretation' num2str(thisNum) '_' thisKeyName])] = thisKey;
                 end
-            end   
+            end
         end
     end
 end
-
+delete(handle)
+%remove original interpretation fields
+interpNames = fnames(find(strncmp('interpretation',fnames,14)));
+TS = rmfieldsoft(TS,interpNames);
 TS = structord(TS);
+
+
 
 end

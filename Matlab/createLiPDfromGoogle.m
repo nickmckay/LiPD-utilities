@@ -32,14 +32,14 @@ for i = 1:length(pdi)
     
     dashin =min(strfind(fullName,'-'));
     numbers=regexp(fullName,'[0-9]');
-    if length(numbers)~=2
+    if length(numbers)<2 | length(numbers)>3
                 error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where {x} and {y} are integers')
     end
     if isempty(dashin)
         error('the paleodata worksheets must be named "paleo{x}-tableName{y}", where tableName is the type of table')
     end
     paleoTableNames{i} =  fullName((dashin+1):(end-1));
-    ptn(i,:)=numbers;
+    ptn(i,:)=numbers(1:2);
     pdwkkeys{i} =  wkKeys{pdi(i)};
     
 end
@@ -220,7 +220,9 @@ if isstruct(GTSC)
 end
 
 
-L=collapseTS(GTS,1);
+L=collapseTS1_2(GTS,1);
 
 L = BibtexAuthorString2Cell(L);
+
+L = convertLiPD1_2to1_3(L);
 

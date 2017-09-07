@@ -146,8 +146,9 @@ if L.lipdVersion == 1.2 | forceConvert
     end
     
     
-    
+L = rmfieldsoft(L,'LiPDVersion');    
     L.lipdVersion = 1.3;
+
     
 end
 

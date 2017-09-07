@@ -11,11 +11,11 @@ end
 
 breakFlag=0;
 dsn = structFieldNames(D);
-        h = waitbar(0,'Extracting your timeseries...');
+h = waitbar(0,'Extracting your timeseries...');
 
 for d = 1:length(dsn)
-      waitbar(d/length(dsn),h);
-
+    waitbar(d/length(dsn),h);
+    
     if breakFlag
         break
     end
@@ -145,12 +145,12 @@ for d = 1:length(dsn)
                 colFields = fieldnames(coldata);
                 colGrab = find(~structfun(@isstruct,coldata));
                 colFields = setdiff(colFields(colGrab),excludeColumn);
-                               
+                
                 for colc = 1:length(colFields)%assign = needed column data and metadata
                     if iscell(coldata.(colFields{colc}))
-                       if all(cellfun(@isstruct,coldata.(colFields{colc})))
-                        continue
-                       end
+                        if all(cellfun(@isstruct,coldata.(colFields{colc})))
+                            continue
+                        end
                     end
                     TS(ts).(['paleoData_',colFields{colc}]) = coldata.(colFields{colc});
                 end
@@ -172,7 +172,7 @@ for d = 1:length(dsn)
                 hierCellNames = hierCellNames(structfun(@iscell, coldata));
                 
                 %
-                            
+                
                 %loop through all of these.
                 for hi = 1:length(hierCellNames) % this handles numbered instances (like interpretation) at the second level...
                     thisHierData = coldata.(hierCellNames{hi});
@@ -194,14 +194,19 @@ for d = 1:length(dsn)
                         end %end hii loop
                     end %cell check if statement
                 end %end hi loop
-                    
-                    
+                
+                
                 
                 %now special columns
                 specCols = specialColumns(find(ismember(specialColumns,structFieldNames(PM))));
                 for sc = 1:length(specCols)
-                    %only assign = values and units for now
-                    TS(ts).([specCols{sc} 'Units']) = PM.(specCols{sc}).units;
+                    if isfield( PM.(specCols{sc}),'units')
+                        %only assign = values and units for now
+                        TS(ts).([specCols{sc} 'Units']) = PM.(specCols{sc}).units;
+                    else
+                        TS(ts).([specCols{sc} 'Units']) = 'missing!';
+                        
+                    end
                     TS(ts).([specCols{sc}]) = PM.(specCols{sc}).values;
                 end
                 

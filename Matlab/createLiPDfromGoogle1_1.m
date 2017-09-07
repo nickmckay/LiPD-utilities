@@ -62,8 +62,13 @@ pdgwk={GTS.paleoData_googleWorkSheetKey}';
 if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
     %make sure there are names
     if ~isfield(GTS,'paleoData_paleoDataTableName')
+            if isfield(GTS,'paleoData_tableName')
+                [GTS.paleoData_paleoDataTableName] = GTS.paleoData_tableName;
+
+            else
         error('the TS metadata must include at least paleoDataTableName or googleWorksheetKey')
-    end
+            end
+            end
     pdtNames = {GTS.paleoData_paleoDataTableName}';
     ie = find(cellfun(@isempty,pdgwk)); %identify which are missing keys
     for pie = 1:length(ie)

@@ -41,8 +41,8 @@ notCell = find(~cellfun(@iscell,{TS.year}) & ~cellfun(@isempty,{TS.year}));
 if length(notCell)>1
 TS=TS(notCell);
 end
-minYear = num2cell(cellfun(@nanmin,{TS.age}));
-maxYear = num2cell(cellfun(@nanmax,{TS.age}));
+minYear = num2cell(cellfun(@nanmin,{TS.year}));
+maxYear = num2cell(cellfun(@nanmax,{TS.year}));
 
 [TS.minYear] = minYear{:};
 [TS.maxYear] = maxYear{:};

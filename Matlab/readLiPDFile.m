@@ -84,6 +84,8 @@ elseif isfield(I,'lipdVersion')
 else
     vers = 1.0;
 end
+
+
 I.lipdVersion = vers;
 I = rmfieldsoft(I,'LiPDVersion');
 %load in version information
