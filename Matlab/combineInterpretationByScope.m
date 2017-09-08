@@ -24,7 +24,10 @@ for i = 1:length(TSs);
         %how many scopes with this interpretation?
         ss = [ sts '[0-9]'];
         intnumcell = uniqueCell(cellfun(@(x) x(regexp(x,ss,'end')), fnames,'UniformOutput',0));
-        nInterp = max(cellfun(@str2num, intnumcell(2:end)));
+        %remove empty
+        ie = find(~cellfun(@isempty,intnumcell));
+        intnumcell = intnumcell(ie);
+        nInterp = max(cellfun(@str2num, intnumcell));
         if length(nInterp)>0
             for ni = 1:nInterp
                 ti = ti+1;
