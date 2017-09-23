@@ -84,42 +84,47 @@ idx_table_by_name <- function(tables){
 #' @param table Table to be reorganized
 #' @return table Modified table
 idx_col_by_name <- function(table){
-  #look for columns
-  if(is.null(table[["columns"]])){
-    #already been removed - just needs to be named
-   stop("there should be a columns variable in here")
-  }else{
-    # create a list
-    new.cols <- list()
-    col.len <- length(table[["columns"]])
-
-    # loop for each column
-    for (i in 1:col.len){
-      # get the variable name
-      try(vn <- table[["columns"]][[i]][["variableName"]])
-      if (is.null(vn)){
-        table[[i]] <- table[["columns"]][[i]]
-      } else {
-        # edge case: more than one column have the same variablename. append a number so there aren't any overwrite conflicts.
-        if (vn %in% names(table)){
-          idx <- 1
-          vn.tmp <-paste0(vn, "-", as.character(idx))
-          while(vn.tmp %in% names(table)){
-            idx <- idx + 1
+  tryCatch({
+    #look for columns
+    if(is.null(table[["columns"]])){
+      #already been removed - just needs to be named
+      stop("there should be a columns variable in here")
+    }else{
+      # create a list
+      new.cols <- list()
+      col.len <- length(table[["columns"]])
+      
+      # loop for each column
+      for (i in 1:col.len){
+        # get the variable name
+        try(vn <- table[["columns"]][[i]][["variableName"]])
+        if (is.null(vn)){
+          table[[i]] <- table[["columns"]][[i]]
+        } else {
+          # edge case: more than one column have the same variablename. append a number so there aren't any overwrite conflicts.
+          if (vn %in% names(table)){
+            idx <- 1
             vn.tmp <-paste0(vn, "-", as.character(idx))
+            while(vn.tmp %in% names(table)){
+              idx <- idx + 1
+              vn.tmp <-paste0(vn, "-", as.character(idx))
+            }
+            table[[vn.tmp]] = table[["columns"]][[i]]
           }
-          table[[vn.tmp]] = table[["columns"]][[i]]
-        }
-        # normal case: place the column data in the table
-        else {
-          table[[vn]] <- table[["columns"]][[i]]
+          # normal case: place the column data in the table
+          else {
+            table[[vn]] <- table[["columns"]][[i]]
+          }
         }
       }
+      # remove the columns item from table
+      table[["columns"]] <- NULL
     }
-    # remove the columns item from table
-    table[["columns"]] <- NULL
-  }
-  return(table)
+    return(table)
+  }, error=function(cond){
+    stop(paste0("index_col_by_name: " + cond))
+  })
+  
 }
 
 

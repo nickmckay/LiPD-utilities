@@ -4,6 +4,7 @@ import os
 import io
 import sys
 from distutils.command.install import install
+from distutils.core import setup
 
 
 class PostInstall(install):
@@ -19,7 +20,7 @@ class PostInstall(install):
         install.run(self)
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.3.6'
+version = '0.2.3.8'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -76,6 +77,8 @@ setup(
         "xlrd>=0.9.3",
         "pandas",
         "requests>=2.9.1",
+        "sip",
+        "PyQt5"
     ],
     include_package_data=True,
     package_data={

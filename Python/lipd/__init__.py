@@ -8,9 +8,10 @@ from lipd.dataframes import *
 from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
 from lipd.loggers import create_logger, log_benchmark, create_benchmark
 from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields, print_filename
-from lipd.ensembles import create_ensemble, insert_ensemble
+from lipd.ensembles import addModel
 from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
+from lipd.json_viewer import viewLipd
 
 from time import clock
 import os
@@ -261,33 +262,34 @@ def validate(D, detailed=True):
     return
 
 
+
 # PUT
 
 
-def addEnsemble(D, dsn, ensemble):
-    """
-    Create ensemble entry and then add it to the specified LiPD dataset.
-
-    :param dict D: LiPD data
-    :param str dsn: Dataset name
-    :param list ensemble: Nested numpy array of ensemble column data.
-    :return dict D: LiPD data
-    """
-
-    # Check that the given filename exists in the library
-    if dsn in D:
-        meta = D[dsn]
-        # Create an ensemble dictionary entry
-        ens = create_ensemble(ensemble)
-        # If everything above worked, then there should be formatted ensemble data now.
-        if ens:
-            # Insert the formatted ensemble data into the master lipd library
-            meta = insert_ensemble(meta, ens)
-            # Set meta into lipd object
-            D[dsn] = meta
-    else:
-        print("Error: This dataset was not found in your LiPD data: {}".format(dsn))
-    return D
+# def addEnsemble(D, dsn, ensemble):
+#     """
+#     Create ensemble entry and then add it to the specified LiPD dataset.
+#
+#     :param dict D: LiPD data
+#     :param str dsn: Dataset name
+#     :param list ensemble: Nested numpy array of ensemble column data.
+#     :return dict D: LiPD data
+#     """
+#
+#     # Check that the given filename exists in the library
+#     if dsn in D:
+#         meta = D[dsn]
+#         # Create an ensemble dictionary entry
+#         ens = create_ensemble(ensemble)
+#         # If everything above worked, then there should be formatted ensemble data now.
+#         if ens:
+#             # Insert the formatted ensemble data into the master lipd library
+#             meta = insert_ensemble(meta, ens)
+#             # Set meta into lipd object
+#             D[dsn] = meta
+#     else:
+#         print("Error: This dataset was not found in your LiPD data: {}".format(dsn))
+#     return D
 
 
 # DATA FRAMES

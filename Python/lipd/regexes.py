@@ -6,6 +6,9 @@ GLOBAL LIST OF REGEXES
 
 # re_clean_url = re.compile(r'\"\<\>\#\%\{\}\|\^\~\'\[\]\`')
 
+# GENERAL
+re_model_name = re.compile(r'(paleo|chron)[a-zA-Z]*(\d+)(model)?[a-zA-Z]*(\d)', re.I)
+
 # EXCEL
 re_var_w_units = re.compile(r'([\w\s\.\-\_\:\/\\\"\'\`\#\+\{\}\[\]\;\*]+)\(?([\w\s\.\-\_\:\/\\\"\'\`\#\+\{\}\[\]\;\*]+)?\)?', re.I)
 # todo write a regex for legacy sheet names
