@@ -20,7 +20,7 @@ class PostInstall(install):
         install.run(self)
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.3.8'
+version = '0.2.3.9'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
