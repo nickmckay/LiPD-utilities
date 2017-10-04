@@ -8,6 +8,7 @@ GLOBAL LIST OF REGEXES
 
 # GENERAL
 re_model_name = re.compile(r'(paleo|chron)[a-zA-Z]*(\d+)(model)?[a-zA-Z]*(\d)', re.I)
+re_table_name = re.compile(r'(paleo|chron)(\d+)(model|measurement)(\d+)(ensemble|summary|distribution)?(\d+)?')
 re_sci_notation = re.compile(r"(\d+)([.]\d+)(e-\d+)")
 
 # EXCEL

@@ -42,7 +42,7 @@ def _merge_csv_section(sections, pc):
     Add csv data to all paleo data tables
 
     :param dict sections: Metadata
-    :return dict: Modified metadata
+    :return dict sections: Metadata
     """
     logger_csvs.info("enter merge_csv_section")
 
@@ -57,6 +57,7 @@ def _merge_csv_section(sections, pc):
                 sections[_name]["model"] = _merge_csv_model(_section["model"], pc)
 
     except Exception as e:
+        print("Error: There was an error merging CSV data into the metadata ")
         logger_csvs.error("merge_csv_section: {}".format(e))
 
     logger_csvs.info("exit merge_csv_section")
@@ -68,7 +69,7 @@ def _merge_csv_model(models, pc):
     Add csv data to each column in chron model
 
     :param dict models: Metadata
-    :return dict: Modified metadata
+    :return dict models: Metadata
     """
     logger_csvs.info("enter merge_csv_model")
 
@@ -254,7 +255,8 @@ def write_csv_to_file(d):
                       "(2) There may have been an error trying to prep the values for file write. The 'number' field in the data columns may be a 'string' instead of an 'integer' data type".format(filename))
                 print(e)
             except Exception as e:
-                print("Error: CSV file not written, {}: {}".format(filename, e))
+                print("Error: CSV file not written, {}, {}:\n"
+                      "The data table may have 2 or more identical variables. Please correct the LiPD file manually".format(filename, e))
     except AttributeError as e:
         logger_csvs.error("write_csv_to_file: Unable to write CSV File: {}".format(e, exc_info=True))
     logger_csvs.info("exit write_csv_to_file")

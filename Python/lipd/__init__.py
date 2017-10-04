@@ -8,7 +8,7 @@ from lipd.dataframes import *
 from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
 from lipd.loggers import create_logger, log_benchmark, create_benchmark
 from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields, print_filename
-from lipd.ensembles import addModel
+from lipd.tables import addModel
 from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
 from lipd.json_viewer import viewLipd
