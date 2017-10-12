@@ -1,6 +1,7 @@
 from .misc import rm_empty_fields, get_appended_name
 from .loggers import create_logger
 
+import json
 import demjson
 from collections import OrderedDict
 import os
@@ -31,9 +32,13 @@ def read_jsonld():
             except FileNotFoundError as fnf:
                 print("Error: metadata file not found: {}".format(_filename))
                 logger_jsons.error("read_jsonld: FileNotFound: {}, {}".format(_filename, fnf))
-            except Exception as e:
-                print("Error: unable to read metadata file: {}".format(e))
-                logger_jsons.error("read_jsonld: Exception: {}, {}".format(_filename, e))
+            except Exception:
+                try:
+                    _d = demjson.decode_file(_filename, decode_float=float, encoding="latin-1")
+                    logger_jsons.info("Read JSONLD successful: {}".format(_filename))
+                except Exception as e:
+                    print("Error: unable to read metadata file: {}".format(e))
+                    logger_jsons.error("read_jsonld: Exception: {}, {}".format(_filename, e))
         else:
             print("Error: metadata file (.jsonld) not found in LiPD archive")
     except Exception as e:
