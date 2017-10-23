@@ -117,7 +117,8 @@ class LPD_NOAA(object):
         self.__reorganize()
 
         # special case: earliest_year, most_recent_year, and time unit
-        self.__check_time_unit()
+        # self.__check_time_values()
+        # self.__check_time_unit()
 
         self.__get_overall_data(self.lipd_data)
         self.__reorganize_sensor()
@@ -142,15 +143,55 @@ class LPD_NOAA(object):
         return self.lipd_data
 
 
-    def __check_time_unit(self):
+    # def __check_time_unit(self):
+    #     """
+    #     If earliest_year, and most_recent_year exist, and time_unit does NOT exist, then default time_unit = "AD"
+    #     :return none:
+    #     """
+    #     if "Earliest_Year" in self.noaa_data_sorted["Data_Collection"] and \
+    #         "Most_Recent_Year" in self.noaa_data_sorted["Data_Collection"] and \
+    #         "Time_Unit" not in self.noaa_data_sorted["Data_Collection"]:
+    #         self.noaa_data_sorted["Data_Collection"]["Time_Unit"] = "AD"
+    #     return
+
+    def __check_time_values(self):
         """
-        If earliest_year, and most_recent_year exist, and time_unit does NOT exist, then default time_unit = "AD"
+        Rules
+        1. AD or CE units: bigger number is recent, smaller number is older
+        2. BP: bigger number is older, smaller number is recent.
+        3. No units: If max year is 1900-2017(current), then assume AD. Else, assume BP
+
         :return none:
         """
-        if "Earliest_Year" in self.noaa_data_sorted["Data_Collection"] and \
-            "Most_Recent_Year" in self.noaa_data_sorted["Data_Collection"] and \
-            "Time_Unit" not in self.noaa_data_sorted["Data_Collection"]:
-            self.noaa_data_sorted["Data_Collection"]["Time_Unit"] = "AD"
+        _earliest = float(self.noaa_data_sorted["Data_Collection"]["Earliest_Year"])
+        _recent = float(self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"])
+        _unit = self.noaa_data_sorted["Data_Collection"]["Time_Unit"]
+
+        if not _unit:
+            # If the max value is between 1900 - 2017 (current), then assume "AD"
+            _max = max([_earliest, _recent])
+            _min = min([_earliest, _recent])
+            if _max >= 1900 and _max <= 2018:
+                self.noaa_data_sorted["Data_Collection"]["Time_Unit"] = "AD"
+                self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"] = str(_max)
+                self.noaa_data_sorted["Data_Collection"]["Earliest_Year"] = str(_min)
+            # Else, assume it's BP
+            else:
+                # Units don't exist, assume BP
+                self.noaa_data_sorted["Data_Collection"]["Time_Unit"] = "BP"
+                self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"] = str(_min)
+                self.noaa_data_sorted["Data_Collection"]["Earliest_Year"] = str(_max)
+        else:
+            # Units exist
+            if _unit.lower() in ["ad", "ce"]:
+                if _earliest > _recent:
+                    self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"] = str(_earliest)
+                    self.noaa_data_sorted["Data_Collection"]["Earliest_Year"] = str(_recent)
+            else:
+                if _recent > _earliest:
+                    self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"] = str(_recent)
+                    self.noaa_data_sorted["Data_Collection"]["Earliest_Year"] = str(_earliest)
+
         return
 
     @staticmethod
@@ -410,7 +451,10 @@ class LPD_NOAA(object):
                 if "author" in pub:
                     _str = pub["author"]
                     if " and " in _str:
-                        self.noaa_data_sorted["Publication"][idx]["author"] = _str.replace(" and ", ";")
+                        self.noaa_data_sorted["Publication"][idx]["author"] = _str.replace(" and ", "; ")
+                    if ";" in _str:
+                        self.noaa_data_sorted["Publication"][idx]["author"] = _str.replace(";", "; ")
+
         except Exception:
             pass
         return
@@ -702,7 +746,10 @@ class LPD_NOAA(object):
                         if isinstance(_author_src, str):
                             try:
                                 if " and " in _author_src:
-                                    _author = _author_src.replace(" and ", ";")
+                                    _author = _author_src.replace(" and ", "; ")
+                                elif ";" in _author_src:
+                                    # If there is a semi-colon, add a space after it, just in case it didn't have one
+                                    _author = _author_src.replace(";", "; ")
                                 break
                             except Exception as e:
                                 _author = ""
@@ -850,7 +897,8 @@ class LPD_NOAA(object):
     def __get_max_min_time_1(self, table):
         """
         Search for either Age or Year to calculate the max, min, and time unit for this table/file.
-        Prefernce: Look for Age first, and then Year second (if needed)
+        Preference: Look for Age first, and then Year second (if needed)
+
         :param dict table: Table data
         :return dict: Max, min, and time unit
         """
@@ -1058,6 +1106,7 @@ class LPD_NOAA(object):
                 return
 
             self.__get_max_min_time_1(self.noaa_data_sorted["Data"][idx]["paleo"])
+            self.__check_time_values()
 
             self.__write_top(filename)
             self.__write_generic('Contribution_Date')
@@ -1094,9 +1143,9 @@ class LPD_NOAA(object):
         self.__write_template_top()
         # We don't know what the full online resource path will be yet, so leave the base path only
         self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(self.project, self.current_yr, self.version, filename), top=True)
-        self.__write_k_v("Online_Resource_Description", " This file.  NOAA WDS Paleo formatted metadata and data for version 2.0.0 of this dataset.", indent=True)
+        self.__write_k_v("Online_Resource_Description", " This file.  NOAA WDS Paleo formatted metadata and data for version {} of this dataset.".format(self.version), indent=True)
         self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(self.project, self.current_yr, self.version, self.filename_lpd), top=True)
-        self.__write_k_v("Online_Resource_Description", " Linked Paleo Data (LiPD) formatted file containing the same metadata and data as this file, for version 2.0.0 of this dataset.", indent=True)
+        self.__write_k_v("Online_Resource_Description", " Linked Paleo Data (LiPD) formatted file containing the same metadata and data as this file, for version {} of this dataset.".format(self.version), indent=True)
         self.__write_k_v("Original_Source_URL", self.noaa_data_sorted["Top"]['Original_Source_URL'], top=True)
         self.noaa_txt.write("\n# Description/Documentation lines begin with #\n# Data lines have no #\n#")
         self.__write_k_v("Archive", self.noaa_data_sorted["Top"]['Archive'])
@@ -1145,6 +1194,10 @@ class LPD_NOAA(object):
             elif key in ["Author", "Authors"]:
                 # "d" has all publication data, so only pass through the d["Authors"] piece
                 val = get_authors_as_str(d[key])
+            elif key == "Collection_Name":
+                if not d[key]:
+                    # If there is not a collection name, then use the dsn so _something_ is there.
+                    val = self.dsn
             else:
                 val = d[key]
 
@@ -1508,4 +1561,3 @@ class LPD_NOAA(object):
             logger_lpd_noaa("_write_data_col_vals: IndexError: couldn't get length of columns")
 
         return
-

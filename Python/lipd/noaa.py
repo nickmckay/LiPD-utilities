@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 
 from .directory import create_tmp_dir
@@ -91,6 +92,10 @@ def lpd_to_noaa(D, project, version, path=""):
     d = D
     try:
         dsn = get_dsn(D)
+        # Remove all the characters that are not allowed here. Since we're making URLs, they have to be compliant.
+        dsn = re.sub(r'[^A-Za-z-.0-9]', '', dsn)
+        project = re.sub(r'[^A-Za-z-.0-9]', '', project)
+        version = re.sub(r'[^A-Za-z-.0-9]', '', version)
         # Create the conversion object, and start the conversion process
         _convert_obj = LPD_NOAA(D, dsn, project, version, path)
         _convert_obj.main()
