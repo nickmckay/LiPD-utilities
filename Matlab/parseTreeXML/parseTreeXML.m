@@ -7,7 +7,7 @@ pathToFiles = tempdir;
 end
 
 if nargin <1
-    [toParse,pathToFiles] = uigetfile('*.xml','Select the NOAA-ITRDB XML file you want to parse')
+    [toParse,pathToFiles] = uigetfile('*.xml','Select the NOAA-ITRDB XML file you want to parse');
 end
     
 if strncmp(toParse,'http',4)

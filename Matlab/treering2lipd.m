@@ -1,16 +1,46 @@
-function L = parseTreeXML(toParse,pathToFiles)
+function L = treering2lipd(toParse,varargin)
 
-%run toby's parseTreeXML
-if nargin == 1
-    out = parseTreeXML(toParse);
-elseif nargin ==0
-    out = parseTreeXML();
+if nargin<1
+    answer = input('Do you want to load a NOAA XML file (''x'') or a directory of rwl and/or crn files (''d'')?)');
+    if strncmpi(answer,'d',1)
+        toParse = uigetdir;
+    else
+        [filepath, dirpath] = uigetfile('.xml');
+        toParse = [dirpath filepath];
+    end 
+end
+
+
+%split apart information
+%if nargin <=1
+[pathstr, fname, ext] = fileparts(toParse); 
+%end
+
+
+if strcmpi(ext,'xml')
+    
+    %run toby's parseTreeXML
+    if nargin <=1
+        out = parseTreeXML(toParse);
+    else
+        out = parseTreeXML(toParse,pathToFiles);
+    end
+    
+elseif isempty(ext)
+    if nargin>2
+   % out = readRwlCrn(toParse,strjoin(varargin,','));
+    out = readRwlCrn(toParse,varargin{:});
+    else
+    out = readRwlCrn(toParse);
+    end
+    
 else
-    out = parseTreeXML(toParse,pathToFiles);
+    error('Only accepts .xml files and directories at present')
+    
+    
 end
 
 outnames = structFieldNames(out);
-
 
 if length(outnames)>1
     warning('This presently only translates the first object that came from parseTreeXML')
@@ -43,8 +73,10 @@ L.dataSetName = makeValidName(X.Name);
 %handle geography
 L.geo.latitude = X.lat;
 L.geo.longitude = X.lon;
+try
 L.geo.elevation = X.elev;
-
+catch DO
+end
 %make empty pub
 L.pub = cell(1,1);
 
@@ -104,12 +136,17 @@ for s = 1:length(sfields)
 
             MT.(thisName).values = M.Data(:,i);
         end
+        try
         MT.WDSPaleoUrl = [M.url];
+        catch DO
+        end
+          
         MT.paleoMeasurementTableName = this;
         MT.archiveType = 'tree';
         %assign into L
         L.paleoData{pn}.paleoMeasurementTable{1}= MT;
         L.paleoData{pn}.paleoName = measName;
+%        pn=pn+1;
     end
     
     
@@ -130,8 +167,10 @@ for s = 1:length(sfields)
 
         ST.(chronName).units = 'unitless';
         ST.(chronName).proxyObservationType = measName;
+        try
         ST.WDSPaleoUrl = [C.url];
-        
+            catch DO
+        end
         %assign into L
         if strcmp(lastChar,'a') | strcmp(lastChar,'r')
             if isfield(L,'paleoData')
@@ -168,8 +207,13 @@ for s = 1:length(sfields)
     
     
 end
+L.lipdVersion = 1.2;
+
+L = convertLiPD1_2to1_3(L);
 
 end
+
+
 
 
 

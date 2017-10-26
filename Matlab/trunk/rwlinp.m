@@ -171,7 +171,7 @@ elseif nargin==1; % expects this to be the input filename or patH+filename, but
     if isempty(path1);
         eval('path1 = cd;');
         pf1=fullfile(path1,pf1); % build path+filename
-        error(['Argument, ' pathstr ', should not include the path']);
+        %error(['Argument, ' pathstr ', should not include the path']);
     else
         if ~isdir(path1)
             error(['Could not find directory ' path1]);
