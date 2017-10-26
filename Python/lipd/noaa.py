@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 
 from .directory import create_tmp_dir
@@ -24,6 +25,21 @@ def noaa_prompt():
     logger_noaa.info("chose option: {}".format(mode))
 
     return mode
+
+
+def noaa_prompt_1():
+    """
+    For converting LiPD files to NOAA, we need a couple more pieces of information to create the WDS links
+
+    :return str _project: Project name
+    :return float _version: Version number
+    """
+    print("Enter the project information below. We'll use this to create the WDS URL")
+    print("What is the project name?")
+    _project = input(">")
+    print("What is the project version?")
+    _version = input(">")
+    return _project, _version
 
 
 def noaa_to_lpd(files):
@@ -65,7 +81,7 @@ def noaa_to_lpd(files):
     return
 
 
-def lpd_to_noaa(D, path=""):
+def lpd_to_noaa(D, project, version, path=""):
     """
     Convert a LiPD format to NOAA format
 
@@ -76,8 +92,12 @@ def lpd_to_noaa(D, path=""):
     d = D
     try:
         dsn = get_dsn(D)
+        # Remove all the characters that are not allowed here. Since we're making URLs, they have to be compliant.
+        dsn = re.sub(r'[^A-Za-z-.0-9]', '', dsn)
+        project = re.sub(r'[^A-Za-z-.0-9]', '', project)
+        version = re.sub(r'[^A-Za-z-.0-9]', '', version)
         # Create the conversion object, and start the conversion process
-        _convert_obj = LPD_NOAA(D, dsn, path)
+        _convert_obj = LPD_NOAA(D, dsn, project, version, path)
         _convert_obj.main()
         # get our new, modified master JSON from the conversion object
         d = _convert_obj.get_master()

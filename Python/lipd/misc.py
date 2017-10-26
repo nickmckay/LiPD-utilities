@@ -14,6 +14,7 @@ from .alternates import FILE_TYPE_MAP
 from .blanks import EMPTY
 from .directory import list_files
 from .loggers import create_logger
+from .regexes import re_sci_notation
 
 logger_misc = create_logger("misc")
 
@@ -101,6 +102,42 @@ def clean_doi(doi_string):
         logger_misc.warn("TypeError cleaning DOI: {}, {}".format(doi_string, e))
         m = []
     return m
+
+def decimal_precision(row):
+    """
+    Change the "precision" of values before writing to CSV. Each value is rounded to 3 numbers.
+
+    ex: 300 -> 300
+    ex: 300.123456 -> 300.123
+    ex: 3.123456e-25 - > 3.123e-25
+
+    :param tuple row: Row of numbers to process
+    :return list row: Processed row
+    """
+    # _row = []
+    try:
+        # Convert tuple to list for processing
+        row = list(row)
+        for idx, x in enumerate(row):
+            x = str(x)
+            # Is this a scientific notated float? Tear it apart with regex, round, and piece together again
+            m = re.match(re_sci_notation, x)
+            if m:
+                _x2 = round(float(m.group(2)), 3)
+                x = m.group(1) + str(_x2)[1:] + m.group(3)
+            # A normal float? round to 3 decimals as usual
+            else:
+                try:
+                    x = round(float(x), 3)
+                except (ValueError, TypeError):
+                    x = x
+
+            row[idx] = x
+        # Convert list back to tuple for csv writer
+        row = tuple(row)
+    except Exception as e:
+        print("Error: Unable to fix the precision of values. File size may be larger than normal, {}".format(e))
+    return row
 
 
 def fix_coordinate_decimal(d):

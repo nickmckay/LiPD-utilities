@@ -41,3 +41,7 @@ Python/README.txt
 
 Matlab/nameCon.mat
 .Rproj.user
+
+Python/debug.log
+
+*.ini

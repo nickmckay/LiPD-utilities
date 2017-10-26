@@ -3,14 +3,15 @@ from lipd.timeseries import extract, collapse, mode_ts, translate_expression, ge
 from lipd.doi_main import doi_main
 from lipd.csvs import get_csv_from_metadata
 from lipd.excel import excel_main
-from lipd.noaa import noaa_prompt, noaa_to_lpd, lpd_to_noaa
+from lipd.noaa import noaa_prompt, noaa_to_lpd, lpd_to_noaa, noaa_prompt_1
 from lipd.dataframes import *
 from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
 from lipd.loggers import create_logger, log_benchmark, create_benchmark
 from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields, print_filename
-from lipd.ensembles import create_ensemble, insert_ensemble
+from lipd.tables import addModel, addTable
 from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
+from lipd.json_viewer import viewLipd
 
 from time import clock
 import os
@@ -179,18 +180,19 @@ def noaa(D="", path=""):
     start = clock()
     # LiPD mode: Convert LiPD files to NOAA files
     if _mode == "1":
+        _project, _version = noaa_prompt_1()
         if not D:
             print("Error: LiPD data must be provided for LiPD -> NOAA conversions")
         else:
             if "paleoData" in D:
                 _d = copy.deepcopy(D)
-                D = lpd_to_noaa(_d, path)
+                D = lpd_to_noaa(_d, _project, _version, path)
             else:
                 # For each LiPD file in the LiPD Library
                 for dsn, dat in D.items():
                     _d = copy.deepcopy(dat)
                     # Process this data through the converter
-                    _d = lpd_to_noaa(_d, path)
+                    _d = lpd_to_noaa(_d, _project, _version, path)
                     # Overwrite the data in the LiPD object with our new data.
                     D[dsn] = _d
             # Write out the new LiPD files, since they now contain the new NOAA URL data
@@ -261,33 +263,34 @@ def validate(D, detailed=True):
     return
 
 
+
 # PUT
 
 
-def addEnsemble(D, dsn, ensemble):
-    """
-    Create ensemble entry and then add it to the specified LiPD dataset.
-
-    :param dict D: LiPD data
-    :param str dsn: Dataset name
-    :param list ensemble: Nested numpy array of ensemble column data.
-    :return dict D: LiPD data
-    """
-
-    # Check that the given filename exists in the library
-    if dsn in D:
-        meta = D[dsn]
-        # Create an ensemble dictionary entry
-        ens = create_ensemble(ensemble)
-        # If everything above worked, then there should be formatted ensemble data now.
-        if ens:
-            # Insert the formatted ensemble data into the master lipd library
-            meta = insert_ensemble(meta, ens)
-            # Set meta into lipd object
-            D[dsn] = meta
-    else:
-        print("Error: This dataset was not found in your LiPD data: {}".format(dsn))
-    return D
+# def addEnsemble(D, dsn, ensemble):
+#     """
+#     Create ensemble entry and then add it to the specified LiPD dataset.
+#
+#     :param dict D: LiPD data
+#     :param str dsn: Dataset name
+#     :param list ensemble: Nested numpy array of ensemble column data.
+#     :return dict D: LiPD data
+#     """
+#
+#     # Check that the given filename exists in the library
+#     if dsn in D:
+#         meta = D[dsn]
+#         # Create an ensemble dictionary entry
+#         ens = create_ensemble(ensemble)
+#         # If everything above worked, then there should be formatted ensemble data now.
+#         if ens:
+#             # Insert the formatted ensemble data into the master lipd library
+#             meta = insert_ensemble(meta, ens)
+#             # Set meta into lipd object
+#             D[dsn] = meta
+#     else:
+#         print("Error: This dataset was not found in your LiPD data: {}".format(dsn))
+#     return D
 
 
 # DATA FRAMES

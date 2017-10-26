@@ -7,7 +7,7 @@ from collections import OrderedDict
 from .loggers import create_logger
 from .inferred_data import get_inferred_data_table
 from .misc import cast_values_csvs, cast_int, get_missing_value_key, _replace_missing_values_table, \
-    rm_missing_values_table, is_ensemble
+    rm_missing_values_table, is_ensemble, decimal_precision
 
 logger_csvs = create_logger("csvs")
 
@@ -42,7 +42,7 @@ def _merge_csv_section(sections, pc):
     Add csv data to all paleo data tables
 
     :param dict sections: Metadata
-    :return dict: Modified metadata
+    :return dict sections: Metadata
     """
     logger_csvs.info("enter merge_csv_section")
 
@@ -57,6 +57,7 @@ def _merge_csv_section(sections, pc):
                 sections[_name]["model"] = _merge_csv_model(_section["model"], pc)
 
     except Exception as e:
+        print("Error: There was an error merging CSV data into the metadata ")
         logger_csvs.error("merge_csv_section: {}".format(e))
 
     logger_csvs.info("exit merge_csv_section")
@@ -68,7 +69,7 @@ def _merge_csv_model(models, pc):
     Add csv data to each column in chron model
 
     :param dict models: Metadata
-    :return dict: Modified metadata
+    :return dict models: Metadata
     """
     logger_csvs.info("enter merge_csv_model")
 
@@ -246,12 +247,16 @@ def write_csv_to_file(d):
                 with open(filename, 'w+') as f:
                     w = csv.writer(f)
                     for row in rows:
-                        w.writerow(row)
+                        row2 = decimal_precision(row)
+                        w.writerow(row2)
             except TypeError as e:
-                print("Error: CSV file not written, {}: Often caused by a data table that has two or more identical "
-                      "variables. Try parsing again after correcting the table.".format(filename))
+                print("Error: Unable to write values to CSV file, {}:\n"
+                      "(1) The data table may have 2 or more identical variables. Please correct the LiPD file manually\n"
+                      "(2) There may have been an error trying to prep the values for file write. The 'number' field in the data columns may be a 'string' instead of an 'integer' data type".format(filename))
+                print(e)
             except Exception as e:
-                print("Error: CSV file not written, {}: {}".format(filename, e))
+                print("Error: CSV file not written, {}, {}:\n"
+                      "The data table may have 2 or more identical variables. Please correct the LiPD file manually".format(filename, e))
     except AttributeError as e:
         logger_csvs.error("write_csv_to_file: Unable to write CSV File: {}".format(e, exc_info=True))
     logger_csvs.info("exit write_csv_to_file")
@@ -472,11 +477,11 @@ def _reorder_csv(d, filename=""):
                 _count = 0
                 # count up how many columns total, and how many placeholders to make in our list
                 for var, data in d.items():
-                    if isinstance(data["number"], (int, float)):
-                        _count += 1
-                    elif isinstance(data["number"], list):
+                    if isinstance(data["number"], list):
                         _curr_count = len(data["number"])
                         _count += _curr_count
+                    elif isinstance(data["number"], (int, float, str)):
+                        _count += 1
                 # make a list with X number of placeholders
                 _d2 = [None for i in range(0, _count)]
                 # Loop again and start combining all columns into one list of lists
@@ -486,23 +491,25 @@ def _reorder_csv(d, filename=""):
                         for idx, number in enumerate(data["number"]):
                             # we can't trust the number entries. sometimes they start at "number 1",
                             # which isn't true, because DEPTH is number 1. Use enumerate index instead.
-                            _insert_at = idx + 1
+                            _insert_at = int(idx) + 1
                             # Insert at one above the index. Grab values at exact index
                             _d2[_insert_at] = data["values"][idx-1]
 
                     # depth column: insert at (hopefully) index 0
                     else:
                         # we can trust to use the number entry as an index placement
-                        _insert_at = data["number"] - 1
+                        _insert_at = int(data["number"]) - 1
                         # insert at one below number, to compensate for 0-index
                         _d2[_insert_at] = data["values"]
         else:
             _count = len(d)
             _d2 = [None for i in range(0, _count)]
             for key, data in d.items():
-                _d2[data["number"]-1] = data["values"]
+                _insert_at = int(data["number"]) - 1
+                _d2[_insert_at] = data["values"]
 
     except Exception as e:
+        print("Error: Unable to write CSV: There was an error trying to prep the values for file write: {}".format(e))
         logger_csvs.error("reorder_csvs: Unable to write CSV file: {}, {}".format(filename, e))
     return _d2
 
