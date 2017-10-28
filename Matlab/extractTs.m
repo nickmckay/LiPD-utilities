@@ -190,6 +190,8 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
     TS(ts).paleoData_paleoNumber = paleoNumber;
     if strncmp(tableType,'measurement',11)
         TS(ts).paleoData_measurementTableNumber = tableNumber;
+        TS(ts).paleoData_tableType = 'measurement';
+
         %grab metadata from this measurement table
         pal = L.paleoData{paleoNumber}.measurementTable{tableNumber};
     elseif strncmp(tableType,'summary',7)
@@ -197,6 +199,8 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
         TS(ts).paleoData_modelNumber = modelNumber;
         %grab metadata from this summary table
         pal = L.paleoData{paleoNumber}.model{modelNumber}.summaryTable{tableNumber};
+        TS(ts).paleoData_tableType = 'summary';
+
     end
     
     

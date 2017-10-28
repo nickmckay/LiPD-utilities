@@ -63,7 +63,7 @@ function [x,s,yr]=crn2vec2(pf1)
 % The old code would cut off the last line if the first character in that
 % line was "0".  That is because isnumeric('0')  returns logical 0.
 % Needed to check that ~isempty(str2num(char_last)).  If true, than that
-% character is a number. 
+% character is a number.
 
 %--- PRELIMS
 
@@ -71,22 +71,45 @@ xa = repmat(NaN,10,1);  % initialize a 10 element NaN vector to be used later
 
 % -----GET THE  PATH AND FILE NAME OF INPUT FILE -- the .crn file
 
-% If no input args, screen-click to get .crn file; otherwise path\filename is input argument
-if nargin>1;
-    error('Number of input args must be 0 or 1');
-elseif nargin==1; % pf1 has been read as an input argument
-    % no action needed
-else;
-    [filename,pathname]=uigetfile('*','Input .crn file');
-    %[filename,pathname]=uigetfile('*.crn','Input .crn file');
-    pf1=[pathname filename];
-end;
+%NICK ADDED SOMETHING!!!!!
+dontskip=1;
+if nargin==1
+    if ischar(pf1)
+        dontskip=1;
+    else
+        dontskip=0;
+    end
+end
 
-%disp(pf1); % debug
 
-% --- READ INPUT FILE AS CELL OF STRINGS
-
-file = textread(pf1,'%s','delimiter','\n','whitespace','');
+if dontskip
+    % If no input args, screen-click to get .crn file; otherwise path\filename is input argument
+    if nargin>1;
+        error('Number of input args must be 0 or 1');
+    elseif nargin==1; % pf1 has been read as an input argument
+        % no action needed
+    else;
+        [filename,pathname]=uigetfile('*','Input .crn file');
+        %[filename,pathname]=uigetfile('*.crn','Input .crn file');
+        pf1=[pathname filename];
+    end;
+    
+    %disp(pf1); % debug
+    
+    % --- READ INPUT FILE AS CELL OF STRINGS
+    
+    file = textread(pf1,'%s','delimiter','\n','whitespace','');
+    
+    
+    
+    
+    
+    %NICK ADDED!!!
+    %bring it in as cell of strings!
+else
+    file = pf1;
+    
+end
 
 %-- Rev 5-11-04:   Handle ITRDB lines that end with carriage return
 % Delete lines that are all spaces
@@ -149,7 +172,7 @@ if any(L1); %  ~isempty(findstr(line1,headdummy));
     else;
         Lyear5=0;
     end;
-
+    
     if Lyear5==1;
         colyr1=6; % first col with year
         colyr2=10; % last cl with year
@@ -159,8 +182,8 @@ if any(L1); %  ~isempty(findstr(line1,headdummy));
     end;
     clear Htemp htemp L5a L5b ncheck1 ncheck2 ;
     % End Revised 2004-9-20
-
-
+    
+    
     % Get start year
     c1=file{1}; % first data line
     c2=file{2};
@@ -172,7 +195,7 @@ if any(L1); %  ~isempty(findstr(line1,headdummy));
         yrgo=yrgotemp-(10-length(j));
     end;
     clear yrgotemp c1 c2 j;
-
+    
     % Get end year
     c1=file{end}; % last data line
     c2=file{end-1}; % next to last
@@ -184,11 +207,11 @@ if any(L1); %  ~isempty(findstr(line1,headdummy));
         yrsp=yrsptemp+19-(length(j));
     end;
     clear c1 c2 yrsptemp j;
-
-
+    
+    
 elseif  ~any(isletter(line1(7:length(line1))));
     headtype=3;
-
+    
     % Find out if special case 5-char year.  If so, some values of col 6 will be '-', and all will be either
     % '-' or blank.  If this special case, set Lyear5==1, otherwise 0
     Htemp = char(file);
@@ -209,9 +232,9 @@ elseif  ~any(isletter(line1(7:length(line1))));
         end;
     else;
         Lyear5=0;
-
+        
     end;
-
+    
     if Lyear5==1;
         colyr1=6; % first col with year
         colyr2=10; % last cl with year
@@ -221,9 +244,9 @@ elseif  ~any(isletter(line1(7:length(line1))));
     end;
     clear Htemp htemp L5a L5b ncheck1 ncheck2 ;
     % End Revised 2004-9-20
-
-
-
+    
+    
+    
     % Get start year
     c1=file{1}; % first data line
     c2=file{2};
@@ -235,7 +258,7 @@ elseif  ~any(isletter(line1(7:length(line1))));
         yrgo=yrgotemp-(10-length(j));
     end;
     clear yrgotemp c1 c2 j;
-
+    
     % Get end year
     c1=file{end}; % last data line
     c2=file{end-1}; % next to last
@@ -247,11 +270,11 @@ elseif  ~any(isletter(line1(7:length(line1))));
         yrsp=yrsptemp+19-(length(j));
     end;
     clear c1 c2 yrsptemp j;
-
+    
 else;
     headtype=1;
     file(1:3)=[]; % strip first 3 lines
-
+    
     % Find out if special case 5-char year.  If so, some values of col 6 will be '-', and all will be either
     % '-' or blank.  If this special case, set Lyear5==1, otherwise 0
     Htemp = char(file);
@@ -272,9 +295,9 @@ else;
         end;
     else;
         Lyear5=0;
-
+        
     end;
-
+    
     if Lyear5==1;
         colyr1=6; % first col with year
         colyr2=10; % last cl with year
@@ -283,8 +306,8 @@ else;
         colyr2=10; % last cl with year
     end;
     clear Htemp htemp L5a L5b ncheck1 ncheck2 ;
-
-
+    
+    
     % Get start year
     c1=file{1}; % first data line
     c2=file{2};
@@ -296,11 +319,11 @@ else;
         yrgo=yrgotemp-(10-length(j));
     end;
     clear yrgotemp c1 c2 j;
-
+    
     % Get end year
     c1=file{end}; % last data line
     c2=file{end-1}; % next to last
-
+    
     % Rev4-12-04:
     % To handle a crn file that may NOT be 9990-padded on the last line.  In other words, say the last year of
     % data is 2000, and the last line is:
@@ -320,7 +343,7 @@ else;
     end;
     clear nfull nfinal ndrop;
     % End--  Rev4-12-04:
-
+    
     yrsptemp=str2double(c2(colyr1:10));
     j=findstr(c1,'9990');
     if isempty(j);
@@ -329,7 +352,7 @@ else;
         yrsp=yrsptemp+19-(length(j))-nadjust;
     end;
     clear c1 c2 yrsptemp j nadjust ;
-
+    
 end;
 
 yr = (yrgo:yrsp)'; % year vector for output
@@ -410,11 +433,11 @@ for n= 1:nlines; % Loop over lines of input
     irgo =irow(n,1);
     irsp= irow(n,2);
     c=file{n};  % get a line of data, as string
-
+    
     % Compute start and end positions for the data values and sample size
     ion1=igo1;  ioff1=isp1; ion2=igo2;  ioff2=isp2; nvals=10;
     x1 = xa; s1=xa;  nvals=10;
-
+    
     % Special case if first or last line of data -- may be incomplete decade
     if n==1;
         ion1(1:nskip)=[]; ioff1(1:nskip)=[]; ion2(1:nskip)=[]; ioff2(1:nskip)=[];
@@ -424,7 +447,7 @@ for n= 1:nlines; % Loop over lines of input
         ion1=ion1(1:nlast);  ioff1=ioff1(1:nlast); ion2=ion2(1:nlast); ioff2=ioff2(1:nlast);
         nvals=length(ion1);
     end
-
+    
     x1=xa(1:nvals);
     s1=xa(1:nvals);
     for m = 1:nvals;
