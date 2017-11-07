@@ -165,7 +165,10 @@ class LPD_NOAA(object):
         """
         _earliest = float(self.noaa_data_sorted["Data_Collection"]["Earliest_Year"])
         _recent = float(self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"])
-        _unit = self.noaa_data_sorted["Data_Collection"]["Time_Unit"]
+        try:
+            _unit = self.noaa_data_sorted["Data_Collection"]["Time_Unit"]
+        except Exception:
+            _unit = ""
 
         if not _unit:
             # If the max value is between 1900 - 2017 (current), then assume "AD"
