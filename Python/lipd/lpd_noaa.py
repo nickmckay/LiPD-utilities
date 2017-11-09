@@ -165,7 +165,10 @@ class LPD_NOAA(object):
         """
         _earliest = float(self.noaa_data_sorted["Data_Collection"]["Earliest_Year"])
         _recent = float(self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"])
-        _unit = self.noaa_data_sorted["Data_Collection"]["Time_Unit"]
+        try:
+            _unit = self.noaa_data_sorted["Data_Collection"]["Time_Unit"]
+        except Exception:
+            _unit = ""
 
         if not _unit:
             # If the max value is between 1900 - 2017 (current), then assume "AD"
@@ -189,8 +192,8 @@ class LPD_NOAA(object):
                     self.noaa_data_sorted["Data_Collection"]["Earliest_Year"] = str(_recent)
             else:
                 if _recent > _earliest:
-                    self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"] = str(_recent)
-                    self.noaa_data_sorted["Data_Collection"]["Earliest_Year"] = str(_earliest)
+                    self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"] = str(_earliest)
+                    self.noaa_data_sorted["Data_Collection"]["Earliest_Year"] = str(_recent)
 
         return
 
@@ -919,9 +922,9 @@ class LPD_NOAA(object):
             # year farthest in the past
             _max = max(vals)
             _min = min(vals)
-            if _min:
+            if _min or _min in [0, 0.0]:
                 self.noaa_data_sorted["Data_Collection"]["Earliest_Year"] = str(_min)
-            if _max:
+            if _max or _max in [0, 0.0]:
                 self.noaa_data_sorted["Data_Collection"]["Most_Recent_Year"] = str(_max)
             # AD or... yrs BP?
             self.noaa_data_sorted["Data_Collection"]["Time_Unit"] = units
