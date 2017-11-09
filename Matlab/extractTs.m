@@ -1,14 +1,14 @@
-function TS = extractTs(D,chron,whichTables)
+function TS = extractTs(D,whichTables,chron)
 
 
 mode = 'paleo';
-if nargin > 1
+if nargin > 2
     if chron
         mode = 'chron';
     end
 end
 
-if nargin <3
+if nargin == 1 
     whichTables = 'all';
 end
 
@@ -49,7 +49,7 @@ for d = 1:length(dsn)
     %Loop through paleoData objects
     for p = 1:length(L.paleoData)
         %Loop through paleoMeasurementTables
-        if strcmp(whichTables,'all') |  strncmpi(whichTables,'meas',4)
+        if strcmp(whichTables,'all') ||  strncmpi(whichTables,'meas',4)
             
             for pm = 1:length(L.paleoData{p}.measurementTable)
                 PM = L.paleoData{p}.measurementTable{pm};%grab this measurmentTable
@@ -68,12 +68,15 @@ for d = 1:length(dsn)
             end %loop through paleo measurement tables
         end
         
-        if strcmp(whichTables,'all') |  strncmpi(whichTables,'summ',4)
+        
+        %get ensemble and/or summary table
+        if strcmp(whichTables,'all') |  strncmpi(whichTables,'summ',4) |  strncmpi(whichTables,'ens',3)
             %now loop through paleomodels
             if isfield(L.paleoData{p},'model')
                 for pmod = 1:length(L.paleoData{p}.model) %loop through paleomodels
-                    if isfield(L.paleoData{p}.model{pmod},'summaryTable')
-                        for sss = 1:length(L.paleoData{p}.model{pmod}.summaryTable)
+                    
+                    if isfield(L.paleoData{p}.model{pmod},'summaryTable') & (strncmpi(whichTables,'summ',4) | strcmp(whichTables,'all')) %if summary table
+                        for sss = 1:length(L.paleoData{p}.model{pmod}.summaryTable) 
                             %grab all the data for this row
                             PM = L.paleoData{p}.model{pmod}.summaryTable{sss};%grab this summaryTable
                             miniTS = populateTsRow(PM,L,mode,'summaryTable',p,pmod,sss);
@@ -84,10 +87,29 @@ for d = 1:length(dsn)
                             else
                                 TS = appendStruct(TS,miniTS);
                             end
-                            
-                            
                         end%loop through summary table
                     end%if summary table
+                    
+                    
+                    if isfield(L.paleoData{p}.model{pmod},'ensembleTable') & (strncmpi(whichTables,'ens',3) | strcmp(whichTables,'all')) %if ensemble table
+                        for sss = 1:length(L.paleoData{p}.model{pmod}.ensembleTable)
+                            %grab all the data for this row
+                            PM = L.paleoData{p}.model{pmod}.ensembleTable{sss};%grab this ensembleTable
+                            miniTS = populateTsRow(PM,L,mode,'ensembleTable',p,pmod,sss);
+                            
+                            %append to currentTS
+                            if ~exist('TS')
+                                TS = miniTS;
+                            else
+                                TS = appendStruct(TS,miniTS);
+                            end
+                            
+                            
+                        end%loop through ensemble table
+                    end%if ensemble table
+                    
+                    
+                    
                 end%loop through paleomodels
             end%if there are paleomodels
         end
@@ -100,6 +122,21 @@ for d = 1:length(dsn)
     
     
 end
+
+%calculate temporal resolution metadata...
+
+dat = cellfun(@(x) nanmedian(abs(diff(x))), {TS.year},'UniformOutput',0);
+[TS.hasResolution_hasMedianValue] = dat{:};
+dat = cellfun(@(x) nanmean(abs(diff(x))), {TS.year},'UniformOutput',0);
+[TS.hasResolution_hasMeanValue] = dat{:};
+dat = cellfun(@(x) nanmax(abs(diff(x))), {TS.year},'UniformOutput',0);
+[TS.hasResolution_hasMaxValue] = dat{:};
+dat = cellfun(@(x) nanmin(abs(diff(x))), {TS.year},'UniformOutput',0);
+[TS.hasResolution_hasMinValue] = dat{:};
+
+
+
+
 delete(h)
 TS = structord(TS);%alphabetize
 end
@@ -188,20 +225,30 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
     %%Paleo data table level
     %assign = paleo and measurementTable Numbers
     TS(ts).paleoData_paleoNumber = paleoNumber;
-    if strncmp(tableType,'measurement',11)
-        TS(ts).paleoData_measurementTableNumber = tableNumber;
-        TS(ts).paleoData_tableType = 'measurement';
+    TS(ts).paleoData_tableNumber = tableNumber;
 
+    if strncmp(tableType,'measurement',11)
+        TS(ts).paleoData_tableType = 'measurement';
         %grab metadata from this measurement table
         pal = L.paleoData{paleoNumber}.measurementTable{tableNumber};
     elseif strncmp(tableType,'summary',7)
-        TS(ts).paleoData_summaryTableNumber = tableNumber;
         TS(ts).paleoData_modelNumber = modelNumber;
         %grab metadata from this summary table
         pal = L.paleoData{paleoNumber}.model{modelNumber}.summaryTable{tableNumber};
         TS(ts).paleoData_tableType = 'summary';
-
+        if isfield(L.paleoData{paleoNumber}.model{modelNumber},'methods')
+        
+        
+        end
+    elseif strncmp(tableType,'ens',3)
+        TS(ts).paleoData_modelNumber = modelNumber;
+        %grab metadata from this ensemble table
+        pal = L.paleoData{paleoNumber}.model{modelNumber}.ensembleTable{tableNumber};
+        TS(ts).paleoData_tableType = 'ensemble';
     end
+    
+    %if it's a model table (ensemble or summary) then get model metadata.
+    
     
     
     %excludePaleo = {''};
@@ -291,7 +338,7 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
     %%END PALEODATA!! Woohoo!
     
     % Raw chronData
-    TS(ts).raw = L; %Now just store the whole structure in there.
+    %TS(ts).raw = L; %Now just store the whole structure in there.
     
     if isfield(L,'chronData')
         TS(ts).chronData = L.chronData;

@@ -13,6 +13,7 @@ cd(pathToFiles);
 rwld = dir('*.rwl');
 crnd =  dir('*.crn');
 
+
 if nargin>1
 opt = varargin2struct(varargin{:});
 else
@@ -100,13 +101,15 @@ if length(crnd) >0
         clear x yr s X yrX nms Tvalid
         switch fileType
             case 'crn'
-                [x,s,yr]=crn2vec2(fileName);
+                crnCell=getCrns(fileName);
                 T.(siteID).(recName).chronology.filename=fileName;
-                %T.(siteID).(recName).chronology.url=url;
-                T.(siteID).(recName).chronology.ID=recName;
-                T.(siteID).(recName).chronology.Data=x;
-                T.(siteID).(recName).chronology.Time=yr;
-                T.(siteID).(recName).chronology.nSamp=s;
+                T.(siteID).(recName).chronology.crnCell=getCrns(fileName);
+% 
+%                 %T.(siteID).(recName).chronology.url=url;
+%                 T.(siteID).(recName).chronology.ID=recName;
+%                 T.(siteID).(recName).chronology.Data=x;
+%                 T.(siteID).(recName).chronology.Time=yr;
+%                 T.(siteID).(recName).chronology.nSamp=s;
                 
             case 'rwl'
                 [X,yrX,nms,Tvalid]=rwl2tsm(fileName);

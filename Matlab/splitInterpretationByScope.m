@@ -9,7 +9,7 @@ for i = 1:length(TS)
     intnumcell = uniqueCell(cellfun(@(x) x(regexp(x,'interpretation[0-9]','end')), fnames,'UniformOutput',0));
     nInterp = max(cellfun(@str2num, intnumcell(2:end)));
     
-    if nInterp>1%there are some!
+    if nInterp>=1%there are some!
         
         scopeType =cell(1,2);
         for n = 1:nInterp

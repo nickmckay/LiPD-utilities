@@ -30,7 +30,10 @@ unzip(lpdname,lpdtempdir);
 
 %find the directory in the folder
 dd = dir(lpdtempdir);
-headerName = dd(3).name;
+
+%find the directories in here?
+isdirec = find(cellfun(@(x) x==1, {dd.isdir}'));
+headerName = dd(max(isdirec)).name;
 
 %headerName  = 'bag'; %easier, huh? Changed in 1.3
 

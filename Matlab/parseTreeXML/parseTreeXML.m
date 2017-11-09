@@ -1,7 +1,7 @@
 
 function T = parseTreeXML(toParse,pathToFiles)
 
-
+curdir = cd;
 if nargin <2
 pathToFiles = tempdir;
 end
@@ -45,6 +45,8 @@ qRelatedURLs=find(strcmp(cellstr(char(a.Children.Name)),'Related_URL'));
 
 % loop through "related urls" tag
 count=1;
+cd(pathToFiles)
+
 for i =1:length(qRelatedURLs);    
     qURLi=find(strcmp(cellstr(char(a.Children(qRelatedURLs(i)).Children.Name)),'URL'));
     
@@ -63,24 +65,28 @@ for i =1:length(qRelatedURLs);
 
         %clear to make sure no leftovers from last loop
         clear x yr s X yrX nms Tvalid
-        switch fileType
+       switch fileType
             case 'crn'
-                [x,s,yr]=crn2vec2([pathToFiles fileName]);
+                crnCell=getCrns(fileName);
                 T.(siteID).(recName).chronology.filename=fileName;
-                T.(siteID).(recName).chronology.url=url;
-                T.(siteID).(recName).chronology.ID=recName;
-                T.(siteID).(recName).chronology.Data=x;
-                T.(siteID).(recName).chronology.Time=yr;
-                T.(siteID).(recName).chronology.nSamp=s;                
+                T.(siteID).(recName).chronology.crnCell=getCrns(fileName);
+% 
+%                 %T.(siteID).(recName).chronology.url=url;
+%                 T.(siteID).(recName).chronology.ID=recName;
+%                 T.(siteID).(recName).chronology.Data=x;
+%                 T.(siteID).(recName).chronology.Time=yr;
+%                 T.(siteID).(recName).chronology.nSamp=s;
                 
             case 'rwl'
-                [X,yrX,nms,Tvalid]=rwl2tsm([pathToFiles fileName]);
+                [X,yrX,nms,Tvalid]=rwl2tsm(fileName);
                 T.(siteID).(recName).measurements.filename=fileName;
-                T.(siteID).(recName).measurements.url=url;
+                %T.(siteID).(recName).measurements.url=url;
                 T.(siteID).(recName).measurements.ID=nms;
                 T.(siteID).(recName).measurements.Data=X;
                 T.(siteID).(recName).measurements.Time=yrX;
-                T.(siteID).(recName).measurements.Tvalid=Tvalid;       
+                T.(siteID).(recName).measurements.Tvalid=Tvalid;
+                
+                
             case 'txt'
                 T.(siteID).(recName).stats=fileread([pathToFiles fileName]);
 
@@ -90,4 +96,6 @@ for i =1:length(qRelatedURLs);
     end
         
 end
+
+cd(curdir);
 

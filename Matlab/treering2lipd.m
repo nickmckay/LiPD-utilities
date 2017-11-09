@@ -7,17 +7,17 @@ if nargin<1
     else
         [filepath, dirpath] = uigetfile('.xml');
         toParse = [dirpath filepath];
-    end 
+    end
 end
 
 
 %split apart information
 %if nargin <=1
-[pathstr, fname, ext] = fileparts(toParse); 
+[pathstr, fname, ext] = fileparts(toParse);
 %end
 
 
-if strcmpi(ext,'xml')
+if strcmpi(ext,'.xml')
     
     %run toby's parseTreeXML
     if nargin <=1
@@ -28,10 +28,10 @@ if strcmpi(ext,'xml')
     
 elseif isempty(ext)
     if nargin>2
-   % out = readRwlCrn(toParse,strjoin(varargin,','));
-    out = readRwlCrn(toParse,varargin{:});
+        % out = readRwlCrn(toParse,strjoin(varargin,','));
+        out = readRwlCrn(toParse,varargin{:});
     else
-    out = readRwlCrn(toParse);
+        out = readRwlCrn(toParse);
     end
     
 else
@@ -74,7 +74,7 @@ L.dataSetName = makeValidName(X.Name);
 L.geo.latitude = X.lat;
 L.geo.longitude = X.lon;
 try
-L.geo.elevation = X.elev;
+    L.geo.elevation = X.elev;
 catch DO
 end
 %make empty pub
@@ -121,7 +121,7 @@ for s = 1:length(sfields)
         MT.year.units = 'AD';
         MT.year.variableName = 'year';
         MT.year.variableType = 'inferred';
-
+        
         
         
         %now measurements
@@ -133,77 +133,100 @@ for s = 1:length(sfields)
             MT.(thisName).description = measDesc;
             MT.(thisName).proxyObservationType = measPOT;
             MT.(thisName).variableType = 'measured';
-
+            
             MT.(thisName).values = M.Data(:,i);
         end
         try
-        MT.WDSPaleoUrl = [M.url];
+            MT.WDSPaleoUrl = [M.url];
         catch DO
         end
-          
+        
         MT.paleoMeasurementTableName = this;
         MT.archiveType = 'tree';
         %assign into L
         L.paleoData{pn}.paleoMeasurementTable{1}= MT;
         L.paleoData{pn}.paleoName = measName;
-%        pn=pn+1;
+        %        pn=pn+1;
     end
     
     
     if isfield(X.(this),'chronology')
-        clear ST
-        %put chronology in a model summary table
         C = X.(this).chronology;
-        %chronology.
-        %make sure same time axis
-        %year
-        ST.year.values = M.Time;
-        ST.year.units = 'AD';
-        ST.year.variableName = 'year';
-        chronName = [measName '_chronology'];
-        ST.(chronName).values = C.Data;
-        ST.(chronName).variableName = chronName;
-        ST.(chronName).variableType = 'inferred';
-
-        ST.(chronName).units = 'unitless';
-        ST.(chronName).proxyObservationType = measName;
-        try
-        ST.WDSPaleoUrl = [C.url];
+        clear ST
+        for ncrn = 1:length(C.crnCell)%loop through chronologies
+            
+            %put chronology in a model summary table
+            %chronology.
+            %make sure same time axis
+            %year
+            
+            thisCrn = C.crnCell{ncrn};
+            
+            ST.year.values = thisCrn.yr;
+            ST.year.units = 'AD';
+            ST.year.variableName = 'year';
+            
+            chronTableName = [measName '_chronology'];
+            
+            if isfield(thisCrn,'chronType')
+                chronName = [thisCrn.chronType];
+                ST.(chronName).chronType = chronName;
+            else
+                chronName=makeUniqueStrings(chronTableName,structFieldNames(ST));
+            end
+            
+            ST.(chronName).values = thisCrn.x;
+            ST.(chronName).variableName = chronName;
+            ST.(chronName).variableType = 'inferred';
+            ST.(chronName).units = 'unitless';
+            ST.(chronName).proxyObservationType = measName;
+            
+            
+            try
+                ST.WDSPaleoUrl = [C.url];
             catch DO
-        end
-        %assign into L
-        if strcmp(lastChar,'a') | strcmp(lastChar,'r')
-            if isfield(L,'paleoData')
-            %then add it as a model on TRW
-            if strcmp(L.paleoData{1}.paleoName,'totalRingWidth')
-                %how many models?
-                if isfield(L.paleoData{1},'paleoModel')
-                    wm = length(L.paleoData{1}.paleoModel)+1;
+            end
+            
+            %add ncores if it's the first one
+            if ncrn==1
+                ST.nCores.values = thisCrn.s;
+                ST.nCores.units = 'count';
+                ST.nCores.variableName = 'nCores';
+                ST.nCores.description = 'Number of samples/cores used in the chronology at each year';
+            end
+            
+            %assign into L
+            if strcmp(lastChar,'a') | strcmp(lastChar,'r')
+                if isfield(L,'paleoData')
+                    %then add it as a model on TRW
+                    if strcmp(L.paleoData{1}.paleoName,'totalRingWidth')
+                        %how many models?
+                        if isfield(L.paleoData{1},'paleoModel')
+                            wm = length(L.paleoData{1}.paleoModel)+1;
+                        else
+                            wm = 1;
+                        end
+                        L.paleoData{1}.paleoModel{wm}.summaryTable= ST;
+                    else
+                        L.paleoData{pn}.paleoModel{1}.summaryTable= ST;
+                        L.paleoData{pn}.paleoName = measName;
+                        pn=pn+1;
+                    end
                 else
-                    wm = 1;
+                    L.paleoData{pn}.paleoModel{1}.summaryTable= ST;
+                    L.paleoData{pn}.paleoName = measName;
+                    pn=pn+1;
                 end
-                L.paleoData{1}.paleoModel{wm}.summaryTable= ST;
             else
                 L.paleoData{pn}.paleoModel{1}.summaryTable= ST;
                 L.paleoData{pn}.paleoName = measName;
-                pn=pn+1;
+                
             end
-            else
-                L.paleoData{pn}.paleoModel{1}.summaryTable= ST;
-                L.paleoData{pn}.paleoName = measName;
-                pn=pn+1;               
-            end
-        else
-            L.paleoData{pn}.paleoModel{1}.summaryTable= ST;
-                L.paleoData{pn}.paleoName = measName;
-                pn=pn+1;        
             
         end
-        
-        
     else
-        pn=pn+1;
     end
+    pn=pn+1;
     
     
 end

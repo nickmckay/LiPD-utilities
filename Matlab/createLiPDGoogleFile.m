@@ -1,4 +1,4 @@
-function L=createLiPDGoogleFile(L,overwrite)
+%function L=createLiPDGoogleFile(L,overwrite)
 %create lipd-web (google spreadsheet) files, L=single lipd hierarchical
 %object
 % % % deal with authorization on google
@@ -26,6 +26,8 @@ end
 if nargin<2
     overwrite=0;
 end
+
+%%
 %check to see if L already has a google file
 if isfield(L,'googleSpreadSheetKey')
     if overwrite
@@ -39,9 +41,9 @@ if isfield(L,'googleSpreadSheetKey')
         
         
         for p=1:length(L.paleoData)
-            for pm=1:length(L.paleoData{p}.paleoMeasurementTable)
+            for pm=1:length(L.paleoData{p}.measurementTable)
                 
-                L.paleoData{p}.paleoMeasurementTable{pm}=rmfieldsoft(L.paleoData{p}.paleoMeasurementTable{pm},{'googWorkSheetKey','googleWorkSheetKey'});
+                L.paleoData{p}.measurementTable{pm}=rmfieldsoft(L.paleoData{p}.measurementTable{pm},{'googWorkSheetKey','googleWorkSheetKey'});
                 
             end
         end
@@ -50,9 +52,9 @@ if isfield(L,'googleSpreadSheetKey')
         
         if isfield(L,'chronData')
             for p=1:length(L.chronData)
-                for pm=1:length(L.chronData{p}.chronMeasurementTable)
+                for pm=1:length(L.chronData{p}.measurementTable)
                     
-                    L.chronData{p}.chronMeasurementTable{pm}=rmfieldsoft(L.chronData{p}.chronMeasurementTable{pm},{'googWorkSheetKey','googleWorkSheetKey'});
+                    L.chronData{p}.measurementTable{pm}=rmfieldsoft(L.chronData{p}.measurementTable{pm},{'googWorkSheetKey','googleWorkSheetKey'});
                     
                 end
             end
@@ -74,18 +76,27 @@ L.googleSpreadSheetKey=spreadSheetNew.spreadsheetKey;
 %pdNames=fieldnames(L.paleoData);
 %for pd=1:length(pdNames)
 dataNames={'paleo','chron'};
-tableNames={'MeasurementTable','SummaryTable','EnsembleTable'};
+tableNames={'measurementTable','summaryTable','ensembleTable'};
 
 for d=1:length(dataNames)
     if isfield(L,[dataNames{d} 'Data'])
         for pd = 1:length(L.([dataNames{d} 'Data']))
             for t=1:length(tableNames)
-                if isfield(L.([dataNames{d} 'Data']){pd},[dataNames{d} tableNames{t}])
+                %check data... 
+                if isfield(L.([dataNames{d} 'Data']){pd},tableNames{t})
                     %go through Tables
-                    for pm=1:length(L.([dataNames{d} 'Data']){pd}.([dataNames{d} tableNames{t}]))
-                        L.([dataNames{d} 'Data']){pd}.([dataNames{d} tableNames{t}]){pm}=createGoogleTable( L.([dataNames{d} 'Data']){pd}.([dataNames{d} tableNames{t}]){pm},L,pd,pm,dataNames{d},tableNames{t});
+                    for pm=1:length(L.([dataNames{d} 'Data']){pd}.(tableNames{t}))
+                        L.([dataNames{d} 'Data']){pd}.(tableNames{t}){pm}=createGoogleTable( L.([dataNames{d} 'Data']){pd}.(tableNames{t}){pm},L,pd,pm,dataNames{d},tableNames{t});
                     end
                 end
+                %check models...
+                
+%                 if isfield(L.([dataNames{d} 'Data']){pd},tableNames{t})
+%                     %go through Tables
+%                     for pm=1:length(L.([dataNames{d} 'Data']){pd}.(tableNames{t}))
+%                         L.([dataNames{d} 'Data']){pd}.(tableNames{t}){pm}=createGoogleTable( L.([dataNames{d} 'Data']){pd}.(tableNames{t}){pm},L,pd,pm,dataNames{d},tableNames{t});
+%                     end
+%                 end
             end
         end
     end
@@ -326,16 +337,12 @@ metadataCell4Goog=stringifyCells(metadataCell);
 
 %Remove FORBIDDEN characters from metadataCell4Goog
 %these include:  ' 
-toRemove = {''''};
-metadataCell4Goog=strRemoveCell(metadataCell4Goog,toRemove);
-
+toRemove = {'''','<','>','&'};
+toReplace = {'','less than ','greater than ',' and '};
+metadataCell4Goog=strReplaceCell(metadataCell4Goog,toRemove,toReplace);
 
 %now write this into the first worksheet
 changeWorksheetNameAndSize(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,nrow,ncol,'metadata',aTokenSpreadsheet);
-
-
-
-
 
 for m=1:ncol
     editWorksheetColumn(spreadSheetNew.spreadsheetKey,wsNames(1).worksheetKey,m,1:nrow,metadataCell4Goog(:,m),aTokenSpreadsheet);
