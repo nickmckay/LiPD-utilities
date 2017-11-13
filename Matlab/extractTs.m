@@ -1,18 +1,13 @@
-function TS = extractTs(D,whichTables,chron)
+function TS = extractTs(D,whichTables,mode)
 
 
-mode = 'paleo';
-if nargin > 2
-    if chron
-        mode = 'chron';
-    end
+if nargin <= 2
+    mode = 'paleo';
 end
 
 if nargin == 1 
     whichTables = 'all';
 end
-
-
 
 breakFlag=0;
 dsn = structFieldNames(D);
@@ -38,11 +33,24 @@ for d = 1:length(dsn)
         error([dsn{d} ' has no dataSetName. This is forbidden.'])
     end
     
-    % dataSetName not provided. Exit(1), we can't continue without it.
-    if ~isfield(L,'paleoData')
-        error([dsn{d} ' has no paleoData. This is forbidden.'])
+    if strcmp(mode,'chron')
+        %artificially switch chron and paleodata (hackers gonna hack)
+        newL = L;
+        newL.paleoData = L.chronData;
+        newL.chronData = L.paleoData;
     end
     
+    
+    % dataSetName not provided. Exit(1), we can't continue without it.
+    if ~isfield(L,'paleoData')
+        switch mode
+            case 'paleo'
+                error([dsn{d} ' has no paleoData. This is forbidden.'])
+            case 'chron'
+                %maybe this isn't what I want - skip if it's missing?
+                error([dsn{d} ' has no chronData. You cant extract in chronMode if theres no chronData.'])
+        end
+    end
     
     
     
@@ -55,7 +63,7 @@ for d = 1:length(dsn)
                 PM = L.paleoData{p}.measurementTable{pm};%grab this measurmentTable
                 
                 %grab all the data for this row
-                miniTS = populateTsRow(PM,L,mode,'measurementTable',p,NaN,pm);
+                miniTS = populateTsRow(PM,L,'measurementTable',p,NaN,pm);
                 
                 %append to currentTS
                 if ~exist('TS')
@@ -79,7 +87,7 @@ for d = 1:length(dsn)
                         for sss = 1:length(L.paleoData{p}.model{pmod}.summaryTable) 
                             %grab all the data for this row
                             PM = L.paleoData{p}.model{pmod}.summaryTable{sss};%grab this summaryTable
-                            miniTS = populateTsRow(PM,L,mode,'summaryTable',p,pmod,sss);
+                            miniTS = populateTsRow(PM,L,'summaryTable',p,pmod,sss);
                             
                             %append to currentTS
                             if ~exist('TS')
@@ -95,7 +103,7 @@ for d = 1:length(dsn)
                         for sss = 1:length(L.paleoData{p}.model{pmod}.ensembleTable)
                             %grab all the data for this row
                             PM = L.paleoData{p}.model{pmod}.ensembleTable{sss};%grab this ensembleTable
-                            miniTS = populateTsRow(PM,L,mode,'ensembleTable',p,pmod,sss);
+                            miniTS = populateTsRow(PM,L,'ensembleTable',p,pmod,sss);
                             
                             %append to currentTS
                             if ~exist('TS')
@@ -124,24 +132,49 @@ for d = 1:length(dsn)
 end
 
 %calculate temporal resolution metadata...
-
-dat = cellfun(@(x) nanmedian(abs(diff(x))), {TS.year},'UniformOutput',0);
-[TS.hasResolution_hasMedianValue] = dat{:};
-dat = cellfun(@(x) nanmean(abs(diff(x))), {TS.year},'UniformOutput',0);
-[TS.hasResolution_hasMeanValue] = dat{:};
-dat = cellfun(@(x) nanmax(abs(diff(x))), {TS.year},'UniformOutput',0);
-[TS.hasResolution_hasMaxValue] = dat{:};
-dat = cellfun(@(x) nanmin(abs(diff(x))), {TS.year},'UniformOutput',0);
-[TS.hasResolution_hasMinValue] = dat{:};
-
-
-
+if isfield(TS,'year')
+    dat = cellfun(@(x) nanmedian(abs(diff(x))), {TS.year},'UniformOutput',0);
+    [TS.hasResolution_hasMedianValue] = dat{:};
+    dat = cellfun(@(x) nanmean(abs(diff(x))), {TS.year},'UniformOutput',0);
+    [TS.hasResolution_hasMeanValue] = dat{:};
+    dat = cellfun(@(x) nanmax(abs(diff(x))), {TS.year},'UniformOutput',0);
+    [TS.hasResolution_hasMaxValue] = dat{:};
+    dat = cellfun(@(x) nanmin(abs(diff(x))), {TS.year},'UniformOutput',0);
+    [TS.hasResolution_hasMinValue] = dat{:};
+    [TS.hasResolution_units] = TS.yearUnits;
+elseif isfield(TS,'age')
+    dat = cellfun(@(x) nanmedian(abs(diff(x))), {TS.age},'UniformOutput',0);
+    [TS.hasResolution_hasMedianValue] = dat{:};
+    dat = cellfun(@(x) nanmean(abs(diff(x))), {TS.age},'UniformOutput',0);
+    [TS.hasResolution_hasMeanValue] = dat{:};
+    dat = cellfun(@(x) nanmax(abs(diff(x))), {TS.age},'UniformOutput',0);
+    [TS.hasResolution_hasMaxValue] = dat{:};
+    dat = cellfun(@(x) nanmin(abs(diff(x))), {TS.age},'UniformOutput',0);
+    [TS.hasResolution_hasMinValue] = dat{:};
+    [TS.hasResolution_units] = TS.ageUnits;
+end
 
 delete(h)
+
+if strcmp(mode,'chron')
+   %replace all the 'paleo' names with 'chron'
+    allnames = fieldnames(TS);
+    wp = find(cellfun(@(x) length(x)==1 , regexp(allnames,'paleo_')));
+    for ww = 1:length(wp)
+        newname = regexprep(allnames{wp(ww)},'paleo_','chron_');
+        [TS.(newname)] = TS.(allnames{wp(ww)});
+    end
+    TS = rmfield(TS,allnames(wp));
+    
+    if isfield(TS,'chronData')
+        [TS.paleoData] = TS.chronData;
+    end
+end
+
 TS = structord(TS);%alphabetize
 end
 
-function TS=populateTsRow(PM,L,mode,tableType,paleoNumber,modelNumber,tableNumber)
+function TS=populateTsRow(PM,L,tableType,paleoNumber,modelNumber,tableNumber)
 
 ts = 0;
 % Special columns need to
@@ -236,9 +269,20 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
         %grab metadata from this summary table
         pal = L.paleoData{paleoNumber}.model{modelNumber}.summaryTable{tableNumber};
         TS(ts).paleoData_tableType = 'summary';
-        if isfield(L.paleoData{paleoNumber}.model{modelNumber},'methods')
-        
-        
+        if isfield(L.paleoData{paleoNumber}.model{modelNumber},'method')
+            %populate method metadata ...
+            met = L.paleoData{paleoNumber}.model{modelNumber}.method;
+            mtfn = fieldnames(met);
+            for mmm = 1:length(mtfn)
+                thisvar = met.(mtfn{mmm});
+                if isstruct(thisvar)
+                    error('model method fields cannot be structures')
+                end
+                if iscell(thisvar)
+                    error('model method fields cannot be cells')
+                end
+                TS(ts).(['method_' mtfn{mmm}]) = thisvar;
+            end
         end
     elseif strncmp(tableType,'ens',3)
         TS(ts).paleoData_modelNumber = modelNumber;
@@ -301,10 +345,7 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
     %loop through all of these.
     for hi = 1:length(hierCellNames) % this handles numbered instances (like interpretation) at the second level...
         thisHierData = coldata.(hierCellNames{hi});
-        if all(cellfun(@isstruct,thisHierData))
-            
-            
-            
+        if all(cellfun(@isstruct,thisHierData))    
             for hii = 1:length(thisHierData)
                 thdNames = fieldnames(thisHierData{hii});
                 %thdNames = thdNames(~structfun(@iscell, thisHierData{hii}) & ~structfun(@isstruct, thisHierData{hii}));
@@ -320,8 +361,6 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
         end %cell check if statement
     end %end hi loop
     
-    
-    
     %now special columns
     specCols = specialColumns(find(ismember(specialColumns,structFieldNames(PM))));
     for sc = 1:length(specCols)
@@ -330,7 +369,6 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
             TS(ts).([specCols{sc} 'Units']) = PM.(specCols{sc}).units;
         else
             TS(ts).([specCols{sc} 'Units']) = 'missing!';
-            
         end
         TS(ts).([specCols{sc}]) = PM.(specCols{sc}).values;
     end

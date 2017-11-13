@@ -5,6 +5,11 @@ function Dnew=collapseTs(TS,yearTS)
 %yearTS is an optional flag to tripped if your TS includes entries for
 %year/age/etc
 
+
+%%% TO DO 
+%1. Add chron mode 
+%2. handle model tables and methods...
+
 if nargin<2
     yearTS=1;
 end
@@ -46,9 +51,7 @@ for i=1:length(udsn)
                 Dnew.(makeValidName(udsn{i})).chronData=T.raw.chronData;
             end
         end
-        
-        
-        
+               
         %now create the base level index
         b=setdiff(b,yai);
         
@@ -73,8 +76,7 @@ for i=1:length(udsn)
                 end
             end
         end
-        
-        
+          
         %pub
         clear pubNum %so that we don't get a bajillion dataPubs
         if f==1
@@ -100,8 +102,7 @@ for i=1:length(udsn)
                 %if it's empty
                 %write it.
                 Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
-                    T.(fT{p(pin)});
-                
+                    T.(fT{p(pin)}); 
             end
         end
         
@@ -132,7 +133,6 @@ for i=1:length(udsn)
                 %if it's empty
                 %write it.
                 Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
-                
             end
         end
         
@@ -169,6 +169,10 @@ for i=1:length(udsn)
             %assume its 1
             pnum = 1;
         end
+
+        if isfield(T,'paleoData_tableNumber')
+            mnum = T.paleoData_tableNumber;
+        else
         if isfield(T,'paleoData_paleoMeasurementTableNumber') & isfield(T,'paleoData_measurementTableNumber')
             if ischar(T.paleoData_paleoMeasurementTableNumber)
                 T.paleoData_paleoMeasurementTableNumber = str2num(T.paleoData_paleoMeasurementTableNumber);
@@ -180,10 +184,7 @@ for i=1:length(udsn)
             mnum2 = T.paleoData_measurementTableNumber;
             
             mnum = max([mnum1 mnum2]);
-            T.paleoData_measurementTableNumber = mnum;
-            T = rmfield(T,'paleoData_paleoMeasurementTableNumber');
-            
-            
+            T.paleoData_measurementTableNumber = mnum;           
         elseif isfield(T,'paleoData_paleoMeasurementTableNumber')
             
             if ischar(T.paleoData_paleoMeasurementTableNumber)
@@ -202,6 +203,10 @@ for i=1:length(udsn)
             %assume its 1
             mnum = 1;
         end
+        
+        end
+        T = rmfieldsoft(T,{'paleoData_paleoMeasurementTableNumber','paleoData_measurementTableNumber'});
+    end
         
         
         
