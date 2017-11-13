@@ -191,7 +191,7 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
     
     %%%BASE LEVEL
     excludeBase = {'@context'};
-    TS(ts).mode = mode;
+%    TS(ts).mode = mode;
     
     baseGrab = fieldnames(L);
     
@@ -310,7 +310,7 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
         display('uh oh')
     end
     %grab data and metadata from this column
-    excludeColumn = {'number', 'tableName'};
+    excludeColumn = {'number', 'tableName','paleoNumber','chronNumber','paleoDataTableName','measurementTableNumber','measurementTableName','paleoMeasurementTableNumber'};
     colFields = fieldnames(coldata);
     colGrab = find(~structfun(@isstruct,coldata));
     colFields = setdiff(colFields(colGrab),excludeColumn);

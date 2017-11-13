@@ -6,9 +6,10 @@ function Dnew=collapseTs(TS,yearTS)
 %year/age/etc
 
 
-%%% TO DO 
-%1. Add chron mode 
+%%% TO DO
+%1. Add chron mode
 %2. handle model tables and methods...
+%3. Don't add paleo, table, etc. numbers in explicitly
 
 if nargin<2
     yearTS=1;
@@ -51,7 +52,7 @@ for i=1:length(udsn)
                 Dnew.(makeValidName(udsn{i})).chronData=T.raw.chronData;
             end
         end
-               
+        
         %now create the base level index
         b=setdiff(b,yai);
         
@@ -76,7 +77,7 @@ for i=1:length(udsn)
                 end
             end
         end
-          
+        
         %pub
         clear pubNum %so that we don't get a bajillion dataPubs
         if f==1
@@ -102,7 +103,7 @@ for i=1:length(udsn)
                 %if it's empty
                 %write it.
                 Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
-                    T.(fT{p(pin)}); 
+                    T.(fT{p(pin)});
             end
         end
         
@@ -169,51 +170,50 @@ for i=1:length(udsn)
             %assume its 1
             pnum = 1;
         end
-
+        
         if isfield(T,'paleoData_tableNumber')
             mnum = T.paleoData_tableNumber;
         else
-        if isfield(T,'paleoData_paleoMeasurementTableNumber') & isfield(T,'paleoData_measurementTableNumber')
-            if ischar(T.paleoData_paleoMeasurementTableNumber)
-                T.paleoData_paleoMeasurementTableNumber = str2num(T.paleoData_paleoMeasurementTableNumber);
+            if isfield(T,'paleoData_paleoMeasurementTableNumber') & isfield(T,'paleoData_measurementTableNumber')
+                if ischar(T.paleoData_paleoMeasurementTableNumber)
+                    T.paleoData_paleoMeasurementTableNumber = str2num(T.paleoData_paleoMeasurementTableNumber);
+                end
+                mnum1 = T.paleoData_paleoMeasurementTableNumber;
+                if ischar(T.paleoData_measurementTableNumber)
+                    T.paleoData_measurementTableNumber = str2num(T.paleoData_measurementTableNumber);
+                end
+                mnum2 = T.paleoData_measurementTableNumber;
+                
+                mnum = max([mnum1 mnum2]);
+                T.paleoData_measurementTableNumber = mnum;
+            elseif isfield(T,'paleoData_paleoMeasurementTableNumber')
+                
+                if ischar(T.paleoData_paleoMeasurementTableNumber)
+                    T.paleoData_paleoMeasurementTableNumber = str2num(T.paleoData_paleoMeasurementTableNumber);
+                end
+                mnum = T.paleoData_paleoMeasurementTableNumber;
+                T.paleoData_measurementTableNumber = mnum;
+                T = rmfield(T,'paleoData_paleoMeasurementTableNumber');
+            elseif isfield(T,'paleoData_measurementTableNumber')
+                
+                if ischar(T.paleoData_measurementTableNumber)
+                    T.paleoData_measurementTableNumber = str2num(T.paleoData_measurementTableNumber);
+                end
+                mnum = T.paleoData_measurementTableNumber;
+            else
+                %assume its 1
+                mnum = 1;
             end
-            mnum1 = T.paleoData_paleoMeasurementTableNumber;
-            if ischar(T.paleoData_measurementTableNumber)
-                T.paleoData_measurementTableNumber = str2num(T.paleoData_measurementTableNumber);
-            end
-            mnum2 = T.paleoData_measurementTableNumber;
             
-            mnum = max([mnum1 mnum2]);
-            T.paleoData_measurementTableNumber = mnum;           
-        elseif isfield(T,'paleoData_paleoMeasurementTableNumber')
-            
-            if ischar(T.paleoData_paleoMeasurementTableNumber)
-                T.paleoData_paleoMeasurementTableNumber = str2num(T.paleoData_paleoMeasurementTableNumber);
-            end
-            mnum = T.paleoData_paleoMeasurementTableNumber;
-            T.paleoData_measurementTableNumber = mnum;
-            T = rmfield(T,'paleoData_paleoMeasurementTableNumber');
-        elseif isfield(T,'paleoData_measurementTableNumber')
-            
-            if ischar(T.paleoData_measurementTableNumber)
-                T.paleoData_measurementTableNumber = str2num(T.paleoData_measurementTableNumber);
-            end
-            mnum = T.paleoData_measurementTableNumber;
-        else
-            %assume its 1
-            mnum = 1;
-        end
-        
         end
         T = rmfieldsoft(T,{'paleoData_paleoMeasurementTableNumber','paleoData_measurementTableNumber'});
-    end
+        
         
         
         
         %which variables should be at the measurement table level?
-        amt = {'paleoDataTableName','paleoMeasurementTableName',...
-            'number','paleoNumber',...
-            'measurementTableNumber','paleoDataMD5',...
+        amt = {'paleoDataTableName','tableName',...
+            'paleoDataMD5',...
             'googleWorkSheetKey'};
         
         for am =1:length(amt)
@@ -243,12 +243,15 @@ for i=1:length(udsn)
         
         
         %add in the variable
+        dontAdd = {'paleoData_paleoMeasurementTableNumber','paleoData_measurementTableNumber',...
+            'paleoData_number','paleoData_paleoNumber','paleoData_tableNumber','paleoData_modelNumber',...
+            'paleoData_tableType'};
         for pdin=1:length(pd)
             pdVarName=fT{pd(pdin)};
-            if ~strcmp(pdVarName,'paleoData_paleoMeasurementTableNumber');
-            %add in parameter
-            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
-                T.(fT{pd(pdin)});
+            if ~any(strcmp(pdVarName,dontAdd));
+                %add in parameter
+                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
+                    T.(fT{pd(pdin)});
             end
         end
         
@@ -345,6 +348,18 @@ for i=1:length(udsn)
                 
                 %add in parameter
                 Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).proxySystemModel.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                    T.(fT{cai(cain)});
+            end
+        end
+        
+        %check for hasResolution
+         if any(strncmp('hasResolution_',fT,14))
+            cai=find(strncmp('hasResolution_',fT,14));
+            for cain=1:length(cai)
+                caiVarName=fT{cai(cain)};
+                
+                %add in parameter
+                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).hasResolution.(caiVarName(strfind(caiVarName,'_')+1:end))=...
                     T.(fT{cai(cain)});
             end
         end
