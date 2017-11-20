@@ -1,4 +1,4 @@
-%function L=createLiPDGoogleFile(L,overwrite)
+function L=createLiPDGoogleFile(L,overwrite)
 %create lipd-web (google spreadsheet) files, L=single lipd hierarchical
 %object
 % % % deal with authorization on google
@@ -7,20 +7,20 @@ checkGoogleTokens;
 %convert author cells to bibtex string
 L = authorCell2BibtexAuthorString(L);
 
-%if no verions, force to 1.0
-if ~isfield(L,'lipdVersion')
-    L.lipdVersion = 1.0;
-end
-
-if L.lipdVersion == 1.0
-    display('updating LiPD file to current version')
-    L = convertLiPD1_0to1_1(L);
-end
-
-if L.lipdVersion == 1.1
-    display('updating LiPD file to current version')
-    L = convertLiPD1_1to1_2(L);
-end
+% %if no verions, force to 1.0
+% if ~isfield(L,'lipdVersion')
+%     L.lipdVersion = 1.0;
+% end
+% 
+% if L.lipdVersion == 1.0
+%     display('updating LiPD file to current version')
+%     L = convertLiPD1_0to1_1(L);
+% end
+% 
+% if L.lipdVersion == 1.1
+%     display('updating LiPD file to current version')
+%     L = convertLiPD1_1to1_2(L);
+% end
 
 %overwrite will delete the old file
 if nargin<2
@@ -31,8 +31,8 @@ end
 %check to see if L already has a google file
 if isfield(L,'googleSpreadSheetKey')
     if overwrite
-        deleteSpreadsheet(L.googleSpreadSheetKey,aTokenDocs);
-        display('deleted old google spreadsheet');
+        %deleteSpreadsheet(L.googleSpreadSheetKey,aTokenDocs);
+        display('deleted old reference to google spreadsheet');
         L=rmfield(L,'googleSpreadSheetKey');
         if isfield(L,'googleMetadataWorksheet')
             L=rmfield(L,'googleMetadataWorksheet');
@@ -112,7 +112,7 @@ L.googleMetadataWorksheet=wsNames(1).worksheetKey;
 %edit that first sheet to become the metadatasheet
 
 %extract timeseries
-TS=extractTs(L,1);
+TS=extractTs(L);
 
 
 %and also these variables
@@ -257,7 +257,8 @@ hasChron = 0;
 %Chron metadatdata
 if isfield(L,'chronData')
     
-    CTS = flattenChronMeasurementTable(L);
+    %CTS = flattenChronMeasurementTable(L);
+    CTS = extractTs(L,'all','chron');
     
     %remove all varaibles that follow this prefix
     prefixTR = {'pub','geo','funding','paleoData','google'};

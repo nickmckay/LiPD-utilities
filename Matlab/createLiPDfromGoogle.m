@@ -121,6 +121,7 @@ if ~isempty(aa)
     dum=repmat({GTS(aa).paleoData_units},length(GTS),1);
     [GTS.ageUnits]=dum{:};
 end
+
 dd=find(strcmpi('depth',{GTS.paleoData_variableName}'));
 if ~isempty(dd)
     dum=repmat({GTS(dd).paleoData_values},length(GTS),1);

@@ -31,7 +31,7 @@ if ~isfield(L,'googleSpreadSheetKey')
 end
 
 %make a ts from the lipd file, that we will update
-LTS=renameTS(extractTs(L,1),0,1,0);%added 0,1,0
+LTS=renameTS(extractTs(L),0,1,0);%added 0,1,0
 
 %make a google version of the TS file
 %metadata first

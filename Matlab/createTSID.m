@@ -4,6 +4,19 @@ function TSid=createTSID(variableName,dataSetName,spreadsheetKey,worksheetKey,al
 %in one session. Leaving checkWeb empty allows for smart choosing of when
 %to download (once an hour)
 %altName proposes a TSid, rather than generating randomly
+
+if nargin == 0
+        %generate new random TSID
+        stringHex = '01234567879abcdef';
+        TSid = ['MAT' stringHex(ceil(rand(1, 10)*length(stringHex)))];
+       
+else
+
+
+
+
+
+
 load LiPDUtilitiesPreferences
 if nargin<6
    tsidPath=githubPath;
@@ -46,7 +59,7 @@ else
     while 1
         %generate new random TSID
         stringHex = '01234567879abcdef';
-        TSid = ['LPD' stringHex(ceil(rand(1, 8)*length(stringHex)))];
+        TSid = ['MAT' stringHex(ceil(rand(1, 8)*length(stringHex)))];
         %make sure it doesn't exist
         if ~any(strcmp(TSid,tsidCell(:,1)))
             break
@@ -66,4 +79,5 @@ lastSync=now;
 %creat local copy
 save tsidCell.mat tsidCell lastSync
 cd(curdir);
+end
 

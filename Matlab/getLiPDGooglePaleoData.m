@@ -36,9 +36,38 @@ for ts=1:length(GTS)
         if ischar(v)
             v=cellstr(v);
         end
+      
+        %convert blanks to NaNs
+        if iscell(v)
+        v(cellfun(@isempty,v))={NaN};
+        else
+        v(isempty(v))=NaN; 
+        end
+        
+        if ~exist('nObs')
+            nObs = length(v);
+        end
+        
+        
+        %deal with records that are too short
+        if length(v) < nObs
+            if iscell(v)
+                v = [v ; repmat({NaN},nObs-length(v),1)];
+            else
+               v = [v ; nan(nObs-length(v),1)] ;
+            end
+        end
+               
         GTS(ts).paleoData_values=v;
-        nObs = length(v);
+        
+        
+        
     end
+    
+    
+    
+    
+    
 end
 
 

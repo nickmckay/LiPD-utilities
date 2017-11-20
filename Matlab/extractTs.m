@@ -5,7 +5,7 @@ if nargin <= 2
     mode = 'paleo';
 end
 
-if nargin == 1 
+if nargin == 1
     whichTables = 'all';
 end
 
@@ -84,7 +84,7 @@ for d = 1:length(dsn)
                 for pmod = 1:length(L.paleoData{p}.model) %loop through paleomodels
                     
                     if isfield(L.paleoData{p}.model{pmod},'summaryTable') & (strncmpi(whichTables,'summ',4) | strcmp(whichTables,'all')) %if summary table
-                        for sss = 1:length(L.paleoData{p}.model{pmod}.summaryTable) 
+                        for sss = 1:length(L.paleoData{p}.model{pmod}.summaryTable)
                             %grab all the data for this row
                             PM = L.paleoData{p}.model{pmod}.summaryTable{sss};%grab this summaryTable
                             miniTS = populateTsRow(PM,L,'summaryTable',p,pmod,sss);
@@ -133,31 +133,40 @@ end
 
 %calculate temporal resolution metadata...
 if isfield(TS,'year')
-    dat = cellfun(@(x) nanmedian(abs(diff(x))), {TS.year},'UniformOutput',0);
-    [TS.hasResolution_hasMedianValue] = dat{:};
-    dat = cellfun(@(x) nanmean(abs(diff(x))), {TS.year},'UniformOutput',0);
-    [TS.hasResolution_hasMeanValue] = dat{:};
-    dat = cellfun(@(x) nanmax(abs(diff(x))), {TS.year},'UniformOutput',0);
-    [TS.hasResolution_hasMaxValue] = dat{:};
-    dat = cellfun(@(x) nanmin(abs(diff(x))), {TS.year},'UniformOutput',0);
-    [TS.hasResolution_hasMinValue] = dat{:};
-    [TS.hasResolution_units] = TS.yearUnits;
+    if ~any(cellfun(@iscell,{TS.year}))
+        dat = cellfun(@(x) nanmedian(abs(diff(x))), {TS.year},'UniformOutput',0);
+        [TS.hasResolution_hasMedianValue] = dat{:};
+        dat = cellfun(@(x) nanmean(abs(diff(x))), {TS.year},'UniformOutput',0);
+        [TS.hasResolution_hasMeanValue] = dat{:};
+        dat = cellfun(@(x) nanmax(abs(diff(x))), {TS.year},'UniformOutput',0);
+        [TS.hasResolution_hasMaxValue] = dat{:};
+        dat = cellfun(@(x) nanmin(abs(diff(x))), {TS.year},'UniformOutput',0);
+        [TS.hasResolution_hasMinValue] = dat{:};
+        [TS.hasResolution_units] = TS.yearUnits;
+    else
+        warning('Some of your year columns are cells, so I cant calculate resolution')
+    end
 elseif isfield(TS,'age')
-    dat = cellfun(@(x) nanmedian(abs(diff(x))), {TS.age},'UniformOutput',0);
-    [TS.hasResolution_hasMedianValue] = dat{:};
-    dat = cellfun(@(x) nanmean(abs(diff(x))), {TS.age},'UniformOutput',0);
-    [TS.hasResolution_hasMeanValue] = dat{:};
-    dat = cellfun(@(x) nanmax(abs(diff(x))), {TS.age},'UniformOutput',0);
-    [TS.hasResolution_hasMaxValue] = dat{:};
-    dat = cellfun(@(x) nanmin(abs(diff(x))), {TS.age},'UniformOutput',0);
-    [TS.hasResolution_hasMinValue] = dat{:};
-    [TS.hasResolution_units] = TS.ageUnits;
+    if ~any(cellfun(@iscell,{TS.age}))
+        
+        dat = cellfun(@(x) nanmedian(abs(diff(x))), {TS.age},'UniformOutput',0);
+        [TS.hasResolution_hasMedianValue] = dat{:};
+        dat = cellfun(@(x) nanmean(abs(diff(x))), {TS.age},'UniformOutput',0);
+        [TS.hasResolution_hasMeanValue] = dat{:};
+        dat = cellfun(@(x) nanmax(abs(diff(x))), {TS.age},'UniformOutput',0);
+        [TS.hasResolution_hasMaxValue] = dat{:};
+        dat = cellfun(@(x) nanmin(abs(diff(x))), {TS.age},'UniformOutput',0);
+        [TS.hasResolution_hasMinValue] = dat{:};
+        [TS.hasResolution_units] = TS.ageUnits;
+    else
+        warning('Some of your year columns are cells, so I cant calculate resolution')
+    end
 end
 
 delete(h)
 
 if strcmp(mode,'chron')
-   %replace all the 'paleo' names with 'chron'
+    %replace all the 'paleo' names with 'chron'
     allnames = fieldnames(TS);
     wp = find(cellfun(@(x) length(x)==1 , regexp(allnames,'paleo_')));
     for ww = 1:length(wp)
@@ -191,7 +200,7 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
     
     %%%BASE LEVEL
     excludeBase = {'@context'};
-%    TS(ts).mode = mode;
+    %    TS(ts).mode = mode;
     
     baseGrab = fieldnames(L);
     
@@ -259,7 +268,7 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
     %assign = paleo and measurementTable Numbers
     TS(ts).paleoData_paleoNumber = paleoNumber;
     TS(ts).paleoData_tableNumber = tableNumber;
-
+    
     if strncmp(tableType,'measurement',11)
         TS(ts).paleoData_tableType = 'measurement';
         %grab metadata from this measurement table
@@ -345,7 +354,7 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
     %loop through all of these.
     for hi = 1:length(hierCellNames) % this handles numbered instances (like interpretation) at the second level...
         thisHierData = coldata.(hierCellNames{hi});
-        if all(cellfun(@isstruct,thisHierData))    
+        if all(cellfun(@isstruct,thisHierData))
             for hii = 1:length(thisHierData)
                 thdNames = fieldnames(thisHierData{hii});
                 %thdNames = thdNames(~structfun(@iscell, thisHierData{hii}) & ~structfun(@isstruct, thisHierData{hii}));

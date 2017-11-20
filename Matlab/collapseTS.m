@@ -9,7 +9,6 @@ function Dnew=collapseTs(TS,yearTS)
 %%% TO DO
 %1. Add chron mode
 %2. handle model tables and methods...
-%3. Don't add paleo, table, etc. numbers in explicitly
 
 if nargin<2
     yearTS=1;
