@@ -101,6 +101,8 @@ def lpd_to_noaa(D, project, version, path=""):
         _convert_obj.main()
         # get our new, modified master JSON from the conversion object
         d = _convert_obj.get_master()
+        noaas = _convert_obj.get_noaa_texts()
+        __write_noaas(noaas, path)
         # remove any root level urls that are deprecated
         d = __rm_wdc_url(d)
     except Exception as e:
@@ -122,3 +124,19 @@ def __rm_wdc_url(d):
     if "WDSPaleoUrl" in d:
         del d["WDSPaleoUrl"]
     return d
+
+
+def __write_noaas(dat, path):
+    """
+    Use the filename - text data pairs to write the data as NOAA text files
+
+    :param dict dat: NOAA data to be written
+    :return none:
+    """
+    for filename, text in dat.items():
+        try:
+            with open(os.path.join(path, filename), "w+") as f:
+                f.write(text)
+        except Exception as e:
+            print("write_noaas: There was a problem writing the NOAA text file: {}: {}".format(filename, e))
+    return

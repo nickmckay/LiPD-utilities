@@ -360,29 +360,33 @@ def tsToDf(tso):
 # ANALYSIS - TIME SERIES
 
 
-def extractTs(d, chron=False):
+def extractTs(d, whichtables="meas", mode="paleo"):
     """
     Create a time series using LiPD data (uses paleoData by default)
 
-    | Example : paleoData
+    | Example : (default) paleoData and meas tables
     | 1. D = lipd.readLipd()
     | 2. ts = lipd.extractTs(D)
 
-    | Example : chronData
+    | Example : chronData and all tables
     | 1. D = lipd.readLipd()
-    | 2. ts = lipd.extractTs(D, chron=True)
+    | 2. ts = lipd.extractTs(D, "all", "chron")
 
     :param dict d: Metadata
-    :param bool chron: Create a chronData time series
+    :param str whichtables: "all", "summ", "meas", "ens" - The tables that you would like in the timeseries
+    :param str mode: "paleo" or "chron" mode
     :return list l: Time series
     """
+    # instead of storing each raw dataset per tso, store it once in the global scope. saves memory
+    global ts_raw
     _l = []
     start = clock()
+    ts_raw = d
     try:
         if not d:
             print("Error: LiPD data not provided. Pass LiPD data into the function.")
         else:
-            print(mode_ts("extract", b=chron))
+            print(mode_ts("extract", mode))
             if "paleoData" in d:
                 # One dataset: Process directly on file, don't loop
                 try:
@@ -392,7 +396,7 @@ def extractTs(d, chron=False):
                     # Copy, so we don't affect the original data
                     _v = copy.deepcopy(d)
                     # Start extract...
-                    _l = (extract(_v, chron))
+                    _l = (extract(_v, whichtables, mode))
                 except Exception as e:
                     print("Error: Unable to extractTs for dataset: {}: {}".format(_dsn, e))
                     logger_start.debug("extractTs: Exception: {}, {}".format(_dsn, e))
@@ -406,7 +410,7 @@ def extractTs(d, chron=False):
                         # Copy, so we don't affect the original data
                         _v = copy.deepcopy(v)
                         # Start extract...
-                        _l += (extract(_v, chron))
+                        _l += (extract(_v, whichtables, mode))
                     except Exception as e:
                         print("Error: Unable to extractTs for dataset: {}: {}".format(k, e))
                         logger_start.debug("extractTs: Exception: {}".format(e))
@@ -431,6 +435,7 @@ def collapseTs(ts=None):
     :param list ts: Time series
     :return dict: Metadata
     """
+    global ts_raw
     _d = {}
     if not ts:
         print("Error: Time series data not provided. Pass time series into the function.")
