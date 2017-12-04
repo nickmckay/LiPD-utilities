@@ -3,14 +3,14 @@ import tempfile
 import shutil
 import ntpath
 import time
-import tkinter
-from tkinter import filedialog
+import sys
 
+import subprocess
 from .loggers import create_logger
 
 
 logger_directory = create_logger('directory')
-
+_site_pkgs = ""
 
 def _ask_how_many():
     """
@@ -37,21 +37,45 @@ def _ask_how_many():
     return batch
 
 
+def _go_to_package():
+    global _site_pkgs
+    if not _site_pkgs:
+        print("Store new site pkg path")
+        _site_pkgs = os.getcwd()
+    else:
+        print("Use existing site pkg path")
+        os.chdir(_site_pkgs)
+    return
+
 def browse_dialog_dir():
     """
     Open up a GUI browse dialog window and let to user pick a target directory.
     :return str: Target directory path
     """
+    _go_to_package()
     logger_directory.info("enter browse_dialog")
-    root = tkinter.Tk()
-    root.withdraw()
-    root.update()
-    path = tkinter.filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~'), title='Please select a directory')
-    logger_directory.info("chosen path: {}".format(path))
-    root.destroy()
-    root.quit()
+    _path_bytes = subprocess.check_output(['python', 'gui_dir_browse.py'])
+    _path = _fix_path_bytes(_path_bytes, file=False)
+    if len(_path) >= 1:
+        _path = _path[0]
+    else:
+        _path = ""
+    logger_directory.info("chosen path: {}".format(_path))
     logger_directory.info("exit browse_dialog")
-    return path
+    return _path
+
+
+def _fix_path_bytes(_path_bytes, file=True):
+    _path = str(_path_bytes.decode("utf-8"))
+    _path = _path.replace("(", "").replace(")", "").replace("'", "").replace('"', "")
+    _path = _path.split(",")
+    for idx,i in enumerate(_path):
+        _path[idx] = i.replace("\n", "").strip()
+    if file:
+        _new_path = [i for i in _path if i.endswith(".lpd")]
+    else:
+        _new_path = [i for i in _path if os.path.isdir(i)]
+    return _new_path
 
 
 def browse_dialog_file():
@@ -67,14 +91,13 @@ def browse_dialog_file():
     _files = []
     _path = ""
     try:
-        root = tkinter.Tk()
-        root.withdraw()
-        root.update()
-        _path = tkinter.filedialog.askopenfilenames(parent=root, initialdir=os.path.expanduser('~'), title='Please select a file')
+        _go_to_package()
+        _path_bytes = subprocess.check_output(['python', 'gui_file_browse.py'])
+        _path = _fix_path_bytes(_path_bytes)
         _files = [i for i in _path]
         _path = os.path.dirname(_path[0])
         logger_directory.info("chosen path: {}, chosen file: {}".format(_path, _files))
-        root.destroy()
+
     except IndexError:
         logger_directory.warn("directory: browse_dialog_file: IndexError: no file chosen")
     except Exception as e:

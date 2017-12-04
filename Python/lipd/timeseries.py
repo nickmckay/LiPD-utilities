@@ -404,10 +404,11 @@ def _extract_climate(d, tmp_tso):
 # COLLAPSE
 
 
-def collapse(l):
+def collapse(l, raw):
     """
     LiPD Version 1.3
     Main function to initiate time series to LiPD conversion
+
     :param list l: Time series
     :return dict _master: LiPD data, sorted by dataset name
     """
@@ -430,9 +431,12 @@ def collapse(l):
                 logger_ts.info("collapsing: {}".format(dsn))
                 print("collapsing: {}".format(dsn))
                 _master, _current = _collapse_root(_master, _current, dsn, _pc)
-                _master[dsn]["paleoData"] = _current["paleoData"]
-                if "chronData" in _current:
-                    _master[dsn]["chronData"] = _current["chronData"]
+                try:
+                    _master[dsn]["paleoData"] = raw[dsn]["paleoData"]
+                    if "chronData" in raw[dsn]:
+                        _master[dsn]["chronData"] = raw[dsn]["chronData"]
+                except KeyError as e:
+                    print("collapse: Could not collapse an object the dataset: {}, {}".format(dsn, e))
 
             # Collapse pc, calibration, and interpretation
             _master = _collapse_pc(_master, _current, dsn, _pc)
@@ -448,6 +452,7 @@ def collapse(l):
 def _get_current_names(current, dsn, pc):
     """
     Get the table name and variable name from the given time series entry
+
     :param dict current: Time series entry
     :param str pc: paleoData or chronData
     :return str _table_name:
@@ -468,6 +473,7 @@ def _get_current_names(current, dsn, pc):
 def _collapse_root(master, current, dsn, pc):
     """
     Collapse the root items of the current time series entry
+
     :param dict master: LiPD data (so far)
     :param dict current: Current time series entry
     :param str dsn: Dataset name
@@ -596,6 +602,7 @@ def _collapse_author(s):
 def _collapse_pc(master, current, dsn, pc):
     """
     Collapse the paleo or chron for the current time series entry
+
     :param dict master: LiPD data (so far)
     :param dict current: Current time series entry
     :param str dsn: Dataset name
@@ -610,7 +617,8 @@ def _collapse_pc(master, current, dsn, pc):
         _m = re.match(re_sheet_w_number, _table_name)
 
         # Is this a summary table or a measurement table?
-        _ms = "measurementTable" if "modelNumber" not in current else "model"
+        _switch = {"meas": "measurementTable", "summ": "summaryTable", "ens": "ensembleTable"}
+        _ms = _switch[current["tableType"]]
 
         # This is a measurement table. Put it in the correct part of the structure
         # master[datasetname][chronData][chron0][measurementTable][chron0measurement0]
@@ -630,7 +638,7 @@ def _collapse_pc(master, current, dsn, pc):
 
         # This is a summary table. Put it in the correct part of the structure
         # master[datasetname][chronData][chron0][model][chron0model0][summaryTable][chron0model0summary0]
-        elif _ms == "model":
+        elif _ms in ["ensembleTable", "summaryTable"]:
             # Collapse the keys in the table root if a table does not yet exist
             if _table_name not in master[dsn][pc][_m.group(1)][_ms][_m.group(1) + _m.group(2)]["summaryTable"]:
                 _tmp_table = _collapse_table_root(current, dsn, pc)

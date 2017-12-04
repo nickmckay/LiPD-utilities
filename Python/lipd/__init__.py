@@ -443,7 +443,7 @@ def collapseTs(ts=None):
         # Send time series list through to be collapsed.
         try:
             print(mode_ts("collapse", ts=ts))
-            _d = collapse(ts)
+            _d = collapse(ts, ts_raw)
             _d = rm_empty_fields(_d)
             print("Created LiPD data: {} entries".format(len(_d)))
 
