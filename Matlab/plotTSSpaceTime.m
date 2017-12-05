@@ -37,6 +37,9 @@ allnan = find(cellfun(@(x) all(isnan(x)),values));
 good = setdiff(1:length(TSall),allnan);
 TS=TSall(good);
 
+%extract only 
+
+
 notCell = find(~cellfun(@iscell,{TS.year}) & ~cellfun(@isempty,{TS.year}));
 if length(notCell)>1
 TS=TS(notCell);
@@ -69,7 +72,7 @@ yearMin(yearMin > 2000) = 2000;
 yearMax(yearMax < 000) = 000;
 
 
-vers='0.4';
+vers='0.6';
 
 p_lon = nan(length(TS),1);
 p_lat=p_lon;

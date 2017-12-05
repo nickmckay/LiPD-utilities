@@ -64,7 +64,8 @@ LiPDStruct = writeLiPDChronData1_3(LiPDStruct,goodOutName,1);
 
 
 %%%%%%Remove unneeded fields
-torem = {'paleoMD5','chronMeasMD5','chronEnsMD5','chronModelTableMD5','chronMD5','warnings'};
+torem = {'paleoMD5','chronMeasMD5','chronEnsMD5','chronModelTableMD5','chronMD5','warnings',...
+    'metadataMD5'};
 
 LiPDStruct = rmfieldsoft(LiPDStruct,torem);
 
@@ -89,8 +90,6 @@ if isunix
     rmdir([outdir goodDirName],'s');
 else
     error('write functionality is not yet supported on windows')
-    
-    
 end
 
 

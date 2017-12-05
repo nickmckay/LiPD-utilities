@@ -106,8 +106,20 @@ V=vi{wvi,2};
 
 
 %get MD5 sums from bag
+try
 eval(['grabMD5s' V.MD5v])
-
+catch DO
+        I.paleoMeasMD5='fail';
+    I.chronMeasMD5='fail';
+    I.chronEnsMD5='fail';
+    I.chronSummaryTableMD5='fail';
+    I.paleoEnsMD5='fail';
+    I.paleoSummaryTableMD5='fail';
+    I.tagMD5='fail';
+I.metadataMD5='fail';
+    
+    
+end
 
 %look for directories
 if isunix

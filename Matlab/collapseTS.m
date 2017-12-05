@@ -1,14 +1,14 @@
-function Dnew=collapseTs(TS,yearTS)
-%tries to convert a LiPD Timeseries object back into a LiPD Hierarchical
-%object
-%TS is the TS structure
-%yearTS is an optional flag to tripped if your TS includes entries for
-%year/age/etc
+function Dnew=collapseTS(TS,yearTS)
+% tries to convert a LiPD Timeseries object back into a LiPD Hierarchical
+% object
+% TS is the TS structure
+% yearTS is an optional flag to tripped if your TS includes entries for
+% year/age/etc
 
 
-%%% TO DO
-%1. Add chron mode
-%2. handle model tables and methods...
+% %% TO DO
+% 1. Add chron mode
+% 2. handle model tables and methods...
 
 if nargin<2
     yearTS=1;
@@ -229,7 +229,9 @@ for i=1:length(udsn)
         
         %get variablename name
         variableName=makeValidName(T.paleoData_variableName);
-        
+%         if iscell(variableName)
+%             variableName=variableName{1};
+%         end
         %see if that name has been used already
         alreadyNames=fieldnames(Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum});
         %iterate through numbers until it's unique
@@ -239,6 +241,7 @@ for i=1:length(udsn)
             variableName=[origName num2str(aNi)];
             aNi=aNi+1;
         end
+
         
         
         %add in the variable

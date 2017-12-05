@@ -26,6 +26,16 @@ checkGoogleTokens;
             T.(colNames{c}).TSid=createTSID(T.(colNames{c}).variableName,L.dataSetName,L.googleSpreadSheetKey,T.googleWorkSheetKey);
         end
         
+        if ~iscell(T.(colNames{c}).variableName)
+            T.(colNames{c}).variableName = {T.(colNames{c}).variableName};
+        end
+        if ~iscell(T.(colNames{c}).TSid)
+            T.(colNames{c}).TSid = {T.(colNames{c}).TSid};
+        end
+        if size(T.(colNames{c}).values,2)>1 & size(T.(colNames{c}).values,1)==1 
+            T.(colNames{c}).values= T.(colNames{c}).values';
+        end
+        
         if ~iscell(T.(colNames{c}).values)
             colData=[T.(colNames{c}).variableName; T.(colNames{c}).TSid; cellstr(num2str(T.(colNames{c}).values))];
         else

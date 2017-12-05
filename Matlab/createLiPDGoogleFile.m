@@ -7,6 +7,17 @@ checkGoogleTokens;
 %convert author cells to bibtex string
 L = authorCell2BibtexAuthorString(L);
 
+if isfield(L,'chronData')
+    if isfield(L.chronData{1},'chronMeasurementTable')
+        for i = 1:length(L.chronData)
+        L.chronData{i}.measurementTable = L.chronData{i}.chronMeasurementTable;
+        L.chronData{i}=rmfield(L.chronData{i},'chronMeasurementTable');
+        end
+    end
+end
+
+
+
 % %if no verions, force to 1.0
 % if ~isfield(L,'lipdVersion')
 %     L.lipdVersion = 1.0;
@@ -119,7 +130,9 @@ TS=extractTs(L);
 torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','paleoData_values',...
     'paleoData_chronDataMD5','paleoData_paleoMeasurementTableMD5','paleoData_number','paleoData_dataType','paleoData_missingValue',...
     'geo_meanLat','geo_meanElev','geo_type','geo_meanLon','pub1_identifier','pub2_identifier','pub3_identifier',...
-    'pub4_identifier','pub5_identifier','pub6_identifier','pub7_identifier','pub8_identifier','pub9_identifier'};
+    'pub4_identifier','pub5_identifier','pub6_identifier','pub7_identifier','pub8_identifier','pub9_identifier',...
+    'paleoData_paleoDataTableName','paleoData_paleoDataMD5','paleoData_hasMaxValue','paleoData_hasMeanValue','paleoData_hasMedianValue','paleoData_hasMinValue',...
+    'paleoData_measurementTableName','paleoData_paleoName'};
 TS=rmfieldsoft(TS,torem);
 
 
@@ -198,12 +211,12 @@ topChunk=[header ; topChunk];
 
 %get rid of unnecessary metadata
 %remove all varaibles that follow this prefix
-prefixTR = {'pub','geo','funding','chron','google'};
+prefixTR = {'pub','geo','funding','chron','google','hasResolution'};
 
 %and also these variables
 torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','paleoData_values',...
     'lipdVersion','archiveType','dataSetName','metadataMD5','tagMD5','paleoData_chronDataMD5','paleoData_number',...
-    'paleoData_dataType','paleoData_missingValue'};
+    'paleoData_dataType','paleoData_missingValue','paleoData_paleoMeasurementTableNumber','paleoData_measurementTableMD5'};
 TS=rmfieldsoft(TS,torem);
 
 for ii = 1:length(prefixTR)
@@ -219,12 +232,12 @@ end
 f=fieldnames(TS);
 %start with pa
 paleoDatai=(find(strncmpi('paleoData_',f,10)));
-cii=(find(strncmpi('climateInterpretation_',f,22)));
+cii=(find(strncmpi('interpretation',f,14)));
 cali=(find(strncmpi('calibration_',f,12)));
-ii=(find(strncmpi('isotopeInterpretation_',f,22)));
+%ii=(find(strncmpi('isotopeInterpretation_',f,22)));
 
 
-f = f([paleoDatai; cii ;ii ;cali]);
+f = f([paleoDatai; cii ;cali]);
 
 %make TSid first
 tsi=find(strcmp('paleoData_TSid',f));
@@ -261,11 +274,14 @@ if isfield(L,'chronData')
     CTS = extractTs(L,'all','chron');
     
     %remove all varaibles that follow this prefix
-    prefixTR = {'pub','geo','funding','paleoData','google'};
+    prefixTR = {'pub','geo','funding','paleoData','google','hasResolution'};
     
     %and also these variables
     torem={'age','ageUnits','chronData','depth','depthUnits','year','yearUnits','chronData_values',...
-        'lipdVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number'};
+        'lipdVersion','archiveType','dataSetName','metadataMD5','tagMD5','chronData_chronDataMD5','chronData_number',...
+        'chronData_missingValue','chronData_chronMeasMD5','chronData_chronMeasurementTableName',...
+        'chronData_chronMeasurementTableNumber','chronData_hasMaxValue','chronData_hasMeanValue','chronData_hasMedianValue','chronData_hasMinValue',...
+        'chronData_measurementTableName','chronData_chronName'};
     CTS=rmfieldsoft(CTS,torem);
     
     for ii = 1:length(prefixTR)
@@ -281,9 +297,10 @@ if isfield(L,'chronData')
     f=fieldnames(CTS);
     
     chronDatai=(find(strncmpi('chronData_',f,10)));
+    cii=(find(strncmpi('interpretation_',f,15)));
 
 
-f = f(chronDatai);
+f = f([chronDatai,cii]);
     
     
     %now make chron data chunk
@@ -338,8 +355,8 @@ metadataCell4Goog=stringifyCells(metadataCell);
 
 %Remove FORBIDDEN characters from metadataCell4Goog
 %these include:  ' 
-toRemove = {'''','<','>','&'};
-toReplace = {'','less than ','greater than ',' and '};
+toRemove = {'''','<','>','&','-','°','?',''};
+toReplace = {'','less than ','greater than ',' and ','','degrees','permil',' '};
 metadataCell4Goog=strReplaceCell(metadataCell4Goog,toRemove,toReplace);
 
 %now write this into the first worksheet

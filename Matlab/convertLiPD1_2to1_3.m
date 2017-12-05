@@ -6,8 +6,11 @@ if nargin<2
 end
 
 if ~isfield(L,'lipdVersion')
-    
-    L.lipdVersion = 1.0;
+    if isfield(L,'LiPDVersion')
+        L.lipdVersion = L.LiPDVersion;
+    else
+        L.lipdVersion = 1.0;
+    end
 end
 
 if ischar(L.lipdVersion)

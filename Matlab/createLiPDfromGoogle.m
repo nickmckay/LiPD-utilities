@@ -58,14 +58,21 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
     
 %    figure out table types
     gtsnames = fieldnames(GTS);
-    tni=find(~cellfun(@isempty,(strfind(gtsnames,'TableNumber'))));
-    tableType=cell(1,1);
+    tni=find(~cellfun(@isempty,(strfind(lower(gtsnames),'tablenumber'))));
+    tableType=cell(length(GTS),1);
+       
+    ttni = find(~cellfun(@isempty,(strfind(lower(gtsnames),'tabletype'))));
+    
     clear tableNumber
 
     for tn=1:length(tni)
             gg=find(~cellfun(@isempty,{GTS.(gtsnames{tni})}));
+            if length(ttni)==1
+                tableType(:,tn) = {GTS.(gtsnames{ttni})}';
+            else
             usi=strfind(gtsnames{tni},'_');
             tableType(gg,tn)={gtsnames{tni}((usi+6):(end-11))};
+            end
             tableNumber(:,tn)={GTS.(gtsnames{tni})}';
     end
     

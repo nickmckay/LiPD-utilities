@@ -15,7 +15,7 @@ h = waitbar(0,'Extracting your timeseries...');
 
 for d = 1:length(dsn)
     waitbar(d/length(dsn),h);
-    
+%    display(dsn{d})
     if breakFlag
         break
     end
@@ -38,6 +38,7 @@ for d = 1:length(dsn)
         newL = L;
         newL.paleoData = L.chronData;
         newL.chronData = L.paleoData;
+        L = newL;
     end
     
     
@@ -168,19 +169,36 @@ delete(h)
 if strcmp(mode,'chron')
     %replace all the 'paleo' names with 'chron'
     allnames = fieldnames(TS);
-    wp = find(cellfun(@(x) length(x)==1 , regexp(allnames,'paleo_')));
+    wp = find(cellfun(@(x) length(x)==1 , regexp(allnames,'paleoData_')));
     for ww = 1:length(wp)
-        newname = regexprep(allnames{wp(ww)},'paleo_','chron_');
+        newname = regexprep(allnames{wp(ww)},'paleoData_','chronData_');
         [TS.(newname)] = TS.(allnames{wp(ww)});
     end
+    
     TS = rmfield(TS,allnames(wp));
+    
+    %deal with special fields. 
+    special = {'chronData_paleoName','chronData_paleoNumber'};
+    specialReplace = {'chronData_chronName','chronData_chronNumber'};
+    for s =1:length(special)
+        if isfield(TS,special{s})
+           [TS.(specialReplace{s})] =   TS.(special{s});
+           TS = rmfield(TS,special{s});
+        end
+    end
     
     if isfield(TS,'chronData')
         [TS.paleoData] = TS.chronData;
+        TS = rmfield(TS,'chronData');
     end
 end
 
 TS = structord(TS);%alphabetize
+
+%Remove blacklisted variable names
+blacklist = {'paleoData_paleoMeasurementTableNumber','chronData_chronMeasurementTableNumber','paleoData_measurementTableNumber','chronData_measurementTableNumber'};
+TS = rmfieldsoft(TS,blacklist);
+
 end
 
 function TS=populateTsRow(PM,L,tableType,paleoNumber,modelNumber,tableNumber)
