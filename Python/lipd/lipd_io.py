@@ -1,7 +1,7 @@
 from .zips import unzipper, zipper
 from .directory import rm_file_if_exists, create_tmp_dir, find_files
 from .bag import create_bag
-from .csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata
+from .csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata, read_csvs
 from .jsons import write_json_to_file, idx_num_to_name, idx_name_to_num, rm_empty_fields, read_jsonld
 from .loggers import create_logger
 from .misc import put_tsids, check_dsn, get_dsn, rm_empty_doi, rm_values_fields, print_filename
@@ -32,6 +32,10 @@ def lipd_read(path):
     # Import metadata into object
     try:
         print("reading: {}".format(print_filename(path)))
+        # bigger than 2mb file? This could take a while
+        if os.stat(path).st_size > 1000000:
+            _size = os.stat(path).st_size
+            print("{} :That's a big file! This may take a while to load...".format("{} MB".format(round(_size/1000000,2))))
         dir_tmp = create_tmp_dir()
         unzipper(path, dir_tmp)
         os.chdir(dir_tmp)
@@ -45,7 +49,8 @@ def lipd_read(path):
         _j = rm_empty_doi(_j)
         _j = rm_empty_fields(_j)
         _j = put_tsids(_j)
-        _j = merge_csv_metadata(_j)
+        _csvs = read_csvs()
+        _j = merge_csv_metadata(_j, _csvs)
         # Why ? Because we need to align the csv filenames with the table filenames. We don't need the csv output here.
         _j, _csv = get_csv_from_metadata(_j["dataSetName"], _j)
         os.chdir(dir_original)

@@ -2,10 +2,11 @@
 -----
 
 [![DOI](https://zenodo.org/badge/23949/chrismheiser/lipdR.svg)](https://zenodo.org/badge/latestdoi/23949/chrismheiser/lipdR)
-[![R](https://img.shields.io/badge/R-3.3.1-blue.svg)]()
-[![R Studio](https://img.shields.io/badge/RStudio-1.0.136-blue.svg)]()
+[![R](https://img.shields.io/badge/R-1.0.136-blue.svg)]()
+[![R Studio](https://img.shields.io/badge/RStudio-3.3.1-blue.svg)]()
 [![license](https://img.shields.io/badge/license-GPL-brightgreen.svg)]()
 
+NOTE: pcaMethonds must be installed prior to installing the LiPD R package!
 
 Welcome to LiPD Utilities in R . This guide will provide everything you need to get up and running with the LiPD Utilities in R,  and show you how to use the core functions in the LiPD package. 
 

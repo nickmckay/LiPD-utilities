@@ -4,10 +4,10 @@ import sys
 import copy
 from collections import OrderedDict
 
+from .directory import list_files
 from .loggers import create_logger
 from .inferred_data import get_inferred_data_table
-from .misc import cast_values_csvs, cast_int, get_missing_value_key, _replace_missing_values_table, \
-    rm_missing_values_table, is_ensemble, decimal_precision
+from .misc import cast_values_csvs, cast_int, get_missing_value_key, _replace_missing_values_table, rm_missing_values_table, is_ensemble, decimal_precision
 
 logger_csvs = create_logger("csvs")
 
@@ -15,7 +15,7 @@ logger_csvs = create_logger("csvs")
 # MERGE - CSV w/ Metadata
 
 
-def merge_csv_metadata(d):
+def merge_csv_metadata(d, csvs):
     """
     Using the given metadata dictionary, retrieve CSV data from CSV files, and insert the CSV
     values into their respective metadata columns. Checks for both paleoData and chronData tables.
@@ -27,17 +27,17 @@ def merge_csv_metadata(d):
 
     # Add CSV to paleoData
     if "paleoData" in d:
-        d["paleoData"] = _merge_csv_section(d["paleoData"], "paleo")
+        d["paleoData"] = _merge_csv_section(d["paleoData"], "paleo", csvs)
 
     # Add CSV to chronData
     if "chronData" in d:
-        d["chronData"] = _merge_csv_section(d["chronData"], "chron")
+        d["chronData"] = _merge_csv_section(d["chronData"], "chron", csvs)
 
     logger_csvs.info("exit merge_csv_metadata")
     return d
 
 
-def _merge_csv_section(sections, pc):
+def _merge_csv_section(sections, pc, csvs):
     """
     Add csv data to all paleo data tables
 
@@ -51,10 +51,10 @@ def _merge_csv_section(sections, pc):
         for _name, _section in sections.items():
 
             if "measurementTable" in _section:
-                sections[_name]["measurementTable"] = _merge_csv_table(_section["measurementTable"], pc)
+                sections[_name]["measurementTable"] = _merge_csv_table(_section["measurementTable"], pc, csvs)
 
             if "model" in _section:
-                sections[_name]["model"] = _merge_csv_model(_section["model"], pc)
+                sections[_name]["model"] = _merge_csv_model(_section["model"], pc, csvs)
 
     except Exception as e:
         print("Error: There was an error merging CSV data into the metadata ")
@@ -64,7 +64,7 @@ def _merge_csv_section(sections, pc):
     return sections
 
 
-def _merge_csv_model(models, pc):
+def _merge_csv_model(models, pc, csvs):
     """
     Add csv data to each column in chron model
 
@@ -77,13 +77,13 @@ def _merge_csv_model(models, pc):
         for _name, _model in models.items():
 
             if "summaryTable" in _model:
-                models[_name]["summaryTable"] = _merge_csv_table(_model["summaryTable"], pc)
+                models[_name]["summaryTable"] = _merge_csv_table(_model["summaryTable"], pc, csvs)
 
             if "ensembleTable" in _model:
-                models[_name]["ensembleTable"] = _merge_csv_table(_model["ensembleTable"], pc)
+                models[_name]["ensembleTable"] = _merge_csv_table(_model["ensembleTable"], pc, csvs)
 
             if "distributionTable" in _model:
-                models[_name]["distributionTable"] = _merge_csv_table(_model["distributionTable"], pc)
+                models[_name]["distributionTable"] = _merge_csv_table(_model["distributionTable"], pc, csvs)
 
     except Exception as e:
         logger_csvs.error("merge_csv_model: {}",format(e))
@@ -92,7 +92,7 @@ def _merge_csv_model(models, pc):
     return models
 
 
-def _merge_csv_table(tables, pc):
+def _merge_csv_table(tables, pc, csvs):
 
     try:
 
@@ -105,21 +105,21 @@ def _merge_csv_table(tables, pc):
                 print("Error: merge_csv_column: No filename found for table")
             else:
                 # Call read_csv_to_columns for this filename. csv_data is list of lists.
-                csvs = read_csv_from_file(filename)
+                _one_csv = csvs[filename]
 
                 # If all the data columns are non-numeric types, then a missing value is not necessary
-                _only_numerics = _is_numeric_data(csvs)
+                _only_numerics = _is_numeric_data(_one_csv)
 
                 if not _only_numerics:
                     # Get the Missing Value key from the table-level data
                     _mv = get_missing_value_key(_table)
                     if _mv:
                         # Use the Missing Value key to replace all current missing values with "nan"
-                        csvs = _replace_missing_values_table(csvs, _mv)
+                        csvs = _replace_missing_values_table(_one_csv, _mv)
                     else:
                         print("No missing value found. You may encounter errors with this data.")
                 # Merge the values into the columns
-                _table, ensemble = _merge_csv_column(_table, csvs)
+                _table, ensemble = _merge_csv_column(_table, _one_csv)
                 # Remove and missing values keys that are at the column level
                 _table = rm_missing_values_table(_table)
                 # Now put the missing value as "nan" (standard)
@@ -189,6 +189,20 @@ def _merge_csv_column(table, csvs):
 
 
 # READ
+
+
+def read_csvs():
+    """
+
+
+    :return:
+    """
+    logger_csvs.info("enter read_csvs")
+    _l = {}
+    for filename in list_files(".csv"):
+        _l[filename] = read_csv_from_file(filename)
+
+    return _l
 
 
 def read_csv_from_file(filename):

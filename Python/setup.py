@@ -20,7 +20,7 @@ class PostInstall(install):
         install.run(self)
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.4.3'
+version = '0.2.4.6'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -78,7 +78,7 @@ setup(
         "pandas",
         "requests>=2.9.1",
         "sip",
-        "PyQt5"
+        "PyQt5",
     ],
     include_package_data=True,
     package_data={

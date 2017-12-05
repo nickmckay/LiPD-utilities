@@ -12,12 +12,23 @@ logger_ts = create_logger('time_series')
 
 # EXTRACT
 
-def extract(d, chron):
+def extract(d, whichtables, mode, time):
     """
     LiPD Version 1.3
     Main function to initiate LiPD to TSOs conversion.
+
+    Each object has a
+    "paleoNumber" or "chronNumber"
+    "tableNumber"
+    "modelNumber"
+    "time_id"
+    "mode" - chronData or paleoData
+    "tableType" - "meas" "ens" "summ"
+
+
     :param dict d: Metadata for one LiPD file
-    :param bool chron: Paleo mode (default) or Chron mode
+    :param str whichtables: all, meas, summ, or ens
+    :param str mode: paleo or chron mode
     :return list _ts: Time series
     """
     logger_ts.info("enter extract_main")
@@ -25,9 +36,10 @@ def extract(d, chron):
     _ts = {}
     # _switch = {"paleoData": "chronData", "chronData": "paleoData"}
     _pc = "paleoData"
-    if chron:
+    if mode == "chron":
         _pc = "chronData"
     _root["mode"] = _pc
+    _root["time_id"] = time
     try:
         # Build the root level data.
         # This will serve as the template for which column data will be added onto later.
@@ -38,13 +50,14 @@ def extract(d, chron):
                 _root = _extract_geo(v, _root)
             elif k == 'pub':
                 _root = _extract_pub(v, _root)
-            elif k in ["chronData", "paleoData"]:
-                # Store chronData and paleoData as-is. Need it to collapse without data loss.
-                _root[k] = copy.deepcopy(v)
+            # elif k in ["chronData", "paleoData"]:
+            #     # Store chronData and paleoData as-is. Need it to collapse without data loss.
+            #     _root[k] = copy.deepcopy(v)
             else:
-                _root[k] = v
+                if k not in ["chronData", "paleoData"]:
+                    _root[k] = v
         # Create tso dictionaries for each individual column (build on root data)
-        _ts = _extract_pc(d, _root, _pc)
+        _ts = _extract_pc(d, _root, _pc, whichtables)
     except Exception as e:
         logger_ts.error("extract: Exception: {}".format(e))
         print("extract: Exception: {}".format(e))
@@ -180,12 +193,13 @@ def _extract_authors(pub, idx, _root):
     return _root
 
 
-def _extract_pc(d, root, pc):
+def _extract_pc(d, root, pc, whichtables):
     """
     Extract all data from a PaleoData dictionary.
     :param dict d: PaleoData dictionary
     :param dict root: Time series root data
     :param str pc: paleoData or chronData
+    :param str whichtables: all, meas, summ, or ens
     :return list _ts: Time series
     """
     logger_ts.info("enter extract_pc")
@@ -193,16 +207,46 @@ def _extract_pc(d, root, pc):
     try:
         # For each table in pc
         for k, v in d[pc].items():
-            for _table_name1, _table_data1 in v["measurementTable"].items():
-                _ts = _extract_table(_table_data1, copy.deepcopy(root), pc, _ts)
-            if "model" in v:
-                for _table_name1, _table_data1 in v["model"].items():
-                    if "summaryTable" in _table_data1:
-                        for _table_name2, _table_data2 in _table_data1["summaryTable"].items():
-                            _ts = _extract_table(_table_data2, copy.deepcopy(root), pc, _ts, summary=True)
+            if whichtables == "all" or whichtables == "meas":
+                for _table_name1, _table_data1 in v["measurementTable"].items():
+                    _ts = _extract_table(_table_data1, copy.deepcopy(root), pc, _ts, "meas")
+            if whichtables != "meas":
+                if "model" in v:
+                    for _table_name1, _table_data1 in v["model"].items():
+                        # get the method info for this model. This will be paired to all summ and ens table data
+                        _method = _extract_method(_table_data1["method"])
+                        if whichtables == "all" or whichtables == "summ":
+                            if "summaryTable" in _table_data1:
+                                for _table_name2, _table_data2 in _table_data1["summaryTable"].items():
+                                    # take a copy of this tso root
+                                    _tso = copy.deepcopy(root)
+                                    # add in the method details
+                                    _tso.update(_method)
+                                    # add in the table details
+                                    _ts = _extract_table(_table_data2, _tso, pc, _ts, "summ")
+                        if whichtables == "all" or whichtables == "ens":
+                            if "ensembleTable" in _table_data1:
+                                for _table_name2, _table_data2 in _table_data1["ensembleTable"].items():
+                                    _tso = copy.deepcopy(root)
+                                    _tso.update(_method)
+                                    _ts = _extract_table(_table_data2, _tso, pc, _ts, "ens")
+
     except Exception as e:
         logger_ts.warn("extract_pc: Exception: {}".format(e))
     return _ts
+
+
+def _extract_method(method):
+    """
+    Make a timeseries-formatted version of model method data
+
+    :param dict method: Method data
+    :return dict _method: Method data, formatted
+    """
+    _method = {}
+    for k,v in method.items():
+        _method["method_" + k] = v
+    return _method
 
 
 def _extract_special(current, table_data):
@@ -269,30 +313,34 @@ def _extract_table_root(d, current, pc):
     return current
 
 
-def _extract_table_summary(table_data, current, summary):
+def _extract_table_model(table_data, current, tt):
     """
     Add in modelNumber and summaryNumber fields if this is a summary table
+
     :param dict table_data: Table data
     :param dict current: LiPD root data
-    :param bool summary: Summary Table or not
+    :param str tt: Table type "summ", "ens", "meas"
     :return dict current: Current root data
     """
     try:
-        if summary:
+        if tt in ["summ", "ens"]:
             m = re.match(re_sheet, table_data["tableName"])
             if m:
+                _pc_num= m.group(1) + "Number"
+                current[_pc_num] = m.group(2)
                 current["modelNumber"] = m.group(4)
-                current["summaryNumber"] = m.group(6)
+                current["tableNumber"] = m.group(6)
             else:
-                logger_ts.error("extract_table_summary: Unable to parse modelNumber and summaryNumber")
+                logger_ts.error("extract_table_summary: Unable to parse paleo/model/table numbers")
     except Exception as e:
         logger_ts.error("extract_table_summary: {}".format(e))
     return current
 
 
-def _extract_table(table_data, current, pc, ts, summary=False):
+def _extract_table(table_data, current, pc, ts, tt):
     """
     Use the given table data to create a time series entry for each column in the table.
+
     :param dict table_data: Table data
     :param dict current: LiPD root data
     :param str pc: paleoData or chronData
@@ -300,10 +348,11 @@ def _extract_table(table_data, current, pc, ts, summary=False):
     :param bool summary: Summary Table or not
     :return list ts: Time series (so far)
     """
+    current["tableType"] = tt
     # Get root items for this table
     current = _extract_table_root(table_data, current, pc)
-    # Add in modelNumber and summaryNumber if this is a summary table
-    current = _extract_table_summary(table_data, current, summary)
+    # Add in modelNumber and tableNumber if this is "ens" or "summ" table
+    current = _extract_table_model(table_data, current, tt)
     # Add age, depth, and year columns to root if available
     _table_tmp = _extract_special(current, table_data)
     try:
@@ -368,16 +417,26 @@ def _extract_climate(d, tmp_tso):
 # COLLAPSE
 
 
-def collapse(l):
+def collapse(l, raw):
     """
     LiPD Version 1.3
     Main function to initiate time series to LiPD conversion
+
+    Each object has a:
+    "paleoNumber" or "chronNumber"
+    "tableNumber"
+    "modelNumber"
+    "time_id"
+    "mode" - chronData or paleoData
+    "tableType" - "meas" "ens" "summ"
+
     :param list l: Time series
     :return dict _master: LiPD data, sorted by dataset name
     """
     logger_ts.info("enter collapse")
     # LiPD data (in progress), sorted dataset name
     _master = {}
+    _dsn = ""
 
     try:
         # Determine if we're collapsing a paleo or chron time series
@@ -387,6 +446,7 @@ def collapse(l):
         for entry in l:
             # Get notable keys
             dsn = entry['dataSetName']
+            _dsn = dsn
             _current = entry
 
             # Since root items are the same in each column of the same dataset, we only need these steps the first time.
@@ -394,12 +454,22 @@ def collapse(l):
                 logger_ts.info("collapsing: {}".format(dsn))
                 print("collapsing: {}".format(dsn))
                 _master, _current = _collapse_root(_master, _current, dsn, _pc)
-                _master[dsn]["paleoData"] = _current["paleoData"]
-                if "chronData" in _current:
-                    _master[dsn]["chronData"] = _current["chronData"]
+                try:
+                    _master[dsn]["paleoData"] = raw[dsn]["paleoData"]
+                    if "chronData" in raw[dsn]:
+                        _master[dsn]["chronData"] = raw[dsn]["chronData"]
+                except KeyError as e:
+                    print("collapse: Could not collapse an object the dataset: {}, {}".format(dsn, e))
 
             # Collapse pc, calibration, and interpretation
             _master = _collapse_pc(_master, _current, dsn, _pc)
+
+        # The result combined into a single dataset. Remove the extra layer on the data.
+        if len(_master) == 1:
+            _master = _master[_dsn]
+            print("Created LiPD data: 1 dataset")
+        else:
+            print("Created LiPD data: {} datasets".format(len(_master)))
 
     except Exception as e:
         print("Error: Unable to collapse time series, {}".format(e))
@@ -412,6 +482,7 @@ def collapse(l):
 def _get_current_names(current, dsn, pc):
     """
     Get the table name and variable name from the given time series entry
+
     :param dict current: Time series entry
     :param str pc: paleoData or chronData
     :return str _table_name:
@@ -432,6 +503,7 @@ def _get_current_names(current, dsn, pc):
 def _collapse_root(master, current, dsn, pc):
     """
     Collapse the root items of the current time series entry
+
     :param dict master: LiPD data (so far)
     :param dict current: Current time series entry
     :param str dsn: Dataset name
@@ -560,6 +632,7 @@ def _collapse_author(s):
 def _collapse_pc(master, current, dsn, pc):
     """
     Collapse the paleo or chron for the current time series entry
+
     :param dict master: LiPD data (so far)
     :param dict current: Current time series entry
     :param str dsn: Dataset name
@@ -574,7 +647,8 @@ def _collapse_pc(master, current, dsn, pc):
         _m = re.match(re_sheet_w_number, _table_name)
 
         # Is this a summary table or a measurement table?
-        _ms = "measurementTable" if "modelNumber" not in current else "model"
+        _switch = {"meas": "measurementTable", "summ": "summaryTable", "ens": "ensembleTable"}
+        _ms = _switch[current["tableType"]]
 
         # This is a measurement table. Put it in the correct part of the structure
         # master[datasetname][chronData][chron0][measurementTable][chron0measurement0]
@@ -594,17 +668,16 @@ def _collapse_pc(master, current, dsn, pc):
 
         # This is a summary table. Put it in the correct part of the structure
         # master[datasetname][chronData][chron0][model][chron0model0][summaryTable][chron0model0summary0]
-        elif _ms == "model":
+        elif _ms in ["ensembleTable", "summaryTable"]:
             # Collapse the keys in the table root if a table does not yet exist
-            if _table_name not in master[dsn][pc][_m.group(1)][_ms][_m.group(1) + _m.group(2)]["summaryTable"]:
+            if _table_name not in master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms]:
                 _tmp_table = _collapse_table_root(current, dsn, pc)
-                master[dsn][pc][_m.group(1)][_ms][_m.group(1) + _m.group(2)]["summaryTable"][_table_name] = _tmp_table
+                master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms][_table_name] = _tmp_table
 
             # Collapse the keys at the column level, and return the column data
             _tmp_column = _collapse_column(current, pc)
             # Create the column entry in the table
-            master[dsn][pc][_m.group(1)][_ms][_m.group(1) + _m.group(2)]["summaryTable"][_table_name]["columns"][
-                _variable_name] = _tmp_column
+            master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms][_table_name]["columns"][_variable_name] = _tmp_column
 
     except Exception as e:
         print("Error: Unable to collapse column data: {}, {}".format(dsn, e))
@@ -685,17 +758,17 @@ def _collapse_column(current, pc):
 # HELPERS
 
 
-def mode_ts(ec, ts=None, b=None):
+def mode_ts(ec, mode="", ts=None):
     """
     Get string for the mode
-    :param bool b: Chron boolean (for extract)
     :param str ec: extract or collapse
+    :param str mode: "paleo" or "chron" mode
     :param list ts: Time series (for collapse)
     :return str phrase: Phrase
     """
     phrase = ""
     if ec == "extract":
-        if b:
+        if mode=="chron":
             phrase = "extracting chronData..."
         else:
             phrase = "extracting paleoData..."

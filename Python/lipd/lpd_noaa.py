@@ -86,6 +86,7 @@ class LPD_NOAA(object):
         self.data_chrons = []
         # Append filenames or not? Multiple output
         self.append_filenames = False
+        self.noaa_file_output = {}
 
     # MAIN
 
@@ -129,7 +130,7 @@ class LPD_NOAA(object):
 
         # Use data in steps_dict to write to
         # self.noaa_data_sorted = self.__key_conversion(self.noaa_data_sorted)
-        self.__write_file()
+        self.__create_file()
         logger_lpd_noaa.info("exit main")
         return
 
@@ -141,6 +142,14 @@ class LPD_NOAA(object):
         :return dict: self.lipd_data
         """
         return self.lipd_data
+
+    def get_noaa_texts(self):
+        """
+        Retrieve the set of noaa file representations
+
+        :return dict noaa_file_output:
+        """
+        return self.noaa_file_output
 
 
     # def __check_time_unit(self):
@@ -1088,20 +1097,23 @@ class LPD_NOAA(object):
         """
         return self.noaa_url
 
-    # WRITE
+    # CREATE FILE REPRESENTATIONS
 
-    def __write_file(self):
+    def __create_file(self):
         """
         Open text file. Write one section at a time. Close text file. Move completed file to dir_root/noaa/
         :return none:
         """
-        logger_lpd_noaa.info("enter write_file")
+        logger_lpd_noaa.info("enter create_file")
 
         self.__get_output_filenames()
 
         for idx, filename in enumerate(self.output_filenames):
             try:
-                self.noaa_txt = open(os.path.join(self.path, filename), "w+")
+                # self.noaa_txt = open(os.path.join(self.path, filename), "w+")
+                # self.noaa_file_output[filename] = ""
+                # self.noaa_txt = self.noaa_file_output[filename]
+                self.noaa_txt = ""
                 print("writing: {}".format(filename))
                 logger_lpd_noaa.info("write_file: opened output txt file")
             except Exception as e:
@@ -1124,12 +1136,12 @@ class LPD_NOAA(object):
             self.__write_generic('Species')
             self.__write_data(idx)
 
-            self.noaa_txt.close()
-            logger_lpd_noaa.info("closed output text file")
+            self.noaa_file_output[filename] = self.noaa_txt
+            # logger_lpd_noaa.info("closed output text file")
             # reset the max min time unit to none
             self.max_min_time = {"min": "", "max": "", "time": ""}
             # shutil.copy(os.path.join(os.getcwd(), filename), self.dir_root)
-            logger_lpd_noaa.info("exit write_file")
+            logger_lpd_noaa.info("exit create_file")
         return
 
     def __write_top(self, filename):
@@ -1142,7 +1154,7 @@ class LPD_NOAA(object):
         self.__create_blanks("Top", self.noaa_data_sorted["Top"])
 
         # Start writing the NOAA file section by section, starting at the very top of the template.
-        self.noaa_txt.write("# {}".format(self.noaa_data_sorted["Top"]['Study_Name']))
+        self.noaa_txt += "# {}".format(self.noaa_data_sorted["Top"]['Study_Name'])
         self.__write_template_top()
         # We don't know what the full online resource path will be yet, so leave the base path only
         self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(self.project, self.current_yr, self.version, filename), top=True)
@@ -1150,7 +1162,7 @@ class LPD_NOAA(object):
         self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(self.project, self.current_yr, self.version, self.filename_lpd), top=True)
         self.__write_k_v("Online_Resource_Description", " Linked Paleo Data (LiPD) formatted file containing the same metadata and data as this file, for version {} of this dataset.".format(self.version), indent=True)
         self.__write_k_v("Original_Source_URL", self.noaa_data_sorted["Top"]['Original_Source_URL'], top=True)
-        self.noaa_txt.write("\n# Description/Documentation lines begin with #\n# Data lines have no #\n#")
+        self.noaa_txt += "\n# Description/Documentation lines begin with #\n# Data lines have no #\n#"
         self.__write_k_v("Archive", self.noaa_data_sorted["Top"]['Archive'])
         self.__write_k_v("Parameter_Keywords", self.noaa_data_sorted["Top"]['Parameter_Keywords'])
 
@@ -1297,7 +1309,7 @@ class LPD_NOAA(object):
         self.__write_template_variable()
 
         try:
-            self.noaa_txt.write('#')
+            self.noaa_txt += '#'
 
             # Special NOAA Request: Write the "year" column first always, if available
             # write year data first, when available
@@ -1334,7 +1346,7 @@ class LPD_NOAA(object):
                     # DEPRECATED: Fixed spacing for variable names.
                     # self.noaa_txt.write('{:<20}'.format('#' + str(col[entry])))
                     # Fluid spacing for variable names. Spacing dependent on length of variable names.
-                    self.noaa_txt.write('{}\t'.format('#' + str(col[entry])))
+                    self.noaa_txt += '{}\t'.format('#' + str(col[entry]))
                 # Last entry: No space or comma
                 elif entry == "additional":
                     e = " "
@@ -1344,7 +1356,7 @@ class LPD_NOAA(object):
                                 e += str(col[item]).replace(",", ";") + "; "
                         except KeyError:
                             pass
-                    self.noaa_txt.write('{} '.format(e))
+                    self.noaa_txt += '{} '.format(e)
 
                 # elif entry == 'notes':
                 #     self.noaa_txt.write('{} '.format(str(col[entry])))
@@ -1375,11 +1387,11 @@ class LPD_NOAA(object):
                         e = e.replace(",", ";")
                     except AttributeError as ee:
                         logger_lpd_noaa.warn("write_variables_2: AttributeError: {}, {}".format(e, ee))
-                    self.noaa_txt.write('{}, '.format(e))
+                    self.noaa_txt += '{}, '.format(e)
             except KeyError as e:
-                self.noaa_txt.write('{:<0}'.format(','))
+                self.noaa_txt += '{:<0}'.format(',')
                 logger_lpd_noaa.info("write_variables: KeyError: missing {}".format(e))
-        self.noaa_txt.write('\n#')
+        self.noaa_txt += '\n#'
         return
 
     def __write_columns(self, pc, table):
@@ -1424,8 +1436,7 @@ class LPD_NOAA(object):
         Write the template info for top section
         :return none:
         """
-        self.noaa_txt.write(
-            "\n#-----------------------------------------------------------------------\
+        self.noaa_txt += "\n#-----------------------------------------------------------------------\
             \n#                World Data Service for Paleoclimatology, Boulder\
             \n#                                  and\
             \n#                     NOAA Paleoclimatology Program\
@@ -1435,7 +1446,7 @@ class LPD_NOAA(object):
             \n# Encoding: UTF-8\
             \n# NOTE: Please cite Publication, and Online_Resource and date accessed when using these data. \
             \n# If there is no publication information, please cite Investigators, Title, and Online_Resource and date accessed."
-            )
+
         return
 
     def __write_template_variable(self):
@@ -1444,11 +1455,11 @@ class LPD_NOAA(object):
         :param str filename:
         :return none:
         """
-        self.noaa_txt.write('# Variables\
+        self.noaa_txt += '# Variables\
         \n#\n# Data variables follow that are preceded by "##" in columns one and two.\
         \n# Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components '
         '( 10 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or '
-        'Numeric data, additional_information)\n#\n')
+        'Numeric data, additional_information)\n#\n'
         return
 
     def __write_template_chron(self):
@@ -1457,8 +1468,7 @@ class LPD_NOAA(object):
         This is simpler than Paleo and needs to specify that it's a "chronology"
         :return:
         """
-        self.noaa_txt.write('# Chronology:\
-        \n')
+        self.noaa_txt += '# Chronology:\n'
         return
 
     def __write_template_paleo(self):
@@ -1467,10 +1477,10 @@ class LPD_NOAA(object):
         :param str mv: Missing Value
         :return none:
         """
-        self.noaa_txt.write('# Data:\
+        self.noaa_txt += '# Data:\
         \n# Data lines follow (have no #)\
         \n# Data line format - tab-delimited text, variable short name as header)\
-        \n# Missing_Values: nan\n#\n')
+        \n# Missing_Values: nan\n#\n'
         return
 
     def __write_k_v(self, k, v, top=False, bot=False, multi=False, indent=False):
@@ -1484,20 +1494,20 @@ class LPD_NOAA(object):
         :return none:
         """
         if top:
-            self.noaa_txt.write("\n#")
+            self.noaa_txt += "\n#"
         if multi:
             for item in v:
                 if indent:
-                    self.noaa_txt.write("\n#     {}: {}".format(str(k), str(item)))
+                    self.noaa_txt += "\n#     {}: {}".format(str(k), str(item))
                 else:
-                    self.noaa_txt.write("\n# {}: {}".format(str(k), str(item)))
+                    self.noaa_txt += "\n# {}: {}".format(str(k), str(item))
         else:
             if indent:
-                self.noaa_txt.write("\n#     {}: {}".format(str(k), str(v)))
+                self.noaa_txt += "\n#     {}: {}".format(str(k), str(v))
             else:
-                self.noaa_txt.write("\n# {}: {}".format(str(k), str(v)))
+                self.noaa_txt += "\n# {}: {}".format(str(k), str(v))
         if bot:
-            self.noaa_txt.write("\n#")
+            self.noaa_txt += "\n#"
         return
 
     def __write_header_name(self, name):
@@ -1505,7 +1515,7 @@ class LPD_NOAA(object):
         Write the title line for the section
         :return none:
         """
-        self.noaa_txt.write("# {}".format(name))
+        self.noaa_txt += "# {}".format(name)
         return
 
     def __write_divider(self, top=False, bot=False):
@@ -1514,10 +1524,10 @@ class LPD_NOAA(object):
         :return none:
         """
         if top:
-            self.noaa_txt.write("\n#")
-        self.noaa_txt.write("\n#------------------\n")
+            self.noaa_txt += "\n#"
+        self.noaa_txt += "\n#------------------\n"
         if bot:
-            self.noaa_txt.write("\n#")
+            self.noaa_txt += "\n#"
         return
 
     def __write_data_col_header(self, l):
@@ -1530,12 +1540,12 @@ class LPD_NOAA(object):
         for name in l:
             # last column - spacing not important
             if count == 1:
-                self.noaa_txt.write("{}\t".format(name))
+                self.noaa_txt += "{}\t".format(name)
             # all [:-1] columns - fixed spacing to preserve alignment
             else:
-                self.noaa_txt.write("{:<15}".format(name))
+                self.noaa_txt += "{:<15}".format(name)
                 count -= 1
-        self.noaa_txt.write('\n')
+        self.noaa_txt += '\n'
 
     def __write_data_col_vals(self, ll):
         """
@@ -1553,12 +1563,12 @@ class LPD_NOAA(object):
                 for col in ll:
                     # last item in array: fixed spacing not needed
                     if _count == 1:
-                        self.noaa_txt.write("{}\t".format(str(col["values"][idx])))
+                        self.noaa_txt += "{}\t".format(str(col["values"][idx]))
                     # all [:-1] items. maintain fixed spacing
                     else:
-                        self.noaa_txt.write("{}\t".format(str(col["values"][idx])))
+                        self.noaa_txt += "{}\t".format(str(col["values"][idx]))
                     _count -= 1
-                self.noaa_txt.write('\n')
+                self.noaa_txt += '\n'
 
         except IndexError:
             logger_lpd_noaa("_write_data_col_vals: IndexError: couldn't get length of columns")
