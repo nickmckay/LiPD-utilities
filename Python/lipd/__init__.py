@@ -28,7 +28,8 @@ def run():
     :return none:
     """
     # GLOBALS
-    global cwd, files, logger_start, logger_benchmark, settings
+    global cwd, files, logger_start, logger_benchmark, settings, _timeseries_data
+    _timeseries_data = {}
     # files = {".lpd": [ {"full_path", "filename_ext", "filename_no_ext", "dir"} ], ".xls": [...], ".txt": [...]}
     settings = {"note_update": True, "note_validate": True, "verbose": True}
     cwd = os.getcwd()
@@ -378,10 +379,9 @@ def extractTs(d, whichtables="meas", mode="paleo"):
     :return list l: Time series
     """
     # instead of storing each raw dataset per tso, store it once in the global scope. saves memory
-    global ts_raw
+    global _timeseries_data
     _l = []
     start = clock()
-    ts_raw = d
     try:
         if not d:
             print("Error: LiPD data not provided. Pass LiPD data into the function.")
@@ -391,17 +391,20 @@ def extractTs(d, whichtables="meas", mode="paleo"):
                 # One dataset: Process directly on file, don't loop
                 try:
                     _dsn = get_dsn(d)
+                    _timeseries_data[start] = {}
+                    _timeseries_data[start][_dsn] = d
                     # Use the LiPD data given to start time series extract
                     print("extracting: {}".format(_dsn))
                     # Copy, so we don't affect the original data
                     _v = copy.deepcopy(d)
                     # Start extract...
-                    _l = (extract(_v, whichtables, mode))
+                    _l = (extract(_v, whichtables, mode, start))
                 except Exception as e:
                     print("Error: Unable to extractTs for dataset: {}: {}".format(_dsn, e))
                     logger_start.debug("extractTs: Exception: {}, {}".format(_dsn, e))
 
             else:
+                _timeseries_data[start] = d
                 # Multiple datasets: Loop and append for each file
                 for k, v in d.items():
                     try:
@@ -410,7 +413,7 @@ def extractTs(d, whichtables="meas", mode="paleo"):
                         # Copy, so we don't affect the original data
                         _v = copy.deepcopy(v)
                         # Start extract...
-                        _l += (extract(_v, whichtables, mode))
+                        _l += (extract(_v, whichtables, mode, start))
                     except Exception as e:
                         print("Error: Unable to extractTs for dataset: {}: {}".format(k, e))
                         logger_start.debug("extractTs: Exception: {}".format(e))
@@ -432,21 +435,24 @@ def collapseTs(ts=None):
     | 2. ts = lipd.extractTs(D)
     | 3. New_D = lipd.collapseTs(ts)
 
+    _timeseries_data is sorted by time_id, and then by dataSetName
+    _timeseries_data[10103341]["ODP1098B"] = {data}
+
     :param list ts: Time series
     :return dict: Metadata
     """
-    global ts_raw
+    # Retrieve the associated raw data according to the "time_id" found in each object. Match it in _timeseries_data
+    global _timeseries_data
     _d = {}
     if not ts:
         print("Error: Time series data not provided. Pass time series into the function.")
     else:
         # Send time series list through to be collapsed.
         try:
-            print(mode_ts("collapse", ts=ts))
-            _d = collapse(ts, ts_raw)
+            _raw = _timeseries_data[ts[0]["time_id"]]
+            print(mode_ts("collapse", mode="", ts=ts))
+            _d = collapse(ts, _raw)
             _d = rm_empty_fields(_d)
-            print("Created LiPD data: {} entries".format(len(_d)))
-
         except Exception as e:
             print("Error: Unable to collapse the time series: {}".format(e))
             logger_start.error("collapseTs: unable to collapse the time series: {}".format(e))

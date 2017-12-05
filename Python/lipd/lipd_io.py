@@ -1,7 +1,7 @@
 from .zips import unzipper, zipper
 from .directory import rm_file_if_exists, create_tmp_dir, find_files
 from .bag import create_bag
-from .csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata, read_csv_from_file, read_csvs
+from .csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata, read_csvs
 from .jsons import write_json_to_file, idx_num_to_name, idx_name_to_num, rm_empty_fields, read_jsonld
 from .loggers import create_logger
 from .misc import put_tsids, check_dsn, get_dsn, rm_empty_doi, rm_values_fields, print_filename

@@ -12,10 +12,20 @@ logger_ts = create_logger('time_series')
 
 # EXTRACT
 
-def extract(d, whichtables, mode):
+def extract(d, whichtables, mode, time):
     """
     LiPD Version 1.3
     Main function to initiate LiPD to TSOs conversion.
+
+    Each object has a
+    "paleoNumber" or "chronNumber"
+    "tableNumber"
+    "modelNumber"
+    "time_id"
+    "mode" - chronData or paleoData
+    "tableType" - "meas" "ens" "summ"
+
+
     :param dict d: Metadata for one LiPD file
     :param str whichtables: all, meas, summ, or ens
     :param str mode: paleo or chron mode
@@ -29,6 +39,7 @@ def extract(d, whichtables, mode):
     if mode == "chron":
         _pc = "chronData"
     _root["mode"] = _pc
+    _root["time_id"] = time
     try:
         # Build the root level data.
         # This will serve as the template for which column data will be added onto later.
@@ -305,6 +316,7 @@ def _extract_table_root(d, current, pc):
 def _extract_table_model(table_data, current, tt):
     """
     Add in modelNumber and summaryNumber fields if this is a summary table
+
     :param dict table_data: Table data
     :param dict current: LiPD root data
     :param str tt: Table type "summ", "ens", "meas"
@@ -328,6 +340,7 @@ def _extract_table_model(table_data, current, tt):
 def _extract_table(table_data, current, pc, ts, tt):
     """
     Use the given table data to create a time series entry for each column in the table.
+
     :param dict table_data: Table data
     :param dict current: LiPD root data
     :param str pc: paleoData or chronData
@@ -409,12 +422,21 @@ def collapse(l, raw):
     LiPD Version 1.3
     Main function to initiate time series to LiPD conversion
 
+    Each object has a:
+    "paleoNumber" or "chronNumber"
+    "tableNumber"
+    "modelNumber"
+    "time_id"
+    "mode" - chronData or paleoData
+    "tableType" - "meas" "ens" "summ"
+
     :param list l: Time series
     :return dict _master: LiPD data, sorted by dataset name
     """
     logger_ts.info("enter collapse")
     # LiPD data (in progress), sorted dataset name
     _master = {}
+    _dsn = ""
 
     try:
         # Determine if we're collapsing a paleo or chron time series
@@ -424,6 +446,7 @@ def collapse(l, raw):
         for entry in l:
             # Get notable keys
             dsn = entry['dataSetName']
+            _dsn = dsn
             _current = entry
 
             # Since root items are the same in each column of the same dataset, we only need these steps the first time.
@@ -440,6 +463,13 @@ def collapse(l, raw):
 
             # Collapse pc, calibration, and interpretation
             _master = _collapse_pc(_master, _current, dsn, _pc)
+
+        # The result combined into a single dataset. Remove the extra layer on the data.
+        if len(_master) == 1:
+            _master = _master[_dsn]
+            print("Created LiPD data: 1 dataset")
+        else:
+            print("Created LiPD data: {} datasets".format(len(_master)))
 
     except Exception as e:
         print("Error: Unable to collapse time series, {}".format(e))
@@ -640,15 +670,14 @@ def _collapse_pc(master, current, dsn, pc):
         # master[datasetname][chronData][chron0][model][chron0model0][summaryTable][chron0model0summary0]
         elif _ms in ["ensembleTable", "summaryTable"]:
             # Collapse the keys in the table root if a table does not yet exist
-            if _table_name not in master[dsn][pc][_m.group(1)][_ms][_m.group(1) + _m.group(2)]["summaryTable"]:
+            if _table_name not in master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms]:
                 _tmp_table = _collapse_table_root(current, dsn, pc)
-                master[dsn][pc][_m.group(1)][_ms][_m.group(1) + _m.group(2)]["summaryTable"][_table_name] = _tmp_table
+                master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms][_table_name] = _tmp_table
 
             # Collapse the keys at the column level, and return the column data
             _tmp_column = _collapse_column(current, pc)
             # Create the column entry in the table
-            master[dsn][pc][_m.group(1)][_ms][_m.group(1) + _m.group(2)]["summaryTable"][_table_name]["columns"][
-                _variable_name] = _tmp_column
+            master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms][_table_name]["columns"][_variable_name] = _tmp_column
 
     except Exception as e:
         print("Error: Unable to collapse column data: {}, {}".format(dsn, e))
@@ -729,7 +758,7 @@ def _collapse_column(current, pc):
 # HELPERS
 
 
-def mode_ts(ec, mode, ts=None):
+def mode_ts(ec, mode="", ts=None):
     """
     Get string for the mode
     :param str ec: extract or collapse
