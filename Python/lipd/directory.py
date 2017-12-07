@@ -39,13 +39,17 @@ def _ask_how_many():
 
 def _go_to_package():
     global _site_pkgs
-    if not _site_pkgs:
-        print("Store new site pkg path")
-        _site_pkgs = os.getcwd()
-    else:
-        print("Use existing site pkg path")
-        os.chdir(_site_pkgs)
-    return
+    try:
+        if not _site_pkgs:
+            # Store new site pkg path
+            _site_pkgs = os.path.dirname(os.path.abspath(__file__))
+            os.chdir(_site_pkgs)
+        else:
+            # Use existing site pkg path
+            os.chdir(_site_pkgs)
+    except Exception as e:
+        print("There was an error finding the scripts to run the GUI: " + str(e))
+
 
 def browse_dialog_dir():
     """
@@ -54,7 +58,7 @@ def browse_dialog_dir():
     """
     _go_to_package()
     logger_directory.info("enter browse_dialog")
-    _path_bytes = subprocess.check_output(['python', 'gui_dir_browse.py'])
+    _path_bytes = subprocess.check_output(['python', 'gui_dir_browse.py'], shell=False)
     _path = _fix_path_bytes(_path_bytes, file=False)
     if len(_path) >= 1:
         _path = _path[0]

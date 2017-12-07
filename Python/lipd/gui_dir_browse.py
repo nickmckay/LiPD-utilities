@@ -11,4 +11,4 @@ try:
     print(str(_path))
     sys.stdout.flush()
 except Exception as e:
-    print("oops : {}".format(e))
+    print("gui_dir_browse.py error: {}".format(e))
