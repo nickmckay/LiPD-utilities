@@ -1,3 +1,2 @@
-addTable <- function(D, tableType, ){
-  
+addTable <- function(D, tableType){
 }

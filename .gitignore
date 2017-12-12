@@ -23,6 +23,7 @@ LiPDUtilitiesPreferences.mat
 *.pyc
 *.xml
 *.iml
+*.log
 
 # Ignore the Package build and misc data
 setup.cfg

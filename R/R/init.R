@@ -75,20 +75,21 @@ readLipd <- function(path=NULL){
 #' 
 #' # write - with path argument
 #' writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
-#' 
+#' assig
 writeLipd <- function(D, path=NULL){
   tryCatch({
     if(missing(path)){
       path <- browse_dialog("d")
       setwd(path)
     }
+    set_bagit()
     if ("paleoData" %in% names(D)){
       print(paste0("writing: ", D[["dataSetName"]]))
       lipd_write(D, path, D[["dataSetName"]])
     } else {
-      entries <- names(D)
-      for (i in 1:length(entries)){
-        print(paste0("writing: ", basename(entry)))
+      dsns <- names(D)
+      for (i in 1:length(dsns)){
+        print(paste0("writing: ", basename(dsns[i])))
         entry <- dsns[[i]]
         lipd_write(D[[entry]], path, entry)
       }
