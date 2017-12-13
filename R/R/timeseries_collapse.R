@@ -77,6 +77,8 @@ collapse_root <- function(d, entry, pc){
         }
       } else if(grepl("pub", key)){
         pub <- collapse_block(entry, pub, key)
+        print("pub iteration")
+        print(pub)
       } else if(grepl("funding", key)){
         funding <- collapse_block(entry, funding, key)
       } else{
@@ -209,20 +211,33 @@ get_crumbs <- function(ts){
 
 #' Collapse all blocks listed: funding, publication calibration, interpretation
 #' These follow the regex format of "<key1><idx>_<key2>"
+#' match[[1]][[1]] = full key with underscore and index (ex. "interpretation1_variableDetail")
+#' match[[1]][[2]] = first key (ex. "interpretation)
+#' match[[1]][[3]] = index number (ex. the "1" from "interpretation1")
+#' match[[1]][[4]] = the key (ex. "variableDetail")
+#' 
 #' @export
 #' @param list entry: Time series entry
 #' @param list l: Metadata (to append to)
 #' @param char key: Key from time series entry
 #' @return list l: Metadata
 collapse_block <- function(entry, l, key){
+  print(paste0("collapsing block: ", key))
   match <- stringr::str_match_all(key, "(\\w+)(\\d+)[_](\\w+)")
   if(!isNullOb(match[[1]])){
-    tryCatch({
-      l[[as.numeric(match[[1]][[3]])]] <- entry[[key]]
-    }, error=function(cond){
-      l[[as.numeric(match[[1]][[3]])]] <- list()
-      l[[as.numeric(match[[1]][[3]])]] <- entry[[key]]
-    })
+    currIdx <- as.numeric(match[[1]][[3]])
+    place_key <- match[[1]][[4]]
+    # If there isn't a list initialized yet for this index, then make it
+    if(length(l) < currIdx){
+      for(idx in 1:currIdx){
+        if(length(l) < currIdx){
+          l[[currIdx]] <- list()
+        } else if(isNullOb(l[[currIdx]])){
+          l[[currIdx]] <- list()
+        }
+      }
+    }
+    l[[currIdx]][[match[[1]][[4]]]] <- entry[[key]]
   }
   return(l)
 }
