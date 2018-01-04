@@ -10,19 +10,26 @@
 #' D <- collapseTs(ts)
 #' 
 collapseTs <- function(ts){
+  
+  # Use the time_id to get the corresponding raw data from global envir ts storage
+  ts_storage <- get_ts_global(ts)
+  timeID <- ts[[1]]$timeID
+  raw_datasets <- ts_storage$timeID
+  whichtables <- ts_storage$whichtables
+    
   D <- list()
   tryCatch({
     # Do some collapse stuff
     for(i in 1:length(ts)){
       pc <- paste0(ts[[i]][["mode"]], "Data")
-      # First occurance of this dataset. Add the raw data to the dataset library.
+      # ONLY PROCESS BASE DATA ON FIRST DATASET OCCURENCE. All subsequent timeseries entries from the same dataset will only add its unique column data to the running dataset.
       if(!ts[[i]][["dataSetName"]] %in% names(D)){
         dsn <- ts[[i]][["dataSetName"]]
         print(paste0("collapsing: ", dsn))
         # Recover paleoData and chronData from raw data
         D[[dsn]] <- put_base_data(ts[[i]])
         # Remove the old summary and measurement tables, as we'll be writing these fresh. Other tables as-is.
-        D[[dsn]] <- rm_existing_tables(D[[dsn]], pc)
+        D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
         # Collapse root data keys (pub, funding, archiveType, etc)
         D[[dsn]] <- collapse_root(D[[dsn]], ts[[i]], pc)
       }
@@ -40,17 +47,35 @@ collapseTs <- function(ts){
 }
 
 is_include_key <- function(key, exclude, pc){
-  for(i in 1:length(exclude)){
-    if(key == exclude[[i]] || grepl(pc, key) || grepl(exclude[[i]], key)){
+  match_idx <- stringr::str_match_all(key, "(\\w+)(\\d+)[_](\\w+)")
+  match_non_idx <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
+  
+  # Split any keys that have underscores. (i.e. "pub1_year"). Are either of the two keys in the exclude list? Return false
+  if(!isNullOb(match_idx[[1]])){
+    if(match_idx[[1]][[2]] %in% exclude || match_idx[[1]][[3]] %in% exclude){
       return(FALSE)
     }
   }
+  # Split any keys that have underscores without an index. (i.e. "paleoData_age"). Are either of the two keys in the exclude list? Return false
+  if(!isNullOb(match_non_idx[[1]])){
+    if(match_non_idx[[1]][[2]] %in% exclude || match_non_idx[[1]][[3]] %in% exclude){
+      return(FALSE)
+    }
+  }
+  
+  # Catch any stragglers. Is the key an exact match or is the key a data table key? (i.e. "paleoData_<key> " or "chronData_<key> ")
+  for(i in 1:length(exclude)){
+    if(key == exclude[[i]] || grepl(pc, key)){
+      return(FALSE)
+    }
+  }
+  # If you made it past all the exclusions, congrats! You're a valid key.
   return(TRUE)
 } 
 
 collapse_root <- function(d, entry, pc){
-  exclude <- c("mode", "measurementTableNumber", "paleoNumber", "summaryTableNumber", 
-               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution")
+  exclude <- c("mode", "whichtables", "paleoNumber", "chronNumber", "tableNumber", "modelNumber", "timeID", "tableType",
+               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample")
   ts_keys <- names(entry)
   pub <- list()
   funding <- list()
@@ -76,11 +101,10 @@ collapse_root <- function(d, entry, pc){
           geo[["properties"]][[g_key]] <- entry[[key]]
         }
       } else if(grepl("pub", key)){
-        pub <- collapse_block(entry, pub, key)
-        print("pub iteration")
-        print(pub)
+        pub <- collapse_block_indexed(entry, pub, key)
       } else if(grepl("funding", key)){
-        funding <- collapse_block(entry, funding, key)
+        print(key)
+        funding <- collapse_block_indexed(entry, funding, key)
       } else{
         # Root key that is not a special case; move it right on over
         d[[key]] <- entry[[key]]
@@ -109,11 +133,13 @@ collapse_table <- function(d, entry, pc){
   # Get the crumbs to the target table
   m <- get_crumbs(entry)
   # Get the existing target table
-  table <- get_table(d, m, pc)
+  # table <- get_table(d, m, pc)
+  table <- get_table(d, entry, pc)
   table <- collapse_table_root(table, entry, pc)
   table <- collapse_column(table, entry, pc)
   # Put the new modified table back into the metadata
-  d <- put_table(d, m, pc, table)
+  # d <- put_table(d, m, pc, table)
+  d <- put_table(d, entry, pc, table)
   return(d)
 }
 
@@ -145,27 +171,24 @@ collapse_column <- function(table, entry, pc){
   interp <- list()
   calib <- list()
   res <- list()
+  phys <- list()
   include <- c("paleoData", "chronData", "interpretation", "calibration", "hasResolution") 
-  exclude <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey")
+  exclude <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey", "pub", "geo")
   ts_keys <- names(entry)
   tryCatch({
     for(i in 1:length(ts_keys)){
-      if (grepl("interpretation", ts_keys[[i]])){
-        interp <- collapse_block(entry, interp, ts_keys[[i]])
-      } else if (grepl("calibration", ts_keys[[i]])){
-        calib <- collapse_block(entry, calib, ts_keys[[i]])
-      } else if (grepl("hasResolution", ts_keys[[i]])){
-        calib <- collapse_block(entry, res, ts_keys[[i]])
-      } else {
-        # ts_key / 1,1 "paleoData" / 1,2 "_" / 1,3 "someKey"
-        ts_key <- stringr::str_match_all(ts_keys[[i]], "(\\w+)[_](\\w+)")
-        if(!isNullOb(ts_key[[1]])){
-          # Not a root table key, and pc matches the given mode
-          if(!ts_key[[1]][[3]] %in% exclude && ts_key[[1]][[2]] == pc){
-            # set ts entry value to new entry in column
-            new_column[[ts_key[[1]][[3]]]] <- entry[[ts_keys[[i]]]]
-          }
-        }
+      curr_key <- ts_keys[[i]]
+      # Interpretation is indexed, so it needs special attention an processing. 
+      if (grepl("interpretation", curr_key)){
+        interp <- collapse_block_indexed(entry, interp, curr_key)
+      } else if (grepl("calibration", curr_key)){
+        calib <- collapse_block(entry, calib, curr_key, pc)
+      } else if (grepl("hasResolution", curr_key)){
+        res <- collapse_block(entry, res, curr_key, pc)
+      } else if (grepl("physicalSample", curr_key)){
+        phys <- collapse_block(entry, phys, curr_key, pc)
+      } else if (grepl(pc, curr_key)){
+        new_column <- collapse_block(entry, new_column, curr_key, pc)
       }
     }
     # Add the special sub-lists if data was found
@@ -175,11 +198,15 @@ collapse_column <- function(table, entry, pc){
     if(!isNullOb(calib)){
       new_column[["calibration"]] <- calib
     }
-    if(!isNullOb(calib)){
+    if(!isNullOb(res)){
       new_column[["hasResolution"]] <- res
+    }
+    if(!isNullOb(phys)){
+      new_column[["physicalSample"]] <- phys
     }
     vn <- new_column[["variableName"]]
     # Set the new column into the table using the variableName
+    table[[vn]] <- list(100)
     table[[vn]] <- new_column
   }, error=function(cond){
     print(paste0("Error: collapse_column: ", cond))
@@ -209,22 +236,25 @@ get_crumbs <- function(ts){
   return(matches)
 }
 
-#' Collapse all blocks listed: funding, publication calibration, interpretation
+#' Collapses blocks: funding, publication calibration, interpretation
 #' These follow the regex format of "<key1><idx>_<key2>"
 #' match[[1]][[1]] = full key with underscore and index (ex. "interpretation1_variableDetail")
 #' match[[1]][[2]] = first key (ex. "interpretation)
 #' match[[1]][[3]] = index number (ex. the "1" from "interpretation1")
-#' match[[1]][[4]] = the key (ex. "variableDetail")
+#' match[[1]][[4]] = second key (ex. "variableDetail")
 #' 
 #' @export
 #' @param list entry: Time series entry
-#' @param list l: Metadata (to append to)
-#' @param char key: Key from time series entry
+#' @param list l: Metadata (to add new data to)
+#' @param char key: Current key from time series entry
 #' @return list l: Metadata
-collapse_block <- function(entry, l, key){
-  print(paste0("collapsing block: ", key))
+collapse_block_indexed <- function(entry, l, key){
+  # print(paste0("collapsing block: ", key))
   match <- stringr::str_match_all(key, "(\\w+)(\\d+)[_](\\w+)")
   if(!isNullOb(match[[1]])){
+    if(match[[1]][[2]] == "funding"){
+      print(key)
+    }
     currIdx <- as.numeric(match[[1]][[3]])
     place_key <- match[[1]][[4]]
     # If there isn't a list initialized yet for this index, then make it
@@ -242,61 +272,133 @@ collapse_block <- function(entry, l, key){
   return(l)
 }
 
+#' Collapses blocks: calibration, physicalSample, hasResolution, 
+#' These follow the regex format of "<key1>_<key2>"
+#' match[[1]][[1]] = full key with underscore and index (ex. "physicalSample_tableName")
+#' match[[1]][[2]] = first key (ex. "physicalSample")
+#' match[[1]][[3]] = second key (ex. "tableName")
+#' 
+#' @export
+#' @param list entry: Time series entry
+#' @param list l: Metadata (to append to)
+#' @param char key: Key from time series entry
+#' @return list l: Metadata
+collapse_block <- function(entry, l, key, pc){
+  exclude <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey", "geo", "funding", "pub")
+  # key_match / 1,1 "paleoData" / 1,2 "_" / 1,3 "someKey"
+  key_match <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
+  if(!isNullOb(key_match[[1]])){
+    # Not a root table key, and pc matches the given mode
+    if(!(key_match[[1]][[3]] %in% exclude)){
+      # set ts entry value to new entry in column
+      l[[key_match[[1]][[3]]]] <- entry[[key]]
+    }
+  }
+  return(l)
+}
+
 #' Get the target table
 #' @export
 #' @param list d: Metadata
-#' @param list m: Regex match
+#' @param list current: Current time series entry
 #' @param char pc: paleoData or chronData
 #' @return list table: Metadata
-get_table <- function(d, m, pc){
+get_table <- function(d, current, pc){
+  
+  tt <- current$tableType
+  modelNumber <- current$modelNumber
+  tableNumber <- current$tableNumber
+  
+  # Get the pcNumber. Dependent on mode.
+  if(pc == "paleoData"){
+    pcNumber <- current$paleoNumber
+  } else {
+    pcNumber <- current$chronNumber
+  }
+  
   # Measurement table
-  if(m[[3]] == "measurement"){
-    table <- d[[pc]][[as.numeric(m[[2]])]][[paste0(m[[3]], "Table")]][[as.numeric(m[[4]])]]
+  if(tt == "meas"){
+    table <- d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]]
   }
-  # Model - summary table
-  else {
-    table <- d[[pc]][[as.numeric(m[[2]])]][[m[[3]]]][[as.numeric(m[[4]])]][[paste0(m[[5]], "Table")]]
+  # Model tables
+  else if (tt == "summ") {
+    table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]]
   }
+  else if (tt=="ens"){
+    table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]]
+  }
+  
   return(table)
 }
 
 #' Put the target table
 #' @export
 #' @param list d: Metadata
-#' @param list m: Regex match
+#' @param list current: Current time series entry
 #' @param char pc: paleoData or chronData
 #' @param list table: Metadata (to be placed)
 #' @return list d: Metadata
-put_table <- function(d, m, pc, table){
+put_table <- function(d, current, pc, table){
+  
+  tt <- current$tableType
+  modelNumber <- current$modelNumber
+  tableNumber <- current$tableNumber
+  
+  # Get the pcNumber. Dependent on mode.
+  if(pc == "paleoData"){
+    pcNumber <- current$paleoNumber
+  } else {
+    pcNumber <- current$chronNumber
+  }
+
   # Measurement table
-  if(m[[3]] == "measurement"){
-    d[[pc]][[as.numeric(m[[2]])]][[paste0(m[[3]], "Table")]][[as.numeric(m[[4]])]] <- table
+  if(tt == "meas"){
+    d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
   }
-  # Model - summary table
-  else {
-    d[[pc]][[as.numeric(m[[2]])]][[m[[3]]]][[as.numeric(m[[4]])]][[paste0(m[[5]], "Table")]][[as.numeric(m[[6]])]] <- table
+  # Model tables
+  else if (tt == "summ") {
+    d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
   }
+  else if (tt=="ens"){
+    d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
+  }
+
   return(d)
 }
 
-#' Remove any measurement or summary tables in the metadata for the given mode
+#' Remove tables that correspond to 'whichtables' type. These tables will be collapsed next and need a clean slate. 
 #' @export
 #' @param list d: Metadata
 #' @param char pc: paleoData or chronData
+#' @param char whichtables: all summ meas ens
 #' @return list d: Metadata
-rm_existing_tables <- function(d, pc){
+rm_existing_tables <- function(d, pc, whichtables){
   if(pc %in% names(d)){
     for(i in 1:length(d)){
-      if("measurementTable" %in% names(d[[i]])){
-        for(j in 1:length(d[[i]][["measurementTable"]])){
-          d[[i]][["measurementTable"]][[j]] <- list()
+      if(whichtables %in% c("all", "meas")){
+        if("measurementTable" %in% names(d[[i]])){
+          for(j in 1:length(d[[i]][["measurementTable"]])){
+            d[[i]][["measurementTable"]][[j]] <- list()
+          }
         }
       }
-      if("model" %in% names(d[[i]])){
-        for(j in 1:length(d[[i]][["model"]])){
-          if("summaryTable" %in% d[[i]][["model"]][[j]]){
-            for(k in 1:length(d[[i]][["model"]][[j]][["summaryTable"]])){
-              d[[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
+    
+      if(whichtables %in% c("all", "ens", "summ")){
+        if("model" %in% names(d[[i]])){
+          for(j in 1:length(d[[i]][["model"]])){
+            if(whichtables %in% c("all", "summ")){
+              if("summaryTable" %in% d[[i]][["model"]][[j]]){
+                for(k in 1:length(d[[i]][["model"]][[j]][["summaryTable"]])){
+                  d[[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
+                }
+              }
+            }
+            if (whichtables %in% c("all", "ens")){
+              if("ensembleTable" %in% d[[i]][["model"]][[j]]){
+                for(k in 1:length(d[[i]][["model"]][[j]][["ensembleTable"]])){
+                  d[[i]][["model"]][[j]][["ensembleTable"]][[k]] < list()
+                }
+              }
             }
           }
         }
@@ -320,4 +422,13 @@ put_base_data <- function(entry){
     d[["chronData"]] <- entry[["raw"]][["chronData"]]
   }
   return(d)
+}
+
+get_ts_global <- function(ts){
+  if(exists("TMP_ts_storage", where = .GlobalEnv)){
+    tmp_storage <- get("TMP_ts_storage", envir=.GlobalEnv)
+  } else {
+    stop("Error: Cannot collapse time series. 'TMP_ts_storage' not found in the Global Environment. This data is created during 'extractTs' and is required for 'collapseTs'")
+  }
+  return(tmp_storage)
 }

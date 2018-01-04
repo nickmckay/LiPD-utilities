@@ -54,13 +54,13 @@ extract=function(L, whichtables, mode, time){
   
   ### TS META
   root[["mode"]] <- mode
-  root[["time_id"]] <- time
-  
+  root[["timeID"]] <- time
+  root[["whichtables"]] <-whichtables
   
   root <- extract_root(L, root)
   root <- extract_geo(L, root)
   root <- extract_pub(L, root)
-  root <- extract_geo(L, root)
+  root <- extract_funding(L, root)
   
   # Now start processing the data tables and making TSOs
   new_tsos <- extract_pc(L, root, whichtables, mode)
@@ -123,6 +123,7 @@ extract_pc=function(L, root, whichtables, mode){
 
 extract_table=function(table_data, table_type, pc, TS, current){
   idx <- 0
+  current[["tableType"]] <- table_type
   # Extract all the special columns
   current = extract_special(table_data, current)
   # Extract all table root items. Anything that is not a column
@@ -257,7 +258,16 @@ validate_parameters=function(D, L, whichtables, mode){
   return()
 }
 
-set_ts_global=function(D){
+set_ts_global=function(L){
+  # We want consistency across TMP storage. Create a hierarchy of "TMP_ts_storage$<timeID>$<dataSetName>$<data>...." regardless of single or multi dataset. 
+  if("dataSetName" %in% names(L)){
+    # Single dataset. Create a DSN layer above the data before assigning to Global Env
+    D <- list()
+    D[[L$dataSetName]] <- L
+  } else {
+    # Multi datasets are organized by DSN. No work needed
+    D <- L
+  }
   # Generate a timestamp
   time_id = as.character(as.numeric(Sys.time()))
   
