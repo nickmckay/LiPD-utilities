@@ -1294,7 +1294,7 @@ class LPD_NOAA(object):
             elif pc == "chron":
                 # self.__write_variables_1(table)
                 self.__write_columns(pc, table)
-                self.__write_divider()
+                self.__write_divider(nl=False)
         return
 
     def __write_variables_1(self, table):
@@ -1424,10 +1424,10 @@ class LPD_NOAA(object):
             _names, _data = self.__rm_names_on_csv_cols(_csv_data_by_name)
 
             # write column variableNames
-            self.__write_data_col_header(_names)
+            self.__write_data_col_header(_names, pc)
 
             # write data columns index by index
-            self.__write_data_col_vals(_data)
+            self.__write_data_col_vals(_data, pc)
 
         return
 
@@ -1518,25 +1518,29 @@ class LPD_NOAA(object):
         self.noaa_txt += "# {}".format(name)
         return
 
-    def __write_divider(self, top=False, bot=False):
+    def __write_divider(self, top=False, bot=False, nl=True):
         """
         Write a divider line
         :return none:
         """
         if top:
             self.noaa_txt += "\n#"
-        self.noaa_txt += "\n#------------------\n"
+        if nl:
+            self.noaa_txt += "\n"
+        self.noaa_txt += "#------------------\n"
         if bot:
             self.noaa_txt += "\n#"
         return
 
-    def __write_data_col_header(self, l):
+    def __write_data_col_header(self, l, pc):
         """
         Write the variableNames that are the column header in the "Data" section
         :param list l: variableNames
         :return none:
         """
         count = len(l)
+        if pc == "chron":
+            self.noaa_txt += "# "
         for name in l:
             # last column - spacing not important
             if count == 1:
@@ -1545,9 +1549,10 @@ class LPD_NOAA(object):
             else:
                 self.noaa_txt += "{:<15}".format(name)
                 count -= 1
+
         self.noaa_txt += '\n'
 
-    def __write_data_col_vals(self, ll):
+    def __write_data_col_vals(self, ll, pc):
         """
         Loop over value arrays and write index by index, to correspond to the rows of a txt file
         :param list ll: List of lists, column data
@@ -1560,15 +1565,12 @@ class LPD_NOAA(object):
             for idx in range(0, _items_in_cols):
                 # amount of columns
                 _count = len(ll)
+                self.noaa_txt += "# "
                 for col in ll:
-                    # last item in array: fixed spacing not needed
-                    if _count == 1:
-                        self.noaa_txt += "{}\t".format(str(col["values"][idx]))
-                    # all [:-1] items. maintain fixed spacing
-                    else:
-                        self.noaa_txt += "{}\t".format(str(col["values"][idx]))
+                    self.noaa_txt += "{}\t".format(str(col["values"][idx]))
                     _count -= 1
-                self.noaa_txt += '\n'
+                if (idx < _items_in_cols):
+                    self.noaa_txt += '\n'
 
         except IndexError:
             logger_lpd_noaa("_write_data_col_vals: IndexError: couldn't get length of columns")
