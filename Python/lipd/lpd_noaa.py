@@ -20,7 +20,7 @@ class LPD_NOAA(object):
     :return none: Writes NOAA text to file in local storage
     """
 
-    def __init__(self, D, dsn, project, version, path):
+    def __init__(self, D, dsn, wds_url, version, path):
         """
 
         :param dict D: Metadata
@@ -28,8 +28,9 @@ class LPD_NOAA(object):
         self.path = path
         # LiPD dataset name
         self.dsn = dsn
-        self.project = project
+        # self.project = project
         self.version = version
+        self.wds_url = wds_url
         self.current_yr = 2017
         # Dataset name with LiPD extension
         self.filename_lpd = dsn + ".lpd"
@@ -49,7 +50,11 @@ class LPD_NOAA(object):
             "qc": []
         }
         # NOAA url, to landing page where this dataset will be stored on NOAA's servers
-        self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(project, version, self.current_yr, self.filename_txt)
+        # Old format - Changed per NOAA request on 01.05.18
+        # self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(project, version, self.current_yr, self.filename_txt)
+        # New format - 01.05.18 - present
+        # self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/nam2k-hydro-v1-1.0.0/noaa-templates/data-version-2017/{}".format(self.filename_txt)
+        self.noaa_url = "{}/{}".format(self.wds_url, self.filename_txt)
         # List of all DOIs found in this dataset
         self.doi = []
         # Avoid writing identical pub citations. Store here as intermediate check.
@@ -1157,9 +1162,9 @@ class LPD_NOAA(object):
         self.noaa_txt += "# {}".format(self.noaa_data_sorted["Top"]['Study_Name'])
         self.__write_template_top()
         # We don't know what the full online resource path will be yet, so leave the base path only
-        self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(self.project, self.current_yr, self.version, filename), top=True)
+        self.__write_k_v("Online_Resource", "{}/{}".format(self.wds_url, filename), top=True)
         self.__write_k_v("Online_Resource_Description", " This file.  NOAA WDS Paleo formatted metadata and data for version {} of this dataset.".format(self.version), indent=True)
-        self.__write_k_v("Online_Resource", " https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(self.project, self.current_yr, self.version, self.filename_lpd), top=True)
+        self.__write_k_v("Online_Resource", "{}/{}".format(self.wds_url, self.filename_lpd), top=True)
         self.__write_k_v("Online_Resource_Description", " Linked Paleo Data (LiPD) formatted file containing the same metadata and data as this file, for version {} of this dataset.".format(self.version), indent=True)
         self.__write_k_v("Original_Source_URL", self.noaa_data_sorted["Top"]['Original_Source_URL'], top=True)
         self.noaa_txt += "\n# Description/Documentation lines begin with #\n# Data lines have no #\n#"
@@ -1459,7 +1464,9 @@ class LPD_NOAA(object):
         \n#\n# Data variables follow that are preceded by "##" in columns one and two.\
         \n# Data line variables format:  Variables list, one per line, shortname-tab-longname-tab-longname components '
         '( 10 components: what, material, error, units, seasonality, archive, detail, method, C or N for Character or '
-        'Numeric data, additional_information)\n#\n'
+        'Numeric data, additional_information)'
+        self.noaa_txt += '\n#\n'
+
         return
 
     def __write_template_chron(self):

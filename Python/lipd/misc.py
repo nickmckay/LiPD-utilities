@@ -740,6 +740,32 @@ def rm_keys_from_dict(d, keys):
                 pass
     return d
 
+def rm_wds_url(D):
+    _D2 = {}
+    print("Removing URL from : ")
+    for _name, _data in D.items():
+        print(_name)
+        _D2[_name] = rm_wds_url_2(_data)
+    return _D2
+
+def rm_wds_url_2(x):
+    try:
+        if isinstance(x, dict):
+            if "WDSPaleoUrl" in x:
+                print("Deleting URL: {}".format(x["WDSPaleoUrl"]))
+                del x["WDSPaleoUrl"]
+            for k, v in x.items():
+                if isinstance(v, dict):
+                    x[k] = rm_wds_url_2(v)
+                elif isinstance(v, list):
+                    x[k] = rm_wds_url_2(v)
+        elif isinstance(x, list):
+            for idx, i in enumerate(x):
+                x[idx] = rm_wds_url_2(i)
+    except Exception as e:
+        print("There was a problem: {}".format(e))
+    return x
+
 
 def _replace_missing_values_table(values, mv):
     """

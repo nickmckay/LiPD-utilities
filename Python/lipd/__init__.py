@@ -7,7 +7,7 @@ from lipd.noaa import noaa_prompt, noaa_to_lpd, lpd_to_noaa, noaa_prompt_1
 from lipd.dataframes import *
 from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
 from lipd.loggers import create_logger, log_benchmark, create_benchmark
-from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields, print_filename
+from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields, print_filename, rm_wds_url
 from lipd.tables import addModel, addTable
 from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
@@ -157,7 +157,7 @@ def excel():
     return _d
 
 
-def noaa(D="", path=""):
+def noaa(D="", path="", wds_url="", version=""):
     """
     Convert between NOAA and LiPD files
 
@@ -181,19 +181,22 @@ def noaa(D="", path=""):
     start = clock()
     # LiPD mode: Convert LiPD files to NOAA files
     if _mode == "1":
-        _project, _version = noaa_prompt_1()
+        # _project, _version = noaa_prompt_1()
+        if not wds_url or not version:
+            print("Missing parameters: WDSPaleoUrl and Version are required parameters for this conversion. Please try again and provide both")
+            return
         if not D:
             print("Error: LiPD data must be provided for LiPD -> NOAA conversions")
         else:
             if "paleoData" in D:
                 _d = copy.deepcopy(D)
-                D = lpd_to_noaa(_d, _project, _version, path)
+                D = lpd_to_noaa(_d, wds_url, version, path)
             else:
                 # For each LiPD file in the LiPD Library
                 for dsn, dat in D.items():
                     _d = copy.deepcopy(dat)
                     # Process this data through the converter
-                    _d = lpd_to_noaa(_d, _project, _version, path)
+                    _d = lpd_to_noaa(_d, wds_url, version, path)
                     # Overwrite the data in the LiPD object with our new data.
                     D[dsn] = _d
             # Write out the new LiPD files, since they now contain the new NOAA URL data
