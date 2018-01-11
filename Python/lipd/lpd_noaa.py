@@ -20,10 +20,14 @@ class LPD_NOAA(object):
     :return none: Writes NOAA text to file in local storage
     """
 
-    def __init__(self, D, dsn, wds_url, version, path):
+    def __init__(self, D, dsn, wds_url, lpd_url, version, path):
         """
-
         :param dict D: Metadata
+        :param str dsn: Dataset name
+        :param str wds_url: WDSPaleoUrl, where NOAA template file will be stored on NOAA's FTP server
+        :param str lpd_url: URL where LiPD file will be stored on NOAA's FTP server
+        :param str version: Version of the dataset
+        :param str path: Path where output files will be written to
         """
         self.path = path
         # LiPD dataset name
@@ -31,6 +35,7 @@ class LPD_NOAA(object):
         # self.project = project
         self.version = version
         self.wds_url = wds_url
+        self.lpd_url = lpd_url
         self.current_yr = 2017
         # Dataset name with LiPD extension
         self.filename_lpd = dsn + ".lpd"
@@ -54,7 +59,8 @@ class LPD_NOAA(object):
         # self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}".format(project, version, self.current_yr, self.filename_txt)
         # New format - 01.05.18 - present
         # self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/nam2k-hydro-v1-1.0.0/noaa-templates/data-version-2017/{}".format(self.filename_txt)
-        self.noaa_url = "{}/{}".format(self.wds_url, self.filename_txt)
+        self.txt_file_url = "{}/{}".format(self.wds_url, self.filename_txt)
+        self.lpd_file_url = "{}/{}".format(self.lpd_url, self.filename_lpd)
         # List of all DOIs found in this dataset
         self.doi = []
         # Avoid writing identical pub citations. Store here as intermediate check.
@@ -1048,9 +1054,9 @@ class LPD_NOAA(object):
         try:
             keys = ["paleo", "paleoData", "paleoMeasurementTable"]
             # get the count for how many tables we have. so we know to make appended filenames or not.
-            for pd_name, pd_data in self.lipd_data[keys[1]].items():
-                for table_name, table_data in pd_data[keys[2]].items():
-                    _count += 1
+            for pd_name, pd_data in self.lipd_data["paleoData"].items():
+                for section_name, section_data in pd_data.items():
+                    _count += len(section_data)
 
         except Exception:
             pass
@@ -1072,7 +1078,7 @@ class LPD_NOAA(object):
             for pd_name, pd_data in self.lipd_data[keys[1]].items():
                 for table_name, table_data in pd_data[keys[2]].items():
                     if self.append_filenames:
-                        _url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/{}-{}/data-version-{}/{}-{}.txt".format(self.project, self.current_yr, self.version, self.dsn, _idx)
+                        _url = "{}/{}-{}.txt".format(self.wds_url, self.dsn, _idx)
                         _url = re.sub("['{}@!$&*+,;?%#~`\[\]=]", "", _url)
                         self.lipd_data[keys[1]][pd_name][keys[2]][table_name]["WDSPaleoUrl"] = _url
                         table_data["WDSPaleoUrl"] = _url
@@ -1081,7 +1087,7 @@ class LPD_NOAA(object):
                         else:
                             self.data_chrons.append(table_data)
                     else:
-                        _url = re.sub("['{}@!$&*+,;?%#~`\[\]=]", "", self.noaa_url)
+                        _url = re.sub("['{}@!$&*+,;?%#~`\[\]=]", "", self.txt_file_url)
                         self.lipd_data[keys[1]][pd_name][keys[2]][table_name]["WDSPaleoUrl"] = _url
                         table_data["WDSPaleoUrl"] = _url
                         if keys[0] == "paleo":
@@ -1100,7 +1106,7 @@ class LPD_NOAA(object):
         Retrieve and add this link to the original LiPD file, so we can trace the dataset to NOAA.
         :return str:
         """
-        return self.noaa_url
+        return self.wds_url
 
     # CREATE FILE REPRESENTATIONS
 
@@ -1149,7 +1155,7 @@ class LPD_NOAA(object):
             logger_lpd_noaa.info("exit create_file")
         return
 
-    def __write_top(self, filename):
+    def __write_top(self, filename_txt):
         """
         Write the top section of the txt file.
         :param int section_num: Section number
@@ -1162,9 +1168,9 @@ class LPD_NOAA(object):
         self.noaa_txt += "# {}".format(self.noaa_data_sorted["Top"]['Study_Name'])
         self.__write_template_top()
         # We don't know what the full online resource path will be yet, so leave the base path only
-        self.__write_k_v("Online_Resource", "{}/{}".format(self.wds_url, filename), top=True)
+        self.__write_k_v("Online_Resource", "{}/{}".format(self.wds_url, filename_txt), top=True)
         self.__write_k_v("Online_Resource_Description", " This file.  NOAA WDS Paleo formatted metadata and data for version {} of this dataset.".format(self.version), indent=True)
-        self.__write_k_v("Online_Resource", "{}/{}".format(self.wds_url, self.filename_lpd), top=True)
+        self.__write_k_v("Online_Resource", "{}".format(self.lpd_file_url), top=True)
         self.__write_k_v("Online_Resource_Description", " Linked Paleo Data (LiPD) formatted file containing the same metadata and data as this file, for version {} of this dataset.".format(self.version), indent=True)
         self.__write_k_v("Original_Source_URL", self.noaa_data_sorted["Top"]['Original_Source_URL'], top=True)
         self.noaa_txt += "\n# Description/Documentation lines begin with #\n# Data lines have no #\n#"

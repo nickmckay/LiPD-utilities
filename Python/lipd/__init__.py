@@ -7,7 +7,7 @@ from lipd.noaa import noaa_prompt, noaa_to_lpd, lpd_to_noaa, noaa_prompt_1
 from lipd.dataframes import *
 from lipd.directory import get_src_or_dst, list_files, collect_metadata_file
 from lipd.loggers import create_logger, log_benchmark, create_benchmark
-from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields, print_filename, rm_wds_url
+from lipd.misc import path_type, load_fn_matches_ext, rm_values_fields, get_dsn, rm_empty_fields, print_filename, rm_wds_url, rm_od_url
 from lipd.tables import addModel, addTable
 from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
@@ -157,19 +157,23 @@ def excel():
     return _d
 
 
-def noaa(D="", path="", wds_url="", version=""):
+def noaa(D="", path="", wds_url="", lpd_url="", version=""):
     """
     Convert between NOAA and LiPD files
 
     | Example: LiPD to NOAA converter
-    | 1: D = lipd.readLipd()
-    | 2: lipd.noaa(D, "/Users/bobsmith/Desktop")
+    | 1: L = lipd.readLipd()
+    | 2: lipd.noaa(L, "/Users/someuser/Desktop", "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/NAm2kHydro-2017/noaa-templates/data-version-1.0.0", "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/NAm2kHydro-2017/data-version-1.0.0", "v1-1.0.0")
 
     | Example: NOAA to LiPD converter
     | 1: lipd.readNoaa()
     | 2: lipd.noaa()
 
     :param dict D: Metadata
+    :param str path: Path where output files will be written to
+    :param str wds_url: WDSPaleoUrl, where NOAA template file will be stored on NOAA's FTP server
+    :param str lpd_url: URL where LiPD file will be stored on NOAA's FTP server
+    :param str version: Version of the dataset
     :return none:
     """
     global files, cwd
@@ -182,23 +186,26 @@ def noaa(D="", path="", wds_url="", version=""):
     # LiPD mode: Convert LiPD files to NOAA files
     if _mode == "1":
         # _project, _version = noaa_prompt_1()
-        if not wds_url or not version:
-            print("Missing parameters: WDSPaleoUrl and Version are required parameters for this conversion. Please try again and provide both")
+        if not version or not lpd_url:
+            print("Missing parameters: Please try again and provide all parameters.")
             return
         if not D:
             print("Error: LiPD data must be provided for LiPD -> NOAA conversions")
         else:
             if "paleoData" in D:
                 _d = copy.deepcopy(D)
-                D = lpd_to_noaa(_d, wds_url, version, path)
+                D = lpd_to_noaa(_d, wds_url, lpd_url, version, path)
             else:
                 # For each LiPD file in the LiPD Library
                 for dsn, dat in D.items():
                     _d = copy.deepcopy(dat)
                     # Process this data through the converter
-                    _d = lpd_to_noaa(_d, wds_url, version, path)
+                    _d = lpd_to_noaa(_d, wds_url, lpd_url, version, path)
                     # Overwrite the data in the LiPD object with our new data.
                     D[dsn] = _d
+            # If no wds url is provided, then remove instances from jsonld metadata
+            if not wds_url:
+                D = rm_wds_url(D)
             # Write out the new LiPD files, since they now contain the new NOAA URL data
             if(path):
                 writeLipd(D, path)

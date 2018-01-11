@@ -740,6 +740,17 @@ def rm_keys_from_dict(d, keys):
                 pass
     return d
 
+
+def rm_od_url(D):
+    # Remove originalDataUrls
+    for _name, _data in D.items():
+        if "originalDataURL" in _data:
+            del _data["originalDataURL"]
+        if "originalDataUrl" in _data:
+            del _data["originalDataUrl"]
+
+    return D
+
 def rm_wds_url(D):
     _D2 = {}
     print("Removing URL from : ")
