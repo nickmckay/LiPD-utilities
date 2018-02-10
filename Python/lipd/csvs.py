@@ -115,7 +115,7 @@ def _merge_csv_table(tables, pc, csvs):
                     _mv = get_missing_value_key(_table)
                     if _mv:
                         # Use the Missing Value key to replace all current missing values with "nan"
-                        csvs = _replace_missing_values_table(_one_csv, _mv)
+                        _one_csv = _replace_missing_values_table(_one_csv, _mv)
                     else:
                         print("No missing value found. You may encounter errors with this data.")
                 # Merge the values into the columns

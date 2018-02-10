@@ -81,7 +81,7 @@ def noaa_to_lpd(files):
     return
 
 
-def lpd_to_noaa(D, project, version, path=""):
+def lpd_to_noaa(D, wds_url, lpd_url, version, path=""):
     """
     Convert a LiPD format to NOAA format
 
@@ -94,10 +94,10 @@ def lpd_to_noaa(D, project, version, path=""):
         dsn = get_dsn(D)
         # Remove all the characters that are not allowed here. Since we're making URLs, they have to be compliant.
         dsn = re.sub(r'[^A-Za-z-.0-9]', '', dsn)
-        project = re.sub(r'[^A-Za-z-.0-9]', '', project)
+        # project = re.sub(r'[^A-Za-z-.0-9]', '', project)
         version = re.sub(r'[^A-Za-z-.0-9]', '', version)
         # Create the conversion object, and start the conversion process
-        _convert_obj = LPD_NOAA(D, dsn, project, version, path)
+        _convert_obj = LPD_NOAA(D, dsn, wds_url, lpd_url, version, path)
         _convert_obj.main()
         # get our new, modified master JSON from the conversion object
         d = _convert_obj.get_master()
@@ -105,6 +105,7 @@ def lpd_to_noaa(D, project, version, path=""):
         __write_noaas(noaas, path)
         # remove any root level urls that are deprecated
         d = __rm_wdc_url(d)
+
     except Exception as e:
         logger_noaa.error("lpd_to_noaa: {}".format(e))
         print("Error: lpd_to_noaa: {}".format(e))
@@ -121,8 +122,6 @@ def __rm_wdc_url(d):
     """
     if "WDCPaleoUrl" in d:
         del d["WDCPaleoUrl"]
-    if "WDSPaleoUrl" in d:
-        del d["WDSPaleoUrl"]
     return d
 
 
