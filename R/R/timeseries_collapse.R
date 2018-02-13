@@ -27,7 +27,7 @@ collapseTs <- function(ts){
         dsn <- ts[[i]][["dataSetName"]]
         print(paste0("collapsing: ", dsn))
         # Recover paleoData and chronData from raw data
-        D[[dsn]] <- put_base_data(ts[[i]])
+        D[[dsn]] <- put_base_data(ts[[i]], raw_datasets, dsn)
         # Remove the old summary and measurement tables, as we'll be writing these fresh. Other tables as-is.
         D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
         # Collapse root data keys (pub, funding, archiveType, etc)
@@ -413,14 +413,23 @@ rm_existing_tables <- function(d, pc, whichtables){
 #' @param list d: Metadata
 #' @param char pc: paleoData or chronData
 #' @return list d: Metadata
-put_base_data <- function(entry){
+put_base_data <- function(entry, raw_datasets, dsn){
   d <- list()
-  if("paleoData" %in% names(entry[["raw"]])){
-    d[["paleoData"]] <- entry[["raw"]][["paleoData"]]
+  # Is there paleoData? Find it and add it
+  if("paleoData" %in% names(raw_datasets)){
+    d[["paleoData"]] <- raw_datasets[["paleoData"]] 
+  } else if (dsn %in% (raw_datasets)){
+    d[["paleoData"]] <- raw_datasets[[dsn]][["paleoData"]]
   }
-  if("chronData" %in% names(entry[["raw"]])){
-    d[["chronData"]] <- entry[["raw"]][["chronData"]]
+  # Is there chronData? Find it and add it
+  if("chronData" %in% names(raw_datasets)){
+    d[["chronData"]] = raw_datasets[["chronData"]]
+  } else if (dsn %in% names(raw_datasets)){
+    d[["chronData"]] <- raw_datasets[[dsn]][["chronData"]]
   }
+  
+  
+  
   return(d)
 }
 
