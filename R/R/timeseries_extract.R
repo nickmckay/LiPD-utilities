@@ -8,7 +8,7 @@
 #' D <- readLipds()
 #' ts <- extractTs(D)
 #' 
-extractTs= function(D, whichtables, mode){
+extractTs= function(D, whichtables = "all", mode = "paleo"){
   
   TS <- list()
   
@@ -64,7 +64,7 @@ extract=function(L, whichtables, mode, time){
   
   # Now start processing the data tables and making TSOs
   new_tsos <- extract_pc(L, root, whichtables, mode)
-
+  
   return(new_tsos)
 }
 
@@ -82,10 +82,19 @@ extract_pc=function(L, root, whichtables, mode){
     if(whichtables %in% c("all", "meas")){
       for(p2 in 1:length(L[[pc]][[p1]]$measurementTable)){
         TABLE = L[[pc]][[p1]]$measurementTable[[p2]]
-        current = root
-        current[[paste0(mode,"Number")]] <- p1
-        current[["tableNumber"]] <-p2
-        TS = extract_table(TABLE, "meas", pc, TS, current)
+        if(!is.null(TABLE)){
+          current = root
+          current[[paste0(mode,"Number")]] <- p1
+          current[["tableNumber"]] <-p2
+          tempTS = extract_table(TABLE, "meas", pc, TS, current)
+          
+          #added this code to make sure that it doesn't overwrite itself
+          if(exists("TS")){
+            TS = append(TS,tempTS)
+          }else{
+            TS = tempTS
+          }
+        }
       }
     }
     if(whichtables != "meas"){
@@ -101,17 +110,36 @@ extract_pc=function(L, root, whichtables, mode){
           # loop for each summaryTable entry
           for(p3 in 1:length(MODEL$summaryTable)){
             TABLE <- MODEL$summaryTable[[p3]]
-            current[[paste0(mode,"Number")]] <- p1
-            current[["modelNumber"]] <- p2
-            current[["tableNumber"]] <- p3
-            TS <- extract_table(TABLE, "summ", pc, TS, current)
+            if(!is.null(TABLE)){
+              current[[paste0(mode,"Number")]] <- p1
+              current[["modelNumber"]] <- p2
+              current[["tableNumber"]] <- p3
+              tempTS <- extract_table(TABLE, "summ", pc, TS, current)
+              
+              #added this code to make sure that it doesn't overwrite itself
+              if(exists("TS")){
+                TS = append(TS,tempTS)
+              }else{
+                TS = tempTS
+              }
+              
+              
+            }
           }
         }
         if(whichtables %in% c("all", "ens")){
           # loop for each summaryTable entry
           for(p3 in 1:length(MODEL$summaryTable)){
             TABLE <- MODEL$ensembleTable[[p3]]
-            TS <- extract_table(TABLE, "ens", pc, TS, current)
+            if(!is.null(TABLE)){
+              tempTS <- extract_table(TABLE, "ens", pc, TS, current)
+              #added this code to make sure that it doesn't overwrite itself
+              if(exists("TS")){
+                TS = append(TS,tempTS)
+              }else{
+                TS = tempTS
+              }
+            }
           }
         }
       }
@@ -156,7 +184,7 @@ extract_special= function(table_data, current){
 }
 
 extract_column=function(column, current_fork, pc){
-
+  
   #grab data and metadata from this column
   excludeColumn = c("number", "tableName")
   colGrab = which(!(names(column) %in% excludeColumn) & !sapply(column,is.list))
@@ -279,7 +307,7 @@ set_ts_global=function(L){
   # assign data to global space
   tmp_storage[[time_id]] <- D
   assign("TMP_ts_storage", tmp_storage, envir=.GlobalEnv)
-
+  
   return(time_id)
 }
 
