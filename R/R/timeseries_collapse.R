@@ -75,7 +75,8 @@ is_include_key <- function(key, exclude, pc){
 
 collapse_root <- function(d, entry, pc){
   exclude <- c("mode", "whichtables", "paleoNumber", "chronNumber", "tableNumber", "modelNumber", "timeID", "tableType",
-               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample")
+               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample",
+               "depthUnits","year","yearUnits")
   ts_keys <- names(entry)
   pub <- list()
   funding <- list()
