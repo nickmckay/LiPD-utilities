@@ -14,15 +14,15 @@ collapseTs <- function(ts){
   # Use the time_id to get the corresponding raw data from global envir ts storage
   ts_storage <- get_ts_global(ts)
   timeID <- ts[[1]]$timeID
-  raw_datasets <- ts_storage$timeID
-  whichtables <- ts_storage$whichtables
+  raw_datasets <- ts_storage[[timeID]]
+  whichtables <- ts[[1]]$whichtables
     
   D <- list()
   tryCatch({
     # Do some collapse stuff
     for(i in 1:length(ts)){
       pc <- paste0(ts[[i]][["mode"]], "Data")
-      # ONLY PROCESS BASE DATA ON FIRST DATASET OCCURENCE. All subsequent timeseries entries from the same dataset will only add its unique column data to the running dataset.
+      # ONLY PROCESS BASE DATA ONeFIRST DATASET OCCURENCE. All subsequent timeseries entries from the same dataset will only add its unique column data to the running dataset.
       if(!ts[[i]][["dataSetName"]] %in% names(D)){
         dsn <- ts[[i]][["dataSetName"]]
         print(paste0("collapsing: ", dsn))
@@ -80,42 +80,46 @@ collapse_root <- function(d, entry, pc){
   pub <- list()
   funding <- list()
   geo <- list(geometry=list(coordinates=list(NA, NA, NA), type="Point"), properties=list())
-  for(i in 1:length(ts_keys)){
-    key <- ts_keys[[i]]
-    # Is this a key that should be added
-    include <- is_include_key(key, exclude, pc)
-    # Filter all the keys we don't want
-    if(include){
-      if(grepl("geo", key)){
-        m <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
-        g_key = m[[1]][[3]]
-        if(g_key == "longitude" || g_key == "meanLon"){
-          geo[["geometry"]][["coordinates"]][[1]] <- entry[[key]]
-        } else if (g_key == "latitude" || g_key == "meanLat"){
-          geo[["geometry"]][["coordinates"]][[2]] <- entry[[key]]
-        } else if (g_key == "elevation" || g_key == "meanElev"){
-          geo[["geometry"]][["coordinates"]][[3]] <- entry[[key]]
-        } else if (g_key == "type"){
-          geo[["type"]] <- entry[[key]]
-        } else {
-          geo[["properties"]][[g_key]] <- entry[[key]]
+  tryCatch({
+    for(i in 1:length(ts_keys)){
+      key <- ts_keys[[i]]
+      # Is this a key that should be added
+      include <- is_include_key(key, exclude, pc)
+      # Filter all the keys we don't want
+      if(include){
+        if(grepl("geo", key)){
+          m <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
+          g_key = m[[1]][[3]]
+          if(g_key == "longitude" || g_key == "meanLon"){
+            geo[["geometry"]][["coordinates"]][[1]] <- entry[[key]]
+          } else if (g_key == "latitude" || g_key == "meanLat"){
+            geo[["geometry"]][["coordinates"]][[2]] <- entry[[key]]
+          } else if (g_key == "elevation" || g_key == "meanElev"){
+            geo[["geometry"]][["coordinates"]][[3]] <- entry[[key]]
+          } else if (g_key == "type"){
+            geo[["type"]] <- entry[[key]]
+          } else {
+            geo[["properties"]][[g_key]] <- entry[[key]]
+          }
+        } else if(grepl("pub", key)){
+          pub <- collapse_block_indexed(entry, pub, key)
+        } else if(grepl("funding", key)){
+          print(key)
+          funding <- collapse_block_indexed(entry, funding, key)
+        } else{
+          # Root key that is not a special case; move it right on over
+          d[[key]] <- entry[[key]]
         }
-      } else if(grepl("pub", key)){
-        pub <- collapse_block_indexed(entry, pub, key)
-      } else if(grepl("funding", key)){
-        print(key)
-        funding <- collapse_block_indexed(entry, funding, key)
-      } else{
-        # Root key that is not a special case; move it right on over
-        d[[key]] <- entry[[key]]
       }
     }
-  }
-  # Only add these lists if they're not empty 
-  if(!isNullOb(pub)){ d[["pub"]] <- pub }
-  if(!isNullOb(funding)){ d[["funding"]] <- funding }
-  if(!isNullOb(geo)){ d[["geo"]] <- geo }
-  d[["@context"]] <- "context.jsonld"
+    # Only add these lists if they're not empty 
+    if(!isNullOb(pub)){ d[["pub"]] <- pub }
+    if(!isNullOb(funding)){ d[["funding"]] <- funding }
+    if(!isNullOb(geo)){ d[["geo"]] <- geo }
+    d[["@context"]] <- "context.jsonld"
+  }, error=function(cond){
+    stop(paste0("Error: collapse_root: ", cond))
+  })
   return(d)
 }
 
@@ -231,7 +235,7 @@ get_crumbs <- function(ts){
       matches <- c(m[[1]][[2]], m[[1]][[3]], m[[1]][[4]], m[[1]][[5]])
     }
   }, error=function(cond){
-    stop(paste0("Error: ", cond))
+    stop(paste0("Error get_crumbs: ", cond))
   })
   return(matches)
 }
@@ -304,30 +308,33 @@ collapse_block <- function(entry, l, key, pc){
 #' @param char pc: paleoData or chronData
 #' @return list table: Metadata
 get_table <- function(d, current, pc){
-  
-  tt <- current$tableType
-  modelNumber <- current$modelNumber
-  tableNumber <- current$tableNumber
-  
-  # Get the pcNumber. Dependent on mode.
-  if(pc == "paleoData"){
-    pcNumber <- current$paleoNumber
-  } else {
-    pcNumber <- current$chronNumber
-  }
-  
-  # Measurement table
-  if(tt == "meas"){
-    table <- d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]]
-  }
-  # Model tables
-  else if (tt == "summ") {
-    table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]]
-  }
-  else if (tt=="ens"){
-    table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]]
-  }
-  
+  table <- tryCatch({
+    tt <- current$tableType
+    modelNumber <- current$modelNumber
+    tableNumber <- current$tableNumber
+    
+    # Get the pcNumber. Dependent on mode.
+    if(pc == "paleoData"){
+      pcNumber <- current$paleoNumber
+    } else {
+      pcNumber <- current$chronNumber
+    }
+    # Measurement table
+    if(tt == "meas"){
+      table <- d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]]
+    }
+    # Model tables
+    else if (tt == "summ") {
+      table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]]
+    }
+    else if (tt=="ens"){
+      table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]]
+    }
+    return(table)
+  }, error=function(cond){
+    print(paste0("Error get_table: ", cond))
+    return(list())
+  })
   return(table)
 }
 
@@ -339,30 +346,32 @@ get_table <- function(d, current, pc){
 #' @param list table: Metadata (to be placed)
 #' @return list d: Metadata
 put_table <- function(d, current, pc, table){
-  
-  tt <- current$tableType
-  modelNumber <- current$modelNumber
-  tableNumber <- current$tableNumber
-  
-  # Get the pcNumber. Dependent on mode.
-  if(pc == "paleoData"){
-    pcNumber <- current$paleoNumber
-  } else {
-    pcNumber <- current$chronNumber
-  }
-
-  # Measurement table
-  if(tt == "meas"){
-    d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
-  }
-  # Model tables
-  else if (tt == "summ") {
-    d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
-  }
-  else if (tt=="ens"){
-    d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
-  }
-
+  tryCatch({
+    tt <- current$tableType
+    modelNumber <- current$modelNumber
+    tableNumber <- current$tableNumber
+    
+    # Get the pcNumber. Dependent on mode.
+    if(pc == "paleoData"){
+      pcNumber <- current$paleoNumber
+    } else {
+      pcNumber <- current$chronNumber
+    }
+    
+    # Measurement table
+    if(tt == "meas"){
+      d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
+    }
+    # Model tables
+    else if (tt == "summ") {
+      d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
+    }
+    else if (tt=="ens"){
+      d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
+    }
+  }, error=function(cond){
+    stop(paste0("Error put_table: ", cond))
+  })
   return(d)
 }
 
@@ -373,30 +382,32 @@ put_table <- function(d, current, pc, table){
 #' @param char whichtables: all summ meas ens
 #' @return list d: Metadata
 rm_existing_tables <- function(d, pc, whichtables){
-  if(pc %in% names(d)){
-    for(i in 1:length(d)){
-      if(whichtables %in% c("all", "meas")){
-        if("measurementTable" %in% names(d[[i]])){
-          for(j in 1:length(d[[i]][["measurementTable"]])){
-            d[[i]][["measurementTable"]][[j]] <- list()
+  d <- tryCatch({
+    if(pc %in% names(d)){
+      for(i in 1:length(d[[pc]])){
+        if(whichtables %in% c("all", "meas")){
+          if("measurementTable" %in% names(d[[pc]][[i]])){
+            for(j in 1:length(d[[pc]][[i]][["measurementTable"]])){
+              d[[pc]][[i]][["measurementTable"]][[j]] <- list()
+            }
           }
         }
-      }
-    
-      if(whichtables %in% c("all", "ens", "summ")){
-        if("model" %in% names(d[[i]])){
-          for(j in 1:length(d[[i]][["model"]])){
-            if(whichtables %in% c("all", "summ")){
-              if("summaryTable" %in% d[[i]][["model"]][[j]]){
-                for(k in 1:length(d[[i]][["model"]][[j]][["summaryTable"]])){
-                  d[[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
+        
+        if(whichtables %in% c("all", "ens", "summ")){
+          if("model" %in% names(d[[pc]][[i]])){
+            for(j in 1:length(d[[pc]][[i]][["model"]])){
+              if(whichtables %in% c("all", "summ")){
+                if("summaryTable" %in% d[[pc]][[i]][["model"]][[j]]){
+                  for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["summaryTable"]])){
+                    d[[pc]][[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
+                  }
                 }
               }
-            }
-            if (whichtables %in% c("all", "ens")){
-              if("ensembleTable" %in% d[[i]][["model"]][[j]]){
-                for(k in 1:length(d[[i]][["model"]][[j]][["ensembleTable"]])){
-                  d[[i]][["model"]][[j]][["ensembleTable"]][[k]] < list()
+              if (whichtables %in% c("all", "ens")){
+                if("ensembleTable" %in% d[[pc]][[i]][["model"]][[j]]){
+                  for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["ensembleTable"]])){
+                    d[[pc]][[i]][["model"]][[j]][["ensembleTable"]][[k]] < list()
+                  }
                 }
               }
             }
@@ -404,7 +415,10 @@ rm_existing_tables <- function(d, pc, whichtables){
         }
       }
     }
-  }
+    return(d)
+  }, error=function(cond){
+    stop(paste0("rm_existing_tables: ", cond))
+  })
   return(d)
 }
 
@@ -418,18 +432,19 @@ put_base_data <- function(entry, raw_datasets, dsn){
   # Is there paleoData? Find it and add it
   if("paleoData" %in% names(raw_datasets)){
     d[["paleoData"]] <- raw_datasets[["paleoData"]] 
-  } else if (dsn %in% (raw_datasets)){
-    d[["paleoData"]] <- raw_datasets[[dsn]][["paleoData"]]
+  } else if (dsn %in% names(raw_datasets)){
+    if("paleoData" %in% names(raw_datasets[[dsn]])){
+      d[["paleoData"]] <- raw_datasets[[dsn]][["paleoData"]]
+    }
   }
   # Is there chronData? Find it and add it
   if("chronData" %in% names(raw_datasets)){
     d[["chronData"]] = raw_datasets[["chronData"]]
   } else if (dsn %in% names(raw_datasets)){
-    d[["chronData"]] <- raw_datasets[[dsn]][["chronData"]]
+    if("chronData" %in% names(raw_datasets[[dsn]])){
+      d[["chronData"]] <- raw_datasets[[dsn]][["chronData"]]
+    }
   }
-  
-  
-  
   return(d)
 }
 
