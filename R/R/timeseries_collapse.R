@@ -235,7 +235,7 @@ get_crumbs <- function(ts){
       matches <- c(m[[1]][[2]], m[[1]][[3]], m[[1]][[4]], m[[1]][[5]])
     }
   }, error=function(cond){
-    stop(paste0("Error get_crumbs: ", cond))
+    #warning(paste0("Error get_crumbs: ", cond))
   })
   return(matches)
 }
@@ -332,6 +332,7 @@ get_table <- function(d, current, pc){
     }
     return(table)
   }, error=function(cond){
+    
     print(paste0("Error get_table: ", cond))
     return(list())
   })
