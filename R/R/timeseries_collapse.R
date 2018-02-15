@@ -364,6 +364,9 @@ put_table <- function(d, current, pc, table){
     }
     # Model tables
     else if (tt == "summ") {
+      if(length(d[[pc]][[pcNumber]][["model"]]) < modelNumber){#test for the possibility that it's new.
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
+      }
       d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
     }
     else if (tt=="ens"){
