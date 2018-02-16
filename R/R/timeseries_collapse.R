@@ -2,6 +2,7 @@
 #' @export
 #' @author Chris Heiser
 #' @param ts Time series : list
+#' @param force Attempt to collapse time series when global ts_storage is not provided: bool
 #' @usage collapseTs(ts)
 #' @return D: LiPD data, sorted by dataset name : list
 #' @examples 
@@ -9,12 +10,12 @@
 #' ts <- extractTs(D)
 #' D <- collapseTs(ts)
 #' 
-collapseTs <- function(ts){
-  
-  # Use the time_id to get the corresponding raw data from global envir ts storage
+collapseTs <- function(ts, force=FALSE){
+  # Get the original data from the global environment whenever possible
   ts_storage <- get_ts_global(ts)
-  timeID <- ts[[1]]$timeID
   raw_datasets <- ts_storage[[timeID]]
+  # Use the time_id to get the corresponding raw data from global envir ts storage
+  timeID <- ts[[1]]$timeID
   whichtables <- ts[[1]]$whichtables
     
   D <- list()
@@ -22,13 +23,13 @@ collapseTs <- function(ts){
     # Do some collapse stuff
     for(i in 1:length(ts)){
       pc <- paste0(ts[[i]][["mode"]], "Data")
-      # ONLY PROCESS BASE DATA ONeFIRST DATASET OCCURENCE. All subsequent timeseries entries from the same dataset will only add its unique column data to the running dataset.
+      # ONLY PROCESS BASE DATA ON FIRST DATASET OCCURENCE. All subsequent timeseries entries from the same dataset will only add its unique column data to the running dataset.
       if(!ts[[i]][["dataSetName"]] %in% names(D)){
         dsn <- ts[[i]][["dataSetName"]]
         print(paste0("collapsing: ", dsn))
         # Recover paleoData and chronData from raw data
-        D[[dsn]] <- put_base_data(ts[[i]], raw_datasets, dsn)
-        # Remove the old summary and measurement tables, as we'll be writing these fresh. Other tables as-is.
+        D[[dsn]] <- put_base_data(ts[[i]], raw_datasets, dsn, force)
+        # Remove the old target tables, as we'll be writing these fresh. Other tables as-is.
         D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
         # Collapse root data keys (pub, funding, archiveType, etc)
         D[[dsn]] <- collapse_root(D[[dsn]], ts[[i]], pc)
@@ -75,7 +76,7 @@ is_include_key <- function(key, exclude, pc){
 
 collapse_root <- function(d, entry, pc){
   exclude <- c("mode", "whichtables", "paleoNumber", "chronNumber", "tableNumber", "modelNumber", "timeID", "tableType",
-               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample")
+               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample", "year")
   ts_keys <- names(entry)
   pub <- list()
   funding <- list()
@@ -135,7 +136,7 @@ collapse_author <- function(d, entry){
 #' @return list d: Metadata
 collapse_table <- function(d, entry, pc){
   # Get the crumbs to the target table
-  m <- get_crumbs(entry)
+  # m <- get_crumbs(entry)
   # Get the existing target table
   # table <- get_table(d, m, pc)
   table <- get_table(d, entry, pc)
@@ -222,23 +223,23 @@ collapse_column <- function(table, entry, pc){
 #' @export
 #' @param list ts: Time series
 #' @return list matches: Separated names and indices
-get_crumbs <- function(ts){
-  matches <- c()
-  tryCatch({
-    mode <- ts[["mode"]]
-    key <- paste0(mode, "Data_tableName")
-    m <- stringr::str_match_all(ts[[key]], "(\\w+)(\\d+)(\\w+)(\\d+)")
-    if(isNullOb(m[[1]])){
-      m <- stringr::str_match_all(ts[[key]], "(\\w+)(\\d+)(\\w+)(\\d+)(\\w+)(\\d+)")
-      matches <- c(m[[1]][[2]], m[[1]][[3]], m[[1]][[4]], m[[1]][[5]], m[[1]][[6]], m[[1]][[7]])
-    } else {
-      matches <- c(m[[1]][[2]], m[[1]][[3]], m[[1]][[4]], m[[1]][[5]])
-    }
-  }, error=function(cond){
-    stop(paste0("Error get_crumbs: ", cond))
-  })
-  return(matches)
-}
+# get_crumbs <- function(ts){
+#   matches <- c()
+#   tryCatch({
+#     mode <- ts[["mode"]]
+#     key <- paste0(mode, "Data_tableName")
+#     m <- stringr::str_match_all(ts[[key]], "(\\w+)(\\d+)(\\w+)(\\d+)")
+#     if(isNullOb(m[[1]])){
+#       m <- stringr::str_match_all(ts[[key]], "(\\w+)(\\d+)(\\w+)(\\d+)(\\w+)(\\d+)")
+#       matches <- c(m[[1]][[2]], m[[1]][[3]], m[[1]][[4]], m[[1]][[5]], m[[1]][[6]], m[[1]][[7]])
+#     } else {
+#       matches <- c(m[[1]][[2]], m[[1]][[3]], m[[1]][[4]], m[[1]][[5]])
+#     }
+#   }, error=function(cond){
+#     stop(paste0("Error get_crumbs: ", cond))
+#   })
+#   return(matches)
+# }
 
 #' Collapses blocks: funding, publication calibration, interpretation
 #' These follow the regex format of "<key1><idx>_<key2>"
@@ -309,10 +310,12 @@ collapse_block <- function(entry, l, key, pc){
 #' @return list table: Metadata
 get_table <- function(d, current, pc){
   table <- tryCatch({
+    
+    # Use the path and indexing info to get the "in progress" table that belongs to this TS entry. We want to add this TS entry (column) to this table.
     tt <- current$tableType
     modelNumber <- current$modelNumber
     tableNumber <- current$tableNumber
-    
+
     # Get the pcNumber. Dependent on mode.
     if(pc == "paleoData"){
       pcNumber <- current$paleoNumber
@@ -332,7 +335,8 @@ get_table <- function(d, current, pc){
     }
     return(table)
   }, error=function(cond){
-    print(paste0("Error get_table: ", cond))
+    # The table you wanted to get didn't exist. Either this table hasn't been created yet, or the table was altered in the time series and needs new structuring to be built. 
+    # print(paste0("Error get_table: ", cond))
     return(list())
   })
   return(table)
@@ -346,7 +350,7 @@ get_table <- function(d, current, pc){
 #' @param list table: Metadata (to be placed)
 #' @return list d: Metadata
 put_table <- function(d, current, pc, table){
-  tryCatch({
+  d <- tryCatch({
     tt <- current$tableType
     modelNumber <- current$modelNumber
     tableNumber <- current$tableNumber
@@ -358,25 +362,118 @@ put_table <- function(d, current, pc, table){
       pcNumber <- current$chronNumber
     }
     
-    # Measurement table
+    # Measurement tables
     if(tt == "meas"){
-      d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
+      tryCatch({
+        # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
+        d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
+      }, error=function(cond){
+        # Less Ideal Scenario: The structure for that table isn't built yet, and we couldn't place the table. We have to build the structure all the way down before placing the table.
+        d <- build_structure(d, pc, tt, paleoNumber, NULL, tableNumber)
+        d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
+      })
     }
-    # Model tables
+    
+    # Summary tables
     else if (tt == "summ") {
-      if(length(d[[pc]][[pcNumber]][["model"]]) < modelNumber){#test for the possibility that it's new.
-        d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
-      }
-      d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
+      tryCatch({
+        # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
+      }, error=function(cond){
+        # Less Ideal Scenario: The structure for that table isn't built yet, and we couldn't place the table. We have to build the structure all the way down before placing the table.
+        d <- build_structure(d, pc, tt, paleoNumber, modelNumber, tableNumber)
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
+      })
     }
+    
+    # Ensemble tables
     else if (tt=="ens"){
-      d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
+      tryCatch({
+        # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
+      }, error=function(cond){
+        # Less Ideal Scenario: The structure for that table isn't built yet, and we couldn't place the table. We have to build the structure all the way down before placing the table.
+        d <- build_structure(d, pc, tt, paleoNumber, modelNumber, tableNumber)
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
+      })
     }
+    return(d)
   }, error=function(cond){
-    stop(paste0("Error put_table: ", cond))
+    # There was an issue getting the path and indexing for this table. 
+    print(paste0("Error: put_table: ", cond))
   })
   return(d)
 }
+
+build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumber){
+  # Is there a list for this pc section?
+  if(!is.list(d[[pc]])){
+    # No, create one. 
+    d[[pc]] <- list()
+  }
+  # Is there a list at pcNumber index?
+  if(length(d[[pc]]) < pcNumber){
+    # No, create one. 
+    d[[pc]][[pcNumber]] <- list()
+  }
+  
+  # Create Measurement structure
+  if (table_type == "meas" || table_type == "all"){
+    if(!"measurementTable" %in% d[[pc]][[pcNumber]]){
+      d[[pc]][[pcNumber]][["measurementTable"]] <- list()
+    }
+    if(!is.list(d[[pc]][[pcNumber]][["measurementTable"]])){
+      d[[pc]][[pcNumber]][["measurementTable"]] <- list()
+    }
+    if(length(d[[pc]][[pcNumber]][["measurementTable"]]) < tableNumber){
+      d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- list()
+    }
+  }
+  
+  if (table_type == "ens" || table_type == "summ" || table_type == "all"){
+    
+    # Create the Model indexing if needed 
+    if(!"model" %in% d[[pc]][[pcNumber]]){
+      d[[pc]][[pcNumber]][["model"]] <- list()
+    }
+    if(!is.list(d[[pc]][[pcNumber]][["model"]])){
+      d[[pc]][[pcNumber]][["model"]] <- list()
+    }
+    if(length(d[[pc]][[pcNumber]][["model"]]) < modelNumber){
+      d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
+    }
+    
+    # Create summary structure
+    if (table_type == "summ" || table_type == "all"){
+      # Create the Model indexing if needed 
+      if(!"summaryTable" %in% d[[pc]][[pcNumber]][["model"]][[modelNumber]]){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
+      }
+      if(!is.list(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]])){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]] <- list()
+      }
+      if(length(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]]) < tableNumber){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- list()
+      }
+    }
+    
+    # Create ensemble structure
+    if (table_type == "ens" || table_type == "all"){
+      # Create the Model indexing if needed 
+      if(!"ensembleTable" %in% d[[pc]][[pcNumber]][["model"]][[modelNumber]]){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
+      }
+      if(!is.list(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]])){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]] <- list()
+      }
+      if(length(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]]) < tableNumber){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- list()
+      }
+    }
+  }
+  return(d)
+}
+
 
 #' Remove tables that correspond to 'whichtables' type. These tables will be collapsed next and need a clean slate. 
 #' @export
@@ -425,27 +522,39 @@ rm_existing_tables <- function(d, pc, whichtables){
   return(d)
 }
 
-#' Put in paleoData and chronData as the base for this dataset using the pre-extractTs data.  
+#' Put in paleoData and chronData as the base for this dataset using the oroginal dataset data.  
 #' @export
 #' @param list d: Metadata
-#' @param char pc: paleoData or chronData
+#' @param char pc: paleoData or 
+#' @param bool force: Build dataset without original data from global
 #' @return list d: Metadata
-put_base_data <- function(entry, raw_datasets, dsn){
+put_base_data <- function(entry, raw_datasets, dsn, force){
   d <- list()
-  # Is there paleoData? Find it and add it
-  if("paleoData" %in% names(raw_datasets)){
-    d[["paleoData"]] <- raw_datasets[["paleoData"]] 
-  } else if (dsn %in% names(raw_datasets)){
-    if("paleoData" %in% names(raw_datasets[[dsn]])){
-      d[["paleoData"]] <- raw_datasets[[dsn]][["paleoData"]]
+  
+  # We do not have the original datasets OR the user is requesting a collapseTs without using the original datasets.
+  if(force==TRUE|| is.null(raw_datasets)){
+    print("Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
+    d[["paleoData"]] <- list()
+    d[["chronData"]] <- list()
+  } 
+  
+  # We have the original dataset(s). Use this data as a baseline to build and overwrite onto. 
+  else {
+    # Is there paleoData? Find it and add it
+    if("paleoData" %in% names(raw_datasets)){
+      d[["paleoData"]] <- raw_datasets[["paleoData"]] 
+    } else if (dsn %in% names(raw_datasets)){
+      if("paleoData" %in% names(raw_datasets[[dsn]])){
+        d[["paleoData"]] <- raw_datasets[[dsn]][["paleoData"]]
+      }
     }
-  }
-  # Is there chronData? Find it and add it
-  if("chronData" %in% names(raw_datasets)){
-    d[["chronData"]] = raw_datasets[["chronData"]]
-  } else if (dsn %in% names(raw_datasets)){
-    if("chronData" %in% names(raw_datasets[[dsn]])){
-      d[["chronData"]] <- raw_datasets[[dsn]][["chronData"]]
+    # Is there chronData? Find it and add it
+    if("chronData" %in% names(raw_datasets)){
+      d[["chronData"]] = raw_datasets[["chronData"]]
+    } else if (dsn %in% names(raw_datasets)){
+      if("chronData" %in% names(raw_datasets[[dsn]])){
+        d[["chronData"]] <- raw_datasets[[dsn]][["chronData"]]
+      }
     }
   }
   return(d)
