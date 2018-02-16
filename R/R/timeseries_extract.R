@@ -70,7 +70,6 @@ extract=function(L, whichtables, mode, time){
 
 extract_pc=function(L, root, whichtables, mode){
   TS <- list()
-  
   # Creates TimeSeries entries from the target tables within ONE dataset
   pc <- "paleoData"
   if(mode == "chron"){
@@ -80,20 +79,13 @@ extract_pc=function(L, root, whichtables, mode){
   #Loop through paleoData objects
   for(p1 in 1:length(L[[pc]])){
     if(whichtables %in% c("all", "meas")){
-      for(p2 in 1:length(L[[pc]][[p1]]$measurementTable)){
+      if(length(L[[pc]][[p1]]$measurementTable) > 0){
         TABLE = L[[pc]][[p1]]$measurementTable[[p2]]
         if(!is.null(TABLE)){
           current = root
           current[[paste0(mode,"Number")]] <- p1
           current[["tableNumber"]] <-p2
-          tempTS = extract_table(TABLE, "meas", pc, TS, current)
-          
-          #added this code to make sure that it doesn't overwrite itself
-          if(exists("TS")){
-            TS = append(TS,tempTS)
-          }else{
-            TS = tempTS
-          }
+          TS = extract_table(TABLE, "meas", pc, TS, current)
         }
       }
     }
@@ -114,16 +106,7 @@ extract_pc=function(L, root, whichtables, mode){
               current[[paste0(mode,"Number")]] <- p1
               current[["modelNumber"]] <- p2
               current[["tableNumber"]] <- p3
-              tempTS <- extract_table(TABLE, "summ", pc, TS, current)
-              
-              #added this code to make sure that it doesn't overwrite itself
-              if(exists("TS")){
-                TS = append(TS,tempTS)
-              }else{
-                TS = tempTS
-              }
-              
-              
+              TS <- extract_table(TABLE, "summ", pc, TS, current)
             }
           }
         }
@@ -132,13 +115,7 @@ extract_pc=function(L, root, whichtables, mode){
           for(p3 in 1:length(MODEL$summaryTable)){
             TABLE <- MODEL$ensembleTable[[p3]]
             if(!is.null(TABLE)){
-              tempTS <- extract_table(TABLE, "ens", pc, TS, current)
-              #added this code to make sure that it doesn't overwrite itself
-              if(exists("TS")){
-                TS = append(TS,tempTS)
-              }else{
-                TS = tempTS
-              }
+              TS <- extract_table(TABLE, "ens", pc, TS, current)
             }
           }
         }
@@ -150,7 +127,7 @@ extract_pc=function(L, root, whichtables, mode){
 }
 
 extract_table=function(table_data, table_type, pc, TS, current){
-  idx <- 0
+  idx <- length(TS)
   current[["tableType"]] <- table_type
   # Extract all the special columns
   current = extract_special(table_data, current)

@@ -76,7 +76,8 @@ is_include_key <- function(key, exclude, pc){
 
 collapse_root <- function(d, entry, pc){
   exclude <- c("mode", "whichtables", "paleoNumber", "chronNumber", "tableNumber", "modelNumber", "timeID", "tableType",
-               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample", "year")
+               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample",
+               "depthUnits","year","yearUnits")
   ts_keys <- names(entry)
   pub <- list()
   funding <- list()
@@ -241,6 +242,7 @@ collapse_column <- function(table, entry, pc){
 #   return(matches)
 # }
 
+
 #' Collapses blocks: funding, publication calibration, interpretation
 #' These follow the regex format of "<key1><idx>_<key2>"
 #' match[[1]][[1]] = full key with underscore and index (ex. "interpretation1_variableDetail")
@@ -335,8 +337,7 @@ get_table <- function(d, current, pc){
     }
     return(table)
   }, error=function(cond){
-    # The table you wanted to get didn't exist. Either this table hasn't been created yet, or the table was altered in the time series and needs new structuring to be built. 
-    # print(paste0("Error get_table: ", cond))
+    print(paste0("Error get_table: ", cond))
     return(list())
   })
   return(table)
