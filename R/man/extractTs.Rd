@@ -4,7 +4,7 @@
 \alias{extractTs}
 \title{Extract time series from LiPD data}
 \usage{
-extractTs(D, chron = NULL)
+extractTs(D, whichtables = "all", mode = "paleo")
 }
 \arguments{
 \item{D}{LiPD data, sorted by dataset name : list}

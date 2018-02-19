@@ -4,12 +4,12 @@
 \alias{get_table}
 \title{Get the target table}
 \usage{
-get_table(d, m, pc)
+get_table(d, current, pc)
 }
 \arguments{
 \item{list}{d: Metadata}
 
-\item{list}{m: Regex match}
+\item{list}{current: Current time series entry}
 
 \item{char}{pc: paleoData or chronData}
 }

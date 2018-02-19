@@ -8,6 +8,8 @@ collapseTs(ts)
 }
 \arguments{
 \item{ts}{Time series : list}
+
+\item{force}{Attempt to collapse time series when global ts_storage is not provided: bool}
 }
 \value{
 D: LiPD data, sorted by dataset name : list

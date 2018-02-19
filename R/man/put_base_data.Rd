@@ -2,19 +2,21 @@
 % Please edit documentation in R/timeseries_collapse.R
 \name{put_base_data}
 \alias{put_base_data}
-\title{Put in paleoData and chronData as the base for this dataset using the pre-extractTs data.}
+\title{Put in paleoData and chronData as the base for this dataset using the oroginal dataset data.}
 \usage{
-put_base_data(entry)
+put_base_data(entry, raw_datasets, dsn, force)
 }
 \arguments{
 \item{list}{d: Metadata}
 
-\item{char}{pc: paleoData or chronData}
+\item{char}{pc: paleoData or}
+
+\item{bool}{force: Build dataset without original data from global}
 }
 \value{
 list d: Metadata
 }
 \description{
-Put in paleoData and chronData as the base for this dataset using the pre-extractTs data.
+Put in paleoData and chronData as the base for this dataset using the oroginal dataset data.
 }
 

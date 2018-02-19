@@ -4,12 +4,12 @@
 \alias{put_table}
 \title{Put the target table}
 \usage{
-put_table(d, m, pc, table)
+put_table(d, current, pc, table)
 }
 \arguments{
 \item{list}{d: Metadata}
 
-\item{list}{m: Regex match}
+\item{list}{current: Current time series entry}
 
 \item{char}{pc: paleoData or chronData}
 

@@ -2,19 +2,21 @@
 % Please edit documentation in R/timeseries_collapse.R
 \name{rm_existing_tables}
 \alias{rm_existing_tables}
-\title{Remove any measurement or summary tables in the metadata for the given mode}
+\title{Remove tables that correspond to 'whichtables' type. These tables will be collapsed next and need a clean slate.}
 \usage{
-rm_existing_tables(d, pc)
+rm_existing_tables(d, pc, whichtables)
 }
 \arguments{
 \item{list}{d: Metadata}
 
 \item{char}{pc: paleoData or chronData}
+
+\item{char}{whichtables: all summ meas ens}
 }
 \value{
 list d: Metadata
 }
 \description{
-Remove any measurement or summary tables in the metadata for the given mode
+Remove tables that correspond to 'whichtables' type. These tables will be collapsed next and need a clean slate.
 }
 

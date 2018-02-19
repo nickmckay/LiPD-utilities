@@ -2,10 +2,13 @@
 % Please edit documentation in R/timeseries_collapse.R
 \name{collapse_block}
 \alias{collapse_block}
-\title{Collapse all blocks listed: funding, publication calibration, interpretation
-These follow the regex format of "<key1><idx>_<key2>"}
+\title{Collapses blocks: calibration, physicalSample, hasResolution, 
+These follow the regex format of "<key1>_<key2>"
+match[[1]][[1]] = full key with underscore and index (ex. "physicalSample_tableName")
+match[[1]][[2]] = first key (ex. "physicalSample")
+match[[1]][[3]] = second key (ex. "tableName")}
 \usage{
-collapse_block(entry, l, key)
+collapse_block(entry, l, key, pc)
 }
 \arguments{
 \item{list}{entry: Time series entry}
@@ -18,7 +21,10 @@ collapse_block(entry, l, key)
 list l: Metadata
 }
 \description{
-Collapse all blocks listed: funding, publication calibration, interpretation
-These follow the regex format of "<key1><idx>_<key2>"
+Collapses blocks: calibration, physicalSample, hasResolution, 
+These follow the regex format of "<key1>_<key2>"
+match[[1]][[1]] = full key with underscore and index (ex. "physicalSample_tableName")
+match[[1]][[2]] = first key (ex. "physicalSample")
+match[[1]][[3]] = second key (ex. "tableName")
 }
 
