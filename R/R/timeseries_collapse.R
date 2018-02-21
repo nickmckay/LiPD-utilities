@@ -15,7 +15,7 @@ collapseTs <- function(ts, force=FALSE){
   # Use the time_id to get the corresponding raw data from global envir ts storage
   timeID <- ts[[1]]$timeID
   whichtables <- ts[[1]]$whichtables
-  ts_storage <- get_ts_global(ts)
+  ts_storage <- get_ts_global()
   raw_datasets <- ts_storage[[timeID]]
 
     

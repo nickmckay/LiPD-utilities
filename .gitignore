@@ -48,3 +48,4 @@ Python/debug.log
 *.ini
 
 R/R/.DS_Store
+.DS_Store

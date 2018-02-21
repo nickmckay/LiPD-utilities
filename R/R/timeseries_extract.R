@@ -80,12 +80,14 @@ extract_pc=function(L, root, whichtables, mode){
   for(p1 in 1:length(L[[pc]])){
     if(whichtables %in% c("all", "meas")){
       if(length(L[[pc]][[p1]]$measurementTable) > 0){
+        for(p2 in 1:length(L[[pc]][[p1]]$measurementTable)){
         TABLE = L[[pc]][[p1]]$measurementTable[[p2]]
         if(!is.null(TABLE)){
           current = root
           current[[paste0(mode,"Number")]] <- p1
           current[["tableNumber"]] <-p2
           TS = extract_table(TABLE, "meas", pc, TS, current)
+        }
         }
       }
     }
