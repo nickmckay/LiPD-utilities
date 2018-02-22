@@ -31,7 +31,7 @@ collapseTs <- function(ts, force=FALSE){
         # Recover paleoData and chronData from raw data
         D[[dsn]] <- put_base_data(ts[[i]], raw_datasets, dsn, force)
         # Remove the old target tables, as we'll be writing these fresh. Other tables as-is.
-        D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
+        # D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
         # Collapse root data keys (pub, funding, archiveType, etc)
         D[[dsn]] <- collapse_root(D[[dsn]], ts[[i]], pc)
       }
@@ -217,6 +217,7 @@ collapse_column <- function(table, entry, pc){
     table[[vn]] <- new_column
   }, error=function(cond){
     print(paste0("Error: collapse_column: ", cond))
+    return(table)
   })
   return(table)
 }
@@ -312,8 +313,7 @@ collapse_block <- function(entry, l, key, pc){
 #' @param char pc: paleoData or chronData
 #' @return list table: Metadata
 get_table <- function(d, current, pc){
-  table <- tryCatch({
-    
+    table <- list()
     # Use the path and indexing info to get the "in progress" table that belongs to this TS entry. We want to add this TS entry (column) to this table.
     tt <- current$tableType
     modelNumber <- current$modelNumber
@@ -327,20 +327,31 @@ get_table <- function(d, current, pc){
     }
     # Measurement table
     if(tt == "meas"){
-      table <- d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]]
+      tryCatch({
+        table <- d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]]
+      },error=function(cond){
+        return(list())
+      })
     }
     # Model tables
     else if (tt == "summ") {
-      table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]]
+      tryCatch({
+        table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]]
+      },error=function(cond){
+        return(list())
+      })
     }
     else if (tt=="ens"){
-      table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]]
+      tryCatch({
+        table <- d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]]
+      },error=function(cond){
+        return(list())
+      })
     }
-    return(table)
-  }, error=function(cond){
-    # print(paste0("Error get_table: ", cond))
-    return(list())
-  })
+    if(is.null(table)){
+      table <- list()
+    }
+
   return(table)
 }
 
@@ -352,64 +363,37 @@ get_table <- function(d, current, pc){
 #' @param list table: Metadata (to be placed)
 #' @return list d: Metadata
 put_table <- function(d, current, pc, table){
-  d <- tryCatch({
-    tt <- current$tableType
-    modelNumber <- current$modelNumber
-    tableNumber <- current$tableNumber
-    
-    # Get the pcNumber. Dependent on mode.
-    if(pc == "paleoData"){
-      pcNumber <- current$paleoNumber
-    } else {
-      pcNumber <- current$chronNumber
-    }
-    
-    # Measurement tables
-    if(tt == "meas"){
-      d <- tryCatch({
-        # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
-        d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
-        return(d)
-      }, error=function(cond){
-        # Less Ideal Scenario: The structure for that table isn't built yet, and we couldn't place the table. We have to build the structure all the way down before placing the table.
-        d <- build_structure(d, pc, tt, pcNumber, NULL, tableNumber)
-        d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
-        return(d)
-      })
-    }
-    
-    # Summary tables
-    else if (tt == "summ") {
-      d <- tryCatch({
-        # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
-        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
-        return(d)
-      }, error=function(cond){
-        # Less Ideal Scenario: The structure for that table isn't built yet, and we couldn't place the table. We have to build the structure all the way down before placing the table.
-        d <- build_structure(d, pc, tt, pcNumber, modelNumber, tableNumber)
-        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
-        return(d)
-      })
-    }
-    
-    # Ensemble tables
-    else if (tt=="ens"){
-      d <- tryCatch({
-        # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
-        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
-        return(d)
-      }, error=function(cond){
-        # Less Ideal Scenario: The structure for that table isn't built yet, and we couldn't place the table. We have to build the structure all the way down before placing the table.
-        d <- build_structure(d, pc, tt, pcNumber, modelNumber, tableNumber)
-        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
-        return(d)
-      })
-    }
-    return(d)
-  }, error=function(cond){
-    # There was an issue getting the path and indexing for this table. 
-    print(paste0("Error: put_table: ", cond))
-  })
+  tt <- current$tableType
+  modelNumber <- current$modelNumber
+  tableNumber <- current$tableNumber
+  
+  # Get the pcNumber. Dependent on mode.
+  if(pc == "paleoData"){
+    pcNumber <- current$paleoNumber
+  } else {
+    pcNumber <- current$chronNumber
+  }
+  d <- build_structure(d, pc, tt, pcNumber, modelNumber, tableNumber)
+  
+  # Measurement tables
+  if(tt == "meas"){
+      # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
+      d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- table
+  }
+  
+  # Summary tables
+  else if (tt == "summ") {
+      # print(paste0("Inserting table: ", pc, pcNumber, "model", modelNumber, "summaryTable", tableNumber))
+      # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
+      d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- table
+  }
+  
+  # Ensemble tables
+  else if (tt=="ens"){
+      # Best Case Scenario: The structure for placing this table is already existing, and we can place the table directly into that location.
+      d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- table
+  }
+
   return(d)
 }
 
@@ -421,81 +405,83 @@ put_table <- function(d, current, pc, table){
 #' @param char table_type: meas, ens, or summ
 #' @param num pcNumber: paleoData or chronData index number
 #' @param num modelNumber: Model index number OR null (if meas table)
-#' @param num tableNumber: Table index number
+#' @param num tableumber: Table index number
 #' @return list d: Metadata
 build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumber){
-  d <- tryCatch({
-    
-    # Is there a list for this pc section?
-    if(!is.list(d[[pc]])){
-      # No, create one. 
-      d[[pc]] <- list()
+
+  if(is.null(d)){
+    d <-list()
+  }
+  
+  if(!pc %in% names(d)){
+    d[[pc]] <- list()
+  }
+  
+  # Is there a list for this pc section?
+  if(!is.list(d[[pc]])){
+    # No, create one. 
+    d[[pc]] <- list()
+  }
+  # Is there a list at pcNumber index?
+  if(length(d[[pc]]) < pcNumber){
+    # No, create one. 
+    d[[pc]][[pcNumber]] <- list()
+  }
+  
+  # Create Measurement structure
+  if (table_type == "meas" || table_type == "all"){
+    if(!"measurementTable" %in% names(d[[pc]][[pcNumber]])){
+      d[[pc]][[pcNumber]][["measurementTable"]] <- list()
     }
-    # Is there a list at pcNumber index?
-    if(length(d[[pc]]) < pcNumber){
-      # No, create one. 
-      d[[pc]][[pcNumber]] <- list()
+    if(!is.list(d[[pc]][[pcNumber]][["measurementTable"]])){
+      d[[pc]][[pcNumber]][["measurementTable"]] <- list()
+    }
+    if(length(d[[pc]][[pcNumber]][["measurementTable"]]) < tableNumber){
+      d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- list()
+    }
+  }
+  
+  if (table_type == "ens" || table_type == "summ" || table_type == "all"){
+    
+    # Create the Model indexing if needed 
+    if(!"model" %in% names(d[[pc]][[pcNumber]])){
+      d[[pc]][[pcNumber]][["model"]] <- list()
+    }
+    if(!is.list(d[[pc]][[pcNumber]][["model"]])){
+      d[[pc]][[pcNumber]][["model"]] <- list()
+    }
+    if(length(d[[pc]][[pcNumber]][["model"]]) < modelNumber){
+      d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
     }
     
-    # Create Measurement structure
-    if (table_type == "meas" || table_type == "all"){
-      if(!"measurementTable" %in% d[[pc]][[pcNumber]]){
-        d[[pc]][[pcNumber]][["measurementTable"]] <- list()
-      }
-      if(!is.list(d[[pc]][[pcNumber]][["measurementTable"]])){
-        d[[pc]][[pcNumber]][["measurementTable"]] <- list()
-      }
-      if(length(d[[pc]][[pcNumber]][["measurementTable"]]) < tableNumber){
-        d[[pc]][[pcNumber]][["measurementTable"]][[tableNumber]] <- list()
-      }
-    }
-    
-    if (table_type == "ens" || table_type == "summ" || table_type == "all"){
-      
+    # Create summary structure
+    if (table_type == "summ" || table_type == "all"){
       # Create the Model indexing if needed 
-      if(!"model" %in% d[[pc]][[pcNumber]]){
-        d[[pc]][[pcNumber]][["model"]] <- list()
-      }
-      if(!is.list(d[[pc]][[pcNumber]][["model"]])){
-        d[[pc]][[pcNumber]][["model"]] <- list()
-      }
-      if(length(d[[pc]][[pcNumber]][["model"]]) < modelNumber){
+      if(!"summaryTable" %in% names(d[[pc]][[pcNumber]][["model"]][[modelNumber]])){
         d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
       }
-      
-      # Create summary structure
-      if (table_type == "summ" || table_type == "all"){
-        # Create the Model indexing if needed 
-        if(!"summaryTable" %in% d[[pc]][[pcNumber]][["model"]][[modelNumber]]){
-          d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
-        }
-        if(!is.list(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]])){
-          d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]] <- list()
-        }
-        if(length(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]]) < tableNumber){
-          d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- list()
-        }
+      if(!is.list(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]])){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]] <- list()
       }
-      
-      # Create ensemble structure
-      if (table_type == "ens" || table_type == "all"){
-        # Create the Model indexing if needed 
-        if(!"ensembleTable" %in% d[[pc]][[pcNumber]][["model"]][[modelNumber]]){
-          d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
-        }
-        if(!is.list(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]])){
-          d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]] <- list()
-        }
-        if(length(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]]) < tableNumber){
-          d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- list()
-        }
+      if(length(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]]) < tableNumber){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["summaryTable"]][[tableNumber]] <- list()
       }
     }
-    return(d)
-  }, error=function(cond){
-    print(paste0("Error: build_structure: ", cond))
-  })
-
+    
+    # Create ensemble structure
+    if (table_type == "ens" || table_type == "all"){
+      # Create the Model indexing if needed 
+      if(!"ensembleTable" %in% names(d[[pc]][[pcNumber]][["model"]][[modelNumber]])){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
+      }
+      if(!is.list(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]])){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]] <- list()
+      }
+      if(length(d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]]) < tableNumber){
+        d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- list()
+      }
+    }
+  }
   return(d)
 }
 
@@ -507,7 +493,7 @@ build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumbe
 #' @param char whichtables: all summ meas ens
 #' @return list d: Metadata
 rm_existing_tables <- function(d, pc, whichtables){
-  d <- tryCatch({
+  tryCatch({
     if(pc %in% names(d)){
       for(i in 1:length(d[[pc]])){
         if(whichtables %in% c("all", "meas")){
@@ -543,6 +529,7 @@ rm_existing_tables <- function(d, pc, whichtables){
     return(d)
   }, error=function(cond){
     stop(paste0("rm_existing_tables: ", cond))
+    return(d)
   })
   return(d)
 }
