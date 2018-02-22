@@ -10,7 +10,7 @@ set_bagit <- function(){
     os <- "windows"
     os <- get_os()
     if(os=="osx" || os=="unix"){
-      if(file.exists(file.path("exec", "bagit.py"))){
+      if(file.exists(system.file(package="lipdR", file.path("exec","bagit.py")))){
         # Found the bagit file included in the package.
         bagit.script <- system.file(package="lipdR", file.path("exec","bagit.py"))
         assign("bagit.script", bagit.script, envir = .GlobalEnv)
