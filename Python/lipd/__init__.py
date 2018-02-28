@@ -12,6 +12,7 @@ from lipd.tables import addModel, addTable
 from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
 from lipd.json_viewer import viewLipd
+from lipd.fetch_doi import update_dois
 
 from time import clock
 import os
