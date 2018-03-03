@@ -81,13 +81,13 @@ extract_pc=function(L, root, whichtables, mode){
     if(whichtables %in% c("all", "meas")){
       if(length(L[[pc]][[p1]]$measurementTable) > 0){
         for(p2 in 1:length(L[[pc]][[p1]]$measurementTable)){
-        TABLE = L[[pc]][[p1]]$measurementTable[[p2]]
-        if(!is.null(TABLE)){
-          current = root
-          current[[paste0(mode,"Number")]] <- p1
-          current[["tableNumber"]] <-p2
-          TS = extract_table(TABLE, "meas", pc, TS, current)
-        }
+          TABLE = L[[pc]][[p1]]$measurementTable[[p2]]
+          if(!is.null(TABLE)){
+            current = root
+            current[[paste0(mode,"Number")]] <- p1
+            current[["tableNumber"]] <-p2
+            TS = extract_table(TABLE, "meas", pc, TS, current)
+          }
         }
       }
     }
@@ -113,11 +113,13 @@ extract_pc=function(L, root, whichtables, mode){
           }
         }
         if(whichtables %in% c("all", "ens")){
-          # loop for each summaryTable entry
-          for(p3 in 1:length(MODEL$summaryTable)){
-            TABLE <- MODEL$ensembleTable[[p3]]
-            if(!is.null(TABLE)){
-              TS <- extract_table(TABLE, "ens", pc, TS, current)
+          # loop for each ensembleTable entry
+          if(length(MODEL$ensembleTable) > 0){
+            for(p3 in 1:length(MODEL$ensembleTable)){
+              TABLE <- MODEL$ensembleTable[[p3]]
+              if(!is.null(TABLE)){
+                TS <- extract_table(TABLE, "ens", pc, TS, current)
+              }
             }
           }
         }

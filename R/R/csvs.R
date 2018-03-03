@@ -34,6 +34,7 @@ read_csv_from_file <- function(){
   # import each csv file
   for (ci in 1:length(c)){
     df=read.csv(c[ci], header=FALSE, blank.lines.skip = FALSE,na.strings = c("nan", "NaN", "NAN", "NA"))
+    #df=readr::read_csv(c[ci], col_names=FALSE, na = c("nan", "NaN", "NAN", "NA")) Don't use for now...
     c.data[[c[ci]]]=df
   }
   return(c.data)

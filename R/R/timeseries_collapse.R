@@ -11,6 +11,11 @@
 #' D <- collapseTs(ts)
 #' 
 collapseTs <- function(ts, force=FALSE){
+  #before doing anything else, reorder the data by dataset name.
+  dsn <- sapply(ts,"[[","dataSetName")
+  ts <- ts[order(dsn)]
+  
+  
   # Get the original data from the global environment whenever possible
   # Use the time_id to get the corresponding raw data from global envir ts storage
   timeID <- ts[[1]]$timeID
