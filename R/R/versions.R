@@ -287,11 +287,13 @@ update_lipd_v1_3_structure <- function(d){
 #' @param char key: climateInterpretation or isotopeInterpretation
 #' @return list d: Metadata
 merge_interpretations <- function(d, key){
+  scope <- gsub("Interpretation", "", key)
   if (!("interpretation" %in% names(d))){
     d[["interpretation"]] <- list()
   }
   pos <- length(d[["interpretation"]]) + 1
   d[["interpretation"]][[pos]] <- d[[key]]
+  d[["interpretation"]][[pos]][["scope"]] <-scope
   d[[key]] <- NULL
   return(d)
 }
