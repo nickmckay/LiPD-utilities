@@ -168,24 +168,28 @@ extract_column=function(column, current_fork, pc){
   
   #grab data and metadata from this column
   excludeColumn = c("number", "tableName")
+  
+  # get any items that are NOT a list, and add them to this TS entry. i.e. anything that's NOT interpretation blocks or other indexed blocks.
   colGrab = which(!(names(column) %in% excludeColumn) & !sapply(column,is.list))
-  for(colc in colGrab){#assign in needed column data and metadata
+  #assign in needed column data and metadata
+  for(colc in colGrab){
     current_fork[[paste0(pc, "_",names(column)[colc])]] = column[[colc]] 
   }
   
-  #look through subsequent lists for hierarchical metadata
+  #look through subsequent lists for hierarchical indexed metadata - i.e. interpretation
   hierData = which(sapply(column,is.list))
   #loop through all of these. 
-  for(hi in hierData){#Currently, this only handles numbered instances (like interpretation) at the second level...
+  #Currently, this only handles numbered instances (like interpretation) at the second level...
+  for(hi in hierData){
     thisHierData = column[[hi]]
-    #hierGrab = which(!sapply(thisHierData,is.list))
-    hierGrab = 1:length(thisHierData)
     
-    for(hieri in hierGrab){
+    for(hieri in 1:length(thisHierData)){
       #is it an unnamed, instanced, list?
-      if(is.null(names(thisHierData))){#if so, we want to add in a number:
+      if(is.null(names(thisHierData))){
+        # yes, we want to add in a number:
         thdNumber = as.character(hieri)
       }else{
+        # no, no number
         thdNumber = ""
       }
       
@@ -193,22 +197,22 @@ extract_column=function(column, current_fork, pc){
         #assign in non lists
         current_fork[[paste0(names(column)[hi],thdNumber,"_",names(thisHierData)[hieri])]] = thisHierData[[hieri]] 
       }else{
-        #hierListGrab = which(sapply(thisHierData,is.list))#find lists within the hierData (this is the last level for now)
-        #for(hieriListi in hierListGrab){
-        doubleHierGrab = 1:length(thisHierData[[hieri]]) #grab everything inside that list
-        
+        #grab everything inside that list
+        doubleHierGrab = 1:length(thisHierData[[hieri]]) 
         
         #assign in
         for(dhieri in doubleHierGrab){
-          #is it an unnamed, instanced, list?
-          if(is.null(names(thisHierData[[hieri]]))){#if so, we want to add in a number:
+          # unnamed list, i.e. interpretation 
+          if(is.null(names(thisHierData[[hieri]]))){
+            #if so, we want to add in a number:
             for(unni in 1:length(thisHierData[[hieri]])){
               for(inunni in 1:length(names(thisHierData[[hieri]][[dhieri]]))){
                 current_fork[[paste0(names(column)[hi],thdNumber,"_",names(thisHierData)[hieri],as.character(unni),"_",names(thisHierData[[hieri]][[dhieri]])[inunni])]] = thisHierData[[hieri]][[dhieri]][[inunni]]
               }
             }
             
-          }else{#then just assign in normally
+          }else{
+            # named list, i.e. calibration | physicalSample | hasResolution
             current_fork[[paste0(names(column)[hi],thdNumber,"_",names(thisHierData[[hieri]])[dhieri])]] = thisHierData[[hieri]][[dhieri]]
           }
           

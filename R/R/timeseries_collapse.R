@@ -112,7 +112,6 @@ collapse_root <- function(d, entry, pc){
         } else if(grepl("pub", key)){
           pub <- collapse_block_indexed(entry, pub, key)
         } else if(grepl("funding", key)){
-          print(key)
           funding <- collapse_block_indexed(entry, funding, key)
         } else{
           # Root key that is not a special case; move it right on over
@@ -266,9 +265,6 @@ collapse_block_indexed <- function(entry, l, key){
   # print(paste0("collapsing block: ", key))
   match <- stringr::str_match_all(key, "(\\w+)(\\d+)[_](\\w+)")
   if(!isNullOb(match[[1]])){
-    if(match[[1]][[2]] == "funding"){
-      print(key)
-    }
     currIdx <- as.numeric(match[[1]][[3]])
     place_key <- match[[1]][[4]]
     # If there isn't a list initialized yet for this index, then make it
