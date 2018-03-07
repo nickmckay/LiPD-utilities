@@ -120,6 +120,8 @@ Each _object_ within a time series is made from one column of data in a **measur
 
 [Linked Earth Wiki](http://wiki.linked.earth/Main_Page)
 
+[LiPD.net](http://www.lipd.net)
+
 ------
 
 ## Contact
