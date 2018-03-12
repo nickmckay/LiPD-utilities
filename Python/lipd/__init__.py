@@ -228,10 +228,12 @@ def noaa(D="", path="", wds_url="", lpd_url="", version=""):
 
 def doi():
     """
-    Update publication information using data DOIs. Updates LiPD files on disk, not in memory.
+    Use the DOI id stored in the LiPD publication data to fetch new information from the DOI.org using their API.
+    Merge the results with the existing data. This process will open the LiPD files on your computer, and overwrite them
+    when done. This will not affect LiPD data currently loaded into memory.
 
     | Example
-    | 1: lipd.readLipd()
+    | 1: D = lipd.readLipd()
     | 2: lipd.doi()
 
     :return none:
@@ -239,6 +241,19 @@ def doi():
     global files
     doi_main(files)
     return
+
+def fetchDoiWithCsv(csv_source, write_file=True):
+    """
+    Retrieve DOI publication data for a list of DOI IDs that are stored in a CSV file. No LiPD files needed.
+    This process uses the DOI.org API for data.
+
+    :param str csv_source: The path to the CSV file stored on your computer
+    :param bool write_file: Write the results to a JSON file (default) or print the results to the console.
+    :return none:
+    """
+    update_dois(csv_source, write_file)
+    return
+
 
 
 def validate(D, detailed=True):
@@ -780,7 +795,8 @@ def __universal_read(file_path, file_type):
         # we want to move around with the files we load
         # change dir into the dir of the target file
         cwd = file_meta["dir"]
-        os.chdir(cwd)
+        if cwd:
+            os.chdir(cwd)
 
     return
 
