@@ -66,6 +66,7 @@ readLipd <- function(path=NULL){
 #' @keywords internal
 #' @param D LiPD datasets : list
 #' @param path Destination path : char
+#' @param 
 #' @usage writeLipd(D, path)
 #' @return none
 #' @examples 
@@ -75,8 +76,8 @@ readLipd <- function(path=NULL){
 #' 
 #' # write - with path argument
 #' writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
-#' assig
-writeLipd <- function(D, path=NULL){
+#' 
+writeLipd <- function(D, path=NULL, ignore.warnings=FALSE){
   tryCatch({
     if(missing(path)){
       path <- browse_dialog("d")

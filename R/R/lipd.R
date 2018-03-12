@@ -42,7 +42,7 @@ lipd_read <- function(path){
 #' @param char path: Destination path
 #' @param char dsn: Dataset name
 #' @return none:
-lipd_write <- function(j, path, dsn){
+lipd_write <- function(j, path, dsn, ignore.warnings){
   tryCatch({
     # dsn <- replace_invalid_chars(dsn)
     dir_original <- getwd()
@@ -56,6 +56,10 @@ lipd_write <- function(j, path, dsn){
     dir.create("bag", showWarnings=FALSE)
     dir_bag <- file.path(dir_zip, "bag")
     setwd("bag")
+    
+    # look for ensemble data in PaleoData, and ask if you want to remove this data before writing the file.
+    j <- warn_ensembles_in_paleo(j, ignore.warnings)
+  
     j <- idx_name_to_num(j)
     tmp <- get_lipd_version(j)
     j <- tmp[["meta"]]

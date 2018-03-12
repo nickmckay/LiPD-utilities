@@ -210,3 +210,29 @@ get_os <- function() {
     return("unknown")
   }
 }
+
+#' Warn people about writing ageEnsembles that have been mapped into paleoData. This is a common procedure in GeoChronR,
+#' and thus will come up, however it can greatly increase the size of the LiPD file, and is easily and quickly replicated 
+#' upon loading with geoChronR::mapAgeEnsembleToPaleoData()
+#' @export
+#' @keywords internal
+#' @param d Metadata
+#' @return Metadata
+warn_ensembles_in_paleo <- function(L, ignore.warnings) {
+  # Only bother to check for ensembles if ignore.warnings is FALSE
+  if(!ignore.warnings){
+    # We're good to go, look for stuff. 
+    if(is.null(L$paleoData)){
+      stop("There's no chronData in this file")
+    }
+    else {
+      for(i in 1:length(L$paleoData)){
+        
+        
+      }
+    }
+  }
+  return(L)
+}
+
+
