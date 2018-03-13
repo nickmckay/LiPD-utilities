@@ -86,13 +86,13 @@ writeLipd <- function(D, path=NULL, ignore.warnings=FALSE){
     set_bagit()
     if ("paleoData" %in% names(D)){
       print(paste0("writing: ", D[["dataSetName"]]))
-      lipd_write(D, path, D[["dataSetName"]])
+      lipd_write(D, path, D[["dataSetName"]], ignore.warnings)
     } else {
       dsns <- names(D)
       for (i in 1:length(dsns)){
         print(paste0("writing: ", basename(dsns[i])))
         entry <- dsns[[i]]
-        lipd_write(D[[entry]], path, entry)
+        lipd_write(D[[entry]], path, entry, ignore.warnings)
       }
     }
   }, error=function(cond){

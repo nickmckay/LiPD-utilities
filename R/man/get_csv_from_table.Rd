@@ -20,4 +20,3 @@ list new: Metadata / CSV
 Parse metadata and csv from list of tables
 }
 \keyword{internal}
-

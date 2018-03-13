@@ -16,4 +16,3 @@ boolean
 Checks if an object is null/empty
 }
 \keyword{internal}
-

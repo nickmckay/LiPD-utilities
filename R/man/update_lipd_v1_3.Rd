@@ -30,4 +30,3 @@ Update LiPD v1.2 to v1.3
 - summary table entry is a list that allows multiple tables
 }
 \keyword{internal}
-

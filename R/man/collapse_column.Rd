@@ -19,4 +19,3 @@ list table: Metadata
 \description{
 Collapse time series column. Compile column entries and place new column in table.
 }
-

@@ -22,4 +22,3 @@ full python file on a directory. This will create a bag.
 Warning: This often has system call issues in windows OS.
 }
 \keyword{internal}
-

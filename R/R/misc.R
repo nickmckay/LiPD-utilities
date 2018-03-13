@@ -218,21 +218,40 @@ get_os <- function() {
 #' @keywords internal
 #' @param d Metadata
 #' @return Metadata
-warn_ensembles_in_paleo <- function(L, ignore.warnings) {
+warn_ensembles_in_paleo <- function(L, ignore.warnings){
+  ans <- NULL
   # Only bother to check for ensembles if ignore.warnings is FALSE
   if(!ignore.warnings){
     # We're good to go, look for stuff. 
     if(is.null(L$paleoData)){
-      stop("There's no chronData in this file")
+      stop("There's no paleoData in this file")
     }
     else {
       for(i in 1:length(L$paleoData)){
-        
-        
+        if ("model" %in% names(L$paleoData[[i]])){
+          for(j in 1:length(L$paleoData[[i]]$model)){
+            if ("ensembleTable" %in% names(L$paleoData[[i]]$model[[j]])){
+             ans = readline(prompt="We detected ageEnsemble data in paleoData. This data can greatly increase the size of the file and can easily be recreated. Would you like to remove it before writing the LiPD file? (y/n)")
+             break
+            }
+          }
+        }
+      }
+      if(ans == "y"){
+        for(i in 1:length(L$paleoData)){
+          if ("model" %in% names(L$paleoData[[i]])){
+            for(j in 1:length(L$paleoData[[i]]$model)){
+              if ("ensembleTable" %in% names(L$paleoData[[i]]$model[[j]])){
+                L$paleoData[[i]]$model[[j]]$ensembleTable <- NULL
+              }
+            }
+          }
+        }
       }
     }
   }
   return(L)
+  
 }
 
 

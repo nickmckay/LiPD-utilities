@@ -18,4 +18,3 @@ Use the regex match groups and the time series to compile two lists: matching in
 Chris Heiser
 }
 \keyword{internal}
-

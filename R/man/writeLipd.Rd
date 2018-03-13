@@ -24,10 +24,9 @@ writeLipd(D)
 
 # write - with path argument
 writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
-assig
+
 }
 \author{
 Chris Heiser
 }
 \keyword{internal}
-

@@ -18,4 +18,3 @@ none
 Zip a directory, and move up a level
 }
 \keyword{internal}
-

@@ -19,4 +19,3 @@ list table: Metadata
 \description{
 Get the target table
 }
-

@@ -19,4 +19,3 @@ list d: Metadata
 \description{
 Collapse time series section; paleo or chron
 }
-

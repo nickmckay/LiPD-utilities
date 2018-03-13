@@ -19,4 +19,3 @@ list d: Metadata
 \description{
 Put in paleoData and chronData as the base for this dataset using the oroginal dataset data.
 }
-

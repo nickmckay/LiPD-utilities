@@ -16,4 +16,3 @@ char path Directory or file path
 Open a file browsing gui to let the user pick a file or directory
 }
 \keyword{internal}
-

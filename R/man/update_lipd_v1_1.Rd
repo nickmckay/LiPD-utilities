@@ -24,4 +24,3 @@ Update LiPD v1.0 to v1.1
 - Added 'lipdVersion' key
 }
 \keyword{internal}
-

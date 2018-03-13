@@ -16,4 +16,3 @@ list new: Metadata / CSV
 Parse metadata and csv from columns
 }
 \keyword{internal}
-

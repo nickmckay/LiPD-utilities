@@ -16,4 +16,3 @@ d Modified metadata
 Make geo semi-flat. Remove unnecessary levels between us and data.
 }
 \keyword{internal}
-

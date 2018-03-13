@@ -16,4 +16,3 @@ list files File paths to LiPD files
 Get a list of paths to LiPD files
 }
 \keyword{internal}
-

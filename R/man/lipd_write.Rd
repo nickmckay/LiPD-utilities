@@ -6,7 +6,7 @@
 Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,
 zip up bag folder, place lipd in target dst, move to original dir, delete tmp}
 \usage{
-lipd_write(j, path, dsn)
+lipd_write(j, path, dsn, ignore.warnings)
 }
 \arguments{
 \item{list}{j: Metadata}
@@ -24,4 +24,3 @@ Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, cle
 zip up bag folder, place lipd in target dst, move to original dir, delete tmp
 }
 \keyword{internal}
-

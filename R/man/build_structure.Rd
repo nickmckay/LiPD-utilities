@@ -17,7 +17,7 @@ build_structure(d, pc, table_type, pcNumber, modelNumber, tableNumber)
 
 \item{num}{modelNumber: Model index number OR null (if meas table)}
 
-\item{num}{tableNumber: Table index number}
+\item{num}{tableumber: Table index number}
 }
 \value{
 list d: Metadata
@@ -25,4 +25,3 @@ list d: Metadata
 \description{
 Before you place a table, you must have the structure leading up to the location or you'll get errors. Build the structure
 }
-

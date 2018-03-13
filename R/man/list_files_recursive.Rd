@@ -16,4 +16,3 @@ char files: Matching file paths
 Recursive file list for current directory and below
 }
 \keyword{internal}
-

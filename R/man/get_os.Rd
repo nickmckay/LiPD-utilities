@@ -13,4 +13,3 @@ char: OS name
 Detect the OS being used
 }
 \keyword{internal}
-

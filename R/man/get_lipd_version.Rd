@@ -16,4 +16,3 @@ list tmp: Version number and meta
 Check what version of LiPD this file is using. If none is found, assume it's using version 1.0
 }
 \keyword{internal}
-

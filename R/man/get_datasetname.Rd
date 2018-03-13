@@ -18,4 +18,3 @@ char dsn: Dataset name
 Get dataSetName from metadata. If one is not found, use filename as fallback.
 }
 \keyword{internal}
-

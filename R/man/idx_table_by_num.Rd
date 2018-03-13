@@ -16,4 +16,3 @@ list tables: Metadata
 Index tables in a loop
 }
 \keyword{internal}
-

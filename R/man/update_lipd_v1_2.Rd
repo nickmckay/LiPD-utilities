@@ -24,4 +24,3 @@ Update LiPD v1.1 to v1.2
   distribution tables
 }
 \keyword{internal}
-

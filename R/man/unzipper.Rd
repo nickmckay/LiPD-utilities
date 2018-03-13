@@ -18,4 +18,3 @@ none
 Unzip LiPD file to the temporary directory
 }
 \keyword{internal}
-

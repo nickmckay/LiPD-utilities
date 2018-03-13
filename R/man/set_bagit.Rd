@@ -15,4 +15,3 @@ Look for the users bagit script file. If you can't find it, ask them for help an
 to download it and locate the file
 }
 \keyword{internal}
-

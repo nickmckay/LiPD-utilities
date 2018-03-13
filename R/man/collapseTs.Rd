@@ -26,4 +26,3 @@ D <- collapseTs(ts)
 \author{
 Chris Heiser
 }
-

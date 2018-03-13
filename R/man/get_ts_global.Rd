@@ -12,4 +12,3 @@ list tmp_storage: Temporary storage data that holds original datasets
 \description{
 Retreieve the original datasets from the global R environment
 }
-

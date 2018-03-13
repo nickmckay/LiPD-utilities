@@ -18,4 +18,3 @@ Check if output datasetname has invalid characters. Replace if necessary
 R will not zip directories with certain characters.
 }
 \keyword{internal}
-

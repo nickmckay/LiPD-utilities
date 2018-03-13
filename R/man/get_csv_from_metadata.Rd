@@ -18,4 +18,3 @@ list d2: Metadata / CSV
 Get csv "values" fields from metadata.
 }
 \keyword{internal}
-

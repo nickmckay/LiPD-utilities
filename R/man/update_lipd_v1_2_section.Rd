@@ -18,4 +18,3 @@ list d: Metadata
 Update LiPD v1.1 to v1.2 - one section
 }
 \keyword{internal}
-

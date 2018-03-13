@@ -16,4 +16,3 @@ x Modified data structure
 Remove all NA, NULL, and empty objects from the data structure
 }
 \keyword{internal}
-

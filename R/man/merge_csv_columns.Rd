@@ -18,4 +18,3 @@ list meta: Metadata
 Merge values into each column
 }
 \keyword{internal}
-

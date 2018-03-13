@@ -23,4 +23,3 @@ ts <- extractTs(D)
 \author{
 Nick McKay
 }
-

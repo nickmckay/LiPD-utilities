@@ -18,4 +18,3 @@ list d: Metadata
 Index a section. paleoData or chronData
 }
 \keyword{internal}
-

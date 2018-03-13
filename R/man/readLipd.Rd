@@ -33,4 +33,3 @@ L <- readLipd("/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
 Chris Heiser
 }
 \keyword{internal}
-

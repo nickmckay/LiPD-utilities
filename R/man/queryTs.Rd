@@ -42,4 +42,3 @@ idxs = filterTs(ts, "paleoData_variableName == d18O")
 \author{
 Chris Heiser
 }
-

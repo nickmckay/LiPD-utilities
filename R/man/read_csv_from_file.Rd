@@ -13,4 +13,3 @@ data.list List of data for one LiPD file
 Opens the target CSV file and creates a dictionary with one list for each CSV column.
 }
 \keyword{internal}
-

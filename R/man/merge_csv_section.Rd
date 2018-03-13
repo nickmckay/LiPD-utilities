@@ -20,4 +20,3 @@ list section: Metadata
 Merge CSV into each section
 }
 \keyword{internal}
-

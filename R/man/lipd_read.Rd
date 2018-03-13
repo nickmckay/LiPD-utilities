@@ -20,4 +20,3 @@ Loads a LiPD file from local path. Unzip, read, and process data
 Steps: create tmp, unzip lipd, read files into memory, manipulate data, move to original dir, delete tmp.
 }
 \keyword{internal}
-

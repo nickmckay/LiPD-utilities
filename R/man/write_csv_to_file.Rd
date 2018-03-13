@@ -18,4 +18,3 @@ Write out each CSV file for this LiPD recorde
 csvs format: [ some_filename.csv $columns.data ]
 }
 \keyword{internal}
-

@@ -13,4 +13,3 @@ data.list List of data for one LiPD file
 Find jsonld file in the cwd (or within a 2 levels below cwd), and load it in.
 }
 \keyword{internal}
-

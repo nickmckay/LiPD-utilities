@@ -16,4 +16,3 @@ list section: Metadata
 Change index-by-number for one section
 }
 \keyword{internal}
-

@@ -16,4 +16,3 @@ none
 Run a fake version of bagit. No bagit txt files are created
 }
 \keyword{internal}
-

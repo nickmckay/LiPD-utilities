@@ -19,4 +19,3 @@ list table: Metadata
 \description{
 Collapse time series table root. All keys listed below are known table root keys.
 }
-

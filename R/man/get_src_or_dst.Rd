@@ -16,4 +16,3 @@ char path Directory or file path
 Ask user where local file/directory location is.
 }
 \keyword{internal}
-

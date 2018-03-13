@@ -16,4 +16,3 @@ d Modified metadata
 An old bug caused some geo coordinates to be reversed. This will switch them back to normal.
 }
 \keyword{internal}
-

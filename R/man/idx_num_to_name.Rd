@@ -16,4 +16,3 @@ list d: Metadata
 Change index-by-number to index-by-variableName
 }
 \keyword{internal}
-

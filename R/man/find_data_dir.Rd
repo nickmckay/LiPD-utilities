@@ -16,4 +16,3 @@ char files: Matching file paths
 Use a recursive file search to find the "data" directory of a LiPD file
 }
 \keyword{internal}
-

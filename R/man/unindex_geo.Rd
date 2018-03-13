@@ -16,4 +16,3 @@ d Modified metadata
 Convert geo from semi-flat structure back to original GeoJSON structure.
 }
 \keyword{internal}
-

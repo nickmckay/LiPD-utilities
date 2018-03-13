@@ -13,4 +13,3 @@ ans Answer to prompt (s/m)
 Ask if user wants to read one file or a directory with multiple files.
 }
 \keyword{internal}
-

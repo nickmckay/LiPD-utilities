@@ -22,4 +22,3 @@ Get CSV from one section
 csv.data format: [ some_filename.csv $columns.data ]
 }
 \keyword{internal}
-

@@ -19,4 +19,3 @@ list d: Metadata
 \description{
 Remove tables that correspond to 'whichtables' type. These tables will be collapsed next and need a clean slate.
 }
-

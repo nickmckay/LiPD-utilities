@@ -18,4 +18,3 @@ list d: Metadata
 Merge the old interpretation fields into the new, combined interpretation field
 }
 \keyword{internal}
-

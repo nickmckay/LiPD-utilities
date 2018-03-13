@@ -16,4 +16,3 @@ boolean
 Checks if a path is a directory or not a directory
 }
 \keyword{internal}
-
