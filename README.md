@@ -4,7 +4,7 @@
 </h1>
 
 <p align="left">
-  <a href="https://zenodo.org/badge/24036/nickmckay/LiPD-utilities.svg"><img src="https://zenodo.org/badge/24036/nickmckay/LiPD-utilities.svg"></a>
+  <a href="http://doi.org/10.5281/zenodo.60812"><img src="https://zenodo.org/badge/24036/nickmckay/LiPD-utilities.svg"></a>
   <a href="https://img.shields.io/badge/python-3.4-blue.svg"><img src="https://img.shields.io/badge/python-3.4-blue.svg"></a>
     <a href="https://img.shields.io/badge/matlab-R2017a-red.svg"><img src="https://img.shields.io/badge/matlab-R2017a-red.svg"></a>
       <a href="https://img.shields.io/badge/R-3.3.1-yellow.svg"><img src="https://img.shields.io/badge/R-3.3.1-yellow.svg"></a>
