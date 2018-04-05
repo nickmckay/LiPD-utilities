@@ -1,7 +1,7 @@
 # LiPD Utilities - R
 -----
 
-[![DOI](https://zenodo.org/badge/23949/chrismheiser/lipdR.svg)](https://zenodo.org/badge/latestdoi/23949/chrismheiser/lipdR)
+[![DOI](https://zenodo.org/badge/24036/nickmckay/LiPD-utilities.svg)](https://zenodo.org/badge/24036/nickmckay/LiPD-utilities.svg)
 [![R](https://img.shields.io/badge/R-1.0.136-blue.svg)]()
 [![R Studio](https://img.shields.io/badge/RStudio-3.3.1-blue.svg)]()
 [![license](https://img.shields.io/badge/license-GPL-brightgreen.svg)]()
