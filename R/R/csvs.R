@@ -28,14 +28,23 @@ clean_csv <- function(csvs){
 #' @importFrom utils read.csv
 #' @keywords internal
 #' @return data.list List of data for one LiPD file
+#' @import readr
 read_csv_from_file <- function(){
   c <- list_files_recursive("csv")
   c.data=vector(mode="list",length=length(c))
   # import each csv file
   for (ci in 1:length(c)){
-    df=read.csv(c[ci], header=FALSE, blank.lines.skip = FALSE,na.strings = c("nan", "NaN", "NAN", "NA"))
-    #df=readr::read_csv(c[ci], col_names=FALSE, na = c("nan", "NaN", "NAN", "NA")) Don't use for now...
-    c.data[[c[ci]]]=df
+    # df=read.csv(c[ci], header=FALSE, blank.lines.skip = FALSE,na.strings = c("nan", "NaN", "NAN", "NA"))
+    df=readr::read_csv(c[ci], col_names=FALSE, na = c("nan", "NaN", "NAN", "NA"),col_types = readr::cols()) #Don't use for now...
+    # #deal with missing characters
+    # blanks <- c(""," ", "NA", "NaN", "NAN", "nan","")
+    # blanks <- "\\s"
+    # censor <- function(x){stringr::str_replace(x,  c("", " ", "NaN", "NAN", "nan"), "NA")}
+    # dplyr::mutate_all(df, dplyr::funs(censor))
+    # 
+    #remove rows that are all NAs
+    goodRows = which(rowSums(!is.na(df))>0)
+    c.data[[c[ci]]]=df[goodRows,]
   }
   return(c.data)
 }
