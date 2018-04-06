@@ -73,6 +73,17 @@ D = lipd.excel()
 lipd.doi()
 ```
 
+
+
+## How to Cite this code
+------
+
+  <a href="http://doi.org/10.5281/zenodo.60813"><img src="https://zenodo.org/badge/24036/nickmckay/LiPD-utilities.svg"></a>
+
+Use this link to visit the Zenodo website. It provides citation information in many popular formats.
+
+
+
 ## Further information
 ----------
 Github:
