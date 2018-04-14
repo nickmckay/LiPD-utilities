@@ -2,11 +2,9 @@
 #' Steps: create tmp, unzip lipd, read files into memory, manipulate data, move to original dir, delete tmp.
 #' @export
 #' @keywords internal
-#' @param lpds_ext List of LiPD filenames to read (w/ .lpd extension)
-#' @param working.dir Directory that contains the target files
-#' @return d LiPD File
+#' @param path Local path OR url location of LiPD file
+#' @return j LiPD file data
 lipd_read <- function(path){
-  
   j <- list()
   dir_original = getwd()
   tryCatch({

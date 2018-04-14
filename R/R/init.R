@@ -28,8 +28,13 @@ readLipd <- function(path=NULL){
   options(warn = -1)
   # Ask user where files are stored, or sort the given path parameter
   path <- get_src_or_dst(path)
+  
+  # If this is a URL, download the file and return the local path where the file is saved. 
+  path <- download_from_url(path)
+  
   # Get the explicit full paths for each lipd file
   entries <- get_lipd_paths(path)
+  
   if (isNullOb(entries)){
     # Files is empty. Either not lipd files were in that path, or we had an error somewhere
     print("LiPD file(s) not found in the given path")

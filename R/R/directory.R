@@ -54,9 +54,9 @@ get_src_or_dst<- function(path){
   tryCatch({
     if (!(isNullOb(path))){
       # If the provided path is not a directory and not a lipd file path, then it's not valid
-      if (!isDirectory(path) && tools::file_ext(path) != "lpd"){
+      if (!isDirectory(path) && tools::file_ext(path) != "lpd" && !is.url(path)){
         # Not a lipd file and not a directory. Stop execution and quit. 
-        stop("Error: The provided path must be a directory or a LiPD file")
+        stop("Error: The provided path must be a directory, LiPD file, or a direct URL to a LiPD file")
       } 
     } else {
       # Path was not given. Start prompts

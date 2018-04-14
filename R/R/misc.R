@@ -13,6 +13,27 @@ create_range <- function(start, len){
   return(l)
 }
 
+#' Download a LiPD file from a URL
+#' @export
+#' @keywords internal
+#' @param path URL path to LiPD file
+#' @return path Local path to downloaded file
+download_from_url <- function(path){
+  # Test if the string is a URL or not
+  if(is.url(path)){
+    # Prompt user to enter a DSN or some type of filename
+    dsn <-readline("Please enter the dataset name for this file (Name.Location.Year) : ")
+    # String together a local download path
+    local_path <- paste0("~/Downloads/", dsn, ".lpd")
+    # Initiate download
+    download.file(path, local_path, method = "auto")
+    # Set the local path as our output path
+    path <- local_path
+  }
+  return(path)
+}
+
+
 #' Get dataSetName from metadata. If one is not found, use filename as fallback.
 #' @export
 #' @keywords internal
@@ -45,6 +66,15 @@ hasData <- function(path, i){
   }
   return(dat)
 }
+
+#' Check if given string is a URL or not
+#' @export
+#' @keywords internal
+#' @param x Path or URL string
+#' @return bool
+is.url <-function(x) {
+    return(grepl("www.|http:|https:", x))
+  }
 
 #' Checks if an object is null/empty
 #' @export
