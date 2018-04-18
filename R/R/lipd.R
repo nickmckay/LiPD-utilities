@@ -1,7 +1,7 @@
 #' Loads a LiPD file from local path. Unzip, read, and process data
 #' Steps: create tmp, unzip lipd, read files into memory, manipulate data, move to original dir, delete tmp.
 #' @export
-#' @keywords internal
+#' @keywords internal 
 #' @param path Local path OR url location of LiPD file
 #' @return j LiPD file data
 lipd_read <- function(path){

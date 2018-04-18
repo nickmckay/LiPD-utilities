@@ -12,8 +12,11 @@ from lipd.tables import addModel, addTable
 from lipd.validator_api import call_validator_api, display_results, get_validator_format
 from lipd.alternates import FILE_TYPE_MAP
 from lipd.json_viewer import viewLipd
+from lipd.regexes import re_url
 from lipd.fetch_doi import update_dois
+from download_lipd import download_from_url, get_download_path
 
+import re
 from time import clock
 import os
 import json
@@ -811,10 +814,19 @@ def __read(usr_path, file_type):
     """
     # is there a file path specified ?
     if usr_path:
+        # Is this a URL? Download the file and return the local path
+        is_url = re.match(re_url, usr_path)
+        if is_url:
+            # The usr_path will now be a local path to a single file. It will trigger the "elif" statement below
+            usr_path = download_from_url(usr_path, get_download_path())
+
+        # Directory path
         if os.path.isdir(usr_path):
             __read_directory(usr_path, file_type)
+        # File path
         elif os.path.isfile(usr_path):
             __read_file(usr_path, file_type)
+        # Invalid path given
         else:
             print("Error: Path given is invalid")
 

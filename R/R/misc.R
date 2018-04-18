@@ -24,7 +24,8 @@ download_from_url <- function(path){
     # Prompt user to enter a DSN or some type of filename
     dsn <-readline("Please enter the dataset name for this file (Name.Location.Year) : ")
     # String together a local download path
-    local_path <- paste0("~/Downloads/", dsn, ".lpd")
+    dir <- get_download_path()
+    local_path <- paste0(dir, dsn, ".lpd")
     # Initiate download
     download.file(path, local_path, method = "auto")
     # Set the local path as our output path
@@ -33,6 +34,23 @@ download_from_url <- function(path){
   return(path)
 }
 
+#' Locate a folder to download a file to
+#' @export
+#' @keywords internal
+#' @return char dst_path: Destination directory
+get_download_path <- function(){
+  dst_path <- ""
+  os <- "windows"
+  os <- get_os()
+  if(os=="osx" || os=="unix"){
+    dst_path <- "~/Downloads"
+  }
+  else if(os =="windows" || os == "unknown"){
+    # Not sure how to get default download folder in windows. Please have user locate a dir. 
+    dst_path <- browse_dialog("d")
+  }
+  return(dst_path)
+}
 
 #' Get dataSetName from metadata. If one is not found, use filename as fallback.
 #' @export
