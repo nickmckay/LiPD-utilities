@@ -6,7 +6,6 @@
 #' @return A lumped Ts
 #' @export
 #'
-#' @examples
 lumpTsMetaVariables <- function(Ts,sc=c("eps","rbar","ncores")){
 
 #what variables will be used for id

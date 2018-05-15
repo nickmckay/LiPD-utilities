@@ -8,12 +8,10 @@ Steps: create tmp, unzip lipd, read files into memory, manipulate data, move to 
 lipd_read(path)
 }
 \arguments{
-\item{lpds_ext}{List of LiPD filenames to read (w/ .lpd extension)}
-
-\item{working.dir}{Directory that contains the target files}
+\item{path}{Local path OR url location of LiPD file}
 }
 \value{
-d LiPD File
+j LiPD file data
 }
 \description{
 Loads a LiPD file from local path. Unzip, read, and process data

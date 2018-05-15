@@ -71,7 +71,6 @@ readLipd <- function(path=NULL){
 #' @keywords internal
 #' @param D LiPD datasets : list
 #' @param path Destination path : char
-#' @param 
 #' @usage writeLipd(D, path)
 #' @return none
 #' @examples 
