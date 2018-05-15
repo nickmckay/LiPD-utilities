@@ -27,6 +27,14 @@ metadataKey = wkKeys{mki};
 %metadata first
 [GTS,GTSC]=getLiPDGoogleMetadata(spreadsheetkey,metadataKey);
 
+%%%HACK - replace spreadsheet keys with input key
+sssk = repmat({spreadsheetkey},length(GTS),1);
+[GTS.googleSpreadSheetKey] = sssk{:};
+if isstruct(GTSC)
+sssk = repmat({spreadsheetkey},length(GTSC),1);
+[GTSC.googleSpreadSheetKey] = sssk{:};
+end
+
 for i = 1:length(pdi)
     fullName = wknames{pdi(i)};
     
@@ -64,16 +72,20 @@ if any(cellfun(@isempty,pdgwk)) %see if any are missing keys
     ttni = find(~cellfun(@isempty,(strfind(lower(gtsnames),'tabletype'))));
     
     clear tableNumber
-
+    if length(tni)==0
+        error(['cant find any "tableNumber" fields... in paleoData'])
+    end
     for tn=1:length(tni)
-            gg=find(~cellfun(@isempty,{GTS.(gtsnames{tni})}));
-            if length(ttni)==1
-                tableType(:,tn) = {GTS.(gtsnames{ttni})}';
-            else
+        gg=find(~cellfun(@isempty,{GTS.(gtsnames{tni})}));
+        if length(ttni)==1
+            tableType(:,tn) = {GTS.(gtsnames{ttni})}';
+        elseif length(ttni)>1
             usi=strfind(gtsnames{tni},'_');
             tableType(gg,tn)={gtsnames{tni}((usi+6):(end-11))};
-            end
-            tableNumber(:,tn)={GTS.(gtsnames{tni})}';
+        else
+            tableType(:,tn) = repmat({'measurement'},length(GTS),1);
+        end
+        tableNumber(:,tn)={GTS.(gtsnames{tni})}';
     end
     
     if size(tableNumber,1)~=length(gg)
@@ -170,14 +182,25 @@ if isstruct(GTSC)
         
       %  figure out table types
         gtsnames = fieldnames(GTSC);
-        tni=find(~cellfun(@isempty,(strfind(gtsnames,'TableNumber'))));
+        tni=find(~cellfun(@isempty,(strfind(lower(gtsnames),'tablenumber'))));
+        ttni = find(~cellfun(@isempty,(strfind(lower(gtsnames),'tabletype'))));
+
         tableType=cell(1,1);
-        clear tableNumber
+        clear tableNumber tableType
+        if length(tni)==0
+            error(['cant find any "tableNumber" fields... in chronData'])
+        end
         for tn=1:length(tni)
             gg=find(~cellfun(@isempty,{GTSC.(gtsnames{tni})}));
-            usi=strfind(gtsnames{tni},'_');
-            tableType(gg,tn)={gtsnames{tni}((usi+6):(end-11))};
-            tableNumber(:,tn)={GTSC.(gtsnames{tni})}';
+            if length(ttni)==1
+                tableType(:,tn) = {GTSC.(gtsnames{ttni})}';
+            elseif length(ttni)>1
+                usi=strfind(gtsnames{tni},'_');
+                tableType(gg,tn)={gtsnames{tni}((usi+6):(end-11))};
+            else
+                tableType(:,tn) = repmat({'measurement'},length(GTSC),1);     
+            end
+            tableNumber(:,tn)={GTSC.(gtsnames{tni})}';      
         end
         if size(tableType,2)>1
             if any(sum(~cellfun(@isempty,tableType),2)~=1)
@@ -185,6 +208,7 @@ if isstruct(GTSC)
             end
             tableType=tableType(~cellfun(@isempty,tableType));
         end
+   
         
         one=repmat({'chron'},length(GTSC),1);
         two={GTSC.chronData_chronNumber}';

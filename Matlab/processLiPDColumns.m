@@ -55,11 +55,12 @@ for j=1:length(I.columns)
     I.(newname).missingValue = 'NaN';
     
     if ~iscell(values)
+        if size(values,2)==1 %do not calculate these stats for ensembles
         I.(newname).hasMaxValue = nanmax(values);
         I.(newname).hasMinValue = nanmin(values);
         I.(newname).hasMeanValue = nanmean(values);
         I.(newname).hasMedianValue = nanmedian(values);
-        
+        end
     else
         
     end

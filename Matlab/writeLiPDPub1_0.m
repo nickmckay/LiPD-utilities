@@ -16,5 +16,10 @@ for dd=1:length(LiPDStruct.pub)
         LiPDStruct.pub{dd}.identifier{1,1}.url=['http://dx.doi.org/' doistring];
         LiPDStruct.pub{dd}=rmfield(LiPDStruct.pub{dd},'DOI');
     end
+    %change pubYear to year
+    if isfield(LiPDStruct.pub{dd},'pubYear')
+        LiPDStruct.pub{dd}.year = LiPDStruct.pub{dd}.pubYear;
+    end
+    
 end
 %%%%%END PUB SECTION %%%%%%%%%%

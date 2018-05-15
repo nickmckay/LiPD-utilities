@@ -7,6 +7,8 @@ sheetKeys={'1hIGLX0Q46YWtSXdpA3B2jltkAxUkWO9m2ayLad12zMs'; %variableName
     '13V30TIkPU1oftVArcKteYl93nrjgvexyN4wBSV37mS0'; %seasonality
     '1yL6KuMUXEx5bisnPn0aVp-t1tsLcAXYZDIrUM55U9Hs'; %archiveType
     '1_OvlR02LmEUJOLOaFWFaWKhr2ZOEVjUyUdeiWVmpaAc'; %proxy
+        '1tH2b07E9IaNdH1LS5PvsoAZbKCQMHtc94b9z3re9eV8'; %proxyObservationType
+    '1DBX5KnAdsV0I-el0NaoISW46RwlQjEQbP2QgA3Y9Zwk'; %inferredVariableType
     };
 
 sheets={'paleoData_variableName';
@@ -14,7 +16,9 @@ sheets={'paleoData_variableName';
     'climateInterpretation_interpDirection';
     'climateInterpretation_seasonality';
     'archiveType';
-    'paleoData_proxy' };
+    'paleoData_proxy';
+    'paleoData_proxyObservationType';
+    'paleoData_inferredVariableType'};
 
 if length(sheetKeys) ~= length(sheets)
     error('sheetKeys needs to match sheets')

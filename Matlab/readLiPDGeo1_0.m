@@ -34,11 +34,12 @@ end
 
 %bring property fields up a level
 if isfield(I.geo,'properties')
+ if isstruct(I.geo.properties)
     propFields=fieldnames(I.geo.properties);
     for pf=1:length(propFields)
         I.geo.(propFields{pf})=I.geo.properties.(propFields{pf});
     end
-
+ end
 %remove properties and coordiantes structures
 I.geo=rmfield(I.geo,'properties');
 end
