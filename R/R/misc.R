@@ -271,6 +271,7 @@ warn_ensembles_in_paleo <- function(L, ignore.warnings){
   # Only bother to check for ensembles if ignore.warnings is FALSE
   if(!ignore.warnings){
     # We're good to go, look for stuff. 
+    ans = "n"#initialize as no
     if(is.null(L$paleoData)){
       stop("There's no paleoData in this file")
     }
