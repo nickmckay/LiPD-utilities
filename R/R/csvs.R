@@ -73,6 +73,11 @@ write_csv_to_file <- function(csvs){
         for (i in 1:length(csvs[[entry]])){
           # one column of values
           col <- csvs[[entry]][[i]]
+          # check if data.frame
+          if (is.data.frame(col)){
+            col <- as.matrix(col)
+          }
+          
           # convert to numeric if needed
           if (is.list(col)){
             col <- as.numeric(col)
