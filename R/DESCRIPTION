@@ -30,7 +30,7 @@ Imports:
 	checkmate,
 	chron,
 	data.table,
-	Kmisc,
+	Smisc,
 	RJSONIO,
 	jsonlite,
 	BBmisc

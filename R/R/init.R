@@ -51,7 +51,7 @@ readLipd <- function(path=NULL){
       setwd(dir_source)
       j <- lipd_read(entry)
       # Get the datasetname
-      dsn <- get_datasetname(j, Kmisc::strip_extension(basename(entry)))
+      dsn <- get_datasetname(j, Smisc::stripExtension(basename(entry)))
       # Set the data in D using the datasetname
       D[[dsn]] <- j
     }
