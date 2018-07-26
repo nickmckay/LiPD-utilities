@@ -44,7 +44,19 @@ read_csv_from_file <- function(){
     # 
     #remove rows that are all NAs
     goodRows = which(rowSums(!is.na(df))>0)
-    c.data[[c[ci]]]=df[goodRows,]
+    # If there are 0 good rows, then we need to make one row of NA's
+    if(length(goodRows)<1){
+      # Create N columns with one NA value in each
+      col <- length(df)
+      tmp <- list()
+      for(j in 1:length(df)){
+        tmp[[j]] <- as.double(NA) 
+      }
+      c.data[[c[ci]]]=tmp
+    } else {
+      # Normal case: all data is here
+      c.data[[c[ci]]]=df[goodRows,]
+    }
   }
   return(c.data)
 }
