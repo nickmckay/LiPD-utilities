@@ -20,7 +20,7 @@ class PostInstall(install):
         install.run(self)
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.5.3'
+version = '0.2.5.9'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -72,14 +72,14 @@ setup(
     long_description=long_description,
     keywords="paleo R matlab python paleoclimatology linkedearth",
     install_requires=[
-        "bagit==1.5.4",
+        "bagit==1.7.0",
         "demjson==2.2.4",
         "xlrd==1.1.0",
-        "numpy==1.13.1",
-        "pandas==0.20.3",
-        "requests==2.18.4",
-        "sip==4.19.3",
-        "PyQt5==5.9",
+        "numpy==1.15.0",
+        "pandas==0.23.3",
+        "requests==2.19.1",
+        "sip==4.19.8",
+        "PyQt5==5.9.2",
     ],
     include_package_data=True,
     package_data={

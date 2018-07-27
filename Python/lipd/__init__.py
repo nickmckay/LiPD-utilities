@@ -14,7 +14,7 @@ from lipd.alternates import FILE_TYPE_MAP
 from lipd.json_viewer import viewLipd
 from lipd.regexes import re_url
 from lipd.fetch_doi import update_dois
-from download_lipd import download_from_url, get_download_path
+from lipd.download_lipd import download_from_url, get_download_path
 
 import re
 from time import clock
