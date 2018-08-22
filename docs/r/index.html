@@ -10,8 +10,8 @@
 <body><div class="container"><h1 id="lipd-utilities-r">LiPD Utilities - R</h1>
 
 <p><a href="https://zenodo.org/badge/latestdoi/23949/chrismheiser/lipdR"><img src="https://zenodo.org/badge/23949/chrismheiser/lipdR.svg" alt="DOI" title=""></a> <br>
-<a href=""><img src="https://img.shields.io/badge/R-3.3.1-blue.svg" alt="R" title=""></a> <br>
-<a href=""><img src="https://img.shields.io/badge/RStudio-1.0.136-blue.svg" alt="R Studio" title=""></a> <br>
+<a href=""><img src="https://img.shields.io/badge/R-3.3.3-blue.svg" alt="R" title=""></a> <br>
+<a href=""><img src="https://img.shields.io/badge/RStudio-1.1.453-blue.svg" alt="R Studio" title=""></a> <br>
 <a href=""><img src="https://img.shields.io/badge/license-GPL-brightgreen.svg" alt="license" title=""></a></p>
 
 <p>Welcome to LiPD Utilities in R . This guide will provide everything you need to get up and running with the LiPD Utilities in R,  and show you how to use the core functions in the LiPD package. </p>
@@ -249,6 +249,31 @@ Reads LiPD files from a source path into the environment. Read in a single file,
 
 <hr>
 
+    
+
+    
+<h3 id="viewLipd"><strong>View Lipd</strong></h3>
+
+<p><strong>Purpose:</strong>  <br>
+Browsing LiPD data structure</p>
+
+<p><strong>Returns: None</strong></p>
+
+<blockquote>
+  <p>This is not a LiPD function. This is an R Studio feature that allows you to browse nested data</p>
+</blockquote>
+
+<p>After using readLipd() to load the LiPD file into the environment, you can browse through the data via the R Studio 'magnifying glass' icon. <br><br>
+<img src="https://www.dropbox.com/s/ng8a3mn3tdevje1/viewLipd.png?raw=1" alt="viewLipd" title=""></p>
+
+<blockquote>
+  <p><strong>NOTE:</strong></p>
+    <p>Matlab and R have built-in features to view data structures. Python has a custom viewLipd() function to mimic these features. If your R Studio does not have this feature, make sure you are on version 1.1.453 or newer.</p>
+</blockquote>    
+    
+    
+<hr>
+    
 
 
 <h3 id="writelipdd-path"><strong>writeLipd(D,  path = “”)</strong></h3>
