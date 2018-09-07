@@ -143,9 +143,6 @@ def __get_inferred_data_res_2(v=None, calc=True):
     :param bool calc: If false, we don't need calculations
     :return dict:  Results of calculation
     """
-
-
-
     # Base: If something goes wrong, or if there are no values, then use "NaN" placeholders.
     d = {
         "hasMinValue": "nan", "hasMaxValue": "nan",
@@ -160,12 +157,20 @@ def __get_inferred_data_res_2(v=None, calc=True):
 
             if np.isnan(_min):
                 _min = "nan"
+            else:
+                _min = abs(_min)
             if np.isnan(_max):
                 _max = "nan"
+            else:
+                _min = abs(_min)
             if np.isnan(_mean):
                 _mean = "nan"
+            else:
+                _min = abs(_min)
             if np.isnan(_med):
                 _med = "nan"
+            else:
+                _min = abs(_min)
 
             d = {
                 "hasMinValue": _min,
