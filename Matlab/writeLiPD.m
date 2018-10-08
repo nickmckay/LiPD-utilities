@@ -1,5 +1,6 @@
 function didntwrite = writeLiPD(Dout,overwrite,libDir)
 %check to see if it's a single LiPD file
+didntwrite = cell(1,1);
 if isfield(Dout,'dataSetName')
     newD.(makeValidName(Dout.dataSetName)) = Dout;
     Dout = newD;
@@ -46,7 +47,7 @@ for d=1:length(dnames)
     catch ME
         didntwrite{dd} = dnames{d};
         dd=dd+1;
-         warning([dnames{d} ' encountered errors and didnt write out']);
+        warning([dnames{d} ' encountered errors and didnt write out']);
 %         proceed = input('Do you want to proceed?')
 %             if strncmpi('y',proceed,1)
 %             else

@@ -169,6 +169,12 @@ for i=1:length(udsn)
             %assume its 1
             pnum = 1;
         end
+        %check to see if the number is str
+        if ischar(pnum)
+           pnum = str2num(pnum); 
+           T.paleoData_paleoNumber = pnum;
+        end
+        
         
         if isfield(T,'paleoData_tableNumber')
             mnum = T.paleoData_tableNumber;
@@ -205,6 +211,12 @@ for i=1:length(udsn)
             end
             
         end
+        %check to see if the number is str
+        if ischar(mnum)
+           mnum = str2num(mnum); 
+           T.paleoData_tableNumber = mnum;
+        end
+        
         T = rmfieldsoft(T,{'paleoData_paleoMeasurementTableNumber','paleoData_measurementTableNumber'});
         
         

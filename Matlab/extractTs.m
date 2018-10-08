@@ -15,7 +15,7 @@ h = waitbar(0,'Extracting your timeseries...');
 
 for d = 1:length(dsn)
     waitbar(d/length(dsn),h);
-%    display(dsn{d})
+   %display(dsn{d})
     if breakFlag
         break
     end
@@ -58,9 +58,16 @@ for d = 1:length(dsn)
     %Loop through paleoData objects
     for p = 1:length(L.paleoData)
         %Loop through paleoMeasurementTables
+        if isempty(L.paleoData{p})
+            warning([L.dataSetName ': empty paleoData object'])
+            continue
+        end
+        
+        
         if strcmp(whichTables,'all') ||  strncmpi(whichTables,'meas',4)
             
             for pm = 1:length(L.paleoData{p}.measurementTable)
+                
                 PM = L.paleoData{p}.measurementTable{pm};%grab this measurmentTable
                 
                 %grab all the data for this row

@@ -30,7 +30,6 @@ lipd_read <- function(path){
   return(j)
 }
 
-
 #' Saves current state of LiPD object data. Outputs to a LiPD file.
 #' Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,
 #' zip up bag folder, place lipd in target dst, move to original dir, delete tmp

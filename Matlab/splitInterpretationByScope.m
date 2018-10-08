@@ -44,12 +44,21 @@ for i = 1:length(TS)
                     %  display(['writing TS.' thisScope 'Interpretation' num2str(thisNum) '_' thisKeyName])
                     if isempty(thisScope)
                         warning('no scope present! Can not split')
+                        display(mts.dataSetName)
                         display(['Interpretation number ' num2str(n)]);
                         display(['Variable Name = ' mts.(['interpretation' num2str(n) '_variable'])])
                         thisScope  = input('What scope should this be? (empty will stop this)');
                         if isempty(thisScope)
                             error('No scope');
                         end
+                    end
+                    while iscell(thisScope)
+                       thisScope = thisScope{1}; 
+                    end
+                    if strcmp('climate interpretation',thisScope)
+                       thisScope = 'climate';
+                    elseif strcmp('isotope interpretation',thisScope)
+                       thisScope = 'isotope';
                     end
                     [TS(i).([thisScope 'Interpretation' num2str(thisNum) '_' thisKeyName])] = thisKey;
                 end

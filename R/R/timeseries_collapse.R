@@ -326,6 +326,12 @@ get_table <- function(d, current, pc){
     } else {
       pcNumber <- current$chronNumber
     }
+    
+    #Check if the number was missing
+    if(is.null(pcNumber)){
+      pcNumber <- 1#and assume 1 if so
+    }
+    
     # Measurement table
     if(tt == "meas"){
       tryCatch({
