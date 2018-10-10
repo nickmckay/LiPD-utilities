@@ -44,13 +44,13 @@ read_csv_from_file <- function(){
     # 
     #remove rows that are all NAs
     goodRows = which(rowSums(!is.na(df))>0)
-    # If there are 0 good rows, then we need to make one row of NA's
+    # If there are 0 good rows, then we need to make 8 rows of NA's
     if(length(goodRows)<1){
       # Create N columns with one NA value in each
       col <- length(df)
       tmp <- list()
       for(j in 1:length(df)){
-        tmp[[j]] <- as.double(NA) 
+        tmp[[j]] <- as.double(rep(NA,8)) 
       }
       c.data[[c[ci]]]=tmp
     } else {
@@ -93,9 +93,10 @@ write_csv_to_file <- function(csvs){
           # convert to numeric if needed
           if (is.list(col)){
             col <- as.numeric(col)
-            # replace all NA values with "NaN" before writing to file
-            col <- replace(col, is.na(col), "NaN")
           }
+          # replace all NA values with "NaN" before writing to file
+          col <- replace(col, is.na(col), "NaN")
+          
           # check if tmp matrix has data or is fresh.
           if(all(is.na(tmp))){
             # fresh, so just bind the col itself
