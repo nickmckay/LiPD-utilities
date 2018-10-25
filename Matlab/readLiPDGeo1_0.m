@@ -5,6 +5,14 @@ function I = readLiPDGeo1_0(I)
 if isfield(I.geo,'geometry')
     
     %load in geo information
+    if iscell(I.geo.geometry.coordinates)
+       for gc = 1:length(I.geo.geometry.coordinates)
+          if ischar(I.geo.geometry.coordinates{gc})
+              I.geo.geometry.coordinates{gc} = str2num(I.geo.geometry.coordinates{gc});
+          end
+       end
+           I.geo.geometry.coordinates = cell2mat(I.geo.geometry.coordinates);
+    end
     if numel(I.geo.geometry.coordinates)<2
         I.geo.latitude=NaN;
         I.geo.meanLat=NaN;

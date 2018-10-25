@@ -64,7 +64,7 @@ Load the _devtools_ package:
 
 Use _devtools_ to install the LiPD Utilities package from github:
 
-    install_github("nickmckay/LiPD-Utilities", subdir = "R")
+    devtools::install_github("nickmckay/LiPD-Utilities", subdir = "R")
 
 Load the _lipdR_ package:
 
