@@ -20,7 +20,7 @@ class PostInstall(install):
         install.run(self)
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.5.9'
+version = '0.2.6.0'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -77,7 +77,7 @@ setup(
         "xlrd==1.1.0",
         "numpy==1.15.0",
         "pandas==0.23.3",
-        "requests==2.19.1",
+        "requests ~> 2.20.0",
         "sip==4.19.8",
         "PyQt5==5.9.2",
     ],
