@@ -77,7 +77,7 @@ setup(
         "xlrd==1.1.0",
         "numpy==1.15.0",
         "pandas==0.23.3",
-        "requests ~> 2.20.0",
+        "requests==2.20.0",
         "sip==4.19.8",
         "PyQt5==5.9.2",
     ],
