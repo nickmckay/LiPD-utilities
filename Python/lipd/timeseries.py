@@ -522,11 +522,18 @@ def _collapse_root(master, current, dsn, pc):
     _c_vals = [0, 0, 0]
     _p_keys = ['siteName', 'pages2kRegion']
     try:
+
+        # does not have
+        # paleoData, chronData, mode, tableType, time_id, depth, depthUnits, age, ageUnits
+
+        # does have
+        # pub, geo, funding, proxy, archiveType, description, investigator,
+
         # For all keys in the current time series entry
         for k, v in current.items():
-            # Here are all the keys that we don't want in the root.
-            if any(i in k for i in ["funding", "pub", "geo", "lipdVersion", "dataSetName", "metadataMD5", "googleMetadataWorksheet",
-                     "googleSpreadSheetKey", "tagMD5", "@context", "archiveType"]):
+
+            # Underscore present. Only underscore keys that belong here are funding, geo, and pub
+            if "_" in k:
                 # FUNDING
                 if 'funding' in k:
                     # Group funding items in tmp_funding by number
@@ -591,10 +598,16 @@ def _collapse_root(master, current, dsn, pc):
                                 # Dictionary not created yet. Assign one first.
                                 _tmp_pub[number] = {}
                                 _tmp_pub[number][key] = v
-                # ALL OTHER KEYS THAT AREN'T YET ACCOUNTED FOR : md5, googleSheetKey, etc.
-                else:
-                    # Root
+
+            # No underscore in name, we can rule out the other obvious keys we don't want
+            else:
+                # Rule out any timeseries keys that we added, and paleoData/chronData prefixed keys.
+                if not any(i in k or i is k for i in ["paleoData", "chronData", "mode", "tableType", "time_id", "depth", "depthUnits", "age", "ageUnits"]):
+                    # Root item:
                     _tmp_master[k] = v
+                    continue
+
+
 
         # Append the compiled data into the master dataset data
         for k, v in _tmp_pub.items():
