@@ -1,4 +1,4 @@
-function LiPDStruct = writeLiPDPaleoData1_2(LiPDStruct,goodOutName,writeDistributionTable,pdlev)
+function LiPDStruct = writeLiPDPaleoData1_3(LiPDStruct,goodOutName,writeDistributionTable,pdlev)
 if nargin<3
     writeDistributionTable=1;
 end
@@ -82,6 +82,23 @@ if isfield(LiPDStruct,'paleoData')
                         outTable{ii,jj}=cellstr(char(dum));
                     end
                 end
+                
+                
+                %replace empty cells with NaN
+                emptyCells = find(cellfun(@(x) strcmp(x,''),outTable));
+                 if ~isempty(emptyCells)
+                    outTable(emptyCells) = {'NaN'}; 
+                 end                
+                %remove rows that are all NaN or blank
+% BAD IDEA, lose tables of all NaN                
+%                 
+%                 emptyRows = find(sum(cellfun(@(x) ~(strcmp(x,'')|strcmp(x,'NaN')),outTable),2)==0);
+%                 goodRows = find(sum(cellfun(@(x) ~(strcmp(x,'')|strcmp(x,'NaN')),outTable),2)>0);
+%                 
+%                 if length(emptyRows) > 0
+%                     outTable = outTable(goodRows,:);
+%                 end
+                
                 cell2csv(csvname,outTable);
                 
                 NLS{cmt}=DT;

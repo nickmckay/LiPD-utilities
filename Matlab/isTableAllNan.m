@@ -13,10 +13,12 @@ allNan = 1;
 s=0;
 while s<length(sfn) & allNan
     s=s+1;
-    if isnumeric(table.(sfn{s}).values)
-        if any(~isnan(table.(sfn{s}).values))
-            allNan = 0;
-            break
+    if isfield(table.(sfn{s}),'values')
+        if isnumeric(table.(sfn{s}).values)
+            if any(~isnan(table.(sfn{s}).values))
+                allNan = 0;
+                break
+            end
         end
     end
     

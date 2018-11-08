@@ -86,6 +86,21 @@ if isfield(LiPDStruct,'chronData')
                         outTable{ii,jj}=cellstr(char(dum));
                     end
                 end
+                
+                 emptyCells = find(cellfun(@(x) strcmp(x,''),outTable));
+                 if ~isempty(emptyCells)
+                    outTable(emptyCells) = {'NaN'}; 
+                 end
+
+                
+%                 %remove rows that are all NaN or blank
+%                 emptyRows = find(sum(cellfun(@(x) ~(strcmp(x,'')|strcmp(x,'NaN')),outTable),2)==0);
+%                 goodRows = find(sum(cellfun(@(x) ~(strcmp(x,'')|strcmp(x,'NaN')),outTable),2)>0);
+% 
+%                 if length(emptyRows) > 0
+%                     outTable = outTable(goodRows,:);
+%                 end
+                
                 cell2csv(csvname,outTable);
                 
                 NLS{cmt}=DT;

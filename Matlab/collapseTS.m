@@ -8,7 +8,7 @@ function Dnew=collapseTS(TS,yearTS)
 
 % %% TO DO
 % 1. Add chron mode
-% 2. handle model tables and methods...
+% 2. handle model methods...
 
 if nargin<2
     yearTS=1;
@@ -171,10 +171,15 @@ for i=1:length(udsn)
         end
         %check to see if the number is str
         if ischar(pnum)
-           pnum = str2num(pnum); 
-           T.paleoData_paleoNumber = pnum;
+            pnum = str2num(pnum);
+            T.paleoData_paleoNumber = pnum;
         end
         
+        if isfield(T,'paleoData_modelNumber')
+            modnum = T.paleoData_modelNumber;
+        else
+            modnum = 1;
+        end
         
         if isfield(T,'paleoData_tableNumber')
             mnum = T.paleoData_tableNumber;
@@ -213,13 +218,18 @@ for i=1:length(udsn)
         end
         %check to see if the number is str
         if ischar(mnum)
-           mnum = str2num(mnum); 
-           T.paleoData_tableNumber = mnum;
+            mnum = str2num(mnum);
+            T.paleoData_tableNumber = mnum;
         end
         
         T = rmfieldsoft(T,{'paleoData_paleoMeasurementTableNumber','paleoData_measurementTableNumber'});
         
-        
+        %get table type
+        if isfield(T,'paleoData_tableType')
+            tableType = T.paleoData_tableType;
+        else
+            tableType = 'measurement';
+        end
         
         
         %which variables should be at the measurement table level?
@@ -229,9 +239,14 @@ for i=1:length(udsn)
         
         for am =1:length(amt)
             if any(strcmp(['paleoData_' amt{am}],fT))
-                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(amt{am})=T.(['paleoData_' amt{am}]);
-                
-                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(amt{am})=T.(['paleoData_' amt{am}]);
+                switch lower(tableType(1:4))
+                    case 'meas'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(amt{am})=T.(['paleoData_' amt{am}]);
+                    case 'summ'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.(amt{am})=T.(['paleoData_' amt{am}]);
+                    otherwise
+                        error('dont recognize table type')
+                end
                 pd=setdiff(pd,find(strcmp(fT,['paleoData_' amt{am}])));
             end
             
@@ -241,11 +256,16 @@ for i=1:length(udsn)
         
         %get variablename name
         variableName=makeValidName(T.paleoData_variableName);
-%         if iscell(variableName)
-%             variableName=variableName{1};
-%         end
+        %         if iscell(variableName)
+        %             variableName=variableName{1};
+        %         end
         %see if that name has been used already
-        alreadyNames=fieldnames(Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum});
+        switch lower(tableType(1:4))
+            case 'meas'
+                alreadyNames=fieldnames(Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum});
+            case 'summ'
+                alreadyNames=fieldnames(Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum});
+        end
         %iterate through numbers until it's unique
         aNi=1;
         origName=variableName;
@@ -253,7 +273,7 @@ for i=1:length(udsn)
             variableName=[origName num2str(aNi)];
             aNi=aNi+1;
         end
-
+        
         
         
         %add in the variable
@@ -264,8 +284,15 @@ for i=1:length(udsn)
             pdVarName=fT{pd(pdin)};
             if ~any(strcmp(pdVarName,dontAdd));
                 %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=...
-                    T.(fT{pd(pdin)});
+                switch lower(tableType(1:4))
+                    case 'meas'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=T.(fT{pd(pdin)});
+                    case 'summ'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.(variableName).(pdVarName(strfind(pdVarName,'_')+1:end))=T.(fT{pd(pdin)});
+                    otherwise
+                        error('dont recognize table type')
+                end
+                
             end
         end
         
@@ -278,14 +305,24 @@ for i=1:length(udsn)
             yearFlag=0;
             if any(strcmp('year',fT))
                 if length(T.year) == length(T.paleoData_values)
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.values=T.year;
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.units='AD';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.description='Year AD';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.variableName='year';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.dataType='float';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.variableType='inferred';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.inferredVariableType='year';
-                    
+                    switch lower(tableType(1:4))
+                        case 'meas'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.values=T.year;
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.units='AD';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.description='Year AD';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.variableName='year';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.dataType='float';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.variableType='inferred';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.inferredVariableType='year';
+                        case 'summ'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.values=T.year;
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.units='AD';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.description='Year AD';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.variableName='year';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.dataType='float';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.variableType='inferred';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.inferredVariableType='year';
+                    end
                     yearFlag=1;
                 end
             end
@@ -294,14 +331,24 @@ for i=1:length(udsn)
             if any(strcmp('age',fT))
                 %don't add age if it's a different length than the data
                 if length(T.age) == length(T.paleoData_values)
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.values=T.age;
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.units='BP';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.description='Years before present (1950) BP';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.variableName='age';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.dataType='float';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.variableType='inferred';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.inferredVariableType='age';
-                    
+                    switch lower(tableType(1:4))
+                        case 'meas'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.values=T.age;
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.units='BP';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.description='Years before present (1950) BP';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.variableName='age';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.dataType='float';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.variableType='inferred';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.inferredVariableType='age';
+                        case 'summ'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.values=T.age;
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.units='BP';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.description='Years before present (1950) BP';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.variableName='age';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.dataType='float';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.variableType='inferred';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.inferredVariableType='age';
+                    end
                     
                     ageFlag=1;
                 end
@@ -311,15 +358,26 @@ for i=1:length(udsn)
             if any(strcmp('depth',fT))
                 %don't add age if it's a different length than the data
                 if length(T.depth) == length(T.paleoData_values)
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.values=T.depth;
-                    if isfield(T,'depthUnits')
-                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.units=T.depthUnits;
+                    switch lower(tableType(1:4))
+                        case 'meas'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.values=T.depth;
+                            if isfield(T,'depthUnits')
+                                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.units=T.depthUnits;
+                            end
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.description='depth';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.variableName='depth';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.dataType='float';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.variableType='measured';
+                        case 'summ'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.values=T.depth;
+                            if isfield(T,'depthUnits')
+                                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.units=T.depthUnits;
+                            end
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.description='depth';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.variableName='depth';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.dataType='float';
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.variableType='measured';
                     end
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.description='depth';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.variableName='depth';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.dataType='float';
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.variableType='measured';
-                    
                     depthFlag=1;
                 end
             end
@@ -334,10 +392,16 @@ for i=1:length(udsn)
             cai=find(strncmp('calibration_',fT,12));
             for cain=1:length(cai)
                 caiVarName=fT{cai(cain)};
-                
-                %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
-                    T.(fT{cai(cain)});
+                switch lower(tableType(1:4))
+                    case 'meas'
+                        %add in parameter
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                            T.(fT{cai(cain)});
+                    case 'summ'
+                        %add in parameter
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.(variableName).calibration.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                            T.(fT{cai(cain)});
+                end
             end
         end
         
@@ -348,8 +412,14 @@ for i=1:length(udsn)
                 caiVarName=fT{cai(cain)};
                 
                 %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).modernSystem.(caiVarName(strfind(caiVarName,'_')+1:end))=...
-                    T.(fT{cai(cain)});
+                switch lower(tableType(1:4))
+                    case 'meas'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).modernSystem.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                            T.(fT{cai(cain)});
+                    case 'summ'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.(variableName).modernSystem.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                            T.(fT{cai(cain)});
+                end
             end
         end
         
@@ -361,20 +431,32 @@ for i=1:length(udsn)
                 caiVarName=fT{cai(cain)};
                 
                 %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).proxySystemModel.(caiVarName(strfind(caiVarName,'_')+1:end))=...
-                    T.(fT{cai(cain)});
+                switch lower(tableType(1:4))
+                    case 'meas'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).proxySystemModel.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                            T.(fT{cai(cain)});
+                    case 'summ'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.(variableName).proxySystemModel.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                            T.(fT{cai(cain)});
+                end
             end
         end
         
         %check for hasResolution
-         if any(strncmp('hasResolution_',fT,14))
+        if any(strncmp('hasResolution_',fT,14))
             cai=find(strncmp('hasResolution_',fT,14));
             for cain=1:length(cai)
                 caiVarName=fT{cai(cain)};
                 
                 %add in parameter
-                Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).hasResolution.(caiVarName(strfind(caiVarName,'_')+1:end))=...
-                    T.(fT{cai(cain)});
+                switch lower(tableType(1:4))
+                    case 'meas'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).hasResolution.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                            T.(fT{cai(cain)});
+                    case 'summ'
+                        Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.(variableName).hasResolution.(caiVarName(strfind(caiVarName,'_')+1:end))=...
+                            T.(fT{cai(cain)});
+                end
             end
         end
         
@@ -393,8 +475,14 @@ for i=1:length(udsn)
                 iiname = iiiVarName(min(strfind(iiiVarName,'_'))+1:end);
                 
                 if ~isempty(T.(iiiVarName))
-                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).interpretation{thisIntNum}.(iiname)=...
-                        T.(iiiVarName);
+                    switch lower(tableType(1:4))
+                        case 'meas'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.(variableName).interpretation{thisIntNum}.(iiname)=...
+                                T.(iiiVarName);
+                        case 'summ'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.(variableName).interpretation{thisIntNum}.(iiname)=...
+                                T.(iiiVarName);
+                    end
                 end
             end
         end

@@ -155,11 +155,13 @@ extract_table=function(table_data, table_type, pc, TS, current){
 extract_special= function(table_data, current){
   # Special columns need to be included with all time series entries
   specialColumns = c("age","year","depth","ageEnsemble")
-  specCols = which((names(table_data) %in% specialColumns) & sapply(table_data,is.list))
+  specCols = which((tolower(names(table_data)) %in% tolower(specialColumns)) & sapply(table_data,is.list))
   for(sc in specCols){
     #only assign in values and units for now
-    current[[paste0(names(table_data)[sc],"Units")]] = table_data[[sc]]$units
-    current[[names(table_data)[sc]]] = table_data[[sc]]$values
+    #use the correct names
+    nameToUse <- specialColumns[which(tolower(names(table_data)[sc]) == specialColumns)]
+    current[[paste0(nameToUse,"Units")]] = table_data[[sc]]$units
+    current[[nameToUse]] = table_data[[sc]]$values
   }
   return(current)
 }
