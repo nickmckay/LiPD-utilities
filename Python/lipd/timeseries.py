@@ -602,7 +602,7 @@ def _collapse_root(master, current, dsn, pc):
             # No underscore in name, we can rule out the other obvious keys we don't want
             else:
                 # Rule out any timeseries keys that we added, and paleoData/chronData prefixed keys.
-                if not any(i in k or i is k for i in ["paleoData", "chronData", "mode", "tableType", "time_id", "depth", "depthUnits", "age", "ageUnits"]):
+                if not any(i in k.lower() or i is k.lower() for i in ["paleodata", "chrondata", "mode", "tabletype", "time_id", "depth", "depthunits", "age", "ageunits"]):
                     # Root item:
                     _tmp_master[k] = v
                     continue
