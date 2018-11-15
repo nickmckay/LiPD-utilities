@@ -520,7 +520,7 @@ def _collapse_root(master, current, dsn, pc):
     # _raw = _switch[pc]
     _c_keys = ['meanLat', 'meanLon', 'meanElev']
     _c_vals = [0, 0, 0]
-    _p_keys = ['siteName', 'pages2kRegion']
+    _p_keys = ['siteName', 'pages2kRegion', "location", "gcmdLocation", ""]
     try:
 
         # does not have
@@ -561,11 +561,11 @@ def _collapse_root(master, current, dsn, pc):
                         elif key[1] == 'meanElev' or key[1] == "elevation":
                             _c_vals[2] = v
                     # Properties
-                    elif key[1] in _p_keys:
+                    else:
                         _tmp_master['geo']['properties'][key[1]] = v
                     # All others
-                    else:
-                        _tmp_master['geo'][key[1]] = v
+                    # else:
+                    #     _tmp_master['geo'][key[1]] = v
 
                 # PUBLICATION
                 elif 'pub' in k:
