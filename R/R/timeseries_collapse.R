@@ -22,8 +22,8 @@ collapseTs <- function(ts, force=FALSE){
   whichtables <- ts[[1]]$whichtables
   ts_storage <- get_ts_global()
   raw_datasets <- ts_storage[[timeID]]
+  mode <- ts[[1]][["mode"]]
 
-    
   D <- list()
   tryCatch({
     # Do some collapse stuff
@@ -33,8 +33,8 @@ collapseTs <- function(ts, force=FALSE){
       if(!ts[[i]][["dataSetName"]] %in% names(D)){
         dsn <- ts[[i]][["dataSetName"]]
         print(paste0("collapsing: ", dsn))
-        # Recover paleoData and chronData from raw data
-        D[[dsn]] <- put_base_data(ts[[i]], raw_datasets, dsn, force)
+        # Recover paleoData OR chronData from raw data. Recovers only the section opposite of the current mode.
+        D[[dsn]] <- put_base_data(ts[[i]], raw_datasets, dsn, force, mode)
         # Remove the old target tables, as we'll be writing these fresh. Other tables as-is.
         # D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
         # Collapse root data keys (pub, funding, archiveType, etc)
@@ -146,6 +146,7 @@ collapse_table <- function(d, entry, pc){
   # Get the existing target table
   # table <- get_table(d, m, pc)
   table <- get_table(d, entry, pc)
+  # table <- list()
   table <- collapse_table_root(table, entry, pc)
   table <- collapse_column(table, entry, pc)
   # Put the new modified table back into the metadata
@@ -186,6 +187,7 @@ collapse_column <- function(table, entry, pc){
   include <- c("paleoData", "chronData", "interpretation", "calibration", "hasResolution") 
   exclude <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey", "pub", "geo")
   ts_keys <- names(entry)
+  
   tryCatch({
     for(i in 1:length(ts_keys)){
       curr_key <- ts_keys[[i]]
@@ -215,7 +217,7 @@ collapse_column <- function(table, entry, pc){
     if(!isNullOb(phys)){
       new_column[["physicalSample"]] <- phys
     }
-    vn <- new_column[["variableName"]]
+    vn <- get_vn(new_column[["variableName"]], names(table))
     # Set the new column into the table using the variableName
     table[[vn]] <- list(100)
     table[[vn]] <- new_column
@@ -544,10 +546,11 @@ rm_existing_tables <- function(d, pc, whichtables){
 #' Put in paleoData and chronData as the base for this dataset using the oroginal dataset data.  
 #' @export
 #' @param list d: Metadata
-#' @param char pc: paleoData or 
+#' @param char pc: paleoData or chronData
 #' @param bool force: Build dataset without original data from global
+#' @param char mode: paleo or chron mode
 #' @return list d: Metadata
-put_base_data <- function(entry, raw_datasets, dsn, force){
+put_base_data <- function(entry, raw_datasets, dsn, force, mode){
   d <- list()
   
   # We do not have the original datasets OR the user is requesting a collapseTs without using the original datasets.
@@ -558,15 +561,21 @@ put_base_data <- function(entry, raw_datasets, dsn, force){
   } 
   
   # We have the original dataset(s). Use this data as a baseline to build and overwrite onto. 
+  # Only copy over the data OPPOSITE to the mode.
+  # Example, for paleo mode we will rebuild the paleoData section and copy over the chronData section. 
   else {
-    # Is there paleoData? Find it and add it
-    if("paleoData" %in% names(raw_datasets)){
-      d[["paleoData"]] <- raw_datasets[["paleoData"]] 
-    } else if (dsn %in% names(raw_datasets)){
-      if("paleoData" %in% names(raw_datasets[[dsn]])){
-        d[["paleoData"]] <- raw_datasets[[dsn]][["paleoData"]]
+    # Only 
+    if(mode == "chron"){
+      # Is there paleoData? Find it and add it
+      if("paleoData" %in% names(raw_datasets)){
+        d[["paleoData"]] <- raw_datasets[["paleoData"]] 
+      } else if (dsn %in% names(raw_datasets)){
+        if("paleoData" %in% names(raw_datasets[[dsn]])){
+          d[["paleoData"]] <- raw_datasets[[dsn]][["paleoData"]]
+        }
       }
     }
+  else if (mode == "paleo"){
     # Is there chronData? Find it and add it
     if("chronData" %in% names(raw_datasets)){
       d[["chronData"]] = raw_datasets[["chronData"]]
@@ -575,6 +584,8 @@ put_base_data <- function(entry, raw_datasets, dsn, force){
         d[["chronData"]] <- raw_datasets[[dsn]][["chronData"]]
       }
     }
+  }
+
   }
   return(d)
 }
