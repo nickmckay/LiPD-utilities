@@ -67,6 +67,22 @@ get_datasetname <- function(d, name){
   return(dsn)
 }
 
+#' Get dataSetName from metadata. If one is not found, use filename as fallback.
+#' @export
+#' @keywords internal
+#' @param char vn: Variable name
+#' @return char vn: Variable name, possibly appended with a number
+get_vn <- function(vn, names){
+   base <- vn
+   num <- 1
+   while(vn %in% names){
+     vn <- paste0(base, "-", num)
+     num <- num + 1
+   }
+   return(vn)
+}
+
+
 #' Check if metadata path exists. Combine path and i to check for existence
 #' @export
 #' @keywords internal
