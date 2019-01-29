@@ -2,6 +2,7 @@ function TS = combineInterpretationByScope(TSs)
 %combine interpretation by scope
 
 %TS = struct('lengths',size(TSs));
+    scopes = {'climate','isotope','ecology','chronology'};
 
 handle = waitbar(0,'combining interpretations...');
 for i = 1:length(TSs);
@@ -11,12 +12,12 @@ for i = 1:length(TSs);
     fnames = fieldnames(mts);
     %remove preexisting 'interpretationX' fields.
     interpNames = fnames(find(strncmp('interpretation',fnames,14)));
-    if length(interpNames)>1
+    if length(interpNames)>0
         warning('Removing "interpretationX_*" fields, which were about to create...')
+            mts = rmfield(mts,interpNames);
+
     end
-    mts = rmfield(mts,interpNames);
     fnames = fieldnames(mts);
-    scopes = {'climate','isotope','ecology','chronology'};
     ti=0;
     for s = 1:length(scopes)
         sts = [scopes{s} 'Interpretation'];

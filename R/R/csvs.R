@@ -35,7 +35,7 @@ read_csv_from_file <- function(){
   # import each csv file
   for (ci in 1:length(c)){
     # df=read.csv(c[ci], header=FALSE, blank.lines.skip = FALSE,na.strings = c("nan", "NaN", "NAN", "NA"))
-    df=readr::read_csv(c[ci], col_names=FALSE, na = c("nan", "NaN", "NAN", "NA"),col_types = readr::cols()) #Don't use for now...
+    df=readr::read_csv(c[ci], col_names=FALSE, na = c("nan", "NaN", "NAN", "NA",""),col_types = readr::cols()) #Don't use for now...
     # #deal with missing characters
     # blanks <- c(""," ", "NA", "NaN", "NAN", "nan","")
     # blanks <- "\\s"
@@ -47,7 +47,7 @@ read_csv_from_file <- function(){
     # If there are 0 good rows, then we need to make 8 rows of NA's
     if(length(goodRows)<1){
       # Create N columns with one NA value in each
-      col <- length(df)
+      col <- ncol(df)
       tmp <- list()
       for(j in 1:length(df)){
         tmp[[j]] <- as.double(rep(NA,8)) 
