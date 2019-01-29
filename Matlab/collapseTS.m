@@ -232,6 +232,41 @@ for i=1:length(udsn)
         end
         
         
+        %create empty table
+        if length(Dnew.(makeValidName(udsn{i})).paleoData) < pnum
+            Dnew.(makeValidName(udsn{i})).paleoData{pnum} = struct;
+        end
+        
+         
+        switch lower(tableType(1:4))
+            case 'meas'
+                if ~isfield(Dnew.(makeValidName(udsn{i})).paleoData{pnum},'measurementTable')
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}=struct;
+                end
+            case 'summ'
+                if ~isfield(Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum},'summaryTable')
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}=struct;
+                end
+            otherwise
+                error('dont recognize table type')
+        end
+        
+        switch lower(tableType(1:4))
+            case 'meas'
+                if length(Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable) < mnum
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}=struct;
+                end
+            case 'summ'
+                if length(Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable) < mnum
+                    Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}=struct;
+                end
+            otherwise
+                error('dont recognize table type')
+        end
+        
+        
+        
+        
         %which variables should be at the measurement table level?
         amt = {'paleoDataTableName','tableName',...
             'paleoDataMD5',...
