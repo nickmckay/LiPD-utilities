@@ -475,4 +475,4 @@ Use this link to visit the Zenodo website. It provides citation information in m
 
 
 
-![footer NSF](../assets/logo-nsf.jpg)
+![footer NSF](../assets/logo_nsf.png)
