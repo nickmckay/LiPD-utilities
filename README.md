@@ -145,3 +145,5 @@ If you are having issues, please let me know at [heiser@nau.edu](mailto:heiser@n
 ## License
 
 The project is licensed under the [GNU Public License](https://github.com/nickmckay/LiPD-utilities/blob/master/Python/LICENSE).
+
+![footer NSF](assets/logo-nsf.jpg)

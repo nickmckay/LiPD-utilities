@@ -11,7 +11,6 @@
 extractTs= function(D, whichtables = "all", mode = "paleo"){
   
   TS <- list()
-  
   # TOP FUNCTION
   # Check if this is one or multiple datasets. 
   # Backup full data to global space (for collapseTs). 

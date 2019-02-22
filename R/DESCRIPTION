@@ -34,3 +34,4 @@ Imports:
 	RJSONIO,
 	jsonlite,
 	BBmisc
+Suggests: testthat

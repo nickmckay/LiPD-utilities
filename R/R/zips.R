@@ -6,7 +6,10 @@
 #' @return none
 unzipper <- function(path, dir_tmp){
   if(length(path)>0){
-    unzip(path, exdir = dir_tmp)
+    success <- unzip(path, exdir = dir_tmp)
+    if(length(success) == 0){
+      stop(paste0("No LiPD file at the given path: ", path))
+    }
   }
 }
 
