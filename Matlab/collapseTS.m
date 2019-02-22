@@ -29,132 +29,133 @@ for i=1:length(udsn)
         T=removeEmptyStructureFields(T);
         fT=fieldnames(T);
         
-        %base level
-        %all the fields that don't have underscores (except year and age)
-        b=find(cellfun(@isempty,(strfind(fT,'_'))));
-        yi=find(strncmpi('year',fT,4));
-        ai=find(strncmpi('age',fT,3));
-        yai=union(ai,yi);
-        %or depth
-        di=find(strncmpi('depth',fT,5));
-        yai=union(yai,di);
         
-        %or chronData
-        ci=find(strcmpi('chronData',fT));
-        yai=union(yai,ci);
-        
-        %if there is a chronData, write it right in
-        if ~isempty(ci)
-            Dnew.(makeValidName(udsn{i})).chronData=T.chronData;
-        elseif isfield(T,'raw')
-            if isfield(T.raw,'chronData')
-                Dnew.(makeValidName(udsn{i})).chronData=T.raw.chronData;
-            end
-        end
-        
-        %now create the base level index
-        b=setdiff(b,yai);
-        
-        for bi=1:length(b)
-            Dnew.(makeValidName(udsn{i})).(fT{b(bi)})=T.(fT{b(bi)});
-        end
-        
-        %funding
-        fun=find(strncmp('funding',fT,7));
-        if numel(fun)>0
-            Dnew.(makeValidName(udsn{i})).funding=cell(1,1); %assign cell to funding
-            for fin=1:length(fun)
-                funVarName=fT{fun(fin)};
-                fundNum=str2num(funVarName(8:(strfind(funVarName,'_')-1)));
-                if isempty(fundNum)
-                    fundNum=1;
-                end
-                try
-                    Dnew.(makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=T.(fT{fun(fin)});
-                catch DO
-                    Dnew.(makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=char(T.(fT{fun(fin)}));
-                end
-            end
-        end
-        
-        %pub
-        clear pubNum %so that we don't get a bajillion dataPubs
+        %only do this for the first entry for base level stuff.
         if f==1
-            Dnew.(makeValidName(udsn{i})).pub=cell(1,1); %assign cell to pub
-        end
-        p=find(strncmp('pub',fT,3));
-        for pin=1:length(p)
-            pubVarName=fT{p(pin)};
-            pubNum=str2num(pubVarName(4:(strfind(pubVarName,'_')-1)));
-            if isempty(pubNum)
-                pubNum=1;
-            end
-            %don't overwrite what you've already written
-            if length(Dnew.(makeValidName(udsn{i})).pub) < pubNum % if this is a new publication
-                %write it
-                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
-                    T.(fT{p(pin)});
-            elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end))
-                %write it
-                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
-                    T.(fT{p(pin)});
-            elseif isempty(Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end)))
-                %if it's empty
-                %write it.
-                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
-                    T.(fT{p(pin)});
-            end
-        end
-        
-        %         %assign in something in case there's no other publications
-        %         if(~exist('pubNum'))
-        %             lastPub=0;
-        %         else
-        %             lastPub=pubNum;
-        %         end
-        
-        
-        %make all data pubs start at 20
-        lastPub = 20;
-        
-        %handle Data citations
-        dp=find(strncmp('dataPub',fT,7));
-        for dpin=1:length(dp)
-            pubVarName=fT{dp(dpin)};
-            pubNum=lastPub+str2num(pubVarName(8:(strfind(pubVarName,'_')-1)));
-            %don't overwrite what you've already written
-            if length(Dnew.(makeValidName(udsn{i})).pub) < pubNum % if this is a new publication
-                %write it
-                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
-            elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end)) %it's a new variable
-                %write it
-                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
-            elseif isempty(Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end)))
-                %if it's empty
-                %write it.
-                Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
-            end
-        end
-        
-        
-        
-        %geo
-        if f==1
-            Dnew.(makeValidName(udsn{i})).geo=struct; %assign geo to structure
-        end
-        g=find(strncmp('geo_',fT,4));
-        
-        for gin=1:length(g)
-            geoVarName=fT{g(gin)};
+            %base level
+            %all the fields that don't have underscores (except year and age)
+            b=find(cellfun(@isempty,(strfind(fT,'_'))));
+            yi=find(strncmpi('year',fT,4));
+            ai=find(strncmpi('age',fT,3));
+            yai=union(ai,yi);
+            %or depth
+            di=find(strncmpi('depth',fT,5));
+            yai=union(yai,di);
             
-            Dnew.(makeValidName(udsn{i})).geo.(geoVarName(strfind(geoVarName,'_')+1:end))=...
-                T.(fT{g(gin)});
-        end
-        
-        
-        
-        %paleoData
-        if f==1
+            %or chronData
+            ci=find(strcmpi('chronData',fT));
+            yai=union(yai,ci);
+            
+            %if there is a chronData, write it right in
+            if ~isempty(ci)
+                Dnew.(makeValidName(udsn{i})).chronData=T.chronData;
+            elseif isfield(T,'raw')
+                if isfield(T.raw,'chronData')
+                    Dnew.(makeValidName(udsn{i})).chronData=T.raw.chronData;
+                end
+            end
+            
+            %now create the base level index
+            b=setdiff(b,yai);
+            
+            for bi=1:length(b)
+                Dnew.(makeValidName(udsn{i})).(fT{b(bi)})=T.(fT{b(bi)});
+            end
+            
+            %funding
+            fun=find(strncmp('funding',fT,7));
+            if numel(fun)>0
+                Dnew.(makeValidName(udsn{i})).funding=cell(1,1); %assign cell to funding
+                for fin=1:length(fun)
+                    funVarName=fT{fun(fin)};
+                    fundNum=str2num(funVarName(8:(strfind(funVarName,'_')-1)));
+                    if isempty(fundNum)
+                        fundNum=1;
+                    end
+                    try
+                        Dnew.(makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=T.(fT{fun(fin)});
+                    catch DO
+                        Dnew.(makeValidName(udsn{i})).funding{fundNum}.(funVarName(strfind(funVarName,'_')+1:end))=char(T.(fT{fun(fin)}));
+                    end
+                end
+            end
+            
+            %pub
+            clear pubNum %so that we don't get a bajillion dataPubs
+            if f==1
+                Dnew.(makeValidName(udsn{i})).pub=cell(1,1); %assign cell to pub
+            end
+            p=find(strncmp('pub',fT,3));
+            for pin=1:length(p)
+                pubVarName=fT{p(pin)};
+                pubNum=str2num(pubVarName(4:(strfind(pubVarName,'_')-1)));
+                if isempty(pubNum)
+                    pubNum=1;
+                end
+                %don't overwrite what you've already written
+                if length(Dnew.(makeValidName(udsn{i})).pub) < pubNum % if this is a new publication
+                    %write it
+                    Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
+                        T.(fT{p(pin)});
+                elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end))
+                    %write it
+                    Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
+                        T.(fT{p(pin)});
+                elseif isempty(Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end)))
+                    %if it's empty
+                    %write it.
+                    Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=...
+                        T.(fT{p(pin)});
+                end
+            end
+            
+            %         %assign in something in case there's no other publications
+            %         if(~exist('pubNum'))
+            %             lastPub=0;
+            %         else
+            %             lastPub=pubNum;
+            %         end
+            
+            
+            %make all data pubs start at 20
+            lastPub = 20;
+            
+            %handle Data citations
+            dp=find(strncmp('dataPub',fT,7));
+            for dpin=1:length(dp)
+                pubVarName=fT{dp(dpin)};
+                pubNum=lastPub+str2num(pubVarName(8:(strfind(pubVarName,'_')-1)));
+                %don't overwrite what you've already written
+                if length(Dnew.(makeValidName(udsn{i})).pub) < pubNum % if this is a new publication
+                    %write it
+                    Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+                elseif ~isfield(Dnew.(makeValidName(udsn{i})).pub{pubNum},pubVarName(strfind(pubVarName,'_')+1:end)) %it's a new variable
+                    %write it
+                    Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+                elseif isempty(Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end)))
+                    %if it's empty
+                    %write it.
+                    Dnew.(makeValidName(udsn{i})).pub{pubNum}.(pubVarName(strfind(pubVarName,'_')+1:end))=T.(fT{dp(dpin)});
+                end
+            end
+            
+            
+            
+            %geo
+            if f==1
+                Dnew.(makeValidName(udsn{i})).geo=struct; %assign geo to structure
+            end
+            g=find(strncmp('geo_',fT,4));
+            
+            for gin=1:length(g)
+                geoVarName=fT{g(gin)};
+                
+                Dnew.(makeValidName(udsn{i})).geo.(geoVarName(strfind(geoVarName,'_')+1:end))=...
+                    T.(fT{g(gin)});
+            end
+            
+            
+            %paleoData
             Dnew.(makeValidName(udsn{i})).paleoData=cell(1,1); %assign paleoData to a  cell
         end
         pd=find(strncmp('paleoData_',fT,10));
@@ -237,7 +238,7 @@ for i=1:length(udsn)
             Dnew.(makeValidName(udsn{i})).paleoData{pnum} = struct;
         end
         
-         
+        
         switch lower(tableType(1:4))
             case 'meas'
                 if ~isfield(Dnew.(makeValidName(udsn{i})).paleoData{pnum},'measurementTable')
