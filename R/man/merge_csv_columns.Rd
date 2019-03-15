@@ -9,10 +9,10 @@ merge_csv_columns(csvs, meta)
 \arguments{
 \item{list}{csvs: Values, sorted by column}
 
-\item{list}{meta: Metadata, sorted by column}
+\item{list}{meta: Table metadata, sorted by column}
 }
 \value{
-list meta: Metadata
+list meta: Table metadata
 }
 \description{
 Merge values into each column
