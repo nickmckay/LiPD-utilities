@@ -17,6 +17,40 @@ add_created_by <- function(d){
   return(d)
 }
 
+#' Switch DOI from BibJSON structure 'identifier' key to a root level "doi" key
+#' @export
+#' @keywords internal
+#' @param list d: Metadata
+#' @return list d: Metadata
+fix_doi <- function(d){
+  # DOI keys that we do not want. We want 'doi'
+  dois = list("DOI", "Doi")
+  # Loop for each publication
+  for(p in 1:length(d$pub)){
+    # Get the DOI from the BibJSON structure, if it exists
+    identifier = d$pub[[p]]$identifier[[1]]$id
+    # If there wasn't a DOI in that location, 'identifier' will be NULL
+    if(!is.null(identifier)){
+      # Found DOI identifier. Reassign and then remove from 'identifier' key
+      d$pub[[p]]$doi <- identifier
+      d$pub[[p]]$identifier <- NULL
+    } 
+    # Loop for each DOI key we don't want
+    for(n in 1:length(dois)){
+      # Is this DOI key in the publication? 
+      if(dois[[n]] %in% names(d$pub[[p]])){
+        # Reassign the DOI/Doi to doi key
+        d$pub[[p]]$doi <- d$pub[[p]][[dois[[n]]]]
+        # Remove the DOI/Doi key
+        d$pub[[p]][[dois[[n]]]] <- NULL
+      }
+    }
+  }
+  # Return the metadata with the modified doi data
+  return(d)
+}
+
+
 #' Check what version of LiPD this file is using. If none is found, assume it's using version 1.0
 #' @export
 #' @keywords internal
@@ -72,6 +106,9 @@ update_lipd_version <- function(d){
     tmp <- get_lipd_version(d)
     version <- tmp[["version"]]
     d <- tmp[["meta"]]
+    
+    # d <- fix_authors(d[["pub"]])
+    d <- fix_doi(d)
     
     # Update from (N/A or 1.0) to 1.1
     if (version == 1.0 || version == "1.0"){

@@ -111,8 +111,8 @@ merge_csv_table <- function(tables, crumbs, csvs){
 #' @export
 #' @keywords internal
 #' @param list csvs: Values, sorted by column
-#' @param list meta: Metadata, sorted by column
-#' @return list meta: Metadata
+#' @param list meta: Table metadata, sorted by column
+#' @return list meta: Table metadata
 merge_csv_columns <- function(csvs, meta){
   tryCatch({
     for (i in 1:length(meta)){

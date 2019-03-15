@@ -4,6 +4,46 @@ from .loggers import create_logger
 logger_versions = create_logger("versions")
 
 
+def fix_doi(L):
+    """
+    DOIs are commonly stored in the BibJson format under "identifier". We want to move these to the root
+    of the publication under "doi". Make the reassignments necessary and also remove duplicate and unwanted
+    Doi/DOI keys.
+
+    :param  dict L:  Metadata
+    :return dict L:  Metdata
+    """
+    # Keys that we don't want. Reassign data to 'doi' key
+    _dois = ["DOI", "Doi"]
+    # Loop for each publication entry
+    for pub in L["pub"]:
+        try:
+            # Is there an identifier in this publication?
+            if "identifier" in pub:
+                # Attempt to grab the doi from the id location. If it doesn't work, we'll catch the error.
+                _identifier = pub["identifier"][0]["id"]
+                # Got identifier. Is there a valid string here?
+                if _identifier:
+                    # Reassign the doi to the publication root 'doi' key
+                    pub["doi"] = _identifier
+                    # Delete the identifier key and data
+                    del pub["identifier"]
+        except Exception:
+            # Catch the KeyError, and continue on normally.
+            pass
+
+        # Check for each doi key that we don't want
+        for _key in _dois:
+            # Is it in the publication entry?
+            if _key in pub:
+                #  Is there valid string data?
+                if pub[_key]:
+                    # Reassign the doi to the 'doi' key
+                    pub["doi"] = pub[_key]
+                # Delete the bad doi key
+                del pub[_key]
+    return L
+
 def get_lipd_version(L):
     """
     Check what version of LiPD this file is using. If none is found, assume it's using version 1.0
@@ -84,6 +124,7 @@ def update_lipd_version(L):
         L = update_lipd_v1_3(L)
         version = 1.3
 
+    L = fix_doi(L)
     L["lipdVersion"] = 1.3
     return L
 
