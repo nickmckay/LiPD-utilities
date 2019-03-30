@@ -488,7 +488,23 @@ def collapseTs(ts=None):
     return _d
 
 
-def filterTs(ts, expression):
+def filterTsTest(ts, expressions):
+    if isinstance(expression, str):
+        pass
+
+    elif isinstance(expression, list):
+        for i in expressions:
+            query = i.split('<>')
+            for k in query:
+                try:
+                    curr = ""
+                except KeyError:
+                    pass
+
+    return
+
+
+def filterTs(ts, expressions):
     """
     Create a new time series that only contains entries that match the given expression.
 
@@ -496,18 +512,39 @@ def filterTs(ts, expression):
     | D = lipd.loadLipd()
     | ts = lipd.extractTs(D)
     | new_ts = filterTs(ts, "archiveType == marine sediment")
-    | new_ts = filterTs(ts, "paleoData_variableName == sst")
+    | new_ts = filterTs(ts, ["paleoData_variableName == sst", "archiveType == marine sediment"])
+    | Expressions should use underscores to denote data nesting.
+    | Ex: paleoData_hasResolution_hasMedian or
 
-    :param str expression: Expression
-    :param list ts: Time series
-    :return list new_ts: Filtered time series that matches the expression
+    :param list OR str expressions: Expressions
+    :param list ts:                 Time series
+    :return list new_ts:            Filtered time series that matches the expression
     """
-    new_ts = []
-    # Use some magic to turn the given string expression into a machine-usable comparative expression.
-    expr_lst = translate_expression(expression)
-    # Only proceed if the translation resulted in a usable expression.
-    if expr_lst:
-        new_ts, _idx = get_matches(expr_lst, ts)
+    # Make a copy of the ts. We're going to work directly on it.
+    new_ts = ts[:]
+
+    # User provided a single query string
+    if isinstance(expressions, str):
+        # Use some magic to turn the given string expression into a machine-usable comparative expression.
+        expr_lst = translate_expression(expressions)
+        # Only proceed if the translation resulted in a usable expression.
+        if expr_lst:
+            # Return the new filtered time series. This will use the same time series
+            # that filters down each loop.
+            new_ts, _idx = get_matches(expr_lst, new_ts)
+
+    # User provided a list of multiple queries
+    elif isinstance(expressions, list):
+        # Loop for each query
+        for expr in expressions:
+            # Use some magic to turn the given string expression into a machine-usable comparative expression.
+            expr_lst = translate_expression(expr)
+            # Only proceed if the translation resulted in a usable expression.
+            if expr_lst:
+                # Return the new filtered time series. This will use the same time series
+                # that filters down each loop.
+                new_ts, _idx = get_matches(expr_lst, new_ts)
+
     return new_ts
 
 

@@ -378,41 +378,26 @@ def _extract_columns(d, tmp_tso, pc):
     """
     logger_ts.info("enter extract_columns")
     for k, v in d.items():
-        if k == 'climateInterpretation':
-            tmp_tso = _extract_climate(v, tmp_tso)
-        elif k == 'calibration':
-            tmp_tso = _extract_calibration(v, tmp_tso)
+        if isinstance(v, dict):
+            flat_data = _extract_nested(pc + "_" + k, v, {})
+            for n,m in flat_data.items():
+                tmp_tso[n] = m
         else:
             # Assume if it's not a special nested case, then it's a string value
             tmp_tso[pc + '_' + k] = v
     return tmp_tso
 
+def _extract_nested(crumbs, dat, flat_dat):
+    try:
+        for k, v in dat.items():
+            if isinstance(v, dict):
+                flat_dat = _extract_nested(crumbs + "_" + k, v, flat_dat)
+            else:
+                flat_dat[crumbs + "_" + k] = v
+    except Exception as e:
+        logger_ts.info("ts: _extract_nested: " + e)
 
-def _extract_calibration(d, tmp_tso):
-    """
-    Get calibration info from column data.
-    :param dict d: Calibration dictionary
-    :param dict tmp_tso: Temp TSO dictionary
-    :return dict: tmp_tso with added calibration entries
-    """
-    logger_ts.info("enter extract_calibration")
-    for k, v in d.items():
-        tmp_tso['calibration_' + k] = v
-    return tmp_tso
-
-
-def _extract_climate(d, tmp_tso):
-    """
-    Get climate interpretation from column data.
-    :param dict d: Climate Interpretation dictionary
-    :param dict tmp_tso: Temp TSO dictionary
-    :return dict: tmp_tso with added climateInterpretation entries
-    """
-    logger_ts.info("enter extract_climate")
-    for k, v in d.items():
-        tmp_tso['climateInterpretation_' + k] = v
-    return tmp_tso
-
+    return flat_dat
 
 # COLLAPSE
 
@@ -738,8 +723,6 @@ def _collapse_column(current, pc):
     :return:
     """
     _tmp_column = {}
-    _tmp_interp = {}
-    _tmp_calib = {}
     try:
         for k, v in current.items():
             try:
@@ -749,22 +732,31 @@ def _collapse_column(current, pc):
                     m = k.split('_')
                     # Is this a chronData or paleoData key?
                     if pc in m[0] and len(m) >= 2:
-                        # Use the key after the underscore and add the data to the column
-                        _tmp_column[m[1]] = v
-                    elif 'calibration' in m[0]:
-                        _tmp_calib[m[1]] = v
-                    elif 'interpretation' in m[0]:
-                        _tmp_interp[m[1]] = v
+                        # Create a link to the growing column data
+                        tmp = _tmp_column
+                        # Loop for each key, not including the PC. Start at index 1
+                        for idx, b in enumerate(m[1:]):
+                            # Are we at the last item in the list?
+                            if idx == len(m) - 2:
+                                # Set the value into the column data
+                                tmp[b] = v
+                            # All loops before the last item
+                            else:
+                                # Key already exists in the column
+                                if b in _tmp_column:
+                                    # Move into the data structure and keep going
+                                    tmp = _tmp_column[b]
+                                # Key does not exist yet
+                                else:
+                                    # Create the data structure
+                                    tmp[b] = {}
+                                    # Move into the new data structure and keep going
+                                    tmp = tmp[b]
             except Exception as e:
                 logger_ts.error("collapse_column: loop: {}".format(e))
     except Exception as e:
         logger_ts.error("collapse_column: {}".format(e))
 
-    # Add the interpretation and calibration data
-    if _tmp_interp:
-        _tmp_column['interpretation'] = _tmp_interp
-    if _tmp_calib:
-        _tmp_column['calibration'] = _tmp_calib
     return _tmp_column
 
 
@@ -861,6 +853,6 @@ def get_matches(expr_lst, ts):
     if not new_ts:
         print("No matches found for that expression")
     else:
-        print("Found {} matches".format(len(new_ts)))
+        print("Found {} matches from {} columns".format(len(new_ts), len(ts)))
     logger_ts.info("exit get_matches")
     return new_ts, idxs
