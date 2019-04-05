@@ -221,7 +221,6 @@ extract_column=function(column, current_fork, pc){
       }#end second hierarchy  loop
     }
   }#end hier data loop
-  
   return(current_fork)
 }
 

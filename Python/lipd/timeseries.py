@@ -387,6 +387,7 @@ def _extract_columns(d, tmp_tso, pc):
             tmp_tso[pc + '_' + k] = v
     return tmp_tso
 
+
 def _extract_nested(crumbs, dat, flat_dat):
     try:
         for k, v in dat.items():
