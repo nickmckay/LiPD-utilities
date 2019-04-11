@@ -4,14 +4,16 @@
 \alias{put_base_data}
 \title{Put in paleoData and chronData as the base for this dataset using the oroginal dataset data.}
 \usage{
-put_base_data(entry, raw_datasets, dsn, force)
+put_base_data(entry, raw_datasets, dsn, force, mode)
 }
 \arguments{
 \item{list}{d: Metadata}
 
-\item{char}{pc: paleoData or}
+\item{char}{pc: paleoData or chronData}
 
 \item{bool}{force: Build dataset without original data from global}
+
+\item{char}{mode: paleo or chron mode}
 }
 \value{
 list d: Metadata

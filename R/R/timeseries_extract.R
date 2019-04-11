@@ -11,7 +11,6 @@
 extractTs= function(D, whichtables = "all", mode = "paleo"){
   
   TS <- list()
-  
   # TOP FUNCTION
   # Check if this is one or multiple datasets. 
   # Backup full data to global space (for collapseTs). 
@@ -222,7 +221,6 @@ extract_column=function(column, current_fork, pc){
       }#end second hierarchy  loop
     }
   }#end hier data loop
-  
   return(current_fork)
 }
 

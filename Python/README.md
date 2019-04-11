@@ -104,3 +104,6 @@ Contact me at heiser@nau.edu.
 -------
 
 The project is licensed under the GNU Public License. Please refer to the file called LICENSE.
+
+
+![footer NSF](../assets/logo_nsf.png)
