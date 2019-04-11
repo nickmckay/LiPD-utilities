@@ -251,12 +251,15 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
                         PUB.DOI = PUB.identifier{1}.id;
                     end
                 end
-                pubGrab = find(~structfun(@iscell,PUB));%grab everything here that's not a cell
                 pubFields = fieldnames(PUB);
+                pubGrab = find(~structfun(@iscell,PUB) | strncmpi('author',pubFields,6));%grab everything here that's not a cell (except for author)
                 pubFields = pubFields(pubGrab);
                 for ppu = 1:length(pubGrab) %assign = needed pub stuff
                     TS(ts).(['pub',num2str(pu),'_',pubFields{ppu}])  = PUB.(pubFields{ppu});
                 end
+                
+                
+                
             end
         end
     end
