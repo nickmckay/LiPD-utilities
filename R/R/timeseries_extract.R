@@ -348,7 +348,7 @@ extract_geo=function(L,root){
 }
 
 #' Split interpretation by scope
-#'
+#' @export
 #' @param TS 
 #' @import stringr
 #' @return split TS
@@ -424,7 +424,7 @@ splitInterpretationByScope <- function(TS){
 
 
 #' Combine interpretations by scope
-#'
+#' @export
 #' @param sTS 
 #' @return a regular Timeseries structure
 combineInterpretationByScope <- function(sTS){
