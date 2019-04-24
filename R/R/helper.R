@@ -2,7 +2,8 @@
 #' Create a random TSid
 #' @return TSid
 #' @export
-createTSid <- function(){
+createTSid <- function(x = 1){
+  
   return(paste(c("R",sample(c(letters,LETTERS,seq(0,9)),size = 10,replace=TRUE)),collapse = ""))
 }
 
