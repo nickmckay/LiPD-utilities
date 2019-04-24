@@ -1,6 +1,6 @@
 
 #' Create a random TSid
-#' @return
+#' @return TSid
 #' @export
 createTSid <- function(){
   return(paste(c("R",sample(c(letters,LETTERS,seq(0,9)),size = 10,replace=TRUE)),collapse = ""))
@@ -20,15 +20,16 @@ addTSidToLipd <- function(L){
   
   L <- collapseTs(mts)
   
-  #try do it with chronData too
-  mts <- try(lipdR::extractTs(L,whichtables = "meas",mode = "chron"))
-  if(class(mts)=="list"){
-    for(i in 1:length(mts)){
-      if(length(mts[[i]]$chronData_TSid)==0){
-        mts[[i]]$chronData_TSid <- createTSid()
-      }
-    }
-  }
+  # #try do it with chronData too
+  # cts <- try(lipdR::extractTs(L,whichtables = "meas",mode = "chron"))
+  # if(class(cts)=="list"){
+  #   for(i in 1:length(cts)){
+  #     if(length(cts[[i]]$chronData_TSid)==0){
+  #       cts[[i]]$chronData_TSid <- createTSid()
+  #     }
+  #   }
+  #   L <- collapseTs(cts)
+  # }
   
-  return(mts)
+  return(L)
 }
