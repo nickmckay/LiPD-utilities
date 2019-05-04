@@ -1,3 +1,6 @@
-^.*\.Rproj$
 ^\.Rproj\.user$
 ^lipdR.Rproj$
+^.*\.Rproj$         # Automatically added by RStudio,
+^\.Rproj\.user$     # used for temporary files. 
+^README\.Rmd$       # An Rmarkdown file used to generate README.md
+^cran-comments\.md$ # Comments for CRAN submission

@@ -1,8 +1,10 @@
 #' Extract time series from LiPD data
 #' @export
-#' @author Nick McKay
+#' @author Chris Heiser
 #' @description Create a time series from a library of LiPD datasets. A Time series is a flattened version of LiPD data that can be queried and filtered for easier data analysis.
 #' @param D LiPD data, sorted by dataset name : list
+#' @param whichtables : char: Options: "all", "summ", "meas", "ens" : Table type to output in the time series.
+#' @param mode : char: Options: "paleo", "chron"
 #' @return ts:  Time series : list
 #' @examples 
 #' D <- readLipds()
@@ -282,7 +284,8 @@ set_ts_global=function(L){
     D <- L
   }
   # Generate a timestamp
-  time_id = as.character(as.numeric(Sys.time()))
+  # time_id = as.character(as.numeric(Sys.time()))
+  time_id = format(Sys.time(), "%m%d%y-%H%M%S")
   
   # Look for an existing timeseries storage in the global space
   tmp_storage <- list()

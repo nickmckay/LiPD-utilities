@@ -1,2 +1,0 @@
-[1] "reading: ODP1098B13.lpd"
-[1] "Error: lipd_read: Error in unzipper(path, dir_tmp): No LiPD file at the given path: ./ODP1098B13.lpd\n"

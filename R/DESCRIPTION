@@ -7,7 +7,7 @@ Updated: 2017-07-27
 Author: Christopher Heiser,
 	Nicholas McKay
 Maintainer: Christopher Heiser <heiser@nau.edu>
-Description: Utilities to open, modify, analyze, and store LiPD data
+Description: Functions to open, modify, analyze, and save LiPD data. 
 Depends: R (>= 3.1.0)
 License: GPL-2
 LazyData: TRUE

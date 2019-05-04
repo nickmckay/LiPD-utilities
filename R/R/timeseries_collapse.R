@@ -36,7 +36,7 @@ collapseTs <- function(ts, force=FALSE){
         # Recover paleoData OR chronData from raw data. Recovers only the section opposite of the current mode.
         D[[dsn]] <- put_base_data(ts[[i]], raw_datasets, dsn, force, mode)
         # Remove the old target tables, as we'll be writing these fresh. Other tables as-is.
-        # D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
+        D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
         # Collapse root data keys (pub, funding, archiveType, etc)
         D[[dsn]] <- collapse_root(D[[dsn]], ts[[i]], pc)
       }
@@ -503,11 +503,13 @@ build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumbe
 #' @return list d: Metadata
 rm_existing_tables <- function(d, pc, whichtables){
   tryCatch({
+    print(whichtables)
     if(pc %in% names(d)){
       for(i in 1:length(d[[pc]])){
         if(whichtables %in% c("all", "meas")){
           if("measurementTable" %in% names(d[[pc]][[i]])){
             for(j in 1:length(d[[pc]][[i]][["measurementTable"]])){
+              print("Removing existing tables measurement.")
               d[[pc]][[i]][["measurementTable"]][[j]] <- list()
             }
           }
@@ -519,6 +521,8 @@ rm_existing_tables <- function(d, pc, whichtables){
               if(whichtables %in% c("all", "summ")){
                 if("summaryTable" %in% d[[pc]][[i]][["model"]][[j]]){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["summaryTable"]])){
+                    print("Removing existing tables.")
+                    
                     d[[pc]][[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
                   }
                 }
@@ -526,6 +530,8 @@ rm_existing_tables <- function(d, pc, whichtables){
               if (whichtables %in% c("all", "ens")){
                 if("ensembleTable" %in% d[[pc]][[i]][["model"]][[j]]){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["ensembleTable"]])){
+                    print("Removing existing tables.")
+                    
                     d[[pc]][[i]][["model"]][[j]][["ensembleTable"]][[k]] < list()
                   }
                 }
@@ -564,29 +570,49 @@ put_base_data <- function(entry, raw_datasets, dsn, force, mode){
   # Only copy over the data OPPOSITE to the mode.
   # Example, for paleo mode we will rebuild the paleoData section and copy over the chronData section. 
   else {
-    # Only 
-    if(mode == "chron"){
-      # Is there paleoData? Find it and add it
-      if("paleoData" %in% names(raw_datasets)){
-        d[["paleoData"]] <- raw_datasets[["paleoData"]] 
-      } else if (dsn %in% names(raw_datasets)){
-        if("paleoData" %in% names(raw_datasets[[dsn]])){
-          d[["paleoData"]] <- raw_datasets[[dsn]][["paleoData"]]
-        }
-      }
+    # Is there paleoData? Find it and add it
+    if("paleoData" %in% names(L)){
+      print("Including paleoData")
+      d[["paleoData"]] <- L[["paleoData"]]
     }
-  else if (mode == "paleo"){
+    
     # Is there chronData? Find it and add it
-    if("chronData" %in% names(raw_datasets)){
-      d[["chronData"]] = raw_datasets[["chronData"]]
-    } else if (dsn %in% names(raw_datasets)){
-      if("chronData" %in% names(raw_datasets[[dsn]])){
-        d[["chronData"]] <- raw_datasets[[dsn]][["chronData"]]
-      }
+    if("chronData" %in% names(L)){
+      print("Including chronData")
+      d[["chronData"]] <- L[["chronData"]]
     }
-  }
+    
+    # print(names(raw_datasets))
+    # # Set the metadata to a variable
+    # raw <- list()
+    # table_type <- entry$whichtables
+    # # Check if this dataset is n  ested or not. 
+    # if("paleoData" %in% names(raw_datasets)){
+    #   L <- raw_datasets
+    # } else if (dsn %in% names(raw_datasets)){
+    #   L <- raw_datasets[[dsn]]
+    # }
+    # # Chron Mode: Get paleoData (all) and chronData (anything besides table_type)
+    # if(mode == "chron"){
+    #   # Is there paleoData? Find it and add it
+    #   if("paleoData" %in% names(L)){
+    #     print("Including paleoData")
+    #     d[["paleoData"]] <- L[["paleoData"]]
+    #   }
+    #   
+    # }
+    # # Paleo Mode: Get chronData (all) and paleoData (anything besides the table_type)
+    # else if (mode == "paleo"){
+    #   # Is there chronData? Find it and add it
+    #   if("chronData" %in% names(L)){
+    #     print("Including chronData")
+    #     d[["chronData"]] <- L[["chronData"]]
+    #   }
+    #   
+    # }
 
   }
+  
   return(d)
 }
 

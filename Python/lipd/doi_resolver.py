@@ -99,8 +99,17 @@ class DOIResolver(object):
     def remove_empties(self, pub):
         for x in list(self.root_dict['pub'][pub].keys()):
             if x == 'identifier':
-                if self.root_dict['pub'][pub][x][0]['id'] in EMPTY:
-                    del self.root_dict['pub'][pub][x]
+                try:
+                    if self.root_dict['pub'][pub][x][0]['id'] in EMPTY:
+                        del self.root_dict['pub'][pub][x]
+                except KeyError:
+                    pass
+            elif x == "doi":
+                try:
+                    if self.root_dict['pub'][pub][x] in EMPTY:
+                        del self.root_dict['pub'][pub][x]
+                except KeyError:
+                    pass
             elif self.root_dict['pub'][pub][x] in EMPTY:
                 del self.root_dict['pub'][pub][x]
         return
@@ -226,7 +235,7 @@ class DOIResolver(object):
                     return self.find_doi(i)
             elif isinstance(curr_dict, dict):
                 for k, v in curr_dict.items():
-                    if k == 'identifier':
+                    if k == 'identifier' or k == "doi":
                         return self.find_doi(v)
                 return curr_dict, False
             else:

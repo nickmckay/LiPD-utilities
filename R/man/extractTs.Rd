@@ -8,6 +8,10 @@ extractTs(D, whichtables = "all", mode = "paleo")
 }
 \arguments{
 \item{D}{LiPD data, sorted by dataset name : list}
+
+\item{whichtables}{: char: Options: "all", "summ", "meas", "ens" : Table type to output in the time series.}
+
+\item{mode}{: char: Options: "paleo", "chron"}
 }
 \value{
 ts:  Time series : list
@@ -21,5 +25,5 @@ ts <- extractTs(D)
 
 }
 \author{
-Nick McKay
+Chris Heiser
 }

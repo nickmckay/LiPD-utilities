@@ -3,19 +3,24 @@
 \name{filterTs}
 \alias{filterTs}
 \title{Find all the time series objects that match a given search expression, 
-and return a new time series with the matching objects}
+and return a new time series with the matching objects
+Valid operators : ==, =, <=, >=, <, >}
 \usage{
 filterTs(ts, expression)
 }
 \arguments{
-\item{ts}{Time series}
+\item{ts}{Time series : list , Time series data}
 
-\item{expression}{Search expression : char}
+\item{expression}{Search expression : char (single query) or list (multiple query)}
+
+\item{exact}{Key match : char. Is the provided key an exact key match or a piece of the key? ie. paleoData_variableName or variableName?}
 }
 \value{
 new.ts : Time series : list
 }
 \description{
+Find all the time series objects that match a given search expression, 
+and return a new time series with the matching objects
 Valid operators : ==, =, <=, >=, <, >
 }
 \examples{
@@ -29,7 +34,7 @@ new.ts = filterTs(ts, "archiveType == marine sediment")
 [object1, object3, object4]
 
 # Example 2
-new.ts = filterTs(ts, "paleoData_variableName == d18O")
+new.ts = filterTs(ts, ["paleoData_variableName == d18O", "archiveType == marine sediment"])
 # result
 [object2]
 
