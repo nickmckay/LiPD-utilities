@@ -87,7 +87,8 @@ collapse_root <- function(d, entry, pc){
   ts_keys <- names(entry)
   pub <- list()
   funding <- list()
-  geo <- list(geometry=list(coordinates=list(NA, NA, NA), type="Point"), properties=list())
+  # geo <- list(geometry=list(coordinates=list(NA, NA, NA), type="Point"), properties=list())
+  geo <- list()
   tryCatch({
     for(i in 1:length(ts_keys)){
       key <- ts_keys[[i]]
@@ -98,17 +99,19 @@ collapse_root <- function(d, entry, pc){
         if(grepl("geo", key)){
           m <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
           g_key = m[[1]][[3]]
-          if(g_key == "longitude" || g_key == "meanLon"){
-            geo[["geometry"]][["coordinates"]][[1]] <- entry[[key]]
-          } else if (g_key == "latitude" || g_key == "meanLat"){
-            geo[["geometry"]][["coordinates"]][[2]] <- entry[[key]]
-          } else if (g_key == "elevation" || g_key == "meanElev"){
-            geo[["geometry"]][["coordinates"]][[3]] <- entry[[key]]
-          } else if (g_key == "type"){
-            geo[["type"]] <- entry[[key]]
-          } else {
-            geo[["properties"]][[g_key]] <- entry[[key]]
-          }
+          geo[[g_key]] <- entry[[key]]
+          # 
+          # if(g_key == "longitude" || g_key == "meanLon"){
+          #   geo[["geometry"]][["coordinates"]][[1]] <- entry[[key]]
+          # } else if (g_key == "latitude" || g_key == "meanLat"){
+          #   geo[["geometry"]][["coordinates"]][[2]] <- entry[[key]]
+          # } else if (g_key == "elevation" || g_key == "meanElev"){
+          #   geo[["geometry"]][["coordinates"]][[3]] <- entry[[key]]
+          # } else if (g_key == "type"){
+          #   geo[["type"]] <- entry[[key]]
+          # } else {
+          #   geo[["properties"]][[g_key]] <- entry[[key]]
+          # }
         } else if(grepl("pub", key)){
           pub <- collapse_block_indexed(entry, pub, key)
         } else if(grepl("funding", key)){
@@ -503,13 +506,11 @@ build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumbe
 #' @return list d: Metadata
 rm_existing_tables <- function(d, pc, whichtables){
   tryCatch({
-    print(whichtables)
     if(pc %in% names(d)){
       for(i in 1:length(d[[pc]])){
         if(whichtables %in% c("all", "meas")){
           if("measurementTable" %in% names(d[[pc]][[i]])){
             for(j in 1:length(d[[pc]][[i]][["measurementTable"]])){
-              print("Removing existing tables measurement.")
               d[[pc]][[i]][["measurementTable"]][[j]] <- list()
             }
           }
@@ -521,8 +522,6 @@ rm_existing_tables <- function(d, pc, whichtables){
               if(whichtables %in% c("all", "summ")){
                 if("summaryTable" %in% d[[pc]][[i]][["model"]][[j]]){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["summaryTable"]])){
-                    print("Removing existing tables.")
-                    
                     d[[pc]][[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
                   }
                 }
@@ -530,8 +529,6 @@ rm_existing_tables <- function(d, pc, whichtables){
               if (whichtables %in% c("all", "ens")){
                 if("ensembleTable" %in% d[[pc]][[i]][["model"]][[j]]){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["ensembleTable"]])){
-                    print("Removing existing tables.")
-                    
                     d[[pc]][[i]][["model"]][[j]][["ensembleTable"]][[k]] < list()
                   }
                 }
@@ -573,13 +570,11 @@ put_base_data <- function(entry, raw_datasets, dsn, force, mode){
     L <- raw_datasets[[entry$dataSetName]]
     # Is there paleoData? Find it and add it
     if("paleoData" %in% names(L)){
-      print("Including paleoData")
       d[["paleoData"]] <- L[["paleoData"]]
     }
     
     # Is there chronData? Find it and add it
     if("chronData" %in% names(L)){
-      print("Including chronData")
       d[["chronData"]] <- L[["chronData"]]
     }
     
