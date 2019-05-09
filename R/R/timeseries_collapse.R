@@ -14,21 +14,27 @@ collapseTs <- function(ts, force=FALSE){
   #before doing anything else, reorder the data by dataset name.
   dsn <- sapply(ts,"[[","dataSetName")
   ts <- ts[order(dsn)]
-  
-  
+  ts_storage <- list()
+  timeID <- NA
+  whichtables <- ts[[1]]$whichtables
+
   # Get the original data from the global environment whenever possible
   # Use the time_id to get the corresponding raw data from global envir ts storage
-  timeID <- ts[[1]]$timeID
-  whichtables <- ts[[1]]$whichtables
-  ts_storage <- get_ts_global()
-  raw_datasets <- ts_storage[[timeID]]
-  mode <- ts[[1]][["mode"]]
+  if(!force){
+    timeID <- ts[[1]]$timeID
+    ts_storage <- get_ts_global()
+    raw_datasets <- ts_storage[[timeID]]
+    mode <- ts[[1]][["mode"]]
+  }
 
   D <- list()
   tryCatch({
     # Do some collapse stuff
     for(i in 1:length(ts)){
       pc <- paste0(ts[[i]][["mode"]], "Data")
+      if(!("whichtables" %in% names(ts[[i]]))){
+        ts[[i]]$whichtables = "meas"
+      }
       # ONLY PROCESS BASE DATA ON FIRST DATASET OCCURENCE. All subsequent timeseries entries from the same dataset will only add its unique column data to the running dataset.
       if(!ts[[i]][["dataSetName"]] %in% names(D)){
         dsn <- ts[[i]][["dataSetName"]]
@@ -321,7 +327,7 @@ collapse_block <- function(entry, l, key, pc){
 get_table <- function(d, current, pc){
     table <- list()
     # Use the path and indexing info to get the "in progress" table that belongs to this TS entry. We want to add this TS entry (column) to this table.
-    tt <- current$tableType
+    tt <- current$whichtables
     modelNumber <- current$modelNumber
     tableNumber <- current$tableNumber
 
@@ -375,7 +381,7 @@ get_table <- function(d, current, pc){
 #' @param list table: Metadata (to be placed)
 #' @return list d: Metadata
 put_table <- function(d, current, pc, table){
-  tt <- current$tableType
+  tt <- current$whichtables
   modelNumber <- current$modelNumber
   tableNumber <- current$tableNumber
   
