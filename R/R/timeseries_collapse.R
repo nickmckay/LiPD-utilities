@@ -562,18 +562,49 @@ rm_existing_tables <- function(d, pc, whichtables){
 put_base_data <- function(entry, raw_datasets, dsn, force, mode){
   d <- list()
   
-  # We do not have the original datasets OR the user is requesting a collapseTs without using the original datasets OR the dataset name changed.
-  if(force==TRUE || is.null(raw_datasets) || !any(entry$dataSetName %in% names(raw_datasets)) ){
+  # We do not have the original datasets OR the user is requesting a collapseTs without using the original datasets 
+  if(force==TRUE || is.null(raw_datasets)){#
     print("Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
     d[["paleoData"]] <- list()
     d[["chronData"]] <- list()
-  } 
+    d$dataSetName <- entry$dataSetName
+    }
   
   # We have the original dataset(s). Use this data as a baseline to build and overwrite onto. 
   # Only copy over the data OPPOSITE to the mode.
   # Example, for paleo mode we will rebuild the paleoData section and copy over the chronData section. 
-  else {
+    else {
+      
+   if(!any(entry$dataSetName %in% names(raw_datasets))){#then it's either new, or the name changed
+      #can we find the TSid?
+      tmp <- extractTs(raw_datasets)
+      all_tsid <- sapply(tmp,"[[","paleoData_TSid")
+      all_dsn <- sapply(tmp,"[[","dataSetName")
+      tsind <- which(entry$paleoData_TSid == all_tsid)
+      if(length(tsind) == 1){
+        L <- raw_datasets[[all_dsn[tsind]]]
+      }else if(length(tsind) > 1){
+        #see if it's one dataset
+        datset <- unique(all_dsn[tsind])
+        if(length(datset) > 1){
+          print("Couldn't find an appropriate seed dataset. Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
+          d[["paleoData"]] <- list()
+          d[["chronData"]] <- list()
+          d$dataSetName <- entry$dataSetName
+          return(d)
+        }else{
+          L <- raw_datasets[[datset]]
+        }
+      }else{
+        print("Couldn't find an appropriate seed dataset. Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
+        d[["paleoData"]] <- list()
+        d[["chronData"]] <- list()
+        d$dataSetName <- entry$dataSetName
+        return(d)
+      }
+   }else{
     L <- raw_datasets[[entry$dataSetName]]
+   }
     # Is there paleoData? Find it and add it
     if("paleoData" %in% names(L)){
       d[["paleoData"]] <- L[["paleoData"]]
