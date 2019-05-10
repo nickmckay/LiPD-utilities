@@ -31,18 +31,18 @@ collapseTs <- function(ts, force=FALSE){
   tryCatch({
     # Do some collapse stuff
     for(i in 1:length(ts)){
+      ts[[i]] = add_missing_ts_data(ts[[i]])
       pc <- paste0(ts[[i]][["mode"]], "Data")
-      if(!("whichtables" %in% names(ts[[i]]))){
-        ts[[i]]$whichtables = "meas"
-      }
       # ONLY PROCESS BASE DATA ON FIRST DATASET OCCURENCE. All subsequent timeseries entries from the same dataset will only add its unique column data to the running dataset.
       if(!ts[[i]][["dataSetName"]] %in% names(D)){
         dsn <- ts[[i]][["dataSetName"]]
         print(paste0("collapsing: ", dsn))
         # Recover paleoData OR chronData from raw data. Recovers only the section opposite of the current mode.
         D[[dsn]] <- put_base_data(ts[[i]], raw_datasets, dsn, force, mode)
-        # Remove the old target tables, as we'll be writing these fresh. Other tables as-is.
-        D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
+        if(!force){
+          # Remove the old target tables, as we'll be writing these fresh. Other tables as-is.
+          D[[dsn]] <- rm_existing_tables(D[[dsn]], pc, whichtables)
+        }
         # Collapse root data keys (pub, funding, archiveType, etc)
         D[[dsn]] <- collapse_root(D[[dsn]], ts[[i]], pc)
       }
@@ -563,7 +563,7 @@ put_base_data <- function(entry, raw_datasets, dsn, force, mode){
   d <- list()
   
   # We do not have the original datasets OR the user is requesting a collapseTs without using the original datasets 
-  if(force==TRUE || is.null(raw_datasets)){#
+  if(force==TRUE || is.null(raw_datasets)){
     print("Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
     d[["paleoData"]] <- list()
     d[["chronData"]] <- list()
@@ -575,74 +575,74 @@ put_base_data <- function(entry, raw_datasets, dsn, force, mode){
   # Example, for paleo mode we will rebuild the paleoData section and copy over the chronData section. 
     else {
       
-   if(!any(entry$dataSetName %in% names(raw_datasets))){#then it's either new, or the name changed
-      #can we find the TSid?
-      tmp <- extractTs(raw_datasets)
-      all_tsid <- sapply(tmp,"[[","paleoData_TSid")
-      all_dsn <- sapply(tmp,"[[","dataSetName")
-      tsind <- which(entry$paleoData_TSid == all_tsid)
-      if(length(tsind) == 1){
-        L <- raw_datasets[[all_dsn[tsind]]]
-      }else if(length(tsind) > 1){
-        #see if it's one dataset
-        datset <- unique(all_dsn[tsind])
-        if(length(datset) > 1){
-          print("Couldn't find an appropriate seed dataset. Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
-          d[["paleoData"]] <- list()
-          d[["chronData"]] <- list()
-          d$dataSetName <- entry$dataSetName
-          return(d)
-        }else{
-          L <- raw_datasets[[datset]]
+       if(!any(entry$dataSetName %in% names(raw_datasets))){#then it's either new, or the name changed
+          #can we find the TSid?
+          tmp <- extractTs(raw_datasets)
+          all_tsid <- sapply(tmp,"[[","paleoData_TSid")
+          all_dsn <- sapply(tmp,"[[","dataSetName")
+          tsind <- which(entry$paleoData_TSid == all_tsid)
+          if(length(tsind) == 1){
+            L <- raw_datasets[[all_dsn[tsind]]]
+          }else if(length(tsind) > 1){
+            #see if it's one dataset
+            datset <- unique(all_dsn[tsind])
+            if(length(datset) > 1){
+              print("Couldn't find an appropriate seed dataset. Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
+              d[["paleoData"]] <- list()
+              d[["chronData"]] <- list()
+              d$dataSetName <- entry$dataSetName
+              return(d)
+            }else{
+              L <- raw_datasets[[datset]]
+            }
+          }else{
+            print("Couldn't find an appropriate seed dataset. Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
+            d[["paleoData"]] <- list()
+            d[["chronData"]] <- list()
+            d$dataSetName <- entry$dataSetName
+            return(d)
+          }
+       }else{
+        L <- raw_datasets[[entry$dataSetName]]
+       }
+        # Is there paleoData? Find it and add it
+        if("paleoData" %in% names(L)){
+          d[["paleoData"]] <- L[["paleoData"]]
         }
-      }else{
-        print("Couldn't find an appropriate seed dataset. Attempting to collapse time series without the original raw datasets. Your results may be missing data.")
-        d[["paleoData"]] <- list()
-        d[["chronData"]] <- list()
-        d$dataSetName <- entry$dataSetName
-        return(d)
-      }
-   }else{
-    L <- raw_datasets[[entry$dataSetName]]
-   }
-    # Is there paleoData? Find it and add it
-    if("paleoData" %in% names(L)){
-      d[["paleoData"]] <- L[["paleoData"]]
-    }
-    
-    # Is there chronData? Find it and add it
-    if("chronData" %in% names(L)){
-      d[["chronData"]] <- L[["chronData"]]
-    }
-    
-    # print(names(raw_datasets))
-    # # Set the metadata to a variable
-    # raw <- list()
-    # table_type <- entry$whichtables
-    # # Check if this dataset is n  ested or not. 
-    # if("paleoData" %in% names(raw_datasets)){
-    #   L <- raw_datasets
-    # } else if (dsn %in% names(raw_datasets)){
-    #   L <- raw_datasets[[dsn]]
-    # }
-    # # Chron Mode: Get paleoData (all) and chronData (anything besides table_type)
-    # if(mode == "chron"){
-    #   # Is there paleoData? Find it and add it
-    #   if("paleoData" %in% names(L)){
-    #     print("Including paleoData")
-    #     d[["paleoData"]] <- L[["paleoData"]]
-    #   }
-    #   
-    # }
-    # # Paleo Mode: Get chronData (all) and paleoData (anything besides the table_type)
-    # else if (mode == "paleo"){
-    #   # Is there chronData? Find it and add it
-    #   if("chronData" %in% names(L)){
-    #     print("Including chronData")
-    #     d[["chronData"]] <- L[["chronData"]]
-    #   }
-    #   
-    # }
+        
+        # Is there chronData? Find it and add it
+        if("chronData" %in% names(L)){
+          d[["chronData"]] <- L[["chronData"]]
+        }
+        
+        # print(names(raw_datasets))
+        # # Set the metadata to a variable
+        # raw <- list()
+        # table_type <- entry$whichtables
+        # # Check if this dataset is n  ested or not. 
+        # if("paleoData" %in% names(raw_datasets)){
+        #   L <- raw_datasets
+        # } else if (dsn %in% names(raw_datasets)){
+        #   L <- raw_datasets[[dsn]]
+        # }
+        # # Chron Mode: Get paleoData (all) and chronData (anything besides table_type)
+        # if(mode == "chron"){
+        #   # Is there paleoData? Find it and add it
+        #   if("paleoData" %in% names(L)){
+        #     print("Including paleoData")
+        #     d[["paleoData"]] <- L[["paleoData"]]
+        #   }
+        #   
+        # }
+        # # Paleo Mode: Get chronData (all) and paleoData (anything besides the table_type)
+        # else if (mode == "paleo"){
+        #   # Is there chronData? Find it and add it
+        #   if("chronData" %in% names(L)){
+        #     print("Including chronData")
+        #     d[["chronData"]] <- L[["chronData"]]
+        #   }
+        #   
+        # }
 
   }
   
@@ -659,4 +659,31 @@ get_ts_global <- function(){
     stop("Error: Cannot collapse time series. 'TMP_ts_storage' not found in the Global Environment. This data is created during 'extractTs' and is required for 'collapseTs'")
   }
   return(tmp_storage)
+}
+
+add_missing_ts_data <- function(entry){
+  # Items needed to collapse:
+  # mode, whichtables, paleoNumber* ,chronNumber*, tableNumber, modelNumber*, timeID*, tableType
+  # *applicable depending on the mode and table type.
+  # If any of these items are missing, add keys with assumed values. 
+  if(!("mode" %in% names(entry))){
+    entry$mode = "paleo"
+  }
+  if(!("whichtables" %in% names(entry))){
+    entry$whichtables = "meas"
+    entry$tableType = "meas"
+  }
+  if(!("tableNumber" %in% names(entry))){
+    entry$tableNumber = 1
+  }
+  if(!("modelNumber" %in% names(entry)) && entry$whichtables == "ens" || entry$whichtables == "summ"){
+    entry$modelNumber = 1
+  }
+  if(!("mode" %in% names(entry))){
+    entry$mode = "paleo"
+  }
+  if(!("paleoNumber" %in% names(entry)) && !("chronNumber" %in% names(entry))){
+    entry$paleoNumber = 1
+  }
+  return(entry)
 }
