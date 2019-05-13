@@ -329,9 +329,20 @@ extract_pub=function(L,root){
     #pull DOI out if needed
     if(any(names(PUB)=="identifier")){
       if(is.list(PUB$identifier)){
-        PUB$DOI = PUB$identifier[[1]]$id
+        PUB$doi = PUB$identifier[[1]]$id
       }
     }
+    #pull out authors
+    if(any(names(PUB)=="author")){
+      if(is.list(PUB$author)){
+        root[[paste0("pub",as.character(pu),"_author")]] = PUB$author
+      }
+    }else if(any(names(PUB)=="authors")){#this is here for common misterminology. 
+      if(is.list(PUB$authors)){
+        root[[paste0("pub",as.character(pu),"_author")]] = PUB$authors
+      }
+    }
+    
     pubGrab = which( (names(PUB) %in% names(PUB)) & !sapply(PUB,is.list))#grab everything here
     for(ppu in pubGrab){#assign in needed rootlevel stuff
       root[[paste0("pub",as.character(pu),"_",names(PUB)[ppu])]]  = PUB[[ppu]] 
