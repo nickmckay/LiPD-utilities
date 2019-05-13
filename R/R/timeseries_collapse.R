@@ -447,7 +447,7 @@ build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumbe
   }
   
   # Create Measurement structure
-  if (table_type == "meas" || table_type == "all"){
+  if (table_type == "meas"){
     if(!"measurementTable" %in% names(d[[pc]][[pcNumber]])){
       d[[pc]][[pcNumber]][["measurementTable"]] <- list()
     }
@@ -459,7 +459,10 @@ build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumbe
     }
   }
   
-  if (table_type == "ens" || table_type == "summ" || table_type == "all"){
+  if (table_type == "ens" || table_type == "summ"){
+    
+    #See if model exists, and is needed.
+   if(!is.null(modelNumber)){
     
     # Create the Model indexing if needed 
     if(!"model" %in% names(d[[pc]][[pcNumber]])){
@@ -473,7 +476,7 @@ build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumbe
     }
     
     # Create summary structure
-    if (table_type == "summ" || table_type == "all"){
+    if (table_type == "summ"){
       # Create the Model indexing if needed 
       if(!"summaryTable" %in% names(d[[pc]][[pcNumber]][["model"]][[modelNumber]])){
         d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
@@ -487,7 +490,7 @@ build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumbe
     }
     
     # Create ensemble structure
-    if (table_type == "ens" || table_type == "all"){
+    if (table_type == "ens"){
       # Create the Model indexing if needed 
       if(!"ensembleTable" %in% names(d[[pc]][[pcNumber]][["model"]][[modelNumber]])){
         d[[pc]][[pcNumber]][["model"]][[modelNumber]] <- list()
@@ -499,9 +502,10 @@ build_structure <- function(d, pc, table_type, pcNumber, modelNumber, tableNumbe
         d[[pc]][[pcNumber]][["model"]][[modelNumber]][["ensembleTable"]][[tableNumber]] <- list()
       }
     }
+   }
   }
   return(d)
-}
+ }
 
 
 #' Remove tables that correspond to 'whichtables' type. These tables will be collapsed next and need a clean slate. 
@@ -514,7 +518,7 @@ rm_existing_tables <- function(d, pc, whichtables){
   tryCatch({
     if(pc %in% names(d)){
       for(i in 1:length(d[[pc]])){
-        if(whichtables %in% c("all", "meas")){
+        if(whichtables %in% c("meas")){
           if("measurementTable" %in% names(d[[pc]][[i]])){
             for(j in 1:length(d[[pc]][[i]][["measurementTable"]])){
               d[[pc]][[i]][["measurementTable"]][[j]] <- list()
@@ -522,17 +526,17 @@ rm_existing_tables <- function(d, pc, whichtables){
           }
         }
         
-        if(whichtables %in% c("all", "ens", "summ")){
+        if(whichtables %in% c("ens", "summ")){
           if("model" %in% names(d[[pc]][[i]])){
             for(j in 1:length(d[[pc]][[i]][["model"]])){
-              if(whichtables %in% c("all", "summ")){
+              if(whichtables %in% c("summ")){
                 if("summaryTable" %in% d[[pc]][[i]][["model"]][[j]]){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["summaryTable"]])){
                     d[[pc]][[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
                   }
                 }
               }
-              if (whichtables %in% c("all", "ens")){
+              if (whichtables %in% c("ens")){
                 if("ensembleTable" %in% d[[pc]][[i]][["model"]][[j]]){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["ensembleTable"]])){
                     d[[pc]][[i]][["model"]][[j]][["ensembleTable"]][[k]] < list()
@@ -676,7 +680,7 @@ add_missing_ts_data <- function(entry){
   if(!("tableNumber" %in% names(entry))){
     entry$tableNumber = 1
   }
-  if(!("modelNumber" %in% names(entry)) && entry$whichtables == "ens" || entry$whichtables == "summ"){
+  if(!("modelNumber" %in% names(entry)) && (entry$whichtables == "ens" || entry$whichtables == "summ")){
     entry$modelNumber = 1
   }
   if(!("mode" %in% names(entry))){
