@@ -59,40 +59,46 @@ collapseTs <- function(ts, force=FALSE){
   return(D)
 }
 
-is_include_key <- function(key, exclude, pc){
+is_include_key <- function(key, pc){
+  exclude <- c("mode", "whichtables", "paleoNumber", "chronNumber", "tableNumber", "modelNumber", "timeID", "tableType",
+               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample",
+               "depthUnits","year","yearUnits")
   match_idx <- stringr::str_match_all(key, "(\\w+)(\\d+)[_](\\w+)")
   match_non_idx <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
   
-  # Split any keys that have underscores. (i.e. "pub1_year"). Are either of the two keys in the exclude list? Return false
-  if(!isNullOb(match_idx[[1]])){
-    if(match_idx[[1]][[2]] == "pub" && match_idx[[1]][[4]] == "year"){
-      return(TRUE)
-    }
-    if(match_idx[[1]][[2]] %in% exclude || match_idx[[1]][[3]] %in% exclude){
-      return(FALSE)
-    }
-  }
-  # Split any keys that have underscores without an index. (i.e. "paleoData_age"). Are either of the two keys in the exclude list? Return false
-  if(!isNullOb(match_non_idx[[1]])){
-    if(match_non_idx[[1]][[2]] %in% exclude || match_non_idx[[1]][[3]] %in% exclude){
-      return(FALSE)
-    }
+  # Check for exact match
+  if(key %in% exclude){
+    return(FALSE)
   }
   
+  # Split any keys that have underscores. (i.e. "interpretation1_scope"). 
+  # Is the prefix (interpretation) in exclude? 
+  if(!isNullOb(match_idx[[1]])){
+    if(match_idx[[1]][[2]] %in% exclude){
+      return(FALSE)
+    }
+  }
+  # Split any keys that have underscores without an index. (i.e. "hasResolution_hasMax"). 
+  # Is the prefix (hasResolution) in exclude?
+  if(!isNullOb(match_non_idx[[1]])){
+    if(match_non_idx[[1]][[2]] %in% exclude){
+      return(FALSE)
+    }
+  }
+    
   # Catch any stragglers. Is the key an exact match or is the key a data table key? (i.e. "paleoData_<key> " or "chronData_<key> ")
   for(i in 1:length(exclude)){
     if(key == exclude[[i]] || grepl(pc, key)){
       return(FALSE)
     }
   }
+  
   # If you made it past all the exclusions, congrats! You're a valid key.
   return(TRUE)
 } 
 
 collapse_root <- function(d, entry, pc){
-  exclude <- c("mode", "whichtables", "paleoNumber", "chronNumber", "tableNumber", "modelNumber", "timeID", "tableType",
-               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample",
-               "depthUnits","year","yearUnits")
+
   ts_keys <- names(entry)
   pub <- list()
   funding <- list()
@@ -102,7 +108,7 @@ collapse_root <- function(d, entry, pc){
     for(i in 1:length(ts_keys)){
       key <- ts_keys[[i]]
       # Is this a key that should be added
-      include <- is_include_key(key, exclude, pc)
+      include <- is_include_key(key, pc)
       # Filter all the keys we don't want
       if(include){
         if(grepl("geo", key)){
