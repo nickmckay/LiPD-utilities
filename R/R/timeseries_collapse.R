@@ -65,6 +65,9 @@ is_include_key <- function(key, exclude, pc){
   
   # Split any keys that have underscores. (i.e. "pub1_year"). Are either of the two keys in the exclude list? Return false
   if(!isNullOb(match_idx[[1]])){
+    if(match_idx[[1]][[2]] == "pub" && match_idx[[1]][[4]] == "year"){
+      return(TRUE)
+    }
     if(match_idx[[1]][[2]] %in% exclude || match_idx[[1]][[3]] %in% exclude){
       return(FALSE)
     }
