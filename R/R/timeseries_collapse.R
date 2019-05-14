@@ -56,6 +56,7 @@ collapseTs <- function(ts, force=FALSE){
   }, error=function(cond){
     print(paste0("Error: collapseTs: ", cond))
   })
+  D <- rm_empty_fields(D)
   return(D)
 }
 
