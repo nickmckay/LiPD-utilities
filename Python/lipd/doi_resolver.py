@@ -5,10 +5,8 @@ import json
 import requests
 
 from .blanks import EMPTY
-from .misc import rm_empty_fields
+from .misc import rm_empty_fields, clean_doi
 from .loggers import create_logger
-from .misc import clean_doi
-
 
 logger_doi_resolver = create_logger("doi_resolver")
 
@@ -21,15 +19,13 @@ class DOIResolver(object):
     Output: Updated publication dictionary (success), original publication dictionary (fail)
     """
 
-    def __init__(self, dir_root, name, root_dict):
+    def __init__(self, dsn, D):
         """
-        :param str dir_root: Path to dir containing all .lpd files
-        :param str name: Name of current .lpd file
+
         :param dict: Full dict loaded from jsonld file
         """
-        self.dir_root = dir_root
-        self.name = name
-        self.root_dict = root_dict
+        self.D = D
+        self.dsn = dsn
 
     def main(self):
         """
@@ -37,24 +33,38 @@ class DOIResolver(object):
         :return dict: Updated or original data for jsonld file
         """
         logger_doi_resolver.info("enter doi_resolver")
-        for idx, pub in enumerate(self.root_dict['pub']):
-            # Retrieve DOI id key-value from the root_dict
-            doi_string, doi_found = self.find_doi(pub)
+        if "pub" in self.D:
+            for idx, pub in enumerate(self.D['pub']):
+                # Retrieve DOI id key-value from the D
+                try:
+                    doi_string = pub["doi"]
+                except KeyError:
+                    doi_string = ""
 
-            if doi_found:
-                logger_doi_resolver.info("doi found: {}".format(doi_string))
-                # Empty list for no match, or list of 1+ matching DOI id strings
-                doi_list = clean_doi(doi_string)
-                if not doi_list:
-                    self.illegal_doi(doi_string)
+                # If a DOI is found..
+                if doi_string:
+                    logger_doi_resolver.info("doi entry exists: {}".format(doi_string))
+                    # May be one DOI id, multiple, or none. Use regex to parse DOI(s) as a list.
+                    doi_list = clean_doi(doi_string)
+                    # Empty list, no DOIs found
+                    if not doi_list:
+                        print("{} [{}]: Failed : {}".format(self.dsn, idx, "DOI entry doesn't contain a DOI id"))
+                        self.illegal_doi(doi_string)
+                    # DOI(s) found
+                    else:
+                        # Loop for each DOI
+                        for doi_id in doi_list:
+                            # Send an API request for the current DOI
+                            self.get_data(doi_id, idx)
+                # No DOI entry in this publication
                 else:
-                    for doi_id in doi_list:
-                        self.get_data(doi_id, idx)
-            else:
-                logger_doi_resolver.warn("doi not found: publication index: {}".format(self.name, idx))
-                self.root_dict['pub'][idx]['pubDataUrl'] = 'Manually Entered'
+                    print("{} [{}]: Failed : {}".format(self.dsn, idx, "No DOI key in publication"))
+                    # Note that this data is manually entered since there is no DOI as a source.
+                    logger_doi_resolver.warn("doi not found: publication index: {}".format(self.dsn, idx))
+                    self.D['pub'][idx]['pubDataUrl'] = 'Manually Entered'
         logger_doi_resolver.info("exit doi_resolver")
-        return rm_empty_fields(self.root_dict)
+        # Remove all empty fields from the metadata before returning.
+        return rm_empty_fields(self.D)
 
     @staticmethod
     def compile_date(date_parts):
@@ -96,23 +106,23 @@ class DOIResolver(object):
                 pass
         return pub_dict
 
-    def remove_empties(self, pub):
-        for x in list(self.root_dict['pub'][pub].keys()):
-            if x == 'identifier':
-                try:
-                    if self.root_dict['pub'][pub][x][0]['id'] in EMPTY:
-                        del self.root_dict['pub'][pub][x]
-                except KeyError:
-                    pass
-            elif x == "doi":
-                try:
-                    if self.root_dict['pub'][pub][x] in EMPTY:
-                        del self.root_dict['pub'][pub][x]
-                except KeyError:
-                    pass
-            elif self.root_dict['pub'][pub][x] in EMPTY:
-                del self.root_dict['pub'][pub][x]
-        return
+    # def remove_empties(self, pub):
+    #     for x in list(self.D['pub'][pub].keys()):
+    #         if x == 'identifier':
+    #             try:
+    #                 if self.D['pub'][pub][x][0]['id'] in EMPTY:
+    #                     del self.D['pub'][pub][x]
+    #             except KeyError:
+    #                 pass
+    #         elif x == "doi":
+    #             try:
+    #                 if self.D['pub'][pub][x] in EMPTY:
+    #                     del self.D['pub'][pub][x]
+    #             except KeyError:
+    #                 pass
+    #         elif self.D['pub'][pub][x] in EMPTY:
+    #             del self.D['pub'][pub][x]
+    #     return
 
     def noaa_citation(self, doi_string):
         """
@@ -121,13 +131,13 @@ class DOIResolver(object):
         :return: None
         """
         # Append location 1
-        if 'link' in self.root_dict['pub'][0]:
-            self.root_dict['pub'][0]['link'].append({"url": doi_string})
+        if 'link' in self.D['pub'][0]:
+            self.D['pub'][0]['link'].append({"url": doi_string})
         else:
-            self.root_dict['pub'][0]['link'] = [{"url": doi_string}]
+            self.D['pub'][0]['link'] = [{"url": doi_string}]
 
         # Append location 2
-        self.root_dict['dataURL'] = doi_string
+        self.D['dataURL'] = doi_string
 
         return
 
@@ -147,7 +157,7 @@ class DOIResolver(object):
 
             # Paragraph citation / Manual citation
             elif doi_string.count(' ') > 3:
-                self.root_dict['pub'][0]['citation'] = doi_string
+                self.D['pub'][0]['citation'] = doi_string
 
             # Strange Links or Other, send to quarantine
             else:
@@ -164,7 +174,7 @@ class DOIResolver(object):
         """
         fetch_dict = OrderedDict()
         order = {'author': 'author', 'type': 'type', 'identifier': '', 'title': 'title', 'journal': 'container-title',
-                'pubYear': '', 'volume': 'volume', 'publisher': 'publisher', 'page':'page', 'issue': 'issue'}
+                 'pubYear': '', 'volume': 'volume', 'publisher': 'publisher', 'page': 'page', 'issue': 'issue'}
 
         for k, v in order.items():
             try:
@@ -189,19 +199,15 @@ class DOIResolver(object):
         :return dict: Updated publication dictionary
         """
 
-        tmp_dict = self.root_dict['pub'][0].copy()
+        tmp_dict = self.D['pub'][0].copy()
         try:
             # Send request to grab metadata at URL
             url = "http://dx.doi.org/" + doi_id
             headers = {"accept": "application/rdf+xml;q=0.5, application/citeproc+json;q=1.0"}
             r = requests.get(url, headers=headers)
 
-            # DOI 404. Data not retrieved. Log and return original pub
-            if r.status_code == 400:
-                logger_doi_resolver.warn("doi.org STATUS: 404, {}".format(doi_id))
-
             # Ignore other status codes. Run when status is 200 (good response)
-            elif r.status_code == 200:
+            if r.status_code == 200:
                 logger_doi_resolver.info("doi.org STATUS: 200")
                 # Load data from http response
                 raw = json.loads(r.text)
@@ -212,12 +218,21 @@ class DOIResolver(object):
                 # Compare the two pubs. Overwrite old data with new data where applicable
                 tmp_dict = self.compare_replace(tmp_dict, fetch_dict)
                 tmp_dict['pubDataUrl'] = 'doi.org'
-                self.root_dict['pub'][idx] = tmp_dict
+                self.D['pub'][idx] = tmp_dict
+                print("{} [{}]: Success : {}".format(self.dsn, idx, doi_id))
+
+            # DOI Error. Data not retrieved. Log and return original pub
+            else:
+                logger_doi_resolver.warn("doi.org STATUS: {}, {}".format(r.status_code, doi_id))
+                print("{} [{}]: Failed : {} HTTP {} Error".format(self.dsn, idx, doi_id, str(r.status_code)))
 
         except urllib.error.URLError as e:
+            print("{} [{}]: Failed : {} URL Error".format(self.dsn, idx, doi_id))
             logger_doi_resolver.warn("get_data: URLError: malformed doi: {}, {}".format(doi_id, e))
         except ValueError as e:
-            logger_doi_resolver.warn("get_data: ValueError: cannot resolve dois from this publisher: {}, {}".format(doi_id, e))
+            print("{} [{}]: Failed : {} Cannot resolve DOIs from this publisher".format(self.dsn, idx, doi_id))
+            logger_doi_resolver.warn(
+                "get_data: ValueError: cannot resolve dois from this publisher: {}, {}".format(doi_id, e))
         return
 
     def find_doi(self, curr_dict):

@@ -103,6 +103,7 @@ def clean_doi(doi_string):
         m = []
     return m
 
+
 def decimal_precision(row):
     """
     Change the "precision" of values before writing to CSV. Each value is rounded to 3 numbers.
@@ -393,6 +394,19 @@ def is_ensemble(d):
     return False
 
 
+def is_one_dataset(D):
+    """
+    Check if this object is a single dataset or multiple datasets
+
+    :param   dict D: Metadata
+    :return  bool:
+    """
+
+    if "paleoData" in D:
+        return True
+    return False
+
+
 def load_fn_matches_ext(file_path, file_type):
     """
     Check that the file extension matches the target extension given.
@@ -471,6 +485,31 @@ def match_arr_lengths(l):
     return True
 
 
+def mv_doi(D):
+    """
+    Move the DOI from the BibJson location, to our desired pub top-level location under "doi"
+
+    :param   dict D: Metadata
+    :return  dict D: Metadata, with DOIs moved where applicable
+    """
+    if is_one_dataset:
+        if "pub" in D:
+            # Loop for each publication entry
+            for pub in D["pub"]:
+                if "identifier" in pub:
+                    try:
+                        pub["doi"] = pub["identifier"][0]["id"]
+                        del pub["identifier"][0]["id"]
+                    except KeyError:
+                        pass
+    else:
+        # Loop for each dataset if D is multiple datasets
+        for idx, L in enumerate(D):
+            D[idx] = mv_doi(L)
+
+    return D
+
+
 def mv_files(src, dst):
     """
     Move all files from one directory to another
@@ -530,6 +569,7 @@ def print_filename(path):
     if os.path.basename(path):
         return os.path.basename(path)
     return path
+
 
 def prompt_protocol():
     """
@@ -751,6 +791,7 @@ def rm_od_url(D):
 
     return D
 
+
 def rm_wds_url(D):
     _D2 = {}
     print("Removing URL from : ")
@@ -758,6 +799,7 @@ def rm_wds_url(D):
         print(_name)
         _D2[_name] = rm_wds_url_2(_data)
     return _D2
+
 
 def rm_wds_url_2(x):
     try:

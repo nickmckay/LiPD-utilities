@@ -4,7 +4,7 @@ from .bag import create_bag
 from .csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata, read_csvs
 from .jsons import write_json_to_file, idx_num_to_name, idx_name_to_num, rm_empty_fields, read_jsonld
 from .loggers import create_logger
-from .misc import put_tsids, check_dsn, get_dsn, rm_empty_doi, rm_values_fields, print_filename
+from .misc import put_tsids, check_dsn, get_dsn, rm_empty_doi, rm_values_fields, print_filename, mv_doi
 from .versions import update_lipd_version
 
 import copy
@@ -26,7 +26,7 @@ def lipd_read(path):
     :param str path: Source path
     :return none:
     """
-    _j = {}
+    D = {}
     dir_original = os.getcwd()
 
     # Import metadata into object
@@ -41,18 +41,19 @@ def lipd_read(path):
         os.chdir(dir_tmp)
         _dir_data = find_files()
         os.chdir(_dir_data)
-        _j = read_jsonld()
-        _j = rm_empty_fields(_j)
-        _j = check_dsn(path, _j)
-        _j = update_lipd_version(_j)
-        _j = idx_num_to_name(_j)
-        _j = rm_empty_doi(_j)
-        _j = rm_empty_fields(_j)
-        _j = put_tsids(_j)
+        D = read_jsonld()
+        D = rm_empty_fields(D)
+        D = check_dsn(path, D)
+        D = update_lipd_version(D)
+        D = idx_num_to_name(D)
+        D = rm_empty_doi(D)
+        D = mv_doi(D)
+        D = rm_empty_fields(D)
+        D = put_tsids(D)
         _csvs = read_csvs()
-        _j = merge_csv_metadata(_j, _csvs)
+        D = merge_csv_metadata(D, _csvs)
         # Why ? Because we need to align the csv filenames with the table filenames. We don't need the csv output here.
-        _j, _csv = get_csv_from_metadata(_j["dataSetName"], _j)
+        D, _csv = get_csv_from_metadata(D["dataSetName"], D)
         os.chdir(dir_original)
         shutil.rmtree(dir_tmp)
     except FileNotFoundError:
@@ -62,38 +63,38 @@ def lipd_read(path):
         print("Error: lipd_read: unable to read LiPD: {}".format(e))
     os.chdir(dir_original)
     logger_lipd.info("lipd_read: record loaded: {}".format(path))
-    return _j
+    return D
 
 
 # WRITE
 
 
-def lipd_write(_json, path):
+def lipd_write(D, path):
     """
     Saves current state of LiPD object data. Outputs to a LiPD file.
     Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,
         zip up bag folder, place lipd in target dst, move to original dir, delete tmp
 
-    :param dict _json: Metadata
+    :param dict D: Metadata
     :param str path: Destination path
     :return none:
     """
-    # Json is pass by reference. Make a copy so we don't mess up the original data.
-    _json_tmp = copy.deepcopy(_json)
+    # JSON var is pass by reference. Make a copy so we don't mess up the original data in memory.
+    D_tmp = copy.deepcopy(D)
     dir_original = os.getcwd()
     try:
         dir_tmp = create_tmp_dir()
         dir_bag = os.path.join(dir_tmp, "bag")
         os.mkdir(dir_bag)
         os.chdir(dir_bag)
-        _dsn = get_dsn(_json_tmp)
+        _dsn = get_dsn(D_tmp)
         _dsn_lpd = _dsn + ".lpd"
-        _json_tmp, _csv = get_csv_from_metadata(_dsn, _json_tmp)
+        D_tmp, _csv = get_csv_from_metadata(_dsn, D_tmp)
         write_csv_to_file(_csv)
-        _json_tmp = rm_values_fields(_json_tmp)
-        _json_tmp = put_tsids(_json_tmp)
-        _json_tmp = idx_name_to_num(_json_tmp)
-        write_json_to_file(_json_tmp)
+        D_tmp = rm_values_fields(D_tmp)
+        D_tmp = put_tsids(D_tmp)
+        D_tmp = idx_name_to_num(D_tmp)
+        write_json_to_file(D_tmp)
         create_bag(dir_bag)
         rm_file_if_exists(path, _dsn_lpd)
         zipper(root_dir=dir_tmp, name="bag", path_name_ext=os.path.join(path, _dsn_lpd))
