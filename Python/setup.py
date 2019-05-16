@@ -7,7 +7,7 @@ from distutils.command.install import install
 from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.6.8'
+version = '0.2.6.9'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':

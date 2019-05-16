@@ -391,7 +391,7 @@ get_table <- function(d, current, pc){
 #' @param list table: Metadata (to be placed)
 #' @return list d: Metadata
 put_table <- function(d, current, pc, table){
-  tt <- current$whichtables
+  tt <- current$tableType
   modelNumber <- current$modelNumber
   tableNumber <- current$tableNumber
   
