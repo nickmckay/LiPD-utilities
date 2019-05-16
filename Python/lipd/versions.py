@@ -1,11 +1,40 @@
 from .alternates import VER_1_3
 from .loggers import create_logger
+from .misc import is_one_dataset
 
 logger_versions = create_logger("versions")
 
 
+def fix_pubYear(D):
+    """
+    Move the DOI from the BibJson location, to our desired pub top-level location under "doi"
+
+    Remove 'pubYear' keys and reassign to 'year' if necessary.
+
+    :param   dict D: Metadata
+    :return  dict D: Metadata, with data modified where applicable
+    """
+    if is_one_dataset:
+        if "pub" in D:
+            # Loop for each publication entry
+            for pub in D["pub"]:
+                if "pubYear" in pub:
+                    if "year" not in pub:
+                        pub["year"] = pub["pubYear"]
+                    del pub["pubYear"]
+
+    else:
+        # Loop for each dataset if D is multiple datasets
+        for idx, L in enumerate(D):
+            D[idx] = fix_pub(L)
+
+    return D
+
+
 def fix_doi(L):
     """
+    'pubYear' keys need to be switched to 'year' where applicable
+
     DOIs are commonly stored in the BibJson format under "identifier". We want to move these to the root
     of the publication under "doi". Make the reassignments necessary and also remove duplicate and unwanted
     Doi/DOI keys.
@@ -43,6 +72,7 @@ def fix_doi(L):
                 # Delete the bad doi key
                 del pub[_key]
     return L
+
 
 def get_lipd_version(L):
     """
@@ -125,6 +155,7 @@ def update_lipd_version(L):
         version = 1.3
 
     L = fix_doi(L)
+    L = fix_pubYear(L)
     L["lipdVersion"] = 1.3
     return L
 

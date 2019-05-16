@@ -70,7 +70,7 @@ D = lipd.collapseTs(ts)
 idx = lipd.queryTs(ts, expression)
 new_ts = lipd.filterTs(ts, expression)
 D = lipd.excel()
-lipd.doi()
+D = lipd.doi(D)
 ```
 
 

@@ -485,31 +485,6 @@ def match_arr_lengths(l):
     return True
 
 
-def mv_doi(D):
-    """
-    Move the DOI from the BibJson location, to our desired pub top-level location under "doi"
-
-    :param   dict D: Metadata
-    :return  dict D: Metadata, with DOIs moved where applicable
-    """
-    if is_one_dataset:
-        if "pub" in D:
-            # Loop for each publication entry
-            for pub in D["pub"]:
-                if "identifier" in pub:
-                    try:
-                        pub["doi"] = pub["identifier"][0]["id"]
-                        del pub["identifier"][0]["id"]
-                    except KeyError:
-                        pass
-    else:
-        # Loop for each dataset if D is multiple datasets
-        for idx, L in enumerate(D):
-            D[idx] = mv_doi(L)
-
-    return D
-
-
 def mv_files(src, dst):
     """
     Move all files from one directory to another

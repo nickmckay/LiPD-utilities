@@ -4,7 +4,7 @@ from .bag import create_bag
 from .csvs import get_csv_from_metadata, write_csv_to_file, merge_csv_metadata, read_csvs
 from .jsons import write_json_to_file, idx_num_to_name, idx_name_to_num, rm_empty_fields, read_jsonld
 from .loggers import create_logger
-from .misc import put_tsids, check_dsn, get_dsn, rm_empty_doi, rm_values_fields, print_filename, mv_doi
+from .misc import put_tsids, check_dsn, get_dsn, rm_empty_doi, rm_values_fields, print_filename
 from .versions import update_lipd_version
 
 import copy
@@ -47,7 +47,6 @@ def lipd_read(path):
         D = update_lipd_version(D)
         D = idx_num_to_name(D)
         D = rm_empty_doi(D)
-        D = mv_doi(D)
         D = rm_empty_fields(D)
         D = put_tsids(D)
         _csvs = read_csvs()

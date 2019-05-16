@@ -229,7 +229,7 @@ def noaa(D="", path="", wds_url="", lpd_url="", version=""):
     return
 
 
-def doi(D):
+def doi(D, force=False):
     """
     Use the DOI id stored in the LiPD publication data to fetch new information from the DOI.org using their API.
     Merge the results with the existing data. This process will open the LiPD files on your computer, and overwrite them
@@ -242,10 +242,11 @@ def doi(D):
     | DOI location : D["pub"][0]["doi"]
 
     :param  dict D: Metadata, either a single dataset or multiple datasets sorted by dataset name.
+    :param bool force: Force DOIs to update even if they have previously been processed. Default is False.
     :return dict D: Metadata, with all publication data updated where possible
 
     """
-    D = doi_main(D)
+    D = doi_main(D, force)
     return D
 
 def fetchDoiWithCsv(csv_source, write_file=True):
@@ -915,7 +916,8 @@ def __read_lipd_contents():
                 print("Finished read: 1 record")
         else:
             for file in files[".lpd"]:
-                _d[file["filename_no_ext"]] = lipd_read(file["full_path"])
+                _contents = lipd_read(file["full_path"])
+                _d[_contents["dataSetName"]] = _contents
             if settings["verbose"]:
                 print("Finished read: {} records".format(len(_d)))
     except Exception as e:

@@ -6,21 +6,8 @@ import sys
 from distutils.command.install import install
 from distutils.core import setup
 
-
-class PostInstall(install):
-    """ Custom install script that runs post-install."""
-    def run(self):
-        # Make the notebooks folder in the user directory
-        dst_nb = os.path.join(os.path.expanduser('~'), 'LiPD_Workspace')
-
-        # Make folders if needed
-        if not os.path.isdir(dst_nb):
-            os.mkdir(dst_nb)
-
-        install.run(self)
-
 here = path.abspath(path.dirname(__file__))
-version = '0.2.6.7'
+version = '0.2.6.8'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -36,7 +23,9 @@ with readme_file:
 if sys.argv[-1] == 'publish':
     # Register the tarball, upload it, and trash the temp readme rst file
     os.system('python3 setup.py register')
-    os.system('python3 setup.py sdist upload')
+    # os.system('python3 setup.py sdist upload')
+    os.system('python3 setup.py sdist')
+    os.system('twine upload dist/*')
     os.remove('README.txt')
     sys.exit()
 
@@ -44,7 +33,7 @@ if sys.argv[-1] == 'publish':
 elif sys.argv[-1] == 'publishtest':
     # Create dist tarball, register it to test site, upload tarball, and remove temp readme file
     os.system('python3 setup.py sdist')
-    os.system('python3 setup.py register -r https://testpypi.python.org/pypi')
+    os.system('python3 setup.py register -r https://test.pypi.org/legacy')
     os.system('twine upload -r test dist/LiPD-' + version + '.tar.gz')
     # Trash the temp rst readme file
     os.remove('README.txt')
@@ -58,18 +47,11 @@ setup(
     author='C. Heiser',
     author_email='heiser@nau.edu',
     packages=find_packages(),
-    entry_points={
-        "console_scripts": [
-            'lipd= lipd.__init__:run'
-        ]
-    },
-    cmdclass={
-        'install': PostInstall,
-    },
     url='https://github.com/nickmckay/LiPD-utilities',
     license='GNU Public',
     description='LiPD utilities to process, convert, and analyze data.',
     long_description=long_description,
+    long_description_content_type="text/markdown",
     keywords="paleo R matlab python paleoclimatology linkedearth",
     install_requires=[
         "bagit==1.7.0",
@@ -81,9 +63,5 @@ setup(
         "sip==4.19.8",
         "PyQt5==5.9.2",
     ],
-    include_package_data=True,
-    package_data={
-                  'helpers': ['*.json']
-                  },
 )
 

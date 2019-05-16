@@ -19,13 +19,19 @@ class DOIResolver(object):
     Output: Updated publication dictionary (success), original publication dictionary (fail)
     """
 
-    def __init__(self, dsn, D):
+    def __init__(self, dsn, D, results, force):
         """
 
         :param dict: Full dict loaded from jsonld file
         """
+        # Metadata
         self.D = D
+        # Dataset name
         self.dsn = dsn
+        # Results of which DOIs were previously processed. (One dataset)
+        self.results = results
+        # Force update DOIs that were previously processed, Boolean
+        self.force = force
 
     def main(self):
         """
@@ -48,17 +54,22 @@ class DOIResolver(object):
                     doi_list = clean_doi(doi_string)
                     # Empty list, no DOIs found
                     if not doi_list:
-                        print("{} [{}]: Failed : {}".format(self.dsn, idx, "DOI entry doesn't contain a DOI id"))
+                        print("Failed : {} [{}]: {}".format(self.dsn, idx, "DOI entry doesn't contain a DOI id"))
                         self.illegal_doi(doi_string)
                     # DOI(s) found
                     else:
                         # Loop for each DOI
                         for doi_id in doi_list:
                             # Send an API request for the current DOI
-                            self.get_data(doi_id, idx)
+                            if not self.results[doi_id] or self.force:
+                                self.get_data(doi_id, idx)
+                            else:
+                                print(
+                                    "Skip   : {} [{}]: {} {}".format(self.dsn, idx, doi_id, "DOI previously processed"))
+
                 # No DOI entry in this publication
                 else:
-                    print("{} [{}]: Failed : {}".format(self.dsn, idx, "No DOI key in publication"))
+                    print("Failed : {} [{}]: {}".format(self.dsn, idx, "No DOI key in publication"))
                     # Note that this data is manually entered since there is no DOI as a source.
                     logger_doi_resolver.warn("doi not found: publication index: {}".format(self.dsn, idx))
                     self.D['pub'][idx]['pubDataUrl'] = 'Manually Entered'
@@ -174,7 +185,7 @@ class DOIResolver(object):
         """
         fetch_dict = OrderedDict()
         order = {'author': 'author', 'type': 'type', 'identifier': '', 'title': 'title', 'journal': 'container-title',
-                 'pubYear': '', 'volume': 'volume', 'publisher': 'publisher', 'page': 'page', 'issue': 'issue'}
+                 'year': '', 'volume': 'volume', 'publisher': 'publisher', 'page': 'page', 'issue': 'issue'}
 
         for k, v in order.items():
             try:
@@ -182,7 +193,7 @@ class DOIResolver(object):
                     fetch_dict[k] = [{"type": "doi", "id": doi_id, "url": "http://dx.doi.org/" + doi_id}]
                 elif k == 'author':
                     fetch_dict[k] = self.compile_authors(raw[v])
-                elif k == 'pubYear':
+                elif k == 'year':
                     fetch_dict[k] = self.compile_date(raw['issued']['date-parts'])
                 else:
                     fetch_dict[k] = raw[v]
@@ -219,18 +230,18 @@ class DOIResolver(object):
                 tmp_dict = self.compare_replace(tmp_dict, fetch_dict)
                 tmp_dict['pubDataUrl'] = 'doi.org'
                 self.D['pub'][idx] = tmp_dict
-                print("{} [{}]: Success : {}".format(self.dsn, idx, doi_id))
+                print("Success: {} [{}]: {}".format(self.dsn, idx, doi_id))
 
             # DOI Error. Data not retrieved. Log and return original pub
             else:
                 logger_doi_resolver.warn("doi.org STATUS: {}, {}".format(r.status_code, doi_id))
-                print("{} [{}]: Failed : {} HTTP {} Error".format(self.dsn, idx, doi_id, str(r.status_code)))
+                print("Failed : {} [{}]: {} HTTP {} Error".format(self.dsn, idx, doi_id, str(r.status_code)))
 
         except urllib.error.URLError as e:
-            print("{} [{}]: Failed : {} URL Error".format(self.dsn, idx, doi_id))
+            print("Failed : {} [{}]: {} URL Error".format(self.dsn, idx, doi_id))
             logger_doi_resolver.warn("get_data: URLError: malformed doi: {}, {}".format(doi_id, e))
         except ValueError as e:
-            print("{} [{}]: Failed : {} Cannot resolve DOIs from this publisher".format(self.dsn, idx, doi_id))
+            print("Failed : {} [{}]: {} Cannot resolve DOIs from this publisher".format(self.dsn, idx, doi_id))
             logger_doi_resolver.warn(
                 "get_data: ValueError: cannot resolve dois from this publisher: {}, {}".format(doi_id, e))
         return
