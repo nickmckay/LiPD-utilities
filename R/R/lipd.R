@@ -54,6 +54,9 @@ lipd_write <- function(j, path, dsn, ignore.warnings){
     dir_bag <- file.path(dir_zip, "bag")
     setwd("bag")
     
+    #remove names from lists in key spots, since these cause errors in the json
+    j <- remove_names_from_lists(j)
+    
     # look for ensemble data in PaleoData, and ask if you want to remove this data before writing the file.
     j <- warn_ensembles_in_paleo(j, ignore.warnings)
   
