@@ -39,7 +39,7 @@ lipd_read <- function(path){
 #' @param char path: Destination path
 #' @param char dsn: Dataset name
 #' @return none:
-lipd_write <- function(j, path, dsn, ignore.warnings){
+lipd_write <- function(j, path, dsn, ignore.warnings,removeNamesFromLists = FALSE){
   tryCatch({
     # dsn <- replace_invalid_chars(dsn)
     dir_original <- getwd()
@@ -54,8 +54,11 @@ lipd_write <- function(j, path, dsn, ignore.warnings){
     dir_bag <- file.path(dir_zip, "bag")
     setwd("bag")
     
+    
     #remove names from lists in key spots, since these cause errors in the json
+    if(removeNamesFromLists){
     j <- remove_names_from_lists(j)
+    }
     
     # look for ensemble data in PaleoData, and ask if you want to remove this data before writing the file.
     j <- warn_ensembles_in_paleo(j, ignore.warnings)
