@@ -7,7 +7,7 @@ from distutils.command.install import install
 from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.6.9'
+version = '0.2.7.0'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -54,14 +54,14 @@ setup(
     long_description_content_type="text/markdown",
     keywords="paleo R matlab python paleoclimatology linkedearth",
     install_requires=[
-        "bagit==1.7.0",
-        "demjson==2.2.4",
-        "xlrd==1.1.0",
-        "numpy==1.15.0",
-        "pandas==0.23.3",
-        "requests==2.20.0",
-        "sip==4.19.8",
-        "PyQt5==5.9.2",
+        "bagit",
+        "demjson",
+        "xlrd",
+        "numpy",
+        "pandas",
+        "requests",
+        "sip",
+        "PyQt5",
     ],
 )
 
