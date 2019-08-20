@@ -320,3 +320,44 @@ warn_ensembles_in_paleo <- function(L, ignore.warnings){
 }
 
 
+
+#' remove names from lists
+#'
+#' @param L 
+#'
+#' @return L without named lists in key spots
+#' @export
+remove_names_from_lists <- function(L){
+  if(!is.null(L$paleoData)){
+    for(i in 1:length(L$paleoData)){
+      names(L$paleoData[[i]]$measurementTable) <- NULL
+      #repeat for model tables
+      if(!is.null(L$paleoData[[i]]$model)){
+        for(j in 1:length(L$paleoData[[i]]$model)){
+          names(L$paleoData[[i]]$model[[j]]$ensembleTable) <- NULL
+          names(L$paleoData[[i]]$model[[j]]$distributionTable) <- NULL
+          names(L$paleoData[[i]]$model[[j]]$summaryTable) <- NULL
+        }
+      }
+    }
+    names(L$paleoData) <- NULL
+  }
+  
+  #repeat for chron
+  if(!is.null(L$chronData)){
+    for(i in 1:length(L$chronData)){
+      names(L$chronData[[i]]$measurementTable) <- NULL
+      #repeat for model tables
+      if(!is.null(L$chronData[[i]]$model)){
+        for(j in 1:length(L$chronData[[i]]$model)){
+          names(L$chronData[[i]]$model[[j]]$ensembleTable) <- NULL
+          names(L$chronData[[i]]$model[[j]]$distributionTable) <- NULL
+          names(L$chronData[[i]]$model[[j]]$summaryTable) <- NULL
+        }
+      }
+    }
+    names(L$chronData) <- NULL
+  }
+  return(L)
+}
+

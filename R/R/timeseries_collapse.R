@@ -337,7 +337,7 @@ collapse_block <- function(entry, l, key, pc){
 get_table <- function(d, current, pc){
     table <- list()
     # Use the path and indexing info to get the "in progress" table that belongs to this TS entry. We want to add this TS entry (column) to this table.
-    tt <- current$whichtables
+    tt <- current$tableType
     modelNumber <- current$modelNumber
     tableNumber <- current$tableNumber
 
@@ -528,7 +528,7 @@ rm_existing_tables <- function(d, pc, whichtables){
   tryCatch({
     if(pc %in% names(d)){
       for(i in 1:length(d[[pc]])){
-        if(whichtables %in% c("meas")){
+        if(whichtables %in% c("meas","all")){
           if("measurementTable" %in% names(d[[pc]][[i]])){
             for(j in 1:length(d[[pc]][[i]][["measurementTable"]])){
               d[[pc]][[i]][["measurementTable"]][[j]] <- list()
@@ -536,7 +536,7 @@ rm_existing_tables <- function(d, pc, whichtables){
           }
         }
         
-        if(whichtables %in% c("ens", "summ")){
+        if(whichtables %in% c("ens", "summ","all")){
           if("model" %in% names(d[[pc]][[i]])){
             for(j in 1:length(d[[pc]][[i]][["model"]])){
               if(whichtables %in% c("summ")){
@@ -546,7 +546,7 @@ rm_existing_tables <- function(d, pc, whichtables){
                   }
                 }
               }
-              if (whichtables %in% c("ens")){
+              if (whichtables %in% c("ens","all")){
                 if("ensembleTable" %in% d[[pc]][[i]][["model"]][[j]]){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["ensembleTable"]])){
                     d[[pc]][[i]][["model"]][[j]][["ensembleTable"]][[k]] < list()
@@ -684,7 +684,9 @@ add_missing_ts_data <- function(entry){
     entry$mode = "paleo"
   }
   if(!("whichtables" %in% names(entry))){
-    entry$whichtables = "meas"
+    entry$whichtables = "all"
+  }
+  if(!("tableType" %in% names(entry))){
     entry$tableType = "meas"
   }
   if(!("tableNumber" %in% names(entry))){

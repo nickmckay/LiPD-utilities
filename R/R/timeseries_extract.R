@@ -160,7 +160,7 @@ extract_special= function(table_data, current){
   for(sc in specCols){
     #only assign in values and units for now
     #use the correct names
-    nameToUse <- specialColumns[which(tolower(names(table_data)[sc]) == specialColumns)]
+    nameToUse <- specialColumns[which(tolower(names(table_data)[sc]) == tolower(specialColumns))]
     current[[paste0(nameToUse,"Units")]] = table_data[[sc]]$units
     current[[nameToUse]] = table_data[[sc]]$values
   }
