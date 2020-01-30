@@ -5,6 +5,7 @@
 #' Read LiPD files into R workspace
 #' @export
 #' @author Chris Heiser
+#' @import stringr
 #' @keywords internal
 #' @param path Source path (optional) : char
 #' @usage readLipd(path)
@@ -51,7 +52,8 @@ readLipd <- function(path=NULL){
       setwd(dir_source)
       j <- lipd_read(entry)
       # Get the datasetname
-      dsn <- get_datasetname(j, Smisc::stripExtension(basename(entry)))
+      dsn <- get_datasetname(j, stringr::str_sub(basename(entry),1,max(stringr::str_locate_all(basename(entry),pattern = "[.]")[[1]][,1])-1)(basename(entry)))
+      #dsn <- get_datasetname(j, Smisc::stripExtension(basename(entry)))
       # Set the data in D using the datasetname
       D[[dsn]] <- j
     }

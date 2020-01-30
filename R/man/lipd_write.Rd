@@ -6,7 +6,7 @@
 Steps: create tmp, create bag dir, get dsn, splice csv from json, write csv, clean json, write json, create bagit,
 zip up bag folder, place lipd in target dst, move to original dir, delete tmp}
 \usage{
-lipd_write(j, path, dsn, ignore.warnings)
+lipd_write(j, path, dsn, ignore.warnings, removeNamesFromLists = FALSE)
 }
 \arguments{
 \item{list}{j: Metadata}
