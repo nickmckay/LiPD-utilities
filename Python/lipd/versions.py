@@ -45,32 +45,37 @@ def fix_doi(L):
     # Keys that we don't want. Reassign data to 'doi' key
     _dois = ["DOI", "Doi"]
     # Loop for each publication entry
-    for pub in L["pub"]:
-        try:
-            # Is there an identifier in this publication?
-            if "identifier" in pub:
-                # Attempt to grab the doi from the id location. If it doesn't work, we'll catch the error.
-                _identifier = pub["identifier"][0]["id"]
-                # Got identifier. Is there a valid string here?
-                if _identifier:
-                    # Reassign the doi to the publication root 'doi' key
-                    pub["doi"] = _identifier
-                    # Delete the identifier key and data
-                    del pub["identifier"]
-        except Exception:
-            # Catch the KeyError, and continue on normally.
-            pass
+    try:
+        if "pub" in L:
+            for pub in L["pub"]:
+                try:
+                    # Is there an identifier in this publication?
+                    if "identifier" in pub:
+                        # Attempt to grab the doi from the id location. If it doesn't work, we'll catch the error.
+                        _identifier = pub["identifier"][0]["id"]
+                        # Got identifier. Is there a valid string here?
+                        if _identifier:
+                            # Reassign the doi to the publication root 'doi' key
+                            pub["doi"] = _identifier
+                            # Delete the identifier key and data
+                            del pub["identifier"]
+                except Exception:
+                    # Catch the KeyError, and continue on normally.
+                    pass
 
-        # Check for each doi key that we don't want
-        for _key in _dois:
-            # Is it in the publication entry?
-            if _key in pub:
-                #  Is there valid string data?
-                if pub[_key]:
-                    # Reassign the doi to the 'doi' key
-                    pub["doi"] = pub[_key]
-                # Delete the bad doi key
-                del pub[_key]
+                # Check for each doi key that we don't want
+                for _key in _dois:
+                    # Is it in the publication entry?
+                    if _key in pub:
+                        #  Is there valid string data?
+                        if pub[_key]:
+                            # Reassign the doi to the 'doi' key
+                            pub["doi"] = pub[_key]
+                        # Delete the bad doi key
+                        del pub[_key]
+    except Exception as e:
+        logger_versions.info("fix_doi: Publication error: {}".format(e))
+        L = []
     return L
 
 
