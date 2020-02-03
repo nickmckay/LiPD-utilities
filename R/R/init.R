@@ -2,9 +2,26 @@
 ## Read/Write Lipds
 ###############################################
 
+#' stripExtension
+#'
+#' @param filename file name or path
+#'
+#' @return dataset name without extension
+#' @export
+stripExtension <- function(filename){
+  basef <- basename(filename)
+  if(stringr::str_detect(basef,"[.]")){#there's a period, strip
+  dsn <- stringr::str_sub(basef,1,max(stringr::str_locate_all(basef,pattern = "[.]")[[1]][,1])-1)
+  }else{#if not then just return the base name
+    dsn <- basef
+  }
+  return(dsn)
+}
+
 #' Read LiPD files into R workspace
 #' @export
 #' @author Chris Heiser
+#' @import stringr
 #' @keywords internal
 #' @param path Source path (optional) : char
 #' @usage readLipd(path)
@@ -51,7 +68,7 @@ readLipd <- function(path=NULL){
       setwd(dir_source)
       j <- lipd_read(entry)
       # Get the datasetname
-      dsn <- get_datasetname(j, Smisc::stripExtension(basename(entry)))
+      dsn <- get_datasetname(j, stripExtension(entry))
       # Set the data in D using the datasetname
       D[[dsn]] <- j
     }

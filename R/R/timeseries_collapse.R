@@ -349,7 +349,7 @@ get_table <- function(d, current, pc){
     }
     
     #Check if the number was missing
-    if(is.null(pcNumber)){
+    if(is.null(pcNumber) | is.na(pcNumber)){
       pcNumber <- 1#and assume 1 if so
     }
     

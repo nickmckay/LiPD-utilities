@@ -9,7 +9,8 @@ sheetKeys={'1hIGLX0Q46YWtSXdpA3B2jltkAxUkWO9m2ayLad12zMs'; %variableName
     '1_OvlR02LmEUJOLOaFWFaWKhr2ZOEVjUyUdeiWVmpaAc'; %proxy
         '1tH2b07E9IaNdH1LS5PvsoAZbKCQMHtc94b9z3re9eV8'; %proxyObservationType
     '1DBX5KnAdsV0I-el0NaoISW46RwlQjEQbP2QgA3Y9Zwk'; %inferredVariableType
-    };
+    '1S8wYP0PwQV6wP8laOLOxJXYlCS0qYNSadTKX1rDxnDY'}; %proxyLumps
+    
 
 sheets={'paleoData_variableName';
     'paleoData_units';
@@ -18,7 +19,8 @@ sheets={'paleoData_variableName';
     'archiveType';
     'paleoData_proxy';
     'paleoData_proxyObservationType';
-    'paleoData_inferredVariableType'};
+    'paleoData_inferredVariableType';
+    'paleoData_proxyLumps'};
 
 if length(sheetKeys) ~= length(sheets)
     error('sheetKeys needs to match sheets')

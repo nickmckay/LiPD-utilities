@@ -293,14 +293,15 @@ warn_ensembles_in_paleo <- function(L, ignore.warnings){
     }
     else {
       for(i in 1:length(L$paleoData)){
-        if ("model" %in% names(L$paleoData[[i]])){
-          for(j in 1:length(L$paleoData[[i]]$model)){
-            if ("ensembleTable" %in% names(L$paleoData[[i]]$model[[j]])){
-             ans = readline(prompt="We detected ageEnsemble data in paleoData. This data can greatly increase the size of the file and can easily be recreated. Would you like to remove it before writing the LiPD file? (y/n)")
-             break
-            }
-          }
-        }
+        # this should be looking through columns in the measurement table, not the model ensemble table. 
+        # if ("model" %in% names(L$paleoData[[i]])){
+        #   for(j in 1:length(L$paleoData[[i]]$model)){
+        #     if ("ensembleTable" %in% names(L$paleoData[[i]]$model[[j]])){
+        #      ans = readline(prompt="We detected ageEnsemble data in paleoData. This data can greatly increase the size of the file and can easily be recreated. Would you like to remove it before writing the LiPD file? (y/n)")
+        #      break
+        #     }
+        #   }
+        # }
       }
       if(ans == "y"){
         for(i in 1:length(L$paleoData)){

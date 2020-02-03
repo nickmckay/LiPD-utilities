@@ -1,5 +1,12 @@
 context("lipdR")
 
+test_that("stripExtension() Works",{ 
+  expect_match(stripExtension("~/asd/asd/asdas.lpd"),"asdas")
+  expect_match(stripExtension("~/asd/asd/asdas"),"asdas")
+  expect_match(stripExtension("~/asd/as.d/as.asdas.lpd"),"asdas")
+})  
+  
+
 test_that("LiPD Read: v1.3 with all table types", {
   print("LiPD Read: v1.3 with all table types")
   sink("log")
