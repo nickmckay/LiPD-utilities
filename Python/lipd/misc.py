@@ -36,6 +36,8 @@ def cast_values_csvs(d, idx, x):
         # logger_misc.warn("ValueError: col: {}, {}".format(x, e))
     except KeyError as e:
         logger_misc.warn("cast_values_csv: KeyError: col: {}, {}".format(x, e))
+    except Exception as e:
+        logger_misc.warn("cast_values_csv: Generic Error: {}".format(e))
 
     return d
 
