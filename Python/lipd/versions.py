@@ -73,9 +73,10 @@ def fix_doi(L):
                             pub["doi"] = pub[_key]
                         # Delete the bad doi key
                         del pub[_key]
+        else:
+            L["pub"] = []
     except Exception as e:
         logger_versions.info("fix_doi: Publication error: {}".format(e))
-        L = []
     return L
 
 
