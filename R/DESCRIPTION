@@ -32,5 +32,6 @@ Imports:
 	data.table,
 	RJSONIO,
 	jsonlite,
-	BBmisc
+	BBmisc,
+    arsenal
 Suggests: testthat

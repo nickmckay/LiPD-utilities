@@ -35,7 +35,10 @@ read_csv_from_file <- function(){
   # import each csv file
   for (ci in 1:length(c)){
     # df=read.csv(c[ci], header=FALSE, blank.lines.skip = FALSE,na.strings = c("nan", "NaN", "NAN", "NA"))
-    df=readr::read_csv(c[ci], col_names=FALSE, na = c("nan", "NaN", "NAN", "NA",""),col_types = readr::cols(),guess_max = 1e6) #Don't use for now...
+    df=readr::read_csv(c[ci], col_names=FALSE, na = c("nan", "NaN", "NAN", "NA",""),col_types = readr::cols(),guess_max = 1e6) 
+    #check column types #nope, not now.
+   
+    
     # #deal with missing characters
     # blanks <- c(""," ", "NA", "NaN", "NAN", "nan","")
     # blanks <- "\\s"
