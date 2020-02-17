@@ -36,6 +36,8 @@ def cast_values_csvs(d, idx, x):
         # logger_misc.warn("ValueError: col: {}, {}".format(x, e))
     except KeyError as e:
         logger_misc.warn("cast_values_csv: KeyError: col: {}, {}".format(x, e))
+    except Exception as e:
+        logger_misc.warn("cast_values_csv: Generic Error: {}".format(e))
 
     return d
 
@@ -678,6 +680,9 @@ def rm_empty_doi(d):
     except KeyError as e:
         # What else could go wrong?
         logger_misc.warn("remove_empty_doi: KeyError: publication key not found, {}".format(e))
+    except Exception as e:
+        logger_misc.warn("remove_empty_doi: Error: publication, {}".format(e))
+
     logger_misc.info("exit remove_empty_doi")
     return d
 

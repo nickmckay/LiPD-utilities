@@ -205,7 +205,7 @@ def read_csvs():
     return _l
 
 
-def read_csv_from_file(filename):
+def read_csv_from_file(filename, encoding="utf-8"):
     """
     Opens the target CSV file and creates a dictionary with one list for each CSV column.
 
@@ -217,7 +217,7 @@ def read_csv_from_file(filename):
     l = []
     try:
         logger_csvs.info("open file: {}".format(filename))
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding=encoding) as f:
             r = csv.reader(f, delimiter=',')
 
             # Create a dict with X lists corresponding to X columns
@@ -237,6 +237,21 @@ def read_csv_from_file(filename):
     except FileNotFoundError as e:
         print('CSV FileNotFound: ' + filename)
         logger_csvs.warn("read_csv_to_columns: FileNotFound: {}, {}".format(filename, e))
+    except UnicodeDecodeError:
+        try:
+            l = read_csv_from_file(filename, "ISO-8859-1")
+        except UnicodeDecodeError:
+            try:
+                l = read_csv_from_file(filename, 'latin')
+            except Exception as e:
+                logger_csvs.warn("read_csv_to_columns: UnicodeDecodeError: {}, {}".format(filename, e))
+                l = []
+
+
+    except Exception as e:
+        logger_csvs.warn("read_csv_to_columns: Error: {}, {}".format(filename, e))
+
+
     logger_csvs.info("exit read_csv_from_file")
     return l
 

@@ -127,6 +127,7 @@ class LPD_NOAA(object):
 
         # reorganize data into noaa sections
         self.__reorganize()
+        self.__reorganize_geo()
 
         # special case: earliest_year, most_recent_year, and time unit
         # self.__check_time_values()
@@ -135,6 +136,8 @@ class LPD_NOAA(object):
         self.__get_overall_data(self.lipd_data)
         self.__reorganize_sensor()
         self.__lists_to_str()
+
+        self.__generate_investigators()
         self.__generate_study_name()
 
         # END MISC SETUP FUNCTIONS
@@ -293,6 +296,55 @@ class LPD_NOAA(object):
 
         return d
 
+    def __get_site_name_for_sn(self):
+        site_name = ""
+        try:
+            if self.noaa_data_sorted["Site_Information"]["Site_Name"]:
+                site_name = self.noaa_data_sorted["Site_Information"]["Site_Name"]
+        except KeyError as e:
+            pass
+        return site_name
+
+    def __get_pub_year_for_sn(self):
+        pub_year = ""
+        try:
+            if self.noaa_data_sorted["Publication"][0]["year"]:
+                pub_year = self.noaa_data_sorted["Publication"][0]["year"]
+            elif self.noaa_data_sorted["Publication"][0]["pubYear"]:
+                pub_year = self.noaa_data_sorted["Publication"][0]["pubYear"]
+        except KeyError as e:
+            pass
+
+        return pub_year
+
+    def __get_author_for_sn(self):
+        author = ""
+        try:
+            if self.noaa_data_sorted["Publication"][0]["author"]:
+                author = self.noaa_data_sorted["Publication"][0]["author"]
+        except KeyError as e:
+            pass
+        return author
+
+    def __generate_investigators(self):
+        """
+
+        :return:
+        """
+        if not self.noaa_data_sorted["Investigators"]:
+            try:
+                if self.noaa_data_sorted["Publication"][0]["author"]:
+                    author = get_authors_as_str(self.noaa_data_sorted["Publication"][0]["author"])
+                    # If we don't have investigator data, use the authors from the first publication entry
+                    if not author:
+                        author = self.__create_author_investigator_str()
+                    self.noaa_data_sorted["Investigators"] = author
+            except KeyError:
+                pass
+
+        return
+
+
     def __generate_study_name(self):
         """
         When a study name is not given, generate one with the format of " author - site name - year "
@@ -308,14 +360,14 @@ class LPD_NOAA(object):
 
         if not _exist:
             try:
-                _site = self.noaa_data_sorted["Site_Information"]["properties"]["siteName"]
-                _year = self.noaa_data_sorted["Publication"][0]["pubYear"]
-                _author = self.noaa_data_sorted["Publication"][0]["author"]
+                _site = self.__get_site_name_for_sn()
+                _year = self.__get_pub_year_for_sn()
+                _author = self.__get_author_for_sn()
                 _author = self.__get_author_last_name(_author)
                 study_name = "{}.{}.{}".format(_author, _site,  _year)
                 study_name = study_name.replace(" ", "_").replace(",", "_")
-            except (KeyError, Exception):
-                pass
+            except Exception as e:
+                print(e)
             self.noaa_data_sorted["Top"]["Study_Name"] = study_name
             self.noaa_data_sorted["Title"]["Study_Name"] = study_name
         return
@@ -559,6 +611,15 @@ class LPD_NOAA(object):
         :return:
         """
         logger_lpd_noaa.info("enter reorganize_geo")
+        try:
+            for k,v in self.noaa_data_sorted["Site_Information"].items():
+                try:
+                    _noaa_key = LIPD_NOAA_MAP_BY_SECTION["Site_Information"][k]
+                    self.noaa_geo[_noaa_key] = v
+                except KeyError:
+                    self.noaa_data_sorted["Ignore"][k] = v
+        except Exception:
+            pass
 
         try:
             # Geo -> Properties
@@ -760,6 +821,8 @@ class LPD_NOAA(object):
         When investigators is empty, try to get authors from the first publication instead.
         :return str author: Author names
         """
+
+        # TODO
         _author = ""
         try:
             for pub in self.noaa_data_sorted["Publication"]:
@@ -769,17 +832,20 @@ class LPD_NOAA(object):
                         if isinstance(_author_src, str):
                             try:
                                 if " and " in _author_src:
-                                    _author = _author_src.replace(" and ", "; ")
+                                    _author = _author_src.replace(" and ", ";")
                                 elif ";" in _author_src:
+                                    # Deprecated : This is unnecessary and continously adds spaces multi-file outputs
                                     # If there is a semi-colon, add a space after it, just in case it didn't have one
-                                    _author = _author_src.replace(";", "; ")
+                                    #_author = _author_src.replace(";", "; ")
+                                    pass
                                 break
                             except Exception as e:
                                 _author = ""
                         elif isinstance(_author_src, list):
                             try:
                                 for _entry in _author_src:
-                                    _author += _entry["name"].split(",")[0] + ", "
+                                    # If comma, split and take only the last name. Add semicolon separator
+                                    _author += _entry["name"].split(",")[0] + ";"
                             except Exception as e:
                                 _author = ""
         except Exception:
@@ -1281,7 +1347,6 @@ class LPD_NOAA(object):
         :param dict d:
         :return none:
         """
-        self.__reorganize_geo()
         self.__write_generic('Site_Information')
         return
 
@@ -1387,6 +1452,7 @@ class LPD_NOAA(object):
                     elif entry == "archive":
                         e = self.noaa_data_sorted["Top"]["Archive"]
                     elif entry == "dataType":
+                        # TODO Use a function to sample the column data to determine if it's a C or N
                         # Lipd uses real data types (floats, ints), NOAA wants C or N (character or numeric)
                         if col[entry] == "float":
                             e = "N"

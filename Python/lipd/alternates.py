@@ -195,7 +195,8 @@ LIPD_NOAA_MAP_BY_SECTION = {
         "eLon": "Easternmost_Longitude",
         "wLon": "Westernmost_Longitude",
         "elevation": "Elevation",
-        "politicalUnit": "Location"
+        "gcmdLocation": "Location"
+
     },
     "Data_Collection": {
         "collectionName": "Collection_Name",
@@ -292,6 +293,7 @@ LIPD_NOAA_MAP_FLAT = {
     'issue': 'Issue',
     'journal': 'Journal_Name',
     # 10.12.17 - politicalUnit is a catch-all key for state/country/other info.
+    'gcmdLocation': "Location",
     'politicalUnit': "Location",
     'location': 'Location',
     'missingValue': 'Missing_Values',
