@@ -34,10 +34,18 @@ read_csv_from_file <- function(){
   c.data=vector(mode="list",length=length(c))
   # import each csv file
   for (ci in 1:length(c)){
-    # df=read.csv(c[ci], header=FALSE, blank.lines.skip = FALSE,na.strings = c("nan", "NaN", "NAN", "NA"))
-    df=readr::read_csv(c[ci], col_names=FALSE, na = c("nan", "NaN", "NAN", "NA",""),col_types = readr::cols(),guess_max = 1e6) 
+    # Robust column type guessing with minimal overhead. Use all rows to guess 
+    # but no more.
+    # Get n.rows before reading in file
+    
+    n.rows <- length(count.fields(c[ci], blank.lines.skip = FALSE))
+    
+    df <- readr::read_csv(c[ci], col_names = FALSE,
+                          na = c("nan", "NaN", "NAN", "NA", ""),
+                          col_types = readr::cols(), guess_max = n.rows)
+    
     #check column types #nope, not now.
-   
+    
     
     # #deal with missing characters
     # blanks <- c(""," ", "NA", "NaN", "NAN", "nan","")
