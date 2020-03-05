@@ -132,9 +132,15 @@ def __write_noaas(dat, path):
     :param dict dat: NOAA data to be written
     :return none:
     """
+    try:
+        if not os.path.exists("noaa_files"):
+            os.mkdir("noaa_files")
+    except Exception as e:
+        print("write_noaas: Unable to create noaa_files directory, {}".format(e))
+
     for filename, text in dat.items():
         try:
-            with open(os.path.join(path, filename), "w+") as f:
+            with open(os.path.join(path, "noaa_files", filename), "w+") as f:
                 f.write(text)
         except Exception as e:
             print("write_noaas: There was a problem writing the NOAA text file: {}: {}".format(filename, e))
