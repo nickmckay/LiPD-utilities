@@ -434,7 +434,7 @@ class LPD_NOAA(object):
                 self.noaa_data_sorted["Description_Notes_and_Keywords"]["Description"] = ";".join(self.lsts_tmp["qc"])
         return
 
-    def __parse_dois(self, x):
+    def  __parse_dois(self, x):
         """
         Parse the Dataset_DOI field. Could be one DOI string, or a list of DOIs
         :param any x: Str or List of DOI ids
@@ -931,14 +931,22 @@ class LPD_NOAA(object):
         :return:
         """
         doi = ""
+        opts = ["DOI", "doi"]
         # Doi location: d["pub"][idx]["identifier"][0]["id"]
-        try:
-            doi = pub["DOI"][0]["id"]
-            doi = clean_doi(doi)
-        except KeyError:
-            logger_lpd_noaa.info("get_dois: KeyError: missing a doi key")
-        except Exception:
-            logger_lpd_noaa.info("get_dois: Exception: something went wrong")
+        for i in opts:
+            if i in pub:
+                try:
+                    if pub[i] and not doi:
+                        doi = pub[i]
+                        doi = clean_doi(doi)
+                    elif pub[i][0]["id"] and not doi:
+                        doi = pub[i][0]["id"]
+                        doi = clean_doi(doi)
+
+                except KeyError:
+                    logger_lpd_noaa.info("get_dois: KeyError: missing a doi key")
+                except Exception as e:
+                    logger_lpd_noaa.info("get_dois: Exception: something went wrong")
 
         # if we received a doi that's a list, we want to concat into a single string
         if isinstance(doi, list):
@@ -1428,7 +1436,7 @@ class LPD_NOAA(object):
             for name, data in table["columns"].items():
                 if name == "year":
                     # write first line in variables section here
-                    self.__write_variables_2(data)
+                    self.__write_variables_2(name, data)
                     # leave the loop, because this is all we needed to accomplish
                     break
 
@@ -1436,15 +1444,18 @@ class LPD_NOAA(object):
             for name, data in table["columns"].items():
                 # we already wrote out the year column, so don't duplicate.
                 if name != "year":
-                    self.__write_variables_2(data)
+                    self.__write_variables_2(name, data)
 
         except KeyError as e:
             logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
         return
 
-    def __write_variables_2(self, col):
+    def __write_variables_2(self, variableName, col):
         """
         Use one column of data, to write one line of data in the variables section.
+
+        :param str variableName: Variable name for the column. (inc. appended number where duplicate col names exist)
+        :param dict col: Column data for one table column
         :return none:
         """
         col = self.__convert_keys_1("Variables", col)
@@ -1458,7 +1469,10 @@ class LPD_NOAA(object):
                     # DEPRECATED: Fixed spacing for variable names.
                     # self.noaa_txt.write('{:<20}'.format('#' + str(col[entry])))
                     # Fluid spacing for variable names. Spacing dependent on length of variable names.
-                    self.noaa_txt += '{}\t'.format('#' + str(col[entry]))
+
+                    # 03.21.20: The col entry for shortname != variableName. We want variableName because it includes an
+                    # appended number when there are multiple columns with the same name. (ie. d180-2 vs d180)
+                    self.noaa_txt += '{}\t'.format('#' + str(variableName))
                 # Last entry: No space or comma
                 elif entry == "additional":
                     e = " "
