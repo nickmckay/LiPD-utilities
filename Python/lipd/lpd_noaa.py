@@ -60,7 +60,7 @@ class LPD_NOAA(object):
         # New format - 01.05.18 - present
         # self.noaa_url = "https://www1.ncdc.noaa.gov/pub/data/paleo/pages2k/nam2k-hydro-v1-1.0.0/noaa-templates/data-version-2017/{}".format(self.filename_txt)
         self.txt_file_url = "{}/{}".format(self.wds_url, self.filename_txt)
-        self.lpd_file_url = "{}/{}".format(self.lpd_url, self.filename_lpd)
+        self.online_resource_url_lipd = "{}".format(self.lpd_url)
         # List of all DOIs found in this dataset
         self.doi = []
         # Avoid writing identical pub citations. Store here as intermediate check.
@@ -114,7 +114,7 @@ class LPD_NOAA(object):
 
         # MISC SETUP FUNCTIONS
 
-        self.noaa_data_sorted["File_Last_Modified_Date"]["Modified_Date"] = generate_timestamp()
+
 
         self.__get_table_count()
 
@@ -137,8 +137,11 @@ class LPD_NOAA(object):
         self.__reorganize_sensor()
         self.__lists_to_str()
 
+        # Generate and insert data where necessary
         self.__generate_investigators()
         self.__generate_study_name()
+        self.__generate_dates()
+
 
         # END MISC SETUP FUNCTIONS
 
@@ -344,7 +347,6 @@ class LPD_NOAA(object):
 
         return
 
-
     def __generate_study_name(self):
         """
         When a study name is not given, generate one with the format of " author - site name - year "
@@ -371,6 +373,33 @@ class LPD_NOAA(object):
             self.noaa_data_sorted["Top"]["Study_Name"] = study_name
             self.noaa_data_sorted["Title"]["Study_Name"] = study_name
         return
+
+    def __generate_dates(self):
+        """
+        Generate Modified Date and Contribution data. Insert where necessary.
+
+        :return:
+        """
+        self.noaa_data_sorted["File_Last_Modified_Date"]["Modified_Date"] = generate_timestamp()
+        try:
+            if not self.noaa_data_sorted["Contribution_Date"]["Date"]:
+                self.noaa_data_sorted["Contribution_Date"]["Date"] = generate_timestamp()
+        except KeyError:
+            self.noaa_data_sorted["Contribution_Date"] = {"Date": generate_timestamp()}
+        return
+
+    def __is_numeric(self, col):
+        """
+        Check if the columns value are numeric or character. C or N
+
+        :return:
+        """
+        # If the column has "hasMax" "hasMedian", and other column calculations, that means it's a numeric value
+        if "hasMax" in col:
+            return True
+        # No calculations, False. Because no calculations can be done on character values
+        return False
+
 
     def __is_notes(self):
         """
@@ -405,7 +434,7 @@ class LPD_NOAA(object):
                 self.noaa_data_sorted["Description_Notes_and_Keywords"]["Description"] = ";".join(self.lsts_tmp["qc"])
         return
 
-    def __parse_dois(self, x):
+    def  __parse_dois(self, x):
         """
         Parse the Dataset_DOI field. Could be one DOI string, or a list of DOIs
         :param any x: Str or List of DOI ids
@@ -649,17 +678,23 @@ class LPD_NOAA(object):
         # Check if any of the sensor data is misplaced, and create corrected lists.
         if self.lsts_tmp["genus"]:
             for name in self.lsts_tmp["genus"]:
-                if len(name) == 4 and name.isupper():
-                    _code.append(name)
-                else:
-                    _name.append(name)
+                try:
+                    if len(name) == 4 and name.isupper():
+                        _code.append(name)
+                    else:
+                        _name.append(name)
+                except Exception as e:
+                    print("lpd_noaa: reorganize_sensor: {}".format(e))
 
         if self.lsts_tmp["species"]:
             for name in self.lsts_tmp["species"]:
-                if len(name) != 4 and not name.isupper():
-                    _name.append(name)
-                else:
-                    _code.append(name)
+                try:
+                    if len(name) == 4 and name.isupper():
+                        _code.append(name)
+                    else:
+                        _name.append(name)
+                except Exception as e:
+                    print("lpd_noaa: reorganize_sensor: {}".format(e))
 
         # Set the strings into the noaa data sorted
         self.lsts_tmp["species"] = _name
@@ -896,14 +931,22 @@ class LPD_NOAA(object):
         :return:
         """
         doi = ""
+        opts = ["DOI", "doi"]
         # Doi location: d["pub"][idx]["identifier"][0]["id"]
-        try:
-            doi = pub["DOI"][0]["id"]
-            doi = clean_doi(doi)
-        except KeyError:
-            logger_lpd_noaa.info("get_dois: KeyError: missing a doi key")
-        except Exception:
-            logger_lpd_noaa.info("get_dois: Exception: something went wrong")
+        for i in opts:
+            if i in pub:
+                try:
+                    if pub[i] and not doi:
+                        doi = pub[i]
+                        doi = clean_doi(doi)
+                    elif pub[i][0]["id"] and not doi:
+                        doi = pub[i][0]["id"]
+                        doi = clean_doi(doi)
+
+                except KeyError:
+                    logger_lpd_noaa.info("get_dois: KeyError: missing a doi key")
+                except Exception as e:
+                    logger_lpd_noaa.info("get_dois: Exception: something went wrong")
 
         # if we received a doi that's a list, we want to concat into a single string
         if isinstance(doi, list):
@@ -959,18 +1002,19 @@ class LPD_NOAA(object):
         :return none:
         """
         if isinstance(x, dict):
-            if "sensorGenus" in x:
-                if x["sensorGenus"] and x["sensorGenus"] not in self.lsts_tmp["genus"]:
-                    self.lsts_tmp["genus"].append(x["sensorGenus"])
-            if "sensorSpecies" in x:
-                if x["sensorSpecies"] and x["sensorSpecies"] not in self.lsts_tmp["species"]:
-                    self.lsts_tmp["species"].append(x["sensorSpecies"])
-            if "archiveType" in x:
-                if x["archiveType"] and x["archiveType"] not in self.lsts_tmp["archive"]:
-                    self.lsts_tmp["archive"].append(x["archiveType"])
-            if "QCnotes" in x:
-                if x["QCnotes"] and x["QCnotes"] not in self.lsts_tmp["qc"]:
-                    self.lsts_tmp["qc"].append(x["QCnotes"])
+            _map = {
+                "sensorGenus": "genus",
+                "sensorSpecies": "species",
+                "archiveType": "archive",
+                "QCnotes": "qc"
+            }
+            # Put the data in lsts_tmp if it matches the conditions
+            for key1, key2 in _map.items():
+                if key1 in x:
+                    if x[key1] and x[key1] not in self.lsts_tmp[key2]:
+                        if isinstance(x[key1], str):
+                            self.lsts_tmp[key2].append(x[key1])
+
 
             for k, v in x.items():
                 if isinstance(v, dict):
@@ -1236,7 +1280,7 @@ class LPD_NOAA(object):
         # We don't know what the full online resource path will be yet, so leave the base path only
         self.__write_k_v("Online_Resource", "{}/{}".format(self.wds_url, filename_txt), top=True)
         self.__write_k_v("Online_Resource_Description", " This file.  NOAA WDS Paleo formatted metadata and data for version {} of this dataset.".format(self.version), indent=True)
-        self.__write_k_v("Online_Resource", "{}".format(self.lpd_file_url), top=True)
+        self.__write_k_v("Online_Resource", "{}".format(self.online_resource_url_lipd), top=True)
         self.__write_k_v("Online_Resource_Description", " Linked Paleo Data (LiPD) formatted file containing the same metadata and data as this file, for version {} of this dataset.".format(self.version), indent=True)
         self.__write_k_v("Original_Source_URL", self.noaa_data_sorted["Top"]['Original_Source_URL'], top=True)
         self.noaa_txt += "\n# Description/Documentation lines begin with #\n# Data lines have no #\n#"
@@ -1392,7 +1436,7 @@ class LPD_NOAA(object):
             for name, data in table["columns"].items():
                 if name == "year":
                     # write first line in variables section here
-                    self.__write_variables_2(data)
+                    self.__write_variables_2(name, data)
                     # leave the loop, because this is all we needed to accomplish
                     break
 
@@ -1400,15 +1444,18 @@ class LPD_NOAA(object):
             for name, data in table["columns"].items():
                 # we already wrote out the year column, so don't duplicate.
                 if name != "year":
-                    self.__write_variables_2(data)
+                    self.__write_variables_2(name, data)
 
         except KeyError as e:
             logger_lpd_noaa.warn("write_variables: KeyError: {} not found".format(e))
         return
 
-    def __write_variables_2(self, col):
+    def __write_variables_2(self, variableName, col):
         """
         Use one column of data, to write one line of data in the variables section.
+
+        :param str variableName: Variable name for the column. (inc. appended number where duplicate col names exist)
+        :param dict col: Column data for one table column
         :return none:
         """
         col = self.__convert_keys_1("Variables", col)
@@ -1417,12 +1464,15 @@ class LPD_NOAA(object):
         for entry in NOAA_KEYS_BY_SECTION["Variables"]:
             # May need a better way of handling this in the future. Need a strict list for this section.
             try:
-                # First entry: Add extra hash and tab
+                # First entry: Add extra hash # and tab \t
                 if entry == 'shortname':
                     # DEPRECATED: Fixed spacing for variable names.
                     # self.noaa_txt.write('{:<20}'.format('#' + str(col[entry])))
                     # Fluid spacing for variable names. Spacing dependent on length of variable names.
-                    self.noaa_txt += '{}\t'.format('#' + str(col[entry]))
+
+                    # 03.21.20: The col entry for shortname != variableName. We want variableName because it includes an
+                    # appended number when there are multiple columns with the same name. (ie. d180-2 vs d180)
+                    self.noaa_txt += '{}\t'.format('#' + str(variableName))
                 # Last entry: No space or comma
                 elif entry == "additional":
                     e = " "
@@ -1446,15 +1496,22 @@ class LPD_NOAA(object):
                     #         e = ""
                     if entry == "seasonality":
                         try:
-                            e = str(col["climateInterpretation"][entry])
+                            # Issue #54, 02.23.2020, seasonality mapping changed.
+                            e = str(col["interpretation"][0]['scope'])
                         except KeyError:
                             e = ""
+                    elif entry == "what":
+                        # If "what" is empty, fill it in with shortname (Issue #54)
+                        if not col[entry]:
+                            e = str(col["shortname"])
+                        else:
+                            e = str(col[entry])
                     elif entry == "archive":
                         e = self.noaa_data_sorted["Top"]["Archive"]
                     elif entry == "dataType":
-                        # TODO Use a function to sample the column data to determine if it's a C or N
+                        # Use a function to sample the column data to determine if it's a C or N
                         # Lipd uses real data types (floats, ints), NOAA wants C or N (character or numeric)
-                        if col[entry] == "float":
+                        if self.__is_numeric(col):
                             e = "N"
                         else:
                             e = "C"
@@ -1617,17 +1674,10 @@ class LPD_NOAA(object):
         :param list l: variableNames
         :return none:
         """
-        count = len(l)
         if pc == "chron":
             self.noaa_txt += "# "
         for name in l:
-            # last column - spacing not important
-            if count == 1:
-                self.noaa_txt += "{}\t".format(name)
-            # all [:-1] columns - fixed spacing to preserve alignment
-            else:
-                self.noaa_txt += "{:<15}".format(name)
-                count -= 1
+            self.noaa_txt += "{}\t".format(name)
 
         self.noaa_txt += '\n'
 
@@ -1644,7 +1694,7 @@ class LPD_NOAA(object):
             for idx in range(0, _items_in_cols):
                 # amount of columns
                 _count = len(ll)
-                self.noaa_txt += "# "
+                # (Issue #54, 02.23.2020, do not put # at front of data table values anymore)
                 for col in ll:
                     self.noaa_txt += "{}\t".format(str(col["values"][idx]))
                     _count -= 1

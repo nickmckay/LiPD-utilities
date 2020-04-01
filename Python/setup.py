@@ -7,7 +7,7 @@ from distutils.command.install import install
 from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.7.3'
+version = '0.2.7.5'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -15,7 +15,8 @@ if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
 
 readme_file = io.open('README.txt', encoding='utf-8')
 # Fallback long_description in case errors with readme file.
-long_description = "Welcome to LiPD. Please reference the README file in the package for information"
+# long_description = "Welcome to LiPD. Please reference the README file in the package for information"
+
 with readme_file:
     long_description = readme_file.read()
 
@@ -25,7 +26,7 @@ if sys.argv[-1] == 'publish':
     os.system('python3 setup.py register')
     # os.system('python3 setup.py sdist upload')
     os.system('python3 setup.py sdist')
-    os.system('twine upload dist/*')
+    os.system('twine upload dist/* --skip-existing')
     os.remove('README.txt')
     sys.exit()
 
@@ -50,7 +51,7 @@ setup(
     url='https://github.com/nickmckay/LiPD-utilities',
     license='GNU Public',
     description='LiPD utilities to process, convert, and analyze data.',
-    long_description=long_description,
+    # long_description=long_description,
     long_description_content_type="text/markdown",
     keywords="paleo R matlab python paleoclimatology linkedearth",
     install_requires=[

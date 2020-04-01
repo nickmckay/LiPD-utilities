@@ -196,6 +196,10 @@ def noaa(D="", path="", wds_url="", lpd_url="", version=""):
         if not D:
             print("Error: LiPD data must be provided for LiPD -> NOAA conversions")
         else:
+            try:
+                os.mkdir("noaa_files")
+            except FileExistsError:
+                pass
             if "paleoData" in D:
                 _d = copy.deepcopy(D)
                 D = lpd_to_noaa(_d, wds_url, lpd_url, version, path)
@@ -248,6 +252,7 @@ def doi(D, force=False):
     """
     D = doi_main(D, force)
     return D
+
 
 def fetchDoiWithCsv(csv_source, write_file=True):
     """
