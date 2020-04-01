@@ -130,6 +130,9 @@ extract_pc=function(L, root, whichtables, mode){
             for(p3 in 1:length(MODEL$ensembleTable)){
               TABLE <- MODEL$ensembleTable[[p3]]
               if(!is.null(TABLE)){
+                current[[paste0(mode,"Number")]] <- p1
+                current[["modelNumber"]] <- p2
+                current[["tableNumber"]] <- p3
                 TS <- extract_table(TABLE, "ens", pc, TS, current)
               }
             }

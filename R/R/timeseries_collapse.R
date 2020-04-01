@@ -62,7 +62,7 @@ collapseTs <- function(ts, force=FALSE){
 
 is_include_key <- function(key, pc){
   exclude <- c("mode", "whichtables", "paleoNumber", "chronNumber", "tableNumber", "modelNumber", "timeID", "tableType",
-               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution", "physicalSample",
+               "raw", "depth", "depthUnits", "age", "ageUnits", "interpretation", "calibration", "hasResolution","inCompilationBeta", "physicalSample",
                "depthUnits","year","yearUnits")
   match_idx <- stringr::str_match_all(key, "(\\w+)(\\d+)[_](\\w+)")
   match_non_idx <- stringr::str_match_all(key, "(\\w+)[_](\\w+)")
@@ -203,7 +203,8 @@ collapse_column <- function(table, entry, pc){
   calib <- list()
   res <- list()
   phys <- list()
-  include <- c("paleoData", "chronData", "interpretation", "calibration", "hasResolution") 
+  inComp <- list()
+  include <- c("paleoData", "chronData", "interpretation", "calibration", "hasResolution","inCompilationBeta") 
   exclude <- c('filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5", "googWorkSheetKey", "pub", "geo")
   ts_keys <- names(entry)
   
@@ -219,6 +220,8 @@ collapse_column <- function(table, entry, pc){
         res <- collapse_block(entry, res, curr_key, pc)
       } else if (grepl("physicalSample", curr_key)){
         phys <- collapse_block(entry, phys, curr_key, pc)
+      } else if (grepl("inCompilationBeta", curr_key)){
+        inComp <- collapse_block_indexed(entry, inComp, curr_key, pc)
       } else if (grepl(pc, curr_key)){
         new_column <- collapse_block(entry, new_column, curr_key, pc)
       }
@@ -235,6 +238,9 @@ collapse_column <- function(table, entry, pc){
     }
     if(!isNullOb(phys)){
       new_column[["physicalSample"]] <- phys
+    }
+    if(!isNullOb(inComp)){
+      new_column[["inCompilationBeta"]] <- inComp
     }
     vn <- get_vn(new_column[["variableName"]], names(table))
     # Set the new column into the table using the variableName
@@ -542,14 +548,14 @@ rm_existing_tables <- function(d, pc, whichtables){
               if(whichtables %in% c("summ")){
                 if("summaryTable" %in% d[[pc]][[i]][["model"]][[j]]){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["summaryTable"]])){
-                    d[[pc]][[i]][["model"]][[j]][["summaryTable"]][[k]] < list()
+                    d[[pc]][[i]][["model"]][[j]][["summaryTable"]][[k]] <- list()
                   }
                 }
               }
               if (whichtables %in% c("ens","all")){
-                if("ensembleTable" %in% d[[pc]][[i]][["model"]][[j]]){
+                if("ensembleTable" %in% names(d[[pc]][[i]][["model"]][[j]])){
                   for(k in 1:length(d[[pc]][[i]][["model"]][[j]][["ensembleTable"]])){
-                    d[[pc]][[i]][["model"]][[j]][["ensembleTable"]][[k]] < list()
+                    d[[pc]][[i]][["model"]][[j]][["ensembleTable"]][[k]] <- list()
                   }
                 }
               }
