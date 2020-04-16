@@ -76,6 +76,7 @@ read_csv_from_file <- function(){
 #' Write out each CSV file for this LiPD recorde
 #' csvs format: [ some_filename.csv $columns.data ]
 #' @export
+#' @importFrom utils write.table
 #' @keywords internal
 #' @param list csvs: CSV data
 #' @return bool success: CSV write success or fail
