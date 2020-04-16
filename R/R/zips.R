@@ -1,5 +1,6 @@
 #' Unzip LiPD file to the temporary directory
 #' @export
+#' @importFrom utils unzip
 #' @keywords internal
 #' @param char path: Path
 #' @param char tmp: Temporary directory
