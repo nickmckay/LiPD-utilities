@@ -33,5 +33,6 @@ Imports:
 	RJSONIO,
 	jsonlite,
 	BBmisc,
-    arsenal
+    arsenal,
+    rlang
 Suggests: testthat
