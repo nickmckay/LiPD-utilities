@@ -1,8 +1,9 @@
 
 #' @export
 #' @importFrom dplyr bind_cols bind_rows group_by
-#' @import tibble data.table
+#' @import tibble
 #' @importFrom purrr map_df
+#' @importFrom utils setTxtProgressBar
 #' @import arsenal
 #' @import data.table
 #' @family LiPD manipulation
