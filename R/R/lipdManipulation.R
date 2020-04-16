@@ -3,7 +3,7 @@
 #' @importFrom dplyr bind_cols bind_rows group_by
 #' @import tibble
 #' @importFrom purrr map_df
-#' @importFrom utils setTxtProgressBar
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @import arsenal
 #' @import data.table
 #' @family LiPD manipulation
