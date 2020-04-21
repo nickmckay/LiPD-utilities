@@ -1,5 +1,6 @@
 #' Unzip LiPD file to the temporary directory
 #' @export
+#' @importFrom utils unzip
 #' @keywords internal
 #' @param char path: Path
 #' @param char tmp: Temporary directory
@@ -15,6 +16,7 @@ unzipper <- function(path, dir_tmp){
 
 #' Zip a directory, and move up a level
 #' @export
+#' @importFrom utils zip
 #' @keywords internal
 #' @param char dir_original: Directory to move the LiPD to
 #' @param char dir_tmp:  Temp directory
