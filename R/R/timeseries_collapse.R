@@ -221,7 +221,7 @@ collapse_column <- function(table, entry, pc){
       } else if (grepl("physicalSample", curr_key)){
         phys <- collapse_block(entry, phys, curr_key, pc)
       } else if (grepl("inCompilationBeta", curr_key)){
-        inComp <- collapse_block_indexed(entry, inComp, curr_key, pc)
+        inComp <- collapse_block_indexed(entry, inComp, curr_key)
       } else if (grepl(pc, curr_key)){
         new_column <- collapse_block(entry, new_column, curr_key, pc)
       }

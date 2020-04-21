@@ -1,3 +1,43 @@
+#' Get measTables
+#'
+#' @param L a Lipd file
+#' @param pc paleo or chron tables? (default= "all)
+#'
+#' @return a list of data.frames
+#' @export
+getMeasurementTables <- function(L,pc = "all"){
+  if(pc == "all"){
+    pc <- c("paleo","chron")
+  }  
+  
+  at <- list()#initialize alltables
+  for(tpc in pc){
+    PC <- L[[paste0(tpc,"Data")]]
+    
+    for(ni in 1:length(PC)){
+      for(mi in 1:length(PC[[ni]]$measurementTable)){
+        TT <- PC[[ni]]$measurementTable[[mi]]
+        loTT <- TT[purrr::map_lgl(TT,is.list)]
+        tt <- loTT[[1]]$values
+        tnames <- loTT[[1]]$variableName
+        if(length(loTT) > 1){
+          for(c in 2:length(loTT)){
+            tt <- cbind(tt,loTT[[c]]$values)
+            tnames <- c(tnames,loTT[[c]]$variableName)
+          }
+        }
+        tt <- as.data.frame(tt)
+        names(tt) <- tnames
+        
+        #add into a list
+        at[[paste0(tpc,ni,"meas",mi)]] <- tt
+        
+      }
+    }
+  }
+  return(at)
+}
+
 #' Replace all blank values in csv matrices
 #' @export
 #' @keywords internal
