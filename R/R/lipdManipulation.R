@@ -1,7 +1,8 @@
 
 #' @export
 #' @importFrom dplyr bind_cols bind_rows group_by
-#' @import tibble
+#' @importFrom rlang .data
+#' @import tibble data.table
 #' @importFrom purrr map_df
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @import arsenal
@@ -148,7 +149,7 @@ tidyTs <- function(TS){
     
   }
   #tidyData <- as.tibble(tidyData)
-  tidyData <- dplyr::group_by(tidyData,paleoData_TSid)
+  tidyData <- dplyr::group_by(tidyData, .data$paleoData_TSid)
   return(tidyData)
 }
 
