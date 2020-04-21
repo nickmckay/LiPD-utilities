@@ -4,6 +4,7 @@
 #' @importFrom rlang .data
 #' @import tibble data.table
 #' @importFrom purrr map_df
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @import arsenal
 #' @import data.table
 #' @family LiPD manipulation

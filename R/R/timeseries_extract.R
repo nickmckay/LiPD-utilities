@@ -454,6 +454,7 @@ splitInterpretationByScope <- function(TS){
 
 #' Combine interpretations by scope
 #' @export
+#' @importFrom stats na.omit
 #' @param sTS 
 #' @return a regular Timeseries structure
 combineInterpretationByScope <- function(sTS){
