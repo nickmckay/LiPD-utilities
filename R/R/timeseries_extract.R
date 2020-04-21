@@ -266,7 +266,7 @@ validate_parameters=function(D, L, whichtables, mode){
   
   # dataSetName not provided. Exit(1), we can't continue without it. 
   if(!any(names(L)=="dataSetName")){
-    stop(names(D)[d],"has no dataSetName. This is forbidden.")
+    stop(names(L),"has no dataSetName. This is forbidden.")
   }
   # The target paleo or chron is not provided. Exit(1), Cannot process what's not there.
   if(!any(names(L)=="paleoData") && mode == "paleo"){
