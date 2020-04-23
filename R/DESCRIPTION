@@ -38,5 +38,4 @@ Imports:
     dplyr,
     tibble,
     purrr
-    
 Suggests: testthat
