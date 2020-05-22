@@ -386,8 +386,11 @@ for ctg = 1:length(columnsToGrab) %which columns to grab? These are your timeser
             for hii = 1:length(thisHierData)
                 thdNames = fieldnames(thisHierData{hii});
                 %thdNames = thdNames(~structfun(@iscell, thisHierData{hii}) & ~structfun(@isstruct, thisHierData{hii}));
+                
+                
+                
                 if any(structfun(@iscell, thisHierData{hii}) | structfun(@isstruct, thisHierData{hii}))
-                    warning([L.dataSetName ': has structures or cell in a cell at the sub-column level. This is beyond current capacity'])
+                    %warning([L.dataSetName ': has structures or cell in a cell at the sub-column level. This is beyond current capacity'])
                 end
                 for hieri = 1:length(thdNames)
                     %assign = non lists

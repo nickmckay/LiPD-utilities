@@ -23,7 +23,8 @@ download_from_url <- function(path){
   # Test if the string is a URL or not
   if(is.url(path)){
     # Prompt user to enter a DSN or some type of filename
-    dsn <- readline("Please enter the dataset name for this file (Name.Location.Year) : ")
+    #dsn <- readline("Please enter the dataset name for this file (Name.Location.Year) : ")
+    dsn <- stringr::str_sub(basename(path),1,-5)
     # String together a local download path
     dir <- get_download_path()
     local_path <- paste0(dir, dsn, ".lpd")
