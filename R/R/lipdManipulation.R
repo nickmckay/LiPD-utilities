@@ -118,13 +118,26 @@ tidyTs <- function(TS){
     #replicate the metadata to each observation row
     short <- which(al2==1)
     mdf <- suppressWarnings(as.data.frame(ti[short]))
+    
+    #any columns in mdf not in pcolnames?
+    if(any(!names(mdf) %in% pcolnames)){#if so, remove that from mdf
+      nname <- names(mdf)[!names(mdf) %in% pcolnames]
+      mdf <- dplyr::select(mdf, -nname) 
+    }
+    
     meta.df <- purrr::map_df(seq_len(nrow(sdf)), ~mdf)
     
     #combine them together
     tdf <- dplyr::bind_cols(sdf,meta.df)
     er <- nrow(tdf)+sr-1
+    
+    
+
+    
     nm <- match(names(tdf),pcolnames)
     #if(i == 1){
+
+    
     set(tidyData, i= sr:er,j = nm, tdf)
     
     # }else{
