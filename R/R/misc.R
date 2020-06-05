@@ -45,7 +45,7 @@ download_from_url <- function(path){
     dsn <- stringr::str_sub(basename(path),1,-5)
     # String together a local download path
     dir <- get_download_path()
-    local_path <- file.path(dir, dsn, ".lpd")
+    local_path <- file.path(dir, paste0(dsn, ".lpd"))
     # Initiate download
     download.file(path, local_path, method = "auto")
     # Set the local path as our output path
