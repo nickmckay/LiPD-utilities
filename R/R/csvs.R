@@ -1,3 +1,43 @@
+#' Get measTables
+#'
+#' @param L a Lipd file
+#' @param pc paleo or chron tables? (default= "all)
+#'
+#' @return a list of data.frames
+#' @export
+getMeasurementTables <- function(L,pc = "all"){
+  if(pc == "all"){
+    pc <- c("paleo","chron")
+  }  
+  
+  at <- list()#initialize alltables
+  for(tpc in pc){
+    PC <- L[[paste0(tpc,"Data")]]
+    
+    for(ni in 1:length(PC)){
+      for(mi in 1:length(PC[[ni]]$measurementTable)){
+        TT <- PC[[ni]]$measurementTable[[mi]]
+        loTT <- TT[purrr::map_lgl(TT,is.list)]
+        tt <- loTT[[1]]$values
+        tnames <- loTT[[1]]$variableName
+        if(length(loTT) > 1){
+          for(c in 2:length(loTT)){
+            tt <- cbind(tt,loTT[[c]]$values)
+            tnames <- c(tnames,loTT[[c]]$variableName)
+          }
+        }
+        tt <- as.data.frame(tt)
+        names(tt) <- tnames
+        
+        #add into a list
+        at[[paste0(tpc,ni,"meas",mi)]] <- tt
+        
+      }
+    }
+  }
+  return(at)
+}
+
 #' Replace all blank values in csv matrices
 #' @export
 #' @keywords internal
@@ -25,15 +65,15 @@ clean_csv <- function(csvs){
 
 #' Opens the target CSV file and creates a dictionary with one list for each CSV column.
 #' @export
-#' @importFrom utils read.csv
+#' @importFrom readr read_csv
+#' @importFrom utils count.fields
 #' @keywords internal
 #' @return data.list List of data for one LiPD file
-#' @import readr
 read_csv_from_file <- function(){
   c <- list_files_recursive("csv")
-  c.data=vector(mode="list",length=length(c))
+  c.data <- vector(mode="list",length=length(c))
   # import each csv file
-  for (ci in 1:length(c)){
+  for (ci in seq_along(c)){
     # Robust column type guessing with minimal overhead. Use all rows to guess 
     # but no more.
     # Get n.rows before reading in file
@@ -60,7 +100,7 @@ read_csv_from_file <- function(){
       # Create N columns with one NA value in each
       col <- ncol(df)
       tmp <- list()
-      for(j in 1:length(df)){
+      for(j in seq_along(df)){
         tmp[[j]] <- as.double(rep(NA,8)) 
       }
       c.data[[c[ci]]]=tmp
@@ -76,6 +116,7 @@ read_csv_from_file <- function(){
 #' Write out each CSV file for this LiPD recorde
 #' csvs format: [ some_filename.csv $columns.data ]
 #' @export
+#' @importFrom utils write.table
 #' @keywords internal
 #' @param list csvs: CSV data
 #' @return bool success: CSV write success or fail

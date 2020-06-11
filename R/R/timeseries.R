@@ -72,7 +72,8 @@ process_expression <- function(ts, expression, exact=FALSE){
   results <- list()
   results[["idx"]] <- list()
   results[["new_ts"]] <- ts
-  # Single query
+
+    # Single query
   if(is.character(expression)){
     # use the regex to get the <key><operator><value> groups from the given expression
     m = stringr::str_match_all(expression, "([\\w\\s\\d]+)([<>=]+)([\\s\\w\\d\\.\\-\\/]+)")

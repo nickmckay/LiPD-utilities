@@ -17,19 +17,40 @@ create_range <- function(start, len){
 #' @export
 #' @keywords internal
 #' @param path URL path to LiPD file
+#' @importFrom utils download.file
 #' @return path Local path to downloaded file
 download_from_url <- function(path){
   # Test if the string is a URL or not
   if(is.url(path)){
+    pext <- tools::file_ext(path)
+    if(pext == "zip"){#download and unzip
+      #create a download dir:
+      dp <- file.path(tempdir(),"lpdDownload")
+      if(dir.exists(dp)){#delete it. 
+        unlink(dp)
+      }
+      #create the directory
+      dir.create(file.path(tempdir(),"lpdDownload"))
+      
+      #download it
+      download.file(path, file.path(tempdir(), "zippedLipds.zip"), method = "auto")
+      
+      #unzip it
+      unzip(zipfile = file.path(tempdir(), "zippedLipds.zip"),exdir = dp)
+      
+      path <- dp
+    }else{
     # Prompt user to enter a DSN or some type of filename
-    dsn <-readline("Please enter the dataset name for this file (Name.Location.Year) : ")
+    #dsn <- readline("Please enter the dataset name for this file (Name.Location.Year) : ")
+    dsn <- stringr::str_sub(basename(path),1,-5)
     # String together a local download path
     dir <- get_download_path()
-    local_path <- paste0(dir, dsn, ".lpd")
+    local_path <- file.path(dir, paste0(dsn, ".lpd"))
     # Initiate download
     download.file(path, local_path, method = "auto")
     # Set the local path as our output path
     path <- local_path
+    }
   }
   return(path)
 }
@@ -39,16 +60,17 @@ download_from_url <- function(path){
 #' @keywords internal
 #' @return char dst_path: Destination directory
 get_download_path <- function(){
-  dst_path <- ""
-  os <- "windows"
-  os <- get_os()
-  if(os=="osx" || os=="unix"){
-    dst_path <- "~/Downloads"
-  }
-  else if(os =="windows" || os == "unknown"){
-    # Not sure how to get default download folder in windows. Please have user locate a dir. 
-    dst_path <- browse_dialog("d")
-  }
+  # dst_path <- ""
+  # os <- "windows"
+  # os <- get_os()
+  # if(os=="osx" || os=="unix"){
+  #   dst_path <- "~/Downloads"
+  # }
+  # else if(os =="windows" || os == "unknown"){
+  #   # Not sure how to get default download folder in windows. Please have user locate a dir. 
+  #   dst_path <- browse_dialog("d")
+  # }
+  dst_path <- tempdir()
   return(dst_path)
 }
 

@@ -1,8 +1,10 @@
 
 #' @export
 #' @importFrom dplyr bind_cols bind_rows group_by
+#' @importFrom rlang .data
 #' @import tibble data.table
 #' @importFrom purrr map_df
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @import arsenal
 #' @import data.table
 #' @family LiPD manipulation
@@ -116,13 +118,26 @@ tidyTs <- function(TS){
     #replicate the metadata to each observation row
     short <- which(al2==1)
     mdf <- suppressWarnings(as.data.frame(ti[short]))
+    
+    #any columns in mdf not in pcolnames?
+    if(any(!names(mdf) %in% pcolnames)){#if so, remove that from mdf
+      nname <- names(mdf)[!names(mdf) %in% pcolnames]
+      mdf <- dplyr::select(mdf, -nname) 
+    }
+    
     meta.df <- purrr::map_df(seq_len(nrow(sdf)), ~mdf)
     
     #combine them together
     tdf <- dplyr::bind_cols(sdf,meta.df)
     er <- nrow(tdf)+sr-1
+    
+    
+
+    
     nm <- match(names(tdf),pcolnames)
     #if(i == 1){
+
+    
     set(tidyData, i= sr:er,j = nm, tdf)
     
     # }else{
@@ -147,7 +162,7 @@ tidyTs <- function(TS){
     
   }
   #tidyData <- as.tibble(tidyData)
-  tidyData <- dplyr::group_by(tidyData,paleoData_TSid)
+  tidyData <- dplyr::group_by(tidyData, .data$paleoData_TSid)
   return(tidyData)
 }
 

@@ -40,6 +40,9 @@ stripExtension <- function(filename){
 #' L <- readLipd("/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
 #' 
 readLipd <- function(path=NULL){
+  #get cwd
+  swd <- getwd()
+  
   D = list()
   # Warnings are annoying, we don't want them
   options(warn = -1)
@@ -76,7 +79,8 @@ readLipd <- function(path=NULL){
       D <- D[[1]]
     }
   }
-
+#return to starting working directory
+  setwd(swd)
   return(D)
 }
   

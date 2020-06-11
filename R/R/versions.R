@@ -219,6 +219,7 @@ update_lipd_v1_3 <- function(d){
 
 #' Update v1.2 keys to v1.3 keys: recursive
 #' @export
+#' @importFrom stats setNames
 #' @keywords internal
 #' @param list d: Metadata
 #' @return list d: Metadata

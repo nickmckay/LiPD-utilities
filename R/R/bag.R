@@ -70,7 +70,7 @@ bagit <- function(dir_bag){
       fake_bagit(dir_bag)
     }
   }, error=function(cond){
-    print(paste0("Error: bagit: There was an error while prepping for Bagit: ", cond))
+    print(paste0("Warning: bagit: There was an error while prepping for Bagit: \n Continuing to write LiPD file without bagging ", cond))
     fake_bagit(dir_bag)
   })
 }
