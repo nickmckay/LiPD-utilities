@@ -17,7 +17,7 @@ from lipd.fetch_doi import update_dois
 from lipd.download_lipd import download_from_url, get_download_path
 
 import re
-from time import clock
+from time import process_time as clock
 import os
 import json
 import copy
