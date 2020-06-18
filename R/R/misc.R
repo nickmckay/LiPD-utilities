@@ -24,8 +24,10 @@ download_from_url <- function(path){
   # Test if the string is a URL or not
   if(is.url(path)){
     #check for libcurl
-    if(!capabilities("libcurl")){
-      stop("libcurl must be functional for download to work")
+    if(get_os() == "win"){
+      dmeth <- "curl"
+    }else{
+      dmeth <- "auto"
     }
     pext <- tools::file_ext(path)
     if(pext == "zip"){#download and unzip
@@ -38,7 +40,7 @@ download_from_url <- function(path){
       dir.create(file.path(get_download_path(),"lpdDownload"))
       
       #download it
-      download.file(path, file.path(get_download_path(), "zippedLipds.zip"), method = "libcurl")
+      download.file(path, file.path(get_download_path(), "zippedLipds.zip"), method = dmeth)
       
       #unzip it
       unzip(zipfile = file.path(get_download_path(), "zippedLipds.zip"),exdir = dp)
@@ -50,7 +52,7 @@ download_from_url <- function(path){
       dir <- get_download_path()
       local_path <- file.path(dir, paste0(dsn, ".lpd"))
       # Initiate download
-      download.file(path, local_path, method = "libcurl")
+      download.file(path, local_path, method = dmeth)
       # Set the local path as our output path
       path <- local_path
     }
@@ -65,7 +67,7 @@ download_from_url <- function(path){
 get_download_path <- function(){
   # dst_path <- ""
   # os <- "windows"
-  os <- get_os()
+  # os <- get_os()
   # if(os=="osx" || os=="unix"){
   #   dst_path <- "~/Downloads"
   # }
@@ -73,14 +75,14 @@ get_download_path <- function(){
   #   # Not sure how to get default download folder in windows. Please have user locate a dir. 
   #   dst_path <- browse_dialog("d")
   # }
-  if(grepl("win",os,ignore.case = TRUE) || os == "unknown"){
-    if(!dir.exists("~/lipdTempDir")){
-      dir.create("~/lipdTempDir")
-    }
-    dst_path <- "~/lipdTempDir"
-  }else{#just use tempdir
+  # if(grepl("win",os,ignore.case = TRUE) || os == "unknown"){
+  #   if(!dir.exists("~/lipdTempDir")){
+  #     dir.create("~/lipdTempDir")
+  #   }
+  #   dst_path <- "~/lipdTempDir"
+  # }else{#just use tempdir
     dst_path <- tempdir()
-  }
+  #}
   return(dst_path)
 }
 
