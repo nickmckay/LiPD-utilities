@@ -31,7 +31,7 @@ Welcome to LiPD Utilities in R . This guide will provide everything you need to 
 ## Requirements
 
 
-R, the language, is availalble from CRAN. R Studio is an IDE that will work using R and make your workflow much easier. Software version numbers are listed at the top of this README file.  If you do not have any datasets in LiPD format yet, feel free to experiment with the one below. 
+R, the language, is availalble from CRAN. R Studio is an IDE that will work using R and make your workflow much easier. R Tools is required for Windows users. Software version numbers are listed at the top of this README file.  If you do not have any datasets in LiPD format yet, feel free to experiment with the one below. 
 
 **R**
 
@@ -40,8 +40,12 @@ https://cran.r-project.org
  **R Studio**
 
  https://www.rstudio.com
+ 
+ **R Tools (Windows Users)**
+ 
+ https://cran.r-project.org/bin/windows/Rtools/
 
-**LiPD file**
+**LiPD file (for test purposes)**
 
 [ODP1098B13.lpd](https://github.com/nickmckay/LiPD-utilities/raw/master/Examples/ODP1098B13.lpd)
 
