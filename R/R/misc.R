@@ -68,7 +68,7 @@ get_download_path <- function(){
   #   # Not sure how to get default download folder in windows. Please have user locate a dir. 
   #   dst_path <- browse_dialog("d")
   # }
-  if(os =="windows" || os == "unknown"){
+  if(grepl("win",os,ignore.case = TRUE) || os == "unknown"){
     if(!dir.exists("~/lipdTempDir")){
       dir.create("~/lipdTempDir")
     }
