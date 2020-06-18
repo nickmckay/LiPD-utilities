@@ -72,7 +72,7 @@ get_download_path <- function(){
     if(!dir.exists("~/lipdTempDir")){
       dir.create("~/lipdTempDir")
     }
-    dst_path <- tempdir("~/lipdTempDir")
+    dst_path <- "~/lipdTempDir"
   }else{#just use tempdir
     dst_path <- tempdir()
   }
