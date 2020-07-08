@@ -2,7 +2,10 @@ import datetime
 import logging
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
+import os
 
+# TURN OFF LOGGING FOR PRODUCTION
+logging.disable(logging.CRITICAL)
 
 def log_benchmark(fn, start, end):
     """
@@ -56,46 +59,50 @@ def create_logger(name):
     :param str name: Name of the logger
     :return obj: Logger
     """
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'simple': {
-                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-            },
-            'detailed': {
-                'format': '%(asctime)s %(module)-17s line:%(lineno)-4d '
-                          '%(levelname)-8s %(message)s'
-            },
-            'email': {
-                'format': 'Timestamp: %(asctime)s\nModule: %(module)s\n'
-                          'Line: %(lineno)d\nMessage: %(message)s'
-            },
-        },
-        'handlers': {
-            # 'stream': {
-            #     'level': 'DEBUG',
-            #     'class': 'logging.StreamHandler',
-            #     "formatter": "simple"
-            # },
-            "file": {
-                "level": "DEBUG",
-                "formatter": "simple",
-                "class": "logging.handlers.RotatingFileHandler",
-                "filename": "debug.log",
-                'mode': 'a',
-                'maxBytes': 30000,
-                'backupCount': 0
-            }
-        },
-        'loggers': {
-            '': {
-                # "handlers": ["stream", "file"],
-                "handlers": ["file"],
-                "level": "DEBUG",
-                'propagate': True
-            }
-        }
-    })
+    # TURNED OFF LOGGING FOR PRODUCTION
+    logging.config.dictConfig({'version': 1})
+    # logging.config.dictConfig({
+    #     'version': 1,
+    #     'disable_existing_loggers': True,
+    #     'formatters': {
+    #         'simple': {
+    #             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    #         },
+    #         'detailed': {
+    #             'format': '%(asctime)s %(module)-17s line:%(lineno)-4d '
+    #                       '%(levelname)-8s %(message)s'
+    #         },
+    #         'email': {
+    #             'format': 'Timestamp: %(asctime)s\nModule: %(module)s\n'
+    #                       'Line: %(lineno)d\nMessage: %(message)s'
+    #         },
+    #     },
+    #     'handlers': {
+    #         # 'stream': {
+    #         #     'level': 'DEBUG',
+    #         #     'class': 'logging.StreamHandler',
+    #         #     "formatter": "simple"
+    #         # },
+    #         "file": {
+    #             "level": "DEBUG",
+    #             "formatter": "simple",
+    #             "class": "logging.handlers.RotatingFileHandler",
+    #             "filename": "debug.log",
+    #             'mode': 'a',
+    #             'maxBytes': 30000,
+    #             'backupCount': 0
+    #         }
+    #     },
+    #     'loggers': {
+    #         '': {
+    #             # "handlers": ["stream", "file"],
+    #             "handlers": ["file"],
+    #             "level": "DEBUG",
+    #             'propagate': True
+    #         }
+    #     }
+    # })
+
+
     return logging.getLogger(name)
 
