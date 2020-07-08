@@ -20,36 +20,41 @@ create_range <- function(start, len){
 #' @importFrom utils download.file
 #' @return path Local path to downloaded file
 download_from_url <- function(path){
+
   # Test if the string is a URL or not
   if(is.url(path)){
+    #check for libcurl
+    if(get_os() == "win"){
+      dmeth <- "curl"
+    }else{
+      dmeth <- "auto"
+    }
     pext <- tools::file_ext(path)
     if(pext == "zip"){#download and unzip
       #create a download dir:
-      dp <- file.path(tempdir(),"lpdDownload")
+      dp <- file.path(get_download_path(),"lpdDownload")
       if(dir.exists(dp)){#delete it. 
         unlink(dp)
       }
       #create the directory
-      dir.create(file.path(tempdir(),"lpdDownload"))
+      dir.create(file.path(get_download_path(),"lpdDownload"))
       
       #download it
-      download.file(path, file.path(tempdir(), "zippedLipds.zip"), method = "auto")
+      download.file(path, file.path(get_download_path(), "zippedLipds.zip"), method = dmeth)
       
       #unzip it
-      unzip(zipfile = file.path(tempdir(), "zippedLipds.zip"),exdir = dp)
+      unzip(zipfile = file.path(get_download_path(), "zippedLipds.zip"),exdir = dp)
       
       path <- dp
     }else{
-    # Prompt user to enter a DSN or some type of filename
-    #dsn <- readline("Please enter the dataset name for this file (Name.Location.Year) : ")
-    dsn <- stringr::str_sub(basename(path),1,-5)
-    # String together a local download path
-    dir <- get_download_path()
-    local_path <- file.path(dir, paste0(dsn, ".lpd"))
-    # Initiate download
-    download.file(path, local_path, method = "auto")
-    # Set the local path as our output path
-    path <- local_path
+      dsn <- stringr::str_sub(basename(path),1,-5)
+      # String together a local download path
+      dir <- get_download_path()
+      local_path <- file.path(dir, paste0(dsn, ".lpd"))
+      # Initiate download
+      download.file(path, local_path, method = dmeth)
+      # Set the local path as our output path
+      path <- local_path
     }
   }
   return(path)
@@ -70,7 +75,14 @@ get_download_path <- function(){
   #   # Not sure how to get default download folder in windows. Please have user locate a dir. 
   #   dst_path <- browse_dialog("d")
   # }
-  dst_path <- tempdir()
+  # if(grepl("win",os,ignore.case = TRUE) || os == "unknown"){
+  #   if(!dir.exists("~/lipdTempDir")){
+  #     dir.create("~/lipdTempDir")
+  #   }
+  #   dst_path <- "~/lipdTempDir"
+  # }else{#just use tempdir
+    dst_path <- tempdir()
+  #}
   return(dst_path)
 }
 
@@ -95,13 +107,13 @@ get_datasetname <- function(d, name){
 #' @param char vn: Variable name
 #' @return char vn: Variable name, possibly appended with a number
 get_vn <- function(vn, names){
-   base <- vn
-   num <- 1
-   while(vn %in% names){
-     vn <- paste0(base, "-", num)
-     num <- num + 1
-   }
-   return(vn)
+  base <- vn
+  num <- 1
+  while(vn %in% names){
+    vn <- paste0(base, "-", num)
+    num <- num + 1
+  }
+  return(vn)
 }
 
 
@@ -129,8 +141,8 @@ hasData <- function(path, i){
 #' @param x Path or URL string
 #' @return bool
 is.url <-function(x) {
-    return(grepl("www.|http:|https:", x))
-  }
+  return(grepl("www.|http:|https:", x))
+}
 
 #' Checks if an object is null/empty
 #' @export
@@ -149,7 +161,7 @@ index_geo <- function(d){
   # create a tmp list
   tmp <- list()
   geo <- d$geo
-
+  
   if (!is.null(geo)){
     # properties
     if (!isNullOb(geo$properties)){
@@ -158,7 +170,7 @@ index_geo <- function(d){
         tmp[[gnames[[i]]]] <- geo$properties[[i]]
       }
     } # end properties
-
+    
     # geometry
     if (!isNullOb(geo$geometry)){
       gnames <- names(geo$geometry)
@@ -178,14 +190,14 @@ index_geo <- function(d){
         }
       }
     } # end geometry
-
+    
     # root geo
     gnames <- names(geo)
     for (i in 1:length(gnames))
       if (gnames[[i]] != "geometry" & gnames[[i]] != "properties"){
         tmp[[gnames[[i]]]] <- geo[[gnames[[i]]]]
       }
-
+    
     # set the new data in d
     d$geo <- tmp
   }
