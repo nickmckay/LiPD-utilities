@@ -34,7 +34,7 @@ download_from_url <- function(path){
       #create a download dir:
       dp <- file.path(get_download_path(),"lpdDownload")
       if(dir.exists(dp)){#delete it. 
-        unlink(dp)
+        unlink(dp,recursive = TRUE,force = TRUE)
       }
       #create the directory
       dir.create(file.path(get_download_path(),"lpdDownload"))
@@ -47,7 +47,11 @@ download_from_url <- function(path){
       
       path <- dp
     }else{
-      dsn <- stringr::str_sub(basename(path),1,-5)
+      if(pext == "lpd"){
+        dsn <- stringr::str_sub(basename(path),1,-5)
+      }else{
+        dsn <- basename(path)
+      }
       # String together a local download path
       dir <- get_download_path()
       local_path <- file.path(dir, paste0(dsn, ".lpd"))

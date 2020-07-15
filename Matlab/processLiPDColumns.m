@@ -24,11 +24,18 @@ for j=1:length(I.columns)
     
     %try to make cells, not cells
     
-    
+    if ~isfield(I.(newname),'values')
+        if j == 1
+            error('first column has no values')
+        else
+            I.(newname).values = nan(length(I.columns{j-1}.values),1);
+        end
+    end
     
     %calculate summary statistics on columns
     values = I.(newname).values;
     
+   
     %replace missing values
     if isfield(I.(newname),'missingValue')
         torep = find(strcmp(I.(newname).missingValue,values));

@@ -29,11 +29,17 @@ if multiFlag
     
     lpds = dir('*.lpd');
     for l=1:length(lpds)
-        L = readLiPDFile(lpds(l).name);
-        if ~isfield(L,'dataSetName')
-            L.dataSetName = lpds(l).name(1:end-4);
+        try
+            L = readLiPDFile(lpds(l).name);
+            
+            if ~isfield(L,'dataSetName')
+                L.dataSetName = lpds(l).name(1:end-4);
+            end
+            D.(makeValidName(L.dataSetName))=L;
+        catch ME
+            warning(['couldnt read ' lpds(l).name])
         end
-        D.(makeValidName(L.dataSetName))=L;
+       
     end
     
 else
