@@ -776,7 +776,6 @@ def rm_wds_url(D):
     _D2 = {}
     print("Removing URL from : ")
     for _name, _data in D.items():
-        print(_name)
         _D2[_name] = rm_wds_url_2(_data)
     return _D2
 

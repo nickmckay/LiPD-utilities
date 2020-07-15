@@ -17,6 +17,9 @@ from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
 
+
+
+
 class TextToTreeItem:
 
     def __init__(self):
@@ -168,12 +171,14 @@ class JsonViewer(QtWidgets.QMainWindow):
             self.close()
 
 
-def viewLipd(D):
+def main(D):
     print("Opening the viewer. This may take a few moments...")
     qt_app = QtWidgets.QApplication(sys.argv)
     json_viewer = JsonViewer(D)
     qt_app.exec_()
 
-#
-# if "__main__" == __name__:
-#     main()
+
+
+if "__main__" == __name__:
+    D=json.loads(sys.argv[1])
+    main(D)
