@@ -25,11 +25,11 @@ def doi_main(D, force):
 
     if is_one_dataset(D):
         name = D["dataSetName"]
-        D = DOIResolver(name, D, results[name], force).main()
+        D = DOIResolver(dsn=name, D=D, results=results[name], force=force).main()
 
     else:
         for name, L in D.items():
-            D[name] = DOIResolver(name, L, results[name], force).main()
+            D[name] = DOIResolver(dsn=name, D=L, results=results[name], force=force).main()
 
     logger_doi_main.info("exit doi_main")
     print("Process Complete")

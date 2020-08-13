@@ -6,6 +6,7 @@ import re
 import os
 from collections import OrderedDict
 
+from .doi_main import previously_run_doi
 from .doi_resolver import DOIResolver
 from .bag import finish_bag
 from .directory import dir_cleanup, create_tmp_dir
@@ -124,7 +125,8 @@ def excel_main(file):
         # Invoke DOI Resolver Class to update publisher data
         try:
             logger_excel.info("invoking doi resolver")
-            final = DOIResolver(file["dir"], name, final).main()
+            results = previously_run_doi(final)
+            final = DOIResolver(dsn=name, D=final, results=results, force=True).main()
         except Exception as e:
             print("Error: doi resolver failed: {}".format(name))
             logger_excel.debug("excel: doi resolver failed: {}, {}".format(name, e))

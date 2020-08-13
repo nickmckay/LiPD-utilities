@@ -463,6 +463,7 @@ def extractTs(d, whichtables="meas", mode="paleo"):
     """
     # instead of storing each raw dataset per tso, store it once in the global scope. saves memory
     global _timeseries_data
+    start = clock()
     _l = []
     try:
         if not d:
