@@ -6,7 +6,7 @@
 tsPluck <- function(x){
   dopluck <- FALSE
   if(is.list(x)){
-    ml <- max(map_dbl(x,~length(.x)))
+    ml <- max(purrr::map_dbl(x,~length(.x)))
     
     if(ml == 1){
       dopluck <- TRUE
@@ -14,7 +14,7 @@ tsPluck <- function(x){
   }
   
   if(dopluck){
-    x2 <- modify(x,.f = ~ ifelse(is.null(.x),NA,.x))
+    x2 <- purrr::modify(x,.f = ~ ifelse(is.null(.x),NA,.x))
     return(unlist(x2))
   }else{
     return(x)
@@ -32,7 +32,7 @@ tsPluck <- function(x){
 ts2tibble <- function(TS){
   
   tibbleTS <- TS %>%
-    purrr::transpose() %>%
+    purrr::transpose(.names = sort(unique(unlist(purrr::map(TS,names))))) %>%
     tibble::as_tibble() %>% 
     purrr::modify(tsPluck) # this pulls all the single entry lists to the top level, and tries to use appropriate calsses
     

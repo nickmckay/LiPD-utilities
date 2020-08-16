@@ -2,11 +2,11 @@
 #' @export
 #' @importFrom dplyr bind_cols bind_rows group_by
 #' @importFrom rlang .data
-#' @import tibble data.table
+#' @import tibble
 #' @importFrom purrr map_df
 #' @importFrom utils setTxtProgressBar txtProgressBar
+#' @importFrom data.table as.data.table
 #' @import arsenal
-#' @import data.table
 #' @family LiPD manipulation
 #' @title create tidy data.frame from TS (old version)
 #' @description Deprecated. The new version `tidyTs()` is *much* faster. takes a TS object and turns it into a long, tidy, data.frame. Useful for data manipulation and analysis in the tidyverse and plotting
