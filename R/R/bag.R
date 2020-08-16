@@ -13,25 +13,25 @@ set_bagit <- function(){
       if(file.exists(system.file(package="lipdR", file.path("exec","bagit.py")))){
         # Found the bagit file included in the package.
         bagit.script <- system.file(package="lipdR", file.path("exec","bagit.py"))
-        assign("bagit.script", bagit.script, envir = .GlobalEnv)
+        assign("bagit.script", bagit.script, envir = lipdEnv)
       } else {
-        if(!exists("bagit.script",where = .GlobalEnv) || get("bagit.script", envir=.GlobalEnv) == "none"){
+        if(!exists("bagit.script",where = lipdEnv) || get("bagit.script", envir=lipdEnv) == "none"){
           # Didn't find the file, go another route
           print("Select your bagit.py file")
           print("If you do not already have one, please go to the link and download the file by right-clicking the 'Raw' button")
           print("https://github.com/nickmckay/LiPD-utilities/blob/master/R/exec/bagit.py")
           bagit.script<-file.choose()
-          assign("bagit.script", bagit.script, envir = .GlobalEnv)
+          assign("bagit.script", bagit.script, envir = lipdEnv)
         }
       }
     }
     else if(os =="windows" || os == "unknown"){
       print("Warning: Detected Windows/Unknown OS. Unable to use Bagit module.")
-      assign("bagit.script", "none", envir = .GlobalEnv)
+      assign("bagit.script", "none", envir = lipdEnv)
     }
   }, error=function(cond){
     print("Error: set_bagit: Failed to find or set the bagit path...")
-    assign("bagit.script", "none", envir = .GlobalEnv)
+    assign("bagit.script", "none", envir = lipdEnv)
   })
 }
 
@@ -47,7 +47,7 @@ set_bagit <- function(){
 #' @return bool: Bagit success
 bagit <- function(dir_bag){
   tryCatch({
-    bagit.script <- get("bagit.script", .GlobalEnv)
+    bagit.script <- get("bagit.script", lipdEnv)
     if(bagit.script != "none"){
       tryCatch({
         # give user permissions on bagit file

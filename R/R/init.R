@@ -1,6 +1,9 @@
 ###############################################
 ## Read/Write Lipds
 ###############################################
+#create an environment for package variables
+lipdEnv <- new.env()
+
 
 #' stripExtension
 #'
@@ -40,6 +43,8 @@ stripExtension <- function(filename){
 #' L <- readLipd("/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
 #' 
 readLipd <- function(path=NULL){
+  #remember the starting wd
+  swd <- getwd()
   D = list()
   # Warnings are annoying, we don't want them
   options(warn = -1)
@@ -64,7 +69,7 @@ readLipd <- function(path=NULL){
       print(paste0("reading: ", basename(entry)))
       # Do initial set up
       dir_source <- dirname(entry)
-      # assign("directory_source", directory_source, envir = .GlobalEnv)
+      # assign("directory_source", directory_source, envir = lipdEnv)
       setwd(dir_source)
       j <- lipd_read(entry)
       # Get the datasetname
@@ -76,7 +81,8 @@ readLipd <- function(path=NULL){
       D <- D[[1]]
     }
   }
-  
+  #reset the wd
+  setwd(swd)
   return(D)
 }
 

@@ -11,7 +11,7 @@ Description: Functions to open, modify, analyze, and save LiPD data.
 Depends: R (>= 3.1.0)
 License: GPL-2
 LazyData: TRUE
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 URL: www.lipd.net
 Imports:
   stringr,

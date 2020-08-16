@@ -9,8 +9,6 @@ rm_existing_tables(d, pc, whichtables)
 \arguments{
 \item{list}{d: Metadata}
 
-\item{char}{pc: paleoData or chronData}
-
 \item{char}{whichtables: all summ meas ens}
 }
 \value{

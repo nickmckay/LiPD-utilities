@@ -10,8 +10,6 @@ get_csv_from_section(dat, pc_1, dsn)
 \arguments{
 \item{list}{dat: Metadata}
 
-\item{char}{pc_1: paleo or chron}
-
 \item{char}{dsn: Dataset name}
 }
 \value{

@@ -2,7 +2,7 @@
 #' @export
 #' @author Chris Heiser
 #' @param ts Time series : list
-#' @param force Attempt to collapse time series when global ts_storage is not provided: bool
+#' @param force Attempt to collapse time series when lipd ts_storage is not provided: bool
 #' @usage collapseTs(ts)
 #' @return D: LiPD data, sorted by dataset name : list
 #' @examples 
@@ -18,11 +18,11 @@ collapseTs <- function(ts, force=FALSE){
   timeID <- NA
   whichtables <- ts[[1]]$whichtables
 
-  # Get the original data from the global environment whenever possible
-  # Use the time_id to get the corresponding raw data from global envir ts storage
+  # Get the original data from the lipd environment whenever possible
+  # Use the time_id to get the corresponding raw data from lipd envir ts storage
   if(!force){
     timeID <- ts[[1]]$timeID
-    ts_storage <- get_ts_global()
+    ts_storage <- get_ts_lipd()
     raw_datasets <- ts_storage[[timeID]]
     mode <- ts[[1]][["mode"]]
   }
@@ -576,7 +576,7 @@ rm_existing_tables <- function(d, pc, whichtables){
 #' @export
 #' @param list d: Metadata
 #' @param char pc: paleoData or chronData
-#' @param bool force: Build dataset without original data from global
+#' @param bool force: Build dataset without original data from lipd
 #' @param char mode: paleo or chron mode
 #' @return list d: Metadata
 put_base_data <- function(entry, raw_datasets, dsn, force, mode){
@@ -669,14 +669,14 @@ put_base_data <- function(entry, raw_datasets, dsn, force, mode){
   return(d)
 }
 
-#' Retreieve the original datasets from the global R environment  
+#' Retreieve the original datasets from the lipd R environment  
 #' @export
 #' @return list tmp_storage: Temporary storage data that holds original datasets
-get_ts_global <- function(){
-  if(exists("TMP_ts_storage", where = .GlobalEnv)){
-    tmp_storage <- get("TMP_ts_storage", envir=.GlobalEnv)
+get_ts_lipd <- function(){
+  if(exists("TMP_ts_storage", where = lipdEnv)){
+    tmp_storage <- get("TMP_ts_storage", envir=lipdEnv)
   } else {
-    stop("Error: Cannot collapse time series. 'TMP_ts_storage' not found in the Global Environment. This data is created during 'extractTs' and is required for 'collapseTs'")
+    stop("Error: Cannot collapse time series. 'TMP_ts_storage' not found in the lipd Environment. This data is created during 'extractTs' and is required for 'collapseTs'")
   }
   return(tmp_storage)
 }

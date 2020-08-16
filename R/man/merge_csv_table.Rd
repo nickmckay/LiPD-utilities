@@ -7,8 +7,6 @@
 merge_csv_table(tables, crumbs, csvs)
 }
 \arguments{
-\item{list}{models: Metadata}
-
 \item{char}{crumbs: Crumbs}
 
 \item{list}{csvs: CSV data}

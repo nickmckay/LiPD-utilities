@@ -7,10 +7,6 @@
 put_table(d, current, pc, table)
 }
 \arguments{
-\item{list}{d: Metadata}
-
-\item{list}{current: Current time series entry}
-
 \item{char}{pc: paleoData or chronData}
 
 \item{list}{table: Metadata (to be placed)}

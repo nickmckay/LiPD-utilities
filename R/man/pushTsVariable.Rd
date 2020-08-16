@@ -22,6 +22,9 @@ a vector of the values, with NA representing instances without this variable.
 pulls all instances of a single variable out of a TS
 }
 \seealso{
-Other LiPD manipulation: \code{\link{pullTsVariable}},
-  \code{\link{tidyTs}}
+Other LiPD manipulation: 
+\code{\link{pullTsVariable}()},
+\code{\link{tidyTsOld}()},
+\code{\link{tidyTs}()}
 }
+\concept{LiPD manipulation}

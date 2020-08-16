@@ -9,9 +9,7 @@ put_base_data(entry, raw_datasets, dsn, force, mode)
 \arguments{
 \item{list}{d: Metadata}
 
-\item{char}{pc: paleoData or chronData}
-
-\item{bool}{force: Build dataset without original data from global}
+\item{bool}{force: Build dataset without original data from lipd}
 
 \item{char}{mode: paleo or chron mode}
 }

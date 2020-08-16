@@ -4,7 +4,7 @@
 \alias{createTSid}
 \title{Create a random TSid}
 \usage{
-createTSid(x = 1)
+createTSid()
 }
 \value{
 TSid

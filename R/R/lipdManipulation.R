@@ -8,11 +8,11 @@
 #' @import arsenal
 #' @import data.table
 #' @family LiPD manipulation
-#' @title create tidy data.frame from TS
-#' @description takes a TS object and turns it into a long, tidy, data.frame. Useful for data manipulation and analysis in the tidyverse and plotting
+#' @title create tidy data.frame from TS (old version)
+#' @description Deprecated. The new version `tidyTs()` is *much* faster. takes a TS object and turns it into a long, tidy, data.frame. Useful for data manipulation and analysis in the tidyverse and plotting
 #' @param TS a LiPD Timeseries object
 #' @return a tidy data.frame
-tidyTs <- function(TS){
+tidyTsOld <- function(TS){
   options(warn = -2)
   pb <- txtProgressBar(min=0,max=length(TS),style=3)
   print(paste("Tidying your ",length(TS)," timeseries"))
