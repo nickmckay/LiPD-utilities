@@ -7,8 +7,6 @@
 merge_csv_section(section, crumbs, csvs)
 }
 \arguments{
-\item{list}{section: Metadata}
-
 \item{char}{crumbs: paleo or chron}
 
 \item{list}{csvs: CSV, sorted by filename}

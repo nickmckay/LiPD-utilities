@@ -15,9 +15,9 @@ extractTs= function(D, whichtables = "all", mode = "paleo"){
   TS <- list()
   # TOP FUNCTION
   # Check if this is one or multiple datasets. 
-  # Backup full data to global space (for collapseTs). 
+  # Backup full data to lipd space (for collapseTs). 
   # Loop datasets and send to next function (extract1) ONE at a time for processing
-  time_id = set_ts_global(D)
+  time_id = set_ts_lipd(D)
   # Flag that stops looping if this is a single dataset. Otherwise, flag never sets and continues looping for N datasets.
   breakFlag=FALSE
   
@@ -287,10 +287,10 @@ validate_parameters=function(D, L, whichtables, mode){
   return()
 }
 
-set_ts_global=function(L){
+set_ts_lipd=function(L){
   # We want consistency across TMP storage. Create a hierarchy of "TMP_ts_storage$<timeID>$<dataSetName>$<data>...." regardless of single or multi dataset. 
   if("dataSetName" %in% names(L)){
-    # Single dataset. Create a DSN layer above the data before assigning to Global Env
+    # Single dataset. Create a DSN layer above the data before assigning to lipd Env
     D <- list()
     D[[L$dataSetName]] <- L
   } else {
@@ -301,14 +301,14 @@ set_ts_global=function(L){
   # time_id = as.character(as.numeric(Sys.time()))
   time_id = format(Sys.time(), "%m%d%y-%H%M%S")
   
-  # Look for an existing timeseries storage in the global space
+  # Look for an existing timeseries storage in the lipd space
   tmp_storage <- list()
-  if(exists("TMP_ts_storage", where = .GlobalEnv)){
-    tmp_storage <- get("TMP_ts_storage", envir=.GlobalEnv)
+  if(exists("TMP_ts_storage", where = lipdEnv)){
+    tmp_storage <- get("TMP_ts_storage", envir=lipdEnv)
   }
-  # assign data to global space
+  # assign data to lipd space
   tmp_storage[[time_id]] <- D
-  assign("TMP_ts_storage", tmp_storage, envir=.GlobalEnv)
+  assign("TMP_ts_storage", tmp_storage, envir=lipdEnv)
   
   return(time_id)
 }

@@ -9,13 +9,7 @@ build_structure(d, pc, table_type, pcNumber, modelNumber, tableNumber)
 \arguments{
 \item{list}{d: Metadata}
 
-\item{char}{pc: paleoData or chronData}
-
 \item{char}{table_type: meas, ens, or summ}
-
-\item{num}{pcNumber: paleoData or chronData index number}
-
-\item{num}{modelNumber: Model index number OR null (if meas table)}
 
 \item{num}{tableumber: Table index number}
 }

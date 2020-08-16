@@ -7,8 +7,6 @@
 collapse_table(d, entry, pc)
 }
 \arguments{
-\item{list}{d: Metadata}
-
 \item{list}{entry: Time series entry}
 
 \item{char}{pc: paleoData or chronData}

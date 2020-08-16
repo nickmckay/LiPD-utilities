@@ -7,8 +7,6 @@
 unzipper(path, dir_tmp)
 }
 \arguments{
-\item{char}{path: Path}
-
 \item{char}{tmp: Temporary directory}
 }
 \value{

@@ -7,10 +7,6 @@
 collapse_block_indexed(entry, l, key)
 }
 \arguments{
-\item{list}{ts: Time series}
-
-\item{list}{entry: Time series entry}
-
 \item{list}{l: Metadata (to add new data to)}
 
 \item{char}{key: Current key from time series entry}

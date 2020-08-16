@@ -11,8 +11,6 @@ match[[1]][[3]] = second key (ex. "tableName")}
 collapse_block(entry, l, key, pc)
 }
 \arguments{
-\item{list}{entry: Time series entry}
-
 \item{list}{l: Metadata (to append to)}
 
 \item{char}{key: Key from time series entry}
