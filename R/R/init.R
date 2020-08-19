@@ -105,32 +105,31 @@ readLipd <- function(path=NULL){
 #' writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
 #' 
 writeLipd <- function(D, path=NULL, ignore.warnings=FALSE,removeNamesFromLists = FALSE){
-  library(pkgbuild)
-  if(find_rtools() == FALSE){
-    print("Rtools package required to use writeLipd. Please go to https://cran.r-project.org/bin/windows/Rtools/ and install Rtools.")
-    exit()
-  } else {
-    tryCatch({
-      if(missing(path)){
-        path <- browse_dialog("d")
-        setwd(path)
-      }
-      set_bagit()
-      if ("paleoData" %in% names(D)){
-        print(paste0("writing: ", D[["dataSetName"]]))
-        lipd_write(D, path, D[["dataSetName"]], ignore.warnings, removeNamesFromLists = removeNamesFromLists)
-      } else {
-        dsns <- names(D)
-        for (i in 1:length(dsns)){
-          print(paste0("writing: ", basename(dsns[i])))
-          entry <- dsns[[i]]
-          lipd_write(D[[entry]], path, entry, ignore.warnings,removeNamesFromLists = removeNamesFromLists)
-        }
-      }
-    }, error=function(cond){
-      print(paste0("Error: writeLipd: ", cond))
-    })
+  if(get_os() == "windows" & pkgbuild::find_rtools() == FALSE){
+    stop("Rtools package required to use writeLipd. Please go to https://cran.r-project.org/bin/windows/Rtools/ and install Rtools.")
   }
+  
+  tryCatch({
+    if(missing(path)){
+      path <- browse_dialog("d")
+      setwd(path)
+    }
+    set_bagit()
+    if ("paleoData" %in% names(D)){
+      print(paste0("writing: ", D[["dataSetName"]]))
+      lipd_write(D, path, D[["dataSetName"]], ignore.warnings, removeNamesFromLists = removeNamesFromLists)
+    } else {
+      dsns <- names(D)
+      for (i in 1:length(dsns)){
+        print(paste0("writing: ", basename(dsns[i])))
+        entry <- dsns[[i]]
+        lipd_write(D[[entry]], path, entry, ignore.warnings,removeNamesFromLists = removeNamesFromLists)
+      }
+    }
+  }, error=function(cond){
+    print(paste0("Error: writeLipd: ", cond))
+  })
+  
   
   
 }
