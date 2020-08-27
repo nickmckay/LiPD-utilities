@@ -673,7 +673,7 @@ put_base_data <- function(entry, raw_datasets, dsn, force, mode){
 #' @export
 #' @return list tmp_storage: Temporary storage data that holds original datasets
 get_ts_lipd <- function(){
-  if(exists("TMP_ts_storage", where = lipdEnv)){
+  if(exists("TMP_ts_storage", envir = lipdEnv)){
     tmp_storage <- get("TMP_ts_storage", envir=lipdEnv)
   } else {
     stop("Error: Cannot collapse time series. 'TMP_ts_storage' not found in the lipd Environment. This data is created during 'extractTs' and is required for 'collapseTs'")

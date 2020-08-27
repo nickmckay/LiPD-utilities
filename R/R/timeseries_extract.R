@@ -50,9 +50,9 @@ extractTs= function(D, whichtables = "all", mode = "paleo"){
     for(add in 1:length(new_entries)){
       step1 <- try(new_entries[[add]])
       if(class(step1)=="try-error"){
-       print("uhoh") 
+        print("uhoh") 
       }else{
-      TS[[length(TS)+1]] <- new_entries[[add]] 
+        TS[[length(TS)+1]] <- new_entries[[add]] 
       }
     }
   }
@@ -317,6 +317,9 @@ extract_root=function(L, root){
   ### ROOT
   excluderoot = c("@context")
   rootGrab = which(!(names(L) %in% excluderoot) & !sapply(L,is.list))
+  if(any(names(L)=="changelog")){
+    rootGrab <- c(rootGrab,which(names(L)=="changelog"))
+  }
   for(b in rootGrab){#assign in needed rootlevel stuff
     root[[names(L)[b]]] = L[[b]] 
   }
@@ -382,7 +385,7 @@ extract_geo=function(L,root){
 #' @return split TS
 #' @export
 splitInterpretationByScope <- function(TS){
-
+  
   sTS <- TS
   
   for(i in 1:length(TS)){
