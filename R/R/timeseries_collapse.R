@@ -1,8 +1,10 @@
 #' Collapse time series into LiPD dataset form
 #' @export
 #' @author Chris Heiser
+#'
 #' @param ts Time series : list
 #' @param force Attempt to collapse time series when lipd ts_storage is not provided: bool
+#'
 #' @usage collapseTs(ts)
 #' @return D: LiPD data, sorted by dataset name : list
 #' @examples 
