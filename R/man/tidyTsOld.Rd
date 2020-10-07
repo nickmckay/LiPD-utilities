@@ -19,6 +19,7 @@ Deprecated. The new version `tidyTs()` is *much* faster. takes a TS object and t
 Other LiPD manipulation: 
 \code{\link{pullTsVariable}()},
 \code{\link{pushTsVariable}()},
-\code{\link{tidyTs}()}
+\code{\link{tidyTs}()},
+\code{\link{untidyTs}()}
 }
 \concept{LiPD manipulation}
