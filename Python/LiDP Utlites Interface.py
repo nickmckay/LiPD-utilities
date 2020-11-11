@@ -12,6 +12,14 @@ def getFile():
     fileSelected = filedialog.askopenfilename(title='Choose Input file')
     inputFile.set(fileSelected)
 
+    if fileSelected.endswith(".xlsx"):
+        lipd.readExcel(usr_path=fileSelected)
+    elif fileSelected.endswith(".lpd"):
+        lipd.readLipd(usr_path=fileSelected)
+    elif fileSelected.endswith(".txt"):
+        lipd.readNoaa(usr_path=fileSelected)
+
+
 
 # gets the path for file output
 def getFolderPath():
@@ -69,11 +77,11 @@ converFrame = Frame(LiPDgui, borderwidth=2, relief="ridge")
 converFrame.grid(row=2, column=0)
 
 # Convert from excel Button
-btnExcel = ttk.Button(converFrame, text="Excel to LiPD", )
+btnExcel = ttk.Button(converFrame, text="Excel to LiPD", command=lipd.excel)
 btnExcel.grid(row=1, column=0)
 
-# Convert from NOAA Button
-btnNOAA = ttk.Button(converFrame, text="NOAA to LiPD", )
+# Convert from NOAA Button menu
+btnNOAA = ttk.Button(converFrame, text="NOAA to LiPD", command=lipd.noaa)
 btnNOAA.grid(row=1, column=2)
 
 converOutLabel = Label(converFrame, text="Process Status:  " + status)
