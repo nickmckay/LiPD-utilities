@@ -109,5 +109,5 @@ btnCollapse.grid(row=3, column=1)
 
 timeOutLabel = Label(timeFrame, text="Process Status:  " + status)
 timeOutLabel.grid(row=4, column=0)
-
+LiPDgui.resizable(width=False, height=False)
 LiPDgui.mainloop()
