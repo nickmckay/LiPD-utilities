@@ -26,6 +26,15 @@ def getFile():
 def getFolderPath():
     folder_selected = filedialog.askdirectory()
     folderPath.set(folder_selected)
+    
+    
+# converts the noaa files into lipd files
+def convert():
+    with StringIO('2') as opt:
+        stdin = sys.stdin
+        sys.stdin = opt
+        lipd.noaa()
+        sys.stdin = stdin
 
 
 # Stores input file
@@ -82,7 +91,7 @@ btnExcel = ttk.Button(converFrame, text="Excel to LiPD", command=lipd.excel)
 btnExcel.grid(row=1, column=0)
 
 # Convert from NOAA Button menu
-btnNOAA = ttk.Button(converFrame, text="NOAA to LiPD", command=lipd.noaa)
+btnNOAA = ttk.Button(converFrame, text="NOAA to LiPD", command=convert)
 btnNOAA.grid(row=1, column=2)
 
 converOutLabel = Label(converFrame, text="Process Status:  " + status)
