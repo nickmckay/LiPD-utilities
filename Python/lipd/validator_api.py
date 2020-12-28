@@ -155,7 +155,7 @@ def call_validator_api(dsn, api_data):
         # response = requests.post('http://localhost:3000/api/validator', data=payload)
 
         # Production Link
-        response = requests.post('http://www.lipd.net/api/validator', data=payload)
+        response = requests.post('https://www.lipd.net/api/validator', data=payload)
 
         if response.status_code == 413:
             result = {"dat": {}, "feedback": {}, "filename": _filename,
