@@ -38,5 +38,6 @@ Imports:
     dplyr,
     tibble,
     purrr,
-    tidyr
+    tidyr,
+    usethis
 Suggests: testthat

@@ -78,20 +78,17 @@
 
 <p><img src="https://www.dropbox.com/s/wg2w9ag7hwi7knd/1_fresh.png?raw=1" alt="Workspace" title=""></p>
 
-<p>Install <em>devtools</em> in the console window:</p>
+<p>Install <em>remotes</em> in the console window:</p>
 
-<pre><code>install.packages("devtools")
+<pre><code>install.packages("remotes")
 </code></pre>
 
-<p>Load the <em>devtools</em> package:</p>
 
-<pre><code>library(devtools)
+<p>Use <em>remotes</em> to install the LiPD Utilities package from github:</p>s
+
+<pre><code>remotes::install_github("nickmckay/LiPD-Utilities", subdir = "R", quiet = TRUE)
 </code></pre>
 
-<p>Use <em>devtools</em> to install the LiPD Utilities package from github:</p>
-
-<pre><code>install_github("nickmckay/LiPD-Utilities", subdir = "R")
-</code></pre>
 
 <p>Load the <em>lipdR</em> package:</p>
 

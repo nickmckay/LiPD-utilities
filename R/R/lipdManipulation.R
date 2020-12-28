@@ -175,12 +175,15 @@ tidyTsOld <- function(TS){
 #' @param TS a LiPD Timeseries object
 #' @param variable the name of variable in a TS object
 #' @return a vector of the values, with NA representing instances without this variable.
-pullTsVariable = function(TS,variable){
+pullTsVariable = function(TS,variable,strict.search = FALSE){
   allNames <- unique(unlist(sapply(TS,names)))
   
   #test for exact match
   which.var <- which(variable == allNames)
   if(length(which.var) == 0){#try a fuzzier search
+    if(strict.search){
+      stop(paste0("Couldn't find any matches for '",variable,"', stopping"))
+    }
     which.var <- which(grepl(pattern = variable,x = allNames,ignore.case = TRUE))
     if(length(which.var) == 1){#
       warning(paste0("Couldn't find exact match for '",variable,"', using ",allNames[which.var]," instead."))
