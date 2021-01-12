@@ -14,18 +14,17 @@ from lipd.alternates import FILE_TYPE_MAP
 from lipd.regexes import re_url
 from lipd.fetch_doi import update_dois
 from lipd.download_lipd import download_from_url, get_download_path
-from lipd.directory import _go_to_package
 
 import re
-from time import process_time as clock
+from time import clock
 import os
 import json
 import copy
 from collections import OrderedDict
-import subprocess
-
 
 # READ
+
+
 def run():
     """
     Initialize and start objects. This is called automatically when importing the package.
@@ -40,12 +39,13 @@ def run():
     cwd = os.getcwd()
     # logger created in whatever directory lipd is called from
     logger_start = create_logger("start")
+    logger_benchmark = create_benchmark("benchmarks", "benchmark.log")
     files = {".txt": [], ".lpd": [], ".xls": []}
 
     return
 
 
-def readLipd(usr_path="", remote_file_save=False):
+def readLipd(usr_path=""):
     """
     Read LiPD file(s).
     Enter a file path, directory path, or leave args blank to trigger gui.
@@ -54,18 +54,14 @@ def readLipd(usr_path="", remote_file_save=False):
     :return dict _d: Metadata
     """
     global cwd, settings, files
-    try:
-        if settings["verbose"]:
-            __disclaimer(opt="update")
-        files[".lpd"] = []
-        __read(usr_path, ".lpd")
-        _d = __read_lipd_contents(usr_path, remote_file_save)
-        # Clear out the lipd files metadata. We're done loading, we dont need it anymore.
-        files[".lpd"] = []
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
-    os.chdir(cwd)
+    if settings["verbose"]:
+        __disclaimer(opt="update")
+    start = clock()
+    files[".lpd"] = []
+    __read(usr_path, ".lpd")
+    _d = __read_lipd_contents()
+    end = clock()
+    logger_benchmark.info(log_benchmark("readLipd", start, end))
     return _d
 
 
@@ -78,14 +74,11 @@ def readExcel(usr_path=""):
     :return str cwd: Current working directory
     """
     global cwd, files
-    try:
-        files[".xls"] = []
-        __read(usr_path, ".xls")
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
-
-    os.chdir(cwd)
+    start = clock()
+    files[".xls"] = []
+    __read(usr_path, ".xls")
+    end = clock()
+    logger_benchmark.info(log_benchmark("readExcel", start, end))
     return cwd
 
 
@@ -98,13 +91,11 @@ def readNoaa(usr_path=""):
     :return str cwd: Current working directory
     """
     global cwd, files
-    try:
-        files[".txt"] = []
-        __read(usr_path, ".txt")
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
-    os.chdir(cwd)
+    start = clock()
+    files[".txt"] = []
+    __read(usr_path, ".txt")
+    end = clock()
+    logger_benchmark.info(log_benchmark("readNoaa", start, end))
     return cwd
 
 
@@ -145,30 +136,28 @@ def excel():
     _d = {}
     # Turn off verbose. We don't want to clutter the console with extra reading/writing output statements
     settings["verbose"] = False
-
-    try:
-        # Find excel files
-        print("Found " + str(len(files[".xls"])) + " Excel files")
-        logger_start.info("found excel files: {}".format(len(files[".xls"])))
-        # Loop for each excel file
-        for file in files[".xls"]:
-            # Convert excel file to LiPD
-            dsn = excel_main(file)
-            try:
-                # Read the new LiPD file back in, to get fixes, inferred calculations, updates, etc.
-                _d[dsn] = readLipd(os.path.join(file["dir"], dsn + ".lpd"))
-                # Write the modified LiPD file back out again.
-                writeLipd(_d[dsn], cwd)
-            except Exception as e:
-                logger_start.error("excel: Unable to read new LiPD file, {}".format(e))
-                print("Error: Unable to read new LiPD file: {}, {}".format(dsn, e))
-
-
-    except Exception as e:
-        pass
+    # Find excel files
+    print("Found " + str(len(files[".xls"])) + " Excel files")
+    logger_start.info("found excel files: {}".format(len(files[".xls"])))
+    # Start the clock
+    start = clock()
+    # Loop for each excel file
+    for file in files[".xls"]:
+        # Convert excel file to LiPD
+        dsn = excel_main(file)
+        try:
+            # Read the new LiPD file back in, to get fixes, inferred calculations, updates, etc.
+            _d[dsn] = readLipd(os.path.join(file["dir"], dsn + ".lpd"))
+            # Write the modified LiPD file back out again.
+            writeLipd(_d[dsn], cwd)
+        except Exception as e:
+            logger_start.error("excel: Unable to read new LiPD file, {}".format(e))
+            print("Error: Unable to read new LiPD file: {}, {}".format(dsn, e))
+    # Time!
+    end = clock()
+    logger_benchmark.info(log_benchmark("excel", start, end))
     # Start printing stuff again.
     settings["verbose"] = True
-    os.chdir(cwd)
     return _d
 
 
@@ -192,63 +181,55 @@ def noaa(D="", path="", wds_url="", lpd_url="", version=""):
     :return none:
     """
     global files, cwd
+    # When going from NOAA to LPD, use the global "files" variable.
+    # When going from LPD to NOAA, use the data from the LiPD Library.
 
-    try:
-        # When going from NOAA to LPD, use the global "files" variable.
-        # When going from LPD to NOAA, use the data from the LiPD Library.
-
-        # Choose the mode
-        _mode = noaa_prompt()
-        # LiPD mode: Convert LiPD files to NOAA files
-        if _mode == "1":
-            # _project, _version = noaa_prompt_1()
-            if not version or not lpd_url:
-                print("Missing parameters: Please try again and provide all parameters.")
-                return
-            if not D:
-                print("Error: LiPD data must be provided for LiPD -> NOAA conversions")
-            else:
-                try:
-                    os.mkdir("noaa_files")
-                except FileExistsError:
-                    pass
-                if "paleoData" in D:
-                    _d = copy.deepcopy(D)
-                    D = lpd_to_noaa(_d, wds_url, lpd_url, version, path)
-                else:
-                    # For each LiPD file in the LiPD Library
-                    for dsn, dat in D.items():
-                        _d = copy.deepcopy(dat)
-                        # Process this data through the converter
-                        _d = lpd_to_noaa(_d, wds_url, lpd_url, version, path)
-                        # Overwrite the data in the LiPD object with our new data.
-                        D[dsn] = _d
-                # If no wds url is provided, then remove instances from jsonld metadata
-                if not wds_url:
-                    D = rm_wds_url(D)
-                # Write out the new LiPD files, since they now contain the new NOAA URL data
-                if(path):
-                    writeLipd(D, path)
-                else:
-                    print("Path not provided. Writing to CWD...")
-                    writeLipd(D, cwd)
-
-        # NOAA mode: Convert NOAA files to LiPD files
-        elif _mode == "2":
-            # Pass through the global files list. Use NOAA files directly on disk.
-            noaa_to_lpd(files)
-
+    # Choose the mode
+    _mode = noaa_prompt()
+    start = clock()
+    # LiPD mode: Convert LiPD files to NOAA files
+    if _mode == "1":
+        # _project, _version = noaa_prompt_1()
+        if not version or not lpd_url:
+            print("Missing parameters: Please try again and provide all parameters.")
+            return
+        if not D:
+            print("Error: LiPD data must be provided for LiPD -> NOAA conversions")
         else:
-            print("Invalid input. Try again.")
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
+            if "paleoData" in D:
+                _d = copy.deepcopy(D)
+                D = lpd_to_noaa(_d, wds_url, lpd_url, version, path)
+            else:
+                # For each LiPD file in the LiPD Library
+                for dsn, dat in D.items():
+                    _d = copy.deepcopy(dat)
+                    # Process this data through the converter
+                    _d = lpd_to_noaa(_d, wds_url, lpd_url, version, path)
+                    # Overwrite the data in the LiPD object with our new data.
+                    D[dsn] = _d
+            # If no wds url is provided, then remove instances from jsonld metadata
+            if not wds_url:
+                D = rm_wds_url(D)
+            # Write out the new LiPD files, since they now contain the new NOAA URL data
+            if(path):
+                writeLipd(D, path)
+            else:
+                print("Path not provided. Writing to CWD...")
+                writeLipd(D, cwd)
 
-    os.chdir(cwd)
+    # NOAA mode: Convert NOAA files to LiPD files
+    elif _mode == "2":
+        # Pass through the global files list. Use NOAA files directly on disk.
+        noaa_to_lpd(files)
+
+    else:
+        print("Invalid input. Try again.")
+    end = clock()
+    logger_benchmark.info(log_benchmark("noaa", start, end))
     return
 
 
-def doi(D, force=False):
+def doi():
     """
     Use the DOI id stored in the LiPD publication data to fetch new information from the DOI.org using their API.
     Merge the results with the existing data. This process will open the LiPD files on your computer, and overwrite them
@@ -256,24 +237,13 @@ def doi(D, force=False):
 
     | Example
     | 1: D = lipd.readLipd()
-    | 2: D = lipd.doi(D)
-    |
-    | DOI location : D["pub"][0]["doi"]
+    | 2: lipd.doi()
 
-    :param  dict D: Metadata, either a single dataset or multiple datasets sorted by dataset name.
-    :param bool force: Force DOIs to update even if they have previously been processed. Default is False.
-    :return dict D: Metadata, with all publication data updated where possible
-
+    :return none:
     """
-    global cwd
-    try:
-        D = doi_main(D, force)
-    except Exception as e:
-        pass
-
-    os.chdir(cwd)
-    return D
-
+    global files
+    doi_main(files)
+    return
 
 def fetchDoiWithCsv(csv_source, write_file=True):
     """
@@ -284,15 +254,9 @@ def fetchDoiWithCsv(csv_source, write_file=True):
     :param bool write_file: Write the results to a JSON file (default) or print the results to the console.
     :return none:
     """
-    global cwd
-    try:
-        update_dois(csv_source, write_file)
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
-
-    os.chdir(cwd)
+    update_dois(csv_source, write_file)
     return
+
 
 
 def validate(D, detailed=True):
@@ -304,7 +268,7 @@ def validate(D, detailed=True):
     :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors
     :return none:
     """
-
+    start = clock()
     print("\n")
     # Fetch new results by calling lipd.net/api/validator (costly, may take a while)
     print("Fetching results from validator at lipd.net/validator... this may take a few moments.\n")
@@ -324,23 +288,10 @@ def validate(D, detailed=True):
     except Exception as e:
         print("Error: validate: {}".format(e))
 
-    __move_to_cwd()
+    end = clock()
+    logger_benchmark.info(log_benchmark("validate", start, end))
     return
 
-
-def viewLipd(D):
-
-    try:
-        # Move to py package dir, so we can relative reference json_viewer.py
-        _go_to_package()
-        # Open viewer in subprocess, so it's contained and closed in a new py process
-        subprocess.call(('python', 'json_viewer.py', json.dumps(D)))
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
-
-    __move_to_cwd()
-    return
 
 
 # PUT
@@ -382,11 +333,7 @@ def ensToDf(ensemble):
     :param list ensemble: Ensemble data
     :return obj df: Pandas dataframe
     """
-    try:
-        df = create_dataframe(ensemble)
-    except Exception as e:
-        pass
-    __move_to_cwd()
+    df = create_dataframe(ensemble)
     return df
 
 
@@ -421,7 +368,6 @@ def tsToDf(tso):
     except Exception as e:
         print("Error: Unable to create data frame")
         logger_start.warn("ts_to_df: tso malformed: {}".format(e))
-    __move_to_cwd()
     return dfs
 
 
@@ -463,8 +409,8 @@ def extractTs(d, whichtables="meas", mode="paleo"):
     """
     # instead of storing each raw dataset per tso, store it once in the global scope. saves memory
     global _timeseries_data
-    start = clock()
     _l = []
+    start = clock()
     try:
         if not d:
             print("Error: LiPD data not provided. Pass LiPD data into the function.")
@@ -504,7 +450,8 @@ def extractTs(d, whichtables="meas", mode="paleo"):
     except Exception as e:
         print("Error: Unable to extractTs: {}".format(e))
         logger_start.error("extractTs: Exception: {}".format(e))
-    __move_to_cwd()
+    end = clock()
+    logger_benchmark.info(log_benchmark("extractTs", start, end))
     return _l
 
 
@@ -526,26 +473,22 @@ def collapseTs(ts=None):
     # Retrieve the associated raw data according to the "time_id" found in each object. Match it in _timeseries_data
     global _timeseries_data
     _d = {}
-    try:
-        if not ts:
-            print("Error: Time series data not provided. Pass time series into the function.")
-        else:
-            # Send time series list through to be collapsed.
-            try:
-                _raw = _timeseries_data[ts[0]["time_id"]]
-                print(mode_ts("collapse", mode="", ts=ts))
-                _d = collapse(ts, _raw)
-                _d = rm_empty_fields(_d)
-            except Exception as e:
-                print("Error: Unable to collapse the time series: {}".format(e))
-                logger_start.error("collapseTs: unable to collapse the time series: {}".format(e))
-    except Exception as e:
-        pass
-    __move_to_cwd()
+    if not ts:
+        print("Error: Time series data not provided. Pass time series into the function.")
+    else:
+        # Send time series list through to be collapsed.
+        try:
+            _raw = _timeseries_data[ts[0]["time_id"]]
+            print(mode_ts("collapse", mode="", ts=ts))
+            _d = collapse(ts, _raw)
+            _d = rm_empty_fields(_d)
+        except Exception as e:
+            print("Error: Unable to collapse the time series: {}".format(e))
+            logger_start.error("collapseTs: unable to collapse the time series: {}".format(e))
     return _d
 
 
-def filterTs(ts, expressions):
+def filterTs(ts, expression):
     """
     Create a new time series that only contains entries that match the given expression.
 
@@ -553,44 +496,18 @@ def filterTs(ts, expressions):
     | D = lipd.loadLipd()
     | ts = lipd.extractTs(D)
     | new_ts = filterTs(ts, "archiveType == marine sediment")
-    | new_ts = filterTs(ts, ["paleoData_variableName == sst", "archiveType == marine sediment"])
-    | Expressions should use underscores to denote data nesting.
-    | Ex: paleoData_hasResolution_hasMedian or
+    | new_ts = filterTs(ts, "paleoData_variableName == sst")
 
-    :param list OR str expressions: Expressions
-    :param list ts:                 Time series
-    :return list new_ts:            Filtered time series that matches the expression
+    :param str expression: Expression
+    :param list ts: Time series
+    :return list new_ts: Filtered time series that matches the expression
     """
-
-    try:
-        # Make a copy of the ts. We're going to work directly on it.
-        new_ts = ts[:]
-
-        # User provided a single query string
-        if isinstance(expressions, str):
-            # Use some magic to turn the given string expression into a machine-usable comparative expression.
-            expr_lst = translate_expression(expressions)
-            # Only proceed if the translation resulted in a usable expression.
-            if expr_lst:
-                # Return the new filtered time series. This will use the same time series
-                # that filters down each loop.
-                new_ts, _idx = get_matches(expr_lst, new_ts)
-
-        # User provided a list of multiple queries
-        elif isinstance(expressions, list):
-            # Loop for each query
-            for expr in expressions:
-                # Use some magic to turn the given string expression into a machine-usable comparative expression.
-                expr_lst = translate_expression(expr)
-                # Only proceed if the translation resulted in a usable expression.
-                if expr_lst:
-                    # Return the new filtered time series. This will use the same time series
-                    # that filters down each loop.
-                    new_ts, _idx = get_matches(expr_lst, new_ts)
-    except Exception as e:
-        pass
-
-    __move_to_cwd()
+    new_ts = []
+    # Use some magic to turn the given string expression into a machine-usable comparative expression.
+    expr_lst = translate_expression(expression)
+    # Only proceed if the translation resulted in a usable expression.
+    if expr_lst:
+        new_ts, _idx = get_matches(expr_lst, ts)
     return new_ts
 
 
@@ -608,34 +525,12 @@ def queryTs(ts, expression):
     :param list ts: Time series
     :return list _idx: Indices of entries that match the criteria
     """
-    try:
-        # Make a copy of the ts. We're going to work directly on it.
-        _idx = []
-
-        # User provided a single query string
-        if isinstance(expressions, str):
-            # Use some magic to turn the given string expression into a machine-usable comparative expression.
-            expr_lst = translate_expression(expressions)
-            # Only proceed if the translation resulted in a usable expression.
-            if expr_lst:
-                # Return the new filtered time series. This will use the same time series
-                # that filters down each loop.
-                new_ts, _idx = get_matches(expr_lst, new_ts)
-
-        # User provided a list of multiple queries
-        elif isinstance(expressions, list):
-            # Loop for each query
-            for expr in expressions:
-                # Use some magic to turn the given string expression into a machine-usable comparative expression.
-                expr_lst = translate_expression(expr)
-                # Only proceed if the translation resulted in a usable expression.
-                if expr_lst:
-                    # Return the new filtered time series. This will use the same time series
-                    # that filters down each loop.
-                    new_ts, _idx = get_matches(expr_lst, new_ts)
-    except Exception as e:
-        pass
-    __move_to_cwd()
+    _idx = []
+    # Use some magic to turn the given string expression into a machine-usable comparative expression.
+    expr_lst = translate_expression(expression)
+    # Only proceed if the translation resulted in a usable expression.
+    if expr_lst:
+        new_ts, _idx = get_matches(expr_lst, ts)
     return _idx
 
 
@@ -651,47 +546,44 @@ def viewTs(ts):
     :param dict ts: One time series entry
     :return none:
     """
-    try:
-        _ts = ts
-        if isinstance(ts, list):
-            _ts = ts[0]
-            print("It looks like you input a full time series. It's best to view one entry at a time.\n"
-                  "I'll show you the first entry...")
-        _tmp_sort = OrderedDict()
-        _tmp_sort["ROOT"] = {}
-        _tmp_sort["PUBLICATION"] = {}
-        _tmp_sort["GEO"] = {}
-        _tmp_sort["OTHERS"] = {}
-        _tmp_sort["DATA"] = {}
+    _ts = ts
+    if isinstance(ts, list):
+        _ts = ts[0]
+        print("It looks like you input a full time series. It's best to view one entry at a time.\n"
+              "I'll show you the first entry...")
+    _tmp_sort = OrderedDict()
+    _tmp_sort["ROOT"] = {}
+    _tmp_sort["PUBLICATION"] = {}
+    _tmp_sort["GEO"] = {}
+    _tmp_sort["OTHERS"] = {}
+    _tmp_sort["DATA"] = {}
 
-        # Organize the data by section
-        for k,v in _ts.items():
-            if not any(i == k for i in ["paleoData", "chronData", "mode", "@context"]):
-                if k in ["archiveType", "dataSetName", "googleSpreadSheetKey", "metadataMD5", "tagMD5", "googleMetadataWorksheet", "lipdVersion"]:
-                    _tmp_sort["ROOT"][k] = v
-                elif "pub" in k:
-                    _tmp_sort["PUBLICATION"][k] = v
-                elif "geo" in k:
-                    _tmp_sort["GEO"][k] = v
-                elif "paleoData_" in k or "chronData_" in k:
-                    if isinstance(v, list) and len(v) > 2:
-                        _tmp_sort["DATA"][k] = "[{}, {}, {}, ...]".format(v[0], v[1], v[2])
-                    else:
-                        _tmp_sort["DATA"][k] = v
+    # Organize the data by section
+    for k,v in _ts.items():
+        if not any(i == k for i in ["paleoData", "chronData", "mode", "@context"]):
+            if k in ["archiveType", "dataSetName", "googleSpreadSheetKey", "metadataMD5", "tagMD5", "googleMetadataWorksheet", "lipdVersion"]:
+                _tmp_sort["ROOT"][k] = v
+            elif "pub" in k:
+                _tmp_sort["PUBLICATION"][k] = v
+            elif "geo" in k:
+                _tmp_sort["GEO"][k] = v
+            elif "paleoData_" in k or "chronData_" in k:
+                if isinstance(v, list) and len(v) > 2:
+                    _tmp_sort["DATA"][k] = "[{}, {}, {}, ...]".format(v[0], v[1], v[2])
                 else:
-                    if isinstance(v, list) and len(v) > 2:
-                        _tmp_sort["OTHERS"][k] = "[{}, {}, {}, ...]".format(v[0], v[1], v[2])
-                    else:
-                        _tmp_sort["OTHERS"][k] = v
+                    _tmp_sort["DATA"][k] = v
+            else:
+                if isinstance(v, list) and len(v) > 2:
+                    _tmp_sort["OTHERS"][k] = "[{}, {}, {}, ...]".format(v[0], v[1], v[2])
+                else:
+                    _tmp_sort["OTHERS"][k] = v
 
-        # Start printing the data to console
-        for k1, v1 in _tmp_sort.items():
-            print("\n{}\n===============".format(k1))
-            for k2, v2 in v1.items():
-                print("{} : {}".format(k2, v2))
-    except Exception as e:
-        pass
-    __move_to_cwd()
+    # Start printing the data to console
+    for k1, v1 in _tmp_sort.items():
+        print("\n{}\n===============".format(k1))
+        for k2, v2 in v1.items():
+            print("{} : {}".format(k2, v2))
+
     return
 
 # DEPRECATED - TS no longer uses dictionaries or names.
@@ -725,14 +617,12 @@ def showLipds(D=None):
     :pararm dict D: LiPD data
     :return none:
     """
-    try:
-        if not D:
-            print("Error: LiPD data not provided. Pass LiPD data into the function.")
-        else:
-            print(json.dumps(D.keys(), indent=2))
-    except Exception as e:
-        pass
-    __move_to_cwd()
+
+    if not D:
+        print("Error: LiPD data not provided. Pass LiPD data into the function.")
+    else:
+        print(json.dumps(D.keys(), indent=2))
+
     return
 
 
@@ -746,12 +636,8 @@ def showMetadata(dat):
     :param dict dat: Metadata
     :return none:
     """
-    try:
-        _tmp = rm_values_fields(copy.deepcopy(dat))
-        print(json.dumps(_tmp, indent=2))
-    except Exception as e:
-        pass
-    __move_to_cwd()
+    _tmp = rm_values_fields(copy.deepcopy(dat))
+    print(json.dumps(_tmp, indent=2))
     return
 
 
@@ -762,28 +648,25 @@ def showDfs(d):
     :param dict d: Dataframe collection
     :return none:
     """
-    try:
-        if "metadata" in d:
-            print("metadata")
-        if "paleoData" in d:
-            try:
-                for k, v in d["paleoData"].items():
-                    print(k)
-            except KeyError:
-                pass
-            except AttributeError:
-                pass
-        if "chronData" in d:
-            try:
-                for k, v in d["chronData"].items():
-                    print(k)
-            except KeyError:
-                pass
-            except AttributeError:
-                pass
-    except Exception as e:
-        pass
-    __move_to_cwd()
+    if "metadata" in d:
+        print("metadata")
+    if "paleoData" in d:
+        try:
+            for k, v in d["paleoData"].items():
+                print(k)
+        except KeyError:
+            pass
+        except AttributeError:
+            pass
+    if "chronData" in d:
+        try:
+            for k, v in d["chronData"].items():
+                print(k)
+        except KeyError:
+            pass
+        except AttributeError:
+            pass
+    # print("Process Complete")
     return
 
 
@@ -806,7 +689,6 @@ def getLipdNames(D=None):
             _names = D.keys()
     except Exception:
         pass
-    __move_to_cwd()
     return _names
 
 
@@ -867,7 +749,10 @@ def writeLipd(dat, path=""):
     :return none:
     """
     global settings
+    start = clock()
     __write_lipd(dat, path)
+    end = clock()
+    logger_benchmark.info(log_benchmark("writeLipd", start, end))
     return
 
 
@@ -884,43 +769,38 @@ def __universal_read(file_path, file_type):
     """
     global files, cwd, settings
 
-    try:
-        # check that we are using the correct function to load this file type. (i.e. readNoaa for a .txt file)
-        correct_ext = load_fn_matches_ext(file_path, file_type)
+    # check that we are using the correct function to load this file type. (i.e. readNoaa for a .txt file)
+    correct_ext = load_fn_matches_ext(file_path, file_type)
 
-        # Check that this path references a file
-        valid_path = path_type(file_path, "file")
+    # Check that this path references a file
+    valid_path = path_type(file_path, "file")
 
-        # is the path a file?
-        if valid_path and correct_ext:
+    # is the path a file?
+    if valid_path and correct_ext:
 
-            # get file metadata for one file
-            file_meta = collect_metadata_file(file_path)
+        # get file metadata for one file
+        file_meta = collect_metadata_file(file_path)
 
-            # append to global files, then load in D
-            if file_type == ".lpd":
-                # add meta to global file meta
-                files[".lpd"].append(file_meta)
-            # append to global files
-            elif file_type in [".xls", ".xlsx"]:
-                print("reading: {}".format(print_filename(file_meta["full_path"])))
-                files[".xls"].append(file_meta)
-            # append to global files
-            elif file_type == ".txt":
-                print("reading: {}".format(print_filename(file_meta["full_path"])))
-                files[".txt"].append(file_meta)
+        # append to global files, then load in D
+        if file_type == ".lpd":
+            # add meta to global file meta
+            files[".lpd"].append(file_meta)
+        # append to global files
+        elif file_type in [".xls", ".xlsx"]:
+            print("reading: {}".format(print_filename(file_meta["full_path"])))
+            files[".xls"].append(file_meta)
+        # append to global files
+        elif file_type == ".txt":
+            print("reading: {}".format(print_filename(file_meta["full_path"])))
+            files[".txt"].append(file_meta)
 
 
-            # we want to move around with the files we load
-            # change dir into the dir of the target file
-            cwd = file_meta["dir"]
-            if cwd:
-                os.chdir(cwd)
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
+        # we want to move around with the files we load
+        # change dir into the dir of the target file
+        cwd = file_meta["dir"]
+        if cwd:
+            os.chdir(cwd)
 
-    os.chdir(cwd)
     return
 
 
@@ -932,61 +812,53 @@ def __read(usr_path, file_type):
     :param str file_type: File type to read
     :return none:
     """
-    global cwd
+    # is there a file path specified ?
+    if usr_path:
+        # Is this a URL? Download the file and return the local path
+        is_url = re.match(re_url, usr_path)
+        if is_url:
+            # The usr_path will now be a local path to a single file. It will trigger the "elif" statement below
+            usr_path = download_from_url(usr_path, get_download_path())
 
-    try:
-        # is there a file path specified ?
-        if usr_path:
-            # Is this a URL? Download the file and return the local path
-            is_url = re.match(re_url, usr_path)
-            if is_url:
-                # The usr_path will now be a local path to a single file. It will trigger the "elif" statement below
-                usr_path = download_from_url(usr_path)
-            # Directory path
-            if os.path.isdir(usr_path):
-                __read_directory(usr_path, file_type)
-            # File path
-            elif os.path.isfile(usr_path):
-                __read_file(usr_path, file_type)
-            # Invalid path given
-            else:
-                print("Error: Path given is invalid")
-
-        # no path specified. ask if they want to load dir or file
+        # Directory path
+        if os.path.isdir(usr_path):
+            __read_directory(usr_path, file_type)
+        # File path
+        elif os.path.isfile(usr_path):
+            __read_file(usr_path, file_type)
+        # Invalid path given
         else:
-            choice = ""
-            count = 3
-            while not choice:
-                try:
-                    print("Choose a read option:\n1. One file\n2. Multi-file select\n3. Directory")
-                    choice = input("Option: ")
-                    print("\n")
-                    # now use the given file type and prompt answer to call _read_file or _read_dir
-                    if choice in ["1", "2", "3"]:
-                        # open directory picker
-                        if choice == "3":
-                            __read_directory(usr_path, file_type)
-                        else:
-                            # open a file picker
-                            __read_file(usr_path, file_type)
-                        break
+            print("Error: Path given is invalid")
+
+    # no path specified. ask if they want to load dir or file
+    else:
+        choice = ""
+        count = 3
+        while not choice:
+            try:
+                print("Choose a read option:\n1. One file\n2. Multi-file select\n3. Directory")
+                choice = input("Option: ")
+                print("\n")
+                # now use the given file type and prompt answer to call _read_file or _read_dir
+                if choice in ["1", "2", "3"]:
+                    # open directory picker
+                    if choice == "3":
+                        __read_directory(usr_path, file_type)
                     else:
-                        count -= 1
-                    if count == 0:
-                        print("Error: Too many failed attempts")
-                        break
-                except Exception as e:
-                    print("Error: Invalid input: {}".format(e))
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
-
-    os.chdir(cwd)
-
+                        # open a file picker
+                        __read_file(usr_path, file_type)
+                    break
+                else:
+                    count -= 1
+                if count == 0:
+                    print("Error: Too many failed attempts")
+                    break
+            except Exception as e:
+                print("Error: Invalid input: {}".format(e))
     return
 
 
-def __read_lipd_contents(usr_path, remote_file_save):
+def __read_lipd_contents():
     """
     Use the file metadata to read in the LiPD file contents as a dataset library
 
@@ -995,23 +867,13 @@ def __read_lipd_contents(usr_path, remote_file_save):
     global files, settings
     _d = {}
     try:
-        # Read in one file, set data directly into dictionary
         if len(files[".lpd"]) == 1:
             _d = lipd_read(files[".lpd"][0]["full_path"])
-            # Remove any files that were downloaded remotely and user doesn't want to save
-            is_url = re.match(re_url, usr_path)
-            if not remote_file_save and is_url:
-                try:
-                    os.remove(files[".lpd"][0]["full_path"])
-                except FileNotFoundError:
-                    print("Unable to delete locally saved remote file")
             if settings["verbose"]:
                 print("Finished read: 1 record")
-        # Read in multiple files, organize data by dataSetName (one extra layer)
         else:
             for file in files[".lpd"]:
-                _contents = lipd_read(file["full_path"])
-                _d[_contents["dataSetName"]] = _contents
+                _d[file["filename_no_ext"]] = lipd_read(file["full_path"])
             if settings["verbose"]:
                 print("Finished read: {} records".format(len(_d)))
     except Exception as e:
@@ -1136,12 +998,6 @@ def __disclaimer(opt=""):
         print("Note: Use lipd.validate() or www.LiPD.net/create "
               "to ensure that your new LiPD file(s) are valid")
         settings["note_validate"] = False
-    return
-
-
-def __move_to_cwd():
-    global cwd
-    os.chdir(cwd)
     return
 
 # GLOBALS
