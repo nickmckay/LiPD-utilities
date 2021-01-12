@@ -7,7 +7,7 @@ from distutils.command.install import install
 from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.8.1'
+version = '0.2.8.3'
 
 # Read the readme file contents into variable
 if sys.argv[-1] == 'publish' or sys.argv[-1] == 'publishtest':
@@ -21,6 +21,7 @@ with readme_file:
     long_description = readme_file.read()
 
 # Publish the package to the live server
+
 if sys.argv[-1] == 'publish':
     # Register the tarball, upload it, and trash the temp readme rst file
     os.system('python3 setup.py register')
@@ -62,7 +63,6 @@ setup(
         "pandas",
         "requests",
         "sip",
-        "PyQt5",
     ],
 )
 
