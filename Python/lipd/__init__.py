@@ -302,7 +302,7 @@ def validate(D, detailed=True):
 
     :param dict D: Metadata (single or multiple datasets)
     :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors
-    :return none:
+    :return results:
     """
 
     print("\n")
@@ -325,7 +325,7 @@ def validate(D, detailed=True):
         print("Error: validate: {}".format(e))
 
     __move_to_cwd()
-    return
+    return results
 
 
 def viewLipd(D):
