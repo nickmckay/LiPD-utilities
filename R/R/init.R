@@ -30,7 +30,8 @@ stripExtension <- function(filename){
 #' @usage readLipd(path)
 #' @return D : LiPD dataset(s)
 #' @examples
-#' read in multiple datasets - no path argument
+#' \dontrun{
+#' #' read in multiple datasets - no path argument
 #' D <- readLipd()   # choose option 'd' for directory
 #'
 #' read in multiple datasets - with path argument
@@ -41,7 +42,7 @@ stripExtension <- function(filename){
 #' 
 #' read in one dataset - with path argument
 #' L <- readLipd("/Users/bobsmith/Desktop/lipd_files/dataset.lpd")
-#' 
+#' }
 readLipd <- function(path=NULL){
   #remember the starting wd
   swd <- getwd()
@@ -97,13 +98,13 @@ readLipd <- function(path=NULL){
 #' @usage writeLipd(D, path)
 #' @return none
 #' @examples 
-#' 
+#' \dontrun{
 #' # write - without path argument
 #' writeLipd(D)
 #' 
 #' # write - with path argument
 #' writeLipd(D, "/Users/bobsmith/Desktop/lipd_files")
-#' 
+#' }
 writeLipd <- function(D, path=NULL, ignore.warnings=FALSE,removeNamesFromLists = FALSE){
   if(get_os() == "windows" & pkgbuild::find_rtools() == FALSE){
     stop("Rtools package required to use writeLipd. Please go to https://cran.r-project.org/bin/windows/Rtools/ and install Rtools.")
@@ -114,6 +115,10 @@ writeLipd <- function(D, path=NULL, ignore.warnings=FALSE,removeNamesFromLists =
       path <- browse_dialog("d")
       setwd(path)
     }
+    
+    #normalize the path
+    path <- normalizePath(dirname(path),mustWork = FALSE)
+    
     set_bagit()
     if ("paleoData" %in% names(D)){
       print(paste0("writing: ", D[["dataSetName"]]))
