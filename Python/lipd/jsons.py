@@ -197,32 +197,46 @@ def _idx_table_by_name(tables, crumbs):
 
 
 def _idx_col_by_name(table):
-    """
-    Iter over columns list. Turn indexed-by-num list into an indexed-by-name dict. Keys are the variable names.
+	"""
+	Iter over columns list. Turn indexed-by-num list into an indexed-by-name dict. Keys are the variable names.
 
-    :param dict table: Metadata
-    :return dict _table: Metadata
-    """
-    _columns = OrderedDict()
+	:param dict table: Metadata
+	:return dict _table: Metadata
+	"""
+	_columns = OrderedDict()
+	_prev_num = 0
 
-    # Iter for each column in the list
-    try:
-        for _column in table["columns"]:
-            try:
-                _name = _column["variableName"]
-                if _name in _columns:
-                    _name = get_appended_name(_name, _columns)
-                _columns[_name] = _column
-            except Exception as e:
-                print("Error: idx_col_by_name: inner: {}".format(e))
-                logger_jsons.info("idx_col_by_name: inner: {}".format(e))
+	# Iter for each column in the list
+	try:
+		for _column in table["columns"]:
+			try:
+				_name = _column["variableName"]
+				# Ensemble table, expand columns
+				if isinstance(_column["number"], list):
+					_column["isEnsemble"] = True
+					_column["ensembleName"] = _name
+					for num in _column["number"]:
+						_copy_col = dict(_column)
+						_copy_col["number"] = num
+						_name = "{}-{}".format(_column["variableName"], num)
+						_copy_col["variableName"] = _name
+						_prev_num = num
+						_columns[_name] = _copy_col
+				else:
+					if _name in _columns:
+						_name = get_appended_name(_name, _columns)
+					_prev_num = _column["number"]
+					_columns[_name] = _column
+			except Exception as e:
+				print("Error: idx_col_by_name: inner: {}".format(e))
+				logger_jsons.info("idx_col_by_name: inner: {}".format(e))
 
-        table["columns"] = _columns
-    except Exception as e:
-        print("Error: idx_col_by_name: {}".format(e))
-        logger_jsons.error("idx_col_by_name: {}".format(e))
+		table["columns"] = _columns
+	except Exception as e:
+		print("Error: idx_col_by_name: {}".format(e))
+		logger_jsons.error("idx_col_by_name: {}".format(e))
 
-    return table
+	return table
 
 
 # PREP FOR EXPORT
