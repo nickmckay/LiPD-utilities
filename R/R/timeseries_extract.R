@@ -7,8 +7,10 @@
 #' @param mode : char: Options: "paleo", "chron"
 #' @return ts:  Time series : list
 #' @examples 
-#' D <- readLipds()
+#' \dontrun{
+#' D <- readLipd()
 #' ts <- extractTs(D)
+#' }
 #' 
 extractTs= function(D, whichtables = "all", mode = "paleo"){
   

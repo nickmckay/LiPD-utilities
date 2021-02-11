@@ -8,9 +8,11 @@
 #' @usage collapseTs(ts)
 #' @return D: LiPD data, sorted by dataset name : list
 #' @examples 
-#' D <- readLipds()
+#' \dontrun{
+#' D <- readLipd()
 #' ts <- extractTs(D)
 #' D <- collapseTs(ts)
+#' }
 #' 
 collapseTs <- function(ts, force=FALSE){
   #before doing anything else, reorder the data by dataset name.

@@ -10,7 +10,7 @@
 #' @usage queryTs(ts, expression)
 #' @return idxs: Matching indices : list
 #' @examples 
-#' 
+#' \dontrun{
 #' # Time series
 #' ts = [ object1, object2, object3, object4 ]
 #'
@@ -23,7 +23,7 @@
 #' idxs = filterTs(ts, "paleoData_variableName == d18O")
 #' # result
 #' [2]
-#' 
+#' }
 queryTs= function(ts, expression, exact=FALSE){
   results <- suppressWarnings(process_expression(ts, expression, exact))
   return(results[["idx"]])
@@ -40,7 +40,8 @@ queryTs= function(ts, expression, exact=FALSE){
 #' @usage filterTs(ts, expression)
 #' @return new.ts : Time series : list
 #' @examples 
-#' 
+#' \dontrun{
+
 #' # Time series
 #' ts = [ object1, object2, object3, object4 ]
 #'
@@ -54,7 +55,7 @@ queryTs= function(ts, expression, exact=FALSE){
 #' # result
 #' [object2]
 #' 
-#' 
+#' }
 filterTs= function(ts, expression, exact=FALSE){
   results <- suppressWarnings(process_expression(ts, expression, exact))
   return(results[["new_ts"]])

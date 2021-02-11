@@ -23,6 +23,12 @@ download_from_url <- function(path){
 
   # Test if the string is a URL or not
   if(is.url(path)){
+    #check to see if the url is https
+    if(tolower(substr(path,1,5)) == "http:" & get_os() == "win"){
+      path <- stringr::str_replace(path,"http://","https://")#replace with https
+    }
+    
+    
     #check for libcurl
     if(get_os() == "win"){
       dmeth <- "curl"
