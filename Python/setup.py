@@ -7,7 +7,7 @@ from distutils.command.install import install
 from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.8.5'
+version = '0.2.8.7'
 
 
 # Read the readme file contents into variable

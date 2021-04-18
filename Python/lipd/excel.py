@@ -68,7 +68,7 @@ def excel_main(file):
 
     except Exception as e:
         # There was a problem opening a file with XLRD
-        print("Failed to open Excel workbook: {}".format(name))
+        print("Failed to open Excel workbook: {}, {}".format(name,e))
         workbook = None
         logger_excel.debug("excel: xlrd failed to open workbook: {}, {}".format(name, e))
 
@@ -128,7 +128,7 @@ def excel_main(file):
             results = previously_run_doi(final)
             final = DOIResolver(dsn=name, D=final, results=results, force=True).main()
         except Exception as e:
-            print("Error: doi resolver failed: {}".format(name))
+            print("Error: doi resolver failed: {}, {}".format(name, e))
             logger_excel.debug("excel: doi resolver failed: {}, {}".format(name, e))
 
         # Dump final_dict to a json file.

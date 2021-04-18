@@ -81,6 +81,7 @@ def readExcel(usr_path=""):
     try:
         files[".xls"] = []
         __read(usr_path, ".xls")
+
     except Exception as e:
         pass
         # Placeholder to catch errors so we can always chdir back to cwd
@@ -302,7 +303,7 @@ def validate(D, detailed=True):
 
     :param dict D: Metadata (single or multiple datasets)
     :param bool detailed: Show or hide the detailed results of each LiPD file. Shows warnings and errors
-    :return results:
+    :return none:
     """
 
     print("\n")
@@ -325,22 +326,22 @@ def validate(D, detailed=True):
         print("Error: validate: {}".format(e))
 
     __move_to_cwd()
-    return results
-
-
-def viewLipd(D):
-
-    try:
-        # Move to py package dir, so we can relative reference json_viewer.py
-        _go_to_package()
-        # Open viewer in subprocess, so it's contained and closed in a new py process
-        subprocess.call(('python', 'json_viewer.py', json.dumps(D)))
-    except Exception as e:
-        pass
-        # Placeholder to catch errors so we can always chdir back to cwd
-
-    __move_to_cwd()
     return
+
+
+# def viewLipd(D):
+#
+#     try:
+#         # Move to py package dir, so we can relative reference json_viewer.py
+#         _go_to_package()
+#         # Open viewer in subprocess, so it's contained and closed in a new py process
+#         subprocess.call(('python', 'json_viewer.py', json.dumps(D)))
+#     except Exception as e:
+#         pass
+#         # Placeholder to catch errors so we can always chdir back to cwd
+#
+#     __move_to_cwd()
+#     return
 
 
 # PUT
@@ -1129,10 +1130,10 @@ def __disclaimer(opt=""):
     :return none:
     """
     global settings
-    if opt is "update":
+    if opt == "update":
         print("Disclaimer: LiPD files may be updated and modified to adhere to standards\n")
         settings["note_update"] = False
-    if opt is "validate":
+    if opt == "validate":
         print("Note: Use lipd.validate() or www.LiPD.net/create "
               "to ensure that your new LiPD file(s) are valid")
         settings["note_validate"] = False

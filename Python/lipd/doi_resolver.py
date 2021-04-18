@@ -43,7 +43,7 @@ class DOIResolver(object):
             for idx, pub in enumerate(self.D['pub']):
                 # Retrieve DOI id key-value from the D
                 try:
-                    doi_string = pub["doi"]
+                    doi_string = pub["identifier"][0]["id"]
                 except KeyError:
                     doi_string = ""
 
@@ -61,7 +61,7 @@ class DOIResolver(object):
                         # Loop for each DOI
                         for doi_id in doi_list:
                             # Send an API request for the current DOI
-                            if not self.results[doi_id] or self.force:
+                            if doi_id not in self.results or self.force:
                                 self.get_data(doi_id, idx)
                             else:
                                 print(
@@ -69,7 +69,7 @@ class DOIResolver(object):
 
                 # No DOI entry in this publication
                 else:
-                    print("Failed : {} [{}]: {}".format(self.dsn, idx, "No DOI key in publication"))
+                    print("DOI Failed : {} [{}]: {}".format(self.dsn, idx, "No DOI key in publication"))
                     # Note that this data is manually entered since there is no DOI as a source.
                     logger_doi_resolver.warn("doi not found: publication index: {}".format(self.dsn, idx))
                     self.D['pub'][idx]['pubDataUrl'] = 'Manually Entered'
