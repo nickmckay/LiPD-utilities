@@ -5,13 +5,21 @@ function I = readLiPDGeo1_0(I)
 if isfield(I.geo,'geometry')
     
     %load in geo information
+    if isstring(I.geo.geometry.coordinates)
+        I.geo.geometry.coordinates = num2cell(I.geo.geometry.coordinates);
+        for gc = 1:length(I.geo.geometry.coordinates)
+            if isstring(I.geo.geometry.coordinates{gc})
+                I.geo.geometry.coordinates{gc} = str2num(str2mat(I.geo.geometry.coordinates{gc}));
+            end
+        end
+    end
     if iscell(I.geo.geometry.coordinates)
-       for gc = 1:length(I.geo.geometry.coordinates)
-          if ischar(I.geo.geometry.coordinates{gc})
-              I.geo.geometry.coordinates{gc} = str2num(I.geo.geometry.coordinates{gc});
-          end
-       end
-           I.geo.geometry.coordinates = cell2mat(I.geo.geometry.coordinates);
+        for gc = 1:length(I.geo.geometry.coordinates)
+            if ischar(I.geo.geometry.coordinates{gc})
+                I.geo.geometry.coordinates{gc} = str2num(I.geo.geometry.coordinates{gc});
+            end
+        end
+        I.geo.geometry.coordinates = cell2mat(I.geo.geometry.coordinates);
     end
     if numel(I.geo.geometry.coordinates)<2
         I.geo.latitude=NaN;
@@ -31,7 +39,7 @@ if isfield(I.geo,'geometry')
         I.geo.meanElev=mean(I.geo.elevation);
     end
     I.geo=rmfield(I.geo,'geometry');
-
+    
 else
     I.geo.latitude=NaN;
     I.geo.meanLat=NaN;
@@ -42,13 +50,13 @@ end
 
 %bring property fields up a level
 if isfield(I.geo,'properties')
- if isstruct(I.geo.properties)
-    propFields=fieldnames(I.geo.properties);
-    for pf=1:length(propFields)
-        I.geo.(propFields{pf})=I.geo.properties.(propFields{pf});
+    if isstruct(I.geo.properties)
+        propFields=fieldnames(I.geo.properties);
+        for pf=1:length(propFields)
+            I.geo.(propFields{pf})=I.geo.properties.(propFields{pf});
+        end
     end
- end
-%remove properties and coordiantes structures
-I.geo=rmfield(I.geo,'properties');
+    %remove properties and coordiantes structures
+    I.geo=rmfield(I.geo,'properties');
 end
 %%%%%%%END GEO SECTION %%%%%%%%%

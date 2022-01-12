@@ -1,4 +1,4 @@
-function x=fixUnicodeStr(x)
+    function x=fixUnicodeStr(x)
 %fix unicode in strings
 
 if ischar(x)

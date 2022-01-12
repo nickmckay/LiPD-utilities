@@ -19,7 +19,7 @@ for i = 1:length(bins)-1
     else
     q = find(Xtime > bins(i) & Xtime<=bins(i+1));
     end
-    bin_mean(i,:) = [nanmean(X(q,:),1)];
+    bin_mean(i,:) = [nanmean(X(q,:))];
     %bin_sum(i,:)  = [nansum(X(q,:),1)];
     BinTime(i,1)= nanmean(Xtime(q));
 %     if length(find(~isnan(X(q,:)))) == 1
