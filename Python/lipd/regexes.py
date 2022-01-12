@@ -11,6 +11,7 @@ re_model_name = re.compile(r'(paleo|chron)[a-zA-Z]*(\d+)(model)?[a-zA-Z]*(\d)', 
 re_table_name = re.compile(r'(paleo|chron)(\d+)(model|measurement)(\d+)(ensemble|summary|distribution)?(\d+)?')
 re_sci_notation = re.compile(r"(\d+)([.]\d+)(e-\d+)")
 re_url = re.compile(r"^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$")
+re_ensemble_collapse = re.compile(r'([\w]*)\-([\w]*)\-ens')
 
 # EXCEL
 re_var_w_units = re.compile(r'([\w\s\.\-\_\:\/\\\"\'\`\#\+\{\}\[\]\;\*]+)\(?([\w\s\.\-\_\:\/\\\"\'\`\#\+\{\}\[\]\;\*]+)?\)?', re.I)
