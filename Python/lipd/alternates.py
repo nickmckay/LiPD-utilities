@@ -1,27 +1,27 @@
-
 """
 List of alternate and synonym keys
 """
 
 VER_1_3 = {
-    "tables": ["chronTableName", "paleoTableName", "paleoDataTableName", "chronDataTableName",
-               "chronMeasurementTableName", "paleoMeasurementTableName"],
+    "tables": [
+        "chronTableName",
+        "paleoTableName",
+        "paleoDataTableName",
+        "chronDataTableName",
+        "chronMeasurementTableName",
+        "paleoMeasurementTableName",
+    ],
     "swap": {
         "paleoMeasurementTable": "measurementTable",
         "chronMeasurementTable": "measurementTable",
-
         "paleoModel": "model",
         "chronModel": "model",
-
         "paleoDataMD5": "dataMD5",
         "chronDataMD5": "dataMD5",
-
         "chronEnsembleMD5": "tableMD5",
         "paleoEnsembleMD5": "tableMD5",
-
         "chronEnsembleTableMD5": "tableMD5",
         "paleoEnsembleTableMD5": "tableMD5",
-
         "paleoMeasurementTableMD5": "tableMD5",
         "chronMeasurementTableMD5": "tableMD5",
     },
@@ -34,7 +34,7 @@ EXCEL_SHEET_TYPES = {
     "measurement": ["m", "meas", "measurement"],
     "ensemble": ["e", "ens", "ensemble"],
     "distribution": ["d", "dist", "distribution"],
-    "summary": ["s", "sum", "summary"]
+    "summary": ["s", "sum", "summary"],
 }
 
 # LiPD Utilities currently supports the 4 file types listed below
@@ -42,7 +42,7 @@ FILE_TYPE_MAP = {
     ".xlsx": {"load_fn": "readExcel()", "file_type": "Excel"},
     ".xls": {"load_fn": "readExcel()", "file_type": "Excel"},
     ".txt": {"load_fn": "readNoaa()", "file_type": "NOAA"},
-    ".lpd": {"load_fn": "readLipd()", "file_type": "LiPD"}
+    ".lpd": {"load_fn": "readLipd()", "file_type": "LiPD"},
 }
 
 # TABLES
@@ -54,7 +54,7 @@ DATA_FRAMES = [
     "distribution",
     "model",
     "table",
-    "measurement"
+    "measurement",
 ]
 
 
@@ -66,30 +66,23 @@ COMPARISONS = {
     "greater than": ">",
     "equals": "=",
     "equal": "=",
-    "less than": "<"
+    "less than": "<",
 }
 
 # EXCEL
-EXCEL_GEO = [
-    "latMax",
-    "latMin",
-    "lonMax",
-    "lonMin",
-    "elevation",
-    "siteName"
-]
+EXCEL_GEO = ["latMax", "latMin", "lonMax", "lonMin", "elevation", "siteName"]
 
 
 # Missing value name appears as many variations. Try to account for all of them
 ALTS_MV = [
-    'missing value',
-    'missing values',
-    'missingvalue',
-    'missingvalues',
-    'missing_values',
-    'missing variables',
-    'missing_variables',
-    'missingvariables'
+    "missing value",
+    "missing values",
+    "missingvalue",
+    "missingvalues",
+    "missing_values",
+    "missing variables",
+    "missing_variables",
+    "missingvariables",
 ]
 
 # # NOAA: This does not include principal investigator or country.
@@ -102,31 +95,87 @@ ALTS_MV = [
 # Ex: if the LiPD has geo data, take the whole geo dictionary and put it into section 8.
 # reorganize(), create_blanks()
 NOAA_KEYS_BY_SECTION = {
-    "Top": ["Study_Name", 'Online_Resource', "Online_Resource_Description", 'Original_Source_URL', 'Archive',
-            "Dataset_DOI", "Parameter_Keywords"],
-    "Contribution_Date": ['Date'],
+    "Top": [
+        "Study_Name",
+        "Online_Resource",
+        "Online_Resource_Description",
+        "Original_Source_URL",
+        "Archive",
+        "Dataset_DOI",
+        "Parameter_Keywords",
+    ],
+    "Contribution_Date": ["Date"],
     "File_Last_Modified_Date": ["Modified_Date"],
-    "Title": ['Study_Name'],
-    "Investigators": ['Investigators'],
-    "Description_Notes_and_Keywords": ['Description'],
-    "Publication": ['Authors', 'Published_Date_or_Year', 'Published_Title', 'Journal_Name', 'Volume', 'Edition',
-                    'Issue', 'Pages', "Report", 'DOI', 'Online_Resource', 'Full_Citation', 'Abstract'],
+    "Title": ["Study_Name"],
+    "Investigators": ["Investigators"],
+    "Description_Notes_and_Keywords": ["Description"],
+    "Publication": [
+        "Authors",
+        "Published_Date_or_Year",
+        "Published_Title",
+        "Journal_Name",
+        "Volume",
+        "Edition",
+        "Issue",
+        "Pages",
+        "Report",
+        "DOI",
+        "Online_Resource",
+        "Full_Citation",
+        "Abstract",
+    ],
     "Funding_Agency": ["Funding_Agency_Name", "Grant"],
-    "Site_Information": ["Site_Name", "Location", "Country", "Northernmost_Latitude", "Southernmost_Latitude",
-                          "Easternmost_Longitude",  "Westernmost_Longitude", "Elevation"],
-    "Data_Collection": ['Collection_Name', 'Earliest_Year', 'Most_Recent_Year', 'Time_Unit', 'Core_Length', 'Notes'],
-    "Species": ['Species_Name', 'Species_Code', "Common_Name"],
-    "Chronology_Information": ['Chronology'],
-    "Variables": ["shortname", "what", "material", "error", "units", "seasonality", "archive", "detail", "method",
-                  "dataType", "additional"],
+    "Site_Information": [
+        "Site_Name",
+        "Location",
+        "Country",
+        "Northernmost_Latitude",
+        "Southernmost_Latitude",
+        "Easternmost_Longitude",
+        "Westernmost_Longitude",
+        "Elevation",
+    ],
+    "Data_Collection": [
+        "Collection_Name",
+        "Earliest_Year",
+        "Most_Recent_Year",
+        "Time_Unit",
+        "Core_Length",
+        "Notes",
+    ],
+    "Species": ["Species_Name", "Species_Code", "Common_Name"],
+    "Chronology_Information": ["Chronology"],
+    "Variables": [
+        "shortname",
+        "what",
+        "material",
+        "error",
+        "units",
+        "seasonality",
+        "archive",
+        "detail",
+        "method",
+        "dataType",
+        "additional",
+    ],
     "Data": ["Missing_Value"],
     # OTHERS. These are not sections, but they are important for parsing
     "Pub_Data_Citation": [""],
     # These are keys that do not currently have NOAA - LPD mappings
-    "Ignore":
-        ["Date", "Parameter_Keywords", "Dataset_Name", "Tree_Species_Code", "Species_Name", "Common_Name",
-               "Core_Length", "Time_Unit", "Most_Recent_Year", "Earliest_Year", "Collection_Name",
-               "Online_Resource_Description"]
+    "Ignore": [
+        "Date",
+        "Parameter_Keywords",
+        "Dataset_Name",
+        "Tree_Species_Code",
+        "Species_Name",
+        "Common_Name",
+        "Core_Length",
+        "Time_Unit",
+        "Most_Recent_Year",
+        "Earliest_Year",
+        "Collection_Name",
+        "Online_Resource_Description",
+    ],
 }
 
 
@@ -134,15 +183,15 @@ NOAA_KEYS_BY_SECTION = {
 LIPD_NOAA_MAP_BY_SECTION = {
     "Top": {
         "studyName": "Study_Name",
-        'onlineResource': 'Online_Resource',
+        "onlineResource": "Online_Resource",
         "onlineResourceDescription": "Online_Resource_Description",
         "url": "Original_Source_URL",
         "dataUrl": "Original_Source_URL",
         "originalDataURL": "Original_Source_URL",
-        'originalSourceURL': 'Original_Source_URL',
+        "originalSourceURL": "Original_Source_URL",
         "archiveType": "Archive",
         "datasetDOI": "Dataset_DOI",
-        "parameterKeywords": "Parameter_Keywords"
+        "parameterKeywords": "Parameter_Keywords",
     },
     "Contribution_Date": {
         "date": "Date",
@@ -151,52 +200,50 @@ LIPD_NOAA_MAP_BY_SECTION = {
         "modifiedDate": "Modified_Date",
     },
     "Title": {
-        'studyName': 'Study_Name',
+        "studyName": "Study_Name",
     },
     "Investigators": {
         "investigators": "Investigators",
     },
     "Description_Notes_and_Keywords": {
-        'notes': 'Description',
-
+        "notes": "Description",
     },
     "Publication": {
         "url": "Online_Resource",
         "dataUrl": "Online_Resource",
-        'pages': 'Pages',
+        "pages": "Pages",
         "pub": "Publication",
-        'pubYear': 'Published_Date_or_Year',
+        "pubYear": "Published_Date_or_Year",
         "year": "Published_Date_or_Year",
-        'report': 'Report_Number',
-        'title': 'Published_Title',
-        'volume': 'Volume',
-        'abstract': 'Abstract',
+        "report": "Report_Number",
+        "title": "Published_Title",
+        "volume": "Volume",
+        "abstract": "Abstract",
         "authors": "Authors",
         "author": "Authors",
-        'identifier': 'DOI',
-        'investigators': 'Investigators',
-        'issue': 'Issue',
+        "identifier": "DOI",
+        "investigators": "Investigators",
+        "issue": "Issue",
         "journal": "Journal_Name",
         "edition": "Edition",
-        'citation': 'Full_Citation',
-        'onlineResource': 'Online_Resource',
+        "citation": "Full_Citation",
+        "onlineResource": "Online_Resource",
         "type": "Type",
     },
     "Funding_Agency": {
-        'grant': 'Grant',
+        "grant": "Grant",
         "funding": "Funding_Agency",
         "agency": "Funding_Agency",
     },
     "Site_Information": {
-        'country': 'Country',
-        'siteName': 'Site_Name',
+        "country": "Country",
+        "siteName": "Site_Name",
         "nLat": "Northernmost_Latitude",
         "sLat": "Southernmost_Latitude",
         "eLon": "Easternmost_Longitude",
         "wLon": "Westernmost_Longitude",
         "elevation": "Elevation",
-        "gcmdLocation": "Location"
-
+        "gcmdLocation": "Location",
     },
     "Data_Collection": {
         "collectionName": "Collection_Name",
@@ -204,32 +251,28 @@ LIPD_NOAA_MAP_BY_SECTION = {
         "maxYear": "Most_Recent_Year",
         "timeUnit": "Time_Unit",
         "coreLength": "Core_Length",
-        "notes": "Notes"
+        "notes": "Notes",
     },
     "Species": {
         "sensorSpecies": "Species_Name",
         "sensorGenus": "Species_Code",
         "commonName": "Common_Name",
     },
-    "Chronology_Information": {
-        "chronology": "Chronology"
-    },
+    "Chronology_Information": {"chronology": "Chronology"},
     "Variables": {
-        'description': 'what',
-        'detail': 'detail',
-        'dataType': 'dataType',
-        'error': 'error',
-        'units': 'units',
-        'variableName': 'shortname',
-        'measurementMaterial': 'material',
-        'measurementMethod': 'method',
-        'seasonality': 'seasonality',
+        "description": "what",
+        "detail": "detail",
+        "dataType": "dataType",
+        "error": "error",
+        "units": "units",
+        "variableName": "shortname",
+        "measurementMaterial": "material",
+        "measurementMethod": "method",
+        "seasonality": "seasonality",
         "notes": "notes",
-        "additional": "additional"
+        "additional": "additional",
     },
-    "Data": {
-        "missingValue": "Missing_Value"
-    },
+    "Data": {"missingValue": "Missing_Value"},
     # These are keys that do not currently have NOAA - LPD mappings
     "Ignore": {
         "date": "Date",
@@ -239,8 +282,8 @@ LIPD_NOAA_MAP_BY_SECTION = {
         "commonName": "Common_Name",
         "coreLength": "Core_Length",
         "collectionName": "Collection_Name",
-        "onlineResourceDescription": "Online_Resource_Description"
-    }
+        "onlineResourceDescription": "Online_Resource_Description",
+    },
 }
 
 UNITS = {
@@ -251,70 +294,69 @@ UNITS = {
     "feet": "ft",
     "foot": "ft",
     "millimeter": "mm",
-    "millimeters": "mm"
+    "millimeters": "mm",
 }
 
 # LiPD terms on left, NOAA terms on right
 # Used to map LiPD to NOAA ontology (and vice versa)
 LIPD_NOAA_MAP_FLAT = {
     # column 9-part-variables
-    'description': 'what',
-    'detail': 'detail',
-    'dataType': 'dataType',
-    'uncertainty': 'uncertainty',
+    "description": "what",
+    "detail": "detail",
+    "dataType": "dataType",
+    "uncertainty": "uncertainty",
     "error": "error",
-    'units': 'units',
-    'variableName': 'shortname',
-    'measurementMaterial': 'material',
-    'measurementMethod': 'method',
-    'seasonality': 'seasonality',
+    "units": "units",
+    "variableName": "shortname",
+    "measurementMaterial": "material",
+    "measurementMethod": "method",
+    "seasonality": "seasonality",
     "notes": "notes",
-
     # all other sections
     "minYear": "Earliest_Year",
     "maxYear": "Most_Recent_Year",
     "timeUnit": "Time_Unit",
-    'datasetDOI': "Dataset_DOI",
-    'LiPDVersion': 'LiPD_Version',
+    "datasetDOI": "Dataset_DOI",
+    "LiPDVersion": "LiPD_Version",
     "lipdVersion": "lipdVersion",
     "liPDVersion": "lipdVersion",
-    'abstract': 'Abstract',
-    'agency': 'Funding_Agency_Name',
-    'archiveType': 'Archive',
-    'authors': 'Authors',
-    'citation': 'Full_Citation',
-    'country': 'Country',
+    "abstract": "Abstract",
+    "agency": "Funding_Agency_Name",
+    "archiveType": "Archive",
+    "authors": "Authors",
+    "citation": "Full_Citation",
+    "country": "Country",
     "funding": "Funding_Agency",
     "geo": "Site_Information",
-    'grant': 'Grant',
-    'identifier': 'DOI',
-    'investigator': 'Investigators',
-    'investigators': 'Investigators',
-    'issue': 'Issue',
-    'journal': 'Journal_Name',
+    "grant": "Grant",
+    "identifier": "DOI",
+    "investigator": "Investigators",
+    "investigators": "Investigators",
+    "issue": "Issue",
+    "journal": "Journal_Name",
     # 10.12.17 - politicalUnit is a catch-all key for state/country/other info.
-    'gcmdLocation': "Location",
-    'politicalUnit': "Location",
-    'location': 'Location',
-    'missingValue': 'Missing_Values',
-    'notes': 'Description',
-    'onlineResource': 'Online_Resource',
+    "gcmdLocation": "Location",
+    "politicalUnit": "Location",
+    "location": "Location",
+    "missingValue": "Missing_Values",
+    "notes": "Description",
+    "onlineResource": "Online_Resource",
     "url": "Original_Source_URL",
     "originalDataURL": "Original_Source_URL",
-    'originalSourceURL': 'Original_Source_URL',
-    'pages': 'Pages',
+    "originalSourceURL": "Original_Source_URL",
+    "pages": "Pages",
     "pub": "Publication",
-    'pubYear': 'Published_Date_or_Year',
+    "pubYear": "Published_Date_or_Year",
     "year": "Published_Date_or_Year",
-    'report': 'Report_Number',
-    'siteName': 'Site_Name',
-    'studyName': 'Study_Name',
-    'title': 'Published_Title',
-    'volume': 'Volume',
-
+    "report": "Report_Number",
+    "siteName": "Site_Name",
+    "studyName": "Study_Name",
+    "title": "Published_Title",
+    "volume": "Volume",
     ########################
     # MULTIPOINT
-    # Since coordinates are not explicit individual fields in LiPD, we'll have to manually transfer these.
+    # Since coordinates are not explicit individual fields in LiPD, we'll have to manually
+    # transfer these.
     # coordinates[0]: "Northernmost_Latitude",
     # coordinates[0]: "Southernmost_Latitude",
     # coordinates[1]: "Easternmost_Longitude",
@@ -403,7 +445,7 @@ EXCEL_TEMPLATE = [
     "paste data table below starting in column a",
     "the value or character string used as a placeholder for missing values",
     "<missing value>",
-    "<notes that describe the table as a whole>"
+    "<notes that describe the table as a whole>",
 ]
 
 # HEADER ROW for parsing excel worksheets
@@ -434,8 +476,5 @@ EXCEL_HEADER = [
     "sensorGenus",
     "sensorSpecies",
     "archiveGenus",
-    "archiveSpecies"
-
-
+    "archiveSpecies",
 ]
-

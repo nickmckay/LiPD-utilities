@@ -7,13 +7,16 @@ import csv
 import os
 import demjson
 
+
 def update_dois(csv_source, write_file=True):
     """
-    Get DOI publication info for a batch of DOIs. This is LiPD-independent and only requires a CSV file with all DOIs
-    listed in a single column. The output is LiPD-formatted publication data for each entry.
+    Get DOI publication info for a batch of DOIs. This is LiPD-independent and only requires a CSV
+    file with all DOIs listed in a single column.
+    The output is LiPD-formatted publication data for each entry.
 
     :param str csv_source: Local path to CSV file
-    :param bool write_file: Write output data to JSON file (True), OR pretty print output to console (False)
+    :param bool write_file: Write output data to JSON file (True),
+        OR pretty print output to console (False)
     :return none:
     """
 
@@ -50,18 +53,17 @@ def write_json_to_file(json_data, filename="metadata"):
     :return None:
     """
     # Use demjson to maintain unicode characters in output
-    json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
+    json_bin = demjson.encode(json_data, encoding="utf-8", compactly=False)
     # Write json to file
     try:
         open("{}.json".format(filename), "wb").write(json_bin)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         print("Error: Writing json to file: {}".format(filename))
     return
 
 
 def _update_doi(doi_string):
-    """
-    """
+    """ """
     res = []
     doi_list = clean_doi(doi_string)
     if not doi_list:
@@ -81,7 +83,8 @@ def compile_date(date_parts):
     """
     if date_parts[0][0]:
         return date_parts[0][0]
-    return 'NaN'
+    return "NaN"
+
 
 def compile_authors(authors):
     """
@@ -91,7 +94,7 @@ def compile_authors(authors):
     """
     author_list = []
     for person in authors:
-        author_list.append({'name': person['family'] + ", " + person['given']})
+        author_list.append({"name": person["family"] + ", " + person["given"]})
     return author_list
 
 
@@ -103,23 +106,36 @@ def compile_fetch(raw, doi_id):
     :return dict:
     """
     fetch_dict = OrderedDict()
-    order = {'author': 'author', 'type': 'type', 'identifier': '', 'title': 'title', 'journal': 'container-title',
-            'pubYear': '', 'volume': 'volume', 'publisher': 'publisher', 'page':'page', 'issue': 'issue'}
+    order = {
+        "author": "author",
+        "type": "type",
+        "identifier": "",
+        "title": "title",
+        "journal": "container-title",
+        "pubYear": "",
+        "volume": "volume",
+        "publisher": "publisher",
+        "page": "page",
+        "issue": "issue",
+    }
 
     for k, v in order.items():
         try:
-            if k == 'identifier':
-                fetch_dict[k] = [{"type": "doi", "id": doi_id, "url": "http://dx.doi.org/" + doi_id}]
-            elif k == 'author':
+            if k == "identifier":
+                fetch_dict[k] = [
+                    {"type": "doi", "id": doi_id, "url": "http://dx.doi.org/" + doi_id}
+                ]
+            elif k == "author":
                 fetch_dict[k] = compile_authors(raw[v])
-            elif k == 'pubYear':
-                fetch_dict[k] = compile_date(raw['issued']['date-parts'])
+            elif k == "pubYear":
+                fetch_dict[k] = compile_date(raw["issued"]["date-parts"])
             else:
                 fetch_dict[k] = raw[v]
-        except KeyError as e:
+        except KeyError:
             # If we try to add a key that doesn't exist in the raw dict, then just keep going.
             pass
     return fetch_dict
+
 
 def get_data(doi_id):
     """
@@ -135,9 +151,10 @@ def get_data(doi_id):
         # Send request to grab metadata at URL
         print("Requesting : {}".format(doi_id))
         url = "http://dx.doi.org/" + doi_id
-        headers = {"accept": "application/rdf+xml;q=0.5, application/citeproc+json;q=1.0"}
+        headers = {
+            "accept": "application/rdf+xml;q=0.5, application/citeproc+json;q=1.0"
+        }
         r = requests.get(url, headers=headers)
-
 
         # DOI 404. Data not retrieved. Log and return original pub
         if r.status_code == 400 or r.status_code == 404:
@@ -149,7 +166,7 @@ def get_data(doi_id):
             raw = json.loads(r.text)
             # Create a new pub dictionary with metadata received
             fetch_dict = compile_fetch(raw, doi_id)
-            fetch_dict['pubDataUrl'] = 'doi.org'
+            fetch_dict["pubDataUrl"] = "doi.org"
 
     except urllib.error.URLError as e:
         fetch_dict["ERROR"] = e
@@ -158,7 +175,11 @@ def get_data(doi_id):
     except Exception as e:
         fetch_dict["ERROR"] = e
         fetch_dict["doi"] = doi_id
-        print("get_data: ValueError: cannot resolve dois from this publisher: {}, {}".format(doi_id, e))
+        print(
+            "get_data: ValueError: cannot resolve dois from this publisher: {}, {}".format(
+                doi_id, e
+            )
+        )
     return fetch_dict
 
 

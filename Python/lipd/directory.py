@@ -3,18 +3,19 @@ import tempfile
 import shutil
 import ntpath
 import time
-import sys
 
 import subprocess
 from .loggers import create_logger
 
 
-logger_directory = create_logger('directory')
+logger_directory = create_logger("directory")
 _site_pkgs = ""
+
 
 def _ask_how_many():
     """
-    Ask user if they want to load in one file or do a batch process of a whole directory. Default to batch "m" mode.
+    Ask user if they want to load in one file or do a batch process of a whole directory.
+    Default to batch "m" mode.
     :return str: Path or none
     """
     batch = True
@@ -23,7 +24,9 @@ def _ask_how_many():
 
     try:
         while invalid:
-            print("\nChoose a loading option:\n1. Select specific file(s)\n2. Load entire folder")
+            print(
+                "\nChoose a loading option:\n1. Select specific file(s)\n2. Load entire folder"
+            )
             _option = input("Option: ")
             # these are the only 2 valid options. if this is true, then stop prompting
             if _option in ["1", "2"]:
@@ -58,7 +61,7 @@ def browse_dialog_dir():
     """
     _go_to_package()
     logger_directory.info("enter browse_dialog")
-    _path_bytes = subprocess.check_output(['python', 'gui_dir_browse.py'], shell=False)
+    _path_bytes = subprocess.check_output(["python", "gui_dir_browse.py"], shell=False)
     _path = _fix_path_bytes(_path_bytes, file=False)
     if len(_path) >= 1:
         _path = _path[0]
@@ -73,7 +76,7 @@ def _fix_path_bytes(_path_bytes, file=True):
     _path = str(_path_bytes.decode("utf-8"))
     _path = _path.replace("(", "").replace(")", "").replace("'", "").replace('"', "")
     _path = _path.split(",")
-    for idx,i in enumerate(_path):
+    for idx, i in enumerate(_path):
         _path[idx] = i.replace("\n", "").strip()
     if file:
         _new_path = [i for i in _path if i.endswith(".lpd")]
@@ -96,16 +99,20 @@ def browse_dialog_file():
     _path = ""
     try:
         _go_to_package()
-        _path_bytes = subprocess.check_output(['python', 'gui_file_browse.py'])
+        _path_bytes = subprocess.check_output(["python", "gui_file_browse.py"])
         _path = _fix_path_bytes(_path_bytes)
         _files = [i for i in _path]
         _path = os.path.dirname(_path[0])
         logger_directory.info("chosen path: {}, chosen file: {}".format(_path, _files))
 
     except IndexError:
-        logger_directory.warn("directory: browse_dialog_file: IndexError: no file chosen")
+        logger_directory.warn(
+            "directory: browse_dialog_file: IndexError: no file chosen"
+        )
     except Exception as e:
-        logger_directory.error("directory: browse_dialog_file: UnknownError: {}".format(e))
+        logger_directory.error(
+            "directory: browse_dialog_file: UnknownError: {}".format(e)
+        )
 
     logger_directory.info("exit browse_dialog_file")
 
@@ -165,7 +172,7 @@ def collect_metadata_files(cwd, new_files, existing_files):
     try:
         os.chdir(cwd)
 
-        # Special case: User uses gui to mult-select 2+ files. You'll be given a list of file paths.
+        # Special case: User uses gui to mult-select 2+ files. You'll be given a list of file paths
         if new_files:
             for full_path in new_files:
                 # Create the file metadata for one file, and append it to the existing files.
@@ -182,7 +189,14 @@ def collect_metadata_files(cwd, new_files, existing_files):
                 # for each file found, build it's metadata and append it to files_by_type
                 for file in files_found:
                     fn = os.path.splitext(file)[0]
-                    existing_files[file_type].append({"full_path": os.path.join(cwd, file), "filename_ext": file, "filename_no_ext": fn, "dir": cwd})
+                    existing_files[file_type].append(
+                        {
+                            "full_path": os.path.join(cwd, file),
+                            "filename_ext": file,
+                            "filename_no_ext": fn,
+                            "dir": cwd,
+                        }
+                    )
     except Exception:
         logger_directory.info("directory: collect_files: there's a problem")
 
@@ -198,14 +212,20 @@ def collect_metadata_file(full_path):
     """
     fne = os.path.basename(full_path)
     fn = os.path.splitext(fne)[0]
-    obj = {"full_path": full_path, "filename_ext": fne, "filename_no_ext": fn, "dir": os.path.dirname(full_path)}
+    obj = {
+        "full_path": full_path,
+        "filename_ext": fne,
+        "filename_no_ext": fn,
+        "dir": os.path.dirname(full_path),
+    }
     return obj
 
 
 def dir_cleanup(dir_bag, dir_data):
     """
-    Moves JSON and csv files to bag root, then deletes all the metadata bag files. We'll be creating a new bag with
-    the data files, so we don't need the other text files and such.
+    Moves JSON and csv files to bag root, then deletes all the metadata bag files.
+    We'll be creating a new bag with the data files,
+    so we don't need the other text files and such.
     :param str dir_bag: Path to root of Bag
     :param str dir_data: Path to Bag /data subdirectory
     :return None:
@@ -216,7 +236,7 @@ def dir_cleanup(dir_bag, dir_data):
 
     # Delete files in dir_bag
     for file in os.listdir(dir_bag):
-        if file.endswith('.txt'):
+        if file.endswith(".txt"):
             os.remove(os.path.join(dir_bag, file))
     logger_directory.info("deleted files in dir_bag")
     # Move dir_data files up to dir_bag
@@ -262,8 +282,9 @@ def find_files():
                 _dir = find_files()
     return _dir
 
+
 def get_downloads_folder():
-    if os.name == 'nt':
+    if os.name == "nt":
         import ctypes
         from ctypes import windll, wintypes
         from uuid import UUID
@@ -274,21 +295,29 @@ def get_downloads_folder():
                 ("Data1", wintypes.DWORD),
                 ("Data2", wintypes.WORD),
                 ("Data3", wintypes.WORD),
-                ("Data4", wintypes.BYTE * 8)
+                ("Data4", wintypes.BYTE * 8),
             ]
 
             def __init__(self, uuidstr):
                 uuid = UUID(uuidstr)
                 ctypes.Structure.__init__(self)
-                self.Data1, self.Data2, self.Data3, \
-                self.Data4[0], self.Data4[1], rest = uuid.fields
+                (
+                    self.Data1,
+                    self.Data2,
+                    self.Data3,
+                    self.Data4[0],
+                    self.Data4[1],
+                    rest,
+                ) = uuid.fields
                 for i in range(2, 8):
-                    self.Data4[i] = rest >> (8 - i - 1) * 8 & 0xff
+                    self.Data4[i] = rest >> (8 - i - 1) * 8 & 0xFF
 
         SHGetKnownFolderPath = windll.shell32.SHGetKnownFolderPath
         SHGetKnownFolderPath.argtypes = [
-            ctypes.POINTER(GUID), wintypes.DWORD,
-            wintypes.HANDLE, ctypes.POINTER(ctypes.c_wchar_p)
+            ctypes.POINTER(GUID),
+            wintypes.DWORD,
+            wintypes.HANDLE,
+            ctypes.POINTER(ctypes.c_wchar_p),
         ]
 
         def _get_known_folder_path(uuidstr):
@@ -298,17 +327,19 @@ def get_downloads_folder():
                 raise ctypes.WinError()
             return pathptr.value
 
-        FOLDERID_Download = '{374DE290-123F-4565-9164-39C4925E467B}'
+        FOLDERID_Download = "{374DE290-123F-4565-9164-39C4925E467B}"
 
         return _get_known_folder_path(FOLDERID_Download)
     else:
         home = os.path.expanduser("~")
         return os.path.join(home, "Downloads")
 
+
 def get_filenames_generated(d, name="", csvs=""):
     """
-    Get the filenames that the LiPD utilities has generated (per naming standard), as opposed to the filenames that
-    originated in the LiPD file (that possibly don't follow the naming standard)
+    Get the filenames that the LiPD utilities has generated (per naming standard),
+    as opposed to the filenames that originated in the LiPD file
+    (that possibly don't follow the naming standard)
     :param dict d: Data
     :param str name: LiPD dataset name to prefix
     :param list csvs: Filenames list to merge with
@@ -339,7 +370,10 @@ def get_filenames_in_lipd(path, name=""):
         # in the top level, list all files and skip the "data" directory
         _top = [os.path.join(name, f) for f in os.listdir(path) if f != "data"]
         # in the data directory, list all files
-        _dir_data = [os.path.join(name, "data", f) for f in os.listdir(os.path.join(path, "data"))]
+        _dir_data = [
+            os.path.join(name, "data", f)
+            for f in os.listdir(os.path.join(path, "data"))
+        ]
         # combine the two lists
         _filenames = _top + _dir_data
     except Exception:
@@ -394,14 +428,19 @@ def get_src_or_dst_prompt(mode):
     """
     _words = {"read": "from", "write": "to"}
     # print(os.getcwd())
-    prompt = "Where would you like to {} your file(s) {}?\n" \
-             "1. Desktop ({})\n" \
-             "2. Downloads ({})\n" \
-             "3. Current ({})\n" \
-             "4. Browse".format(mode, _words[mode],
-                                  os.path.expanduser('~/Desktop'),
-                                    os.path.expanduser('~/Downloads'),
-                                    os.getcwd())
+    prompt = (
+        "Where would you like to {} your file(s) {}?\n"
+        "1. Desktop ({})\n"
+        "2. Downloads ({})\n"
+        "3. Current ({})\n"
+        "4. Browse".format(
+            mode,
+            _words[mode],
+            os.path.expanduser("~/Desktop"),
+            os.path.expanduser("~/Downloads"),
+            os.getcwd(),
+        )
+    )
     return prompt
 
 
@@ -415,25 +454,26 @@ def get_src_or_dst_path(prompt, count):
     print(prompt)
     option = input("Option: ")
     print("\n")
-    if option == '1':
+    if option == "1":
         # Set the path to the system desktop folder.
         logger_directory.info("1: desktop")
-        _path = os.path.expanduser('~/Desktop')
-    elif option == '2':
+        _path = os.path.expanduser("~/Desktop")
+    elif option == "2":
         # Set the path to the system downloads folder.
         logger_directory.info("2: downloads")
-        _path = os.path.expanduser('~/Downloads')
-    elif option == '3':
+        _path = os.path.expanduser("~/Downloads")
+    elif option == "3":
         # Current directory
         logger_directory.info("3: current")
         _path = os.getcwd()
-    elif option == '4':
+    elif option == "4":
         # Open up the GUI browse dialog
         logger_directory.info("4: browse ")
         _path = browse_dialog_dir()
 
     else:
-        # Something went wrong. Prompt again. Give a couple tries before defaulting to downloads folder
+        # Something went wrong. Prompt again.
+        # Give a couple tries before defaulting to downloads folder
         if count == 2:
             logger_directory.warn("too many attempts")
             print("Too many failed attempts. Defaulting to current working directory.")
@@ -493,7 +533,8 @@ def rm_files_in_dir(path):
 
 def rm_file_if_exists(path, filename):
     """
-    Remove a file if it exists. Useful for when we want to write a file, but it already exists in that locaiton.
+    Remove a file if it exists. Useful for when we want to write a file,
+    but it already exists in that locaiton.
     :param str filename: Filename
     :param str path: Directory
     :return none:

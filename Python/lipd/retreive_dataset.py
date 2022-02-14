@@ -84,7 +84,11 @@ if not ageBoundType:
 
 if len(ageBoundType) > 1:
     sys.exit("Only one search possible at a time.")
-    while ageBoundType != "any" and ageBoundType != "entirely" and ageBoundType != "entire":
+    while (
+        ageBoundType != "any"
+        and ageBoundType != "entirely"
+        and ageBoundType != "entire"
+    ):
         print("ageBoundType is not recognized")
         ageBoundType = input("Please enter either 'any', 'entirely', or 'entire': ")
 
@@ -127,13 +131,33 @@ WHERE {
 
 ### Look for data field
 dataQ = ""
-if archiveType or proxyObsType or infVarType or sensorGenus or sensorSpecies or interpName or interpDetail or ageUnits or ageBound or recordLength or resolution:
+if (
+    archiveType
+    or proxyObsType
+    or infVarType
+    or sensorGenus
+    or sensorSpecies
+    or interpName
+    or interpDetail
+    or ageUnits
+    or ageBound
+    or recordLength
+    or resolution
+):
     dataQ = "?dataset core:includesChronData|core:includesPaleoData ?data."
 
 ### Look for variable
 ## measuredVariable
 measuredVarQ = ""
-if proxyObsType or archiveType or sensorGenus or sensorSpecies or interpName or interpDetail or resolution:
+if (
+    proxyObsType
+    or archiveType
+    or sensorGenus
+    or sensorSpecies
+    or interpName
+    or interpDetail
+    or resolution
+):
     measuredVarQ = "?data core:foundInMeasurementTable / core:includesVariable ?v."
 
 ## InferredVar
@@ -147,7 +171,7 @@ if len(archiveType) > 0:
     # add values for the archiveType
     query += "VALUES ?a {"
     for item in archiveType:
-        query += "\"" + item + "\" "
+        query += '"' + item + '" '
     query += "}\n"
     # Create the query
     archiveTypeQ = """
@@ -165,7 +189,7 @@ if len(proxyObsType) > 0:
     #  add values for the proxyObservationType
     query += "VALUES ?b {"
     for item in proxyObsType:
-        query += "\"" + item + "\""
+        query += '"' + item + '"'
     query += "}\n"
     # Create the query
     proxyObsTypeQ = "?v core:proxyObservationType/rdfs:label ?b."
@@ -175,7 +199,7 @@ infVarTypeQ = ""
 if len(infVarType) > 0:
     query += "VALUES ?c {"
     for item in infVarType:
-        query += "\"" + item + "\""
+        query += '"' + item + '"'
     query += "}\n"
     # create the query
     infVarTypeQ = """
@@ -193,7 +217,7 @@ genusQ = ""
 if len(sensorGenus) > 0:
     query += "VALUES ?genus {"
     for item in sensorGenus:
-        query += "\"" + item + "\""
+        query += '"' + item + '"'
     query += "}\n"
     # create the query
     genusQ = "?sensor core:sensorGenus ?genus."
@@ -203,7 +227,7 @@ speciesQ = ""
 if len(sensorSpecies) > 0:
     query += "VALUES ?species {"
     for item in sensorSpecies:
-        query += "\"" + item + "\""
+        query += '"' + item + '"'
     query += "}\n"
     # Create the query
     speciesQ = "?sensor core:sensorSpecies ?species."
@@ -228,7 +252,7 @@ interpNameQ = ""
 if len(interpName) > 0:
     query += "VALUES ?intName {"
     for item in interpName:
-        query += "\"" + item + "\""
+        query += '"' + item + '"'
     query += "}\n"
     # Create the query
     interpNameQ = "?interpretation core:name ?intName."
@@ -238,7 +262,7 @@ interpDetailQ = ""
 if len(interpDetail) > 0:
     query += "VALUES ?intDetail {"
     for item in interpDetail:
-        query += "\"" + item + "\""
+        query += '"' + item + '"'
     query += "}\n"
     # Create the query
     interpDetailQ = "?interpretation core:detail ?intDetail."
@@ -249,7 +273,7 @@ ageUnitsQ = ""
 if len(ageUnits) > 0:
     query += "VALUES ?units {"
     for item in ageUnits:
-        query += "\"" + item + "\""
+        query += '"' + item + '"'
     query += "}\n"
     query += """VALUES ?ageOrYear{"Age" "Year"}\n"""
     # create the query
@@ -263,48 +287,87 @@ if len(ageUnits) > 0:
 ageQ = ""
 if ageBoundType[0] == "entirely":
     if len(ageBound) > 0 and len(recordLength) > 0:
-        ageQ = """
+        ageQ = (
+            """
 ?v2 core:hasMinValue ?e1.
 ?v2 core:hasMaxValue ?e2.
-filter(?e1<=""" + str(ageBound[0]) + """&& ?e2>=""" + str(ageBound[1]) + """ && abs(?e1-?e2)>=""" + str(
-            recordLength[0]) + """).
+filter(?e1<="""
+            + str(ageBound[0])
+            + """&& ?e2>="""
+            + str(ageBound[1])
+            + """ && abs(?e1-?e2)>="""
+            + str(recordLength[0])
+            + """).
 """
+        )
     elif len(ageBound) > 0 and len(recordLength) == 0:
-        ageQ = """
+        ageQ = (
+            """
 ?v2 core:hasMinValue ?e1.
 ?v2 core:hasMaxValue ?e2.
-filter(?e1<=""" + str(ageBound[0]) + """&& ?e2>=""" + str(ageBound[1]) + """).
+filter(?e1<="""
+            + str(ageBound[0])
+            + """&& ?e2>="""
+            + str(ageBound[1])
+            + """).
 """
+        )
 elif ageBoundType[0] == "entire":
     if len(ageBound) > 0 and len(recordLength) > 0:
-        ageQ = """
+        ageQ = (
+            """
 ?v2 core:hasMinValue ?e1.
 ?v2 core:hasMaxValue ?e2.
-filter(?e1>=""" + str(ageBound[0]) + """&& ?e2<=""" + str(ageBound[1]) + """ && abs(?e1-?e2)>=""" + str(
-            recordLength[0]) + """).
+filter(?e1>="""
+            + str(ageBound[0])
+            + """&& ?e2<="""
+            + str(ageBound[1])
+            + """ && abs(?e1-?e2)>="""
+            + str(recordLength[0])
+            + """).
 """
+        )
     elif len(ageBound) > 0 and len(recordLength) == 0:
-        ageQ = """
+        ageQ = (
+            """
 ?v2 core:hasMinValue ?e1.
 ?v2 core:hasMaxValue ?e2.
-filter(?e1>=""" + str(ageBound[0]) + """&& ?e2<=""" + str(ageBound[1]) + """).
+filter(?e1>="""
+            + str(ageBound[0])
+            + """&& ?e2<="""
+            + str(ageBound[1])
+            + """).
 """
+        )
 elif ageBoundType[0] == "any":
     if len(ageBound) > 0 and len(recordLength) > 0:
-        ageQ = """
+        ageQ = (
+            """
 ?v2 core:hasMinValue ?e1.
-filter(?e1<=""" + str(ageBound[1]) + """ && abs(?e1-""" + str(ageBound[1]) + """)>=""" + str(recordLength[0]) + """).
+filter(?e1<="""
+            + str(ageBound[1])
+            + """ && abs(?e1-"""
+            + str(ageBound[1])
+            + """)>="""
+            + str(recordLength[0])
+            + """).
 """
+        )
     elif len(ageBound) > 0 and len(recordLength) == 0:
-        ageQ = """
+        ageQ = (
+            """
 ?v2 core:hasMinValue ?e1.
-filter(?e1<=""" + str(ageBound[1]) + """).
+filter(?e1<="""
+            + str(ageBound[1])
+            + """).
 """
+        )
 
         ### Resolution
 resQ = ""
 if len(resolution) > 0:
-    resQ = """
+    resQ = (
+        """
 {
 ?v core:hasResolution/(core:hasMeanValue |core:hasMedianValue) ?resValue.
 filter (xsd:float(?resValue)<100)
@@ -312,9 +375,12 @@ filter (xsd:float(?resValue)<100)
 UNION
 {
 ?v1 core:hasResolution/(core:hasMeanValue |core:hasMedianValue) ?resValue1.
-filter (xsd:float(?resValue1)<""" + str(resolution[0]) + """)
+filter (xsd:float(?resValue1)<"""
+        + str(resolution[0])
+        + """)
 }    
 """
+    )
 
 ### Location
 locQ = ""
@@ -324,80 +390,143 @@ if lon or lat or alt:
 ## Altitude
 latQ = ""
 if len(lat) > 0:
-    latQ = """
+    latQ = (
+        """
 ?z <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat. 
-filter(xsd:float(?lat)<""" + str(lat[1]) + """ && xsd:float(?lat)>""" + str(lat[0]) + """).     
+filter(xsd:float(?lat)<"""
+        + str(lat[1])
+        + """ && xsd:float(?lat)>"""
+        + str(lat[0])
+        + """).     
 """
+    )
 
 ##Longitude
 lonQ = ""
 if len(lon) > 0:
-    lonQ = """
+    lonQ = (
+        """
 ?z <http://www.w3.org/2003/01/geo/wgs84_pos#long> ?long. 
-filter(xsd:float(?long)<""" + str(lon[1]) + """ && xsd:float(?long)>""" + str(lon[0]) + """).   
+filter(xsd:float(?long)<"""
+        + str(lon[1])
+        + """ && xsd:float(?long)>"""
+        + str(lon[0])
+        + """).   
 """
+    )
 
 ## Altitude
 altQ = ""
 if len(alt) > 0:
-    altQ = """
+    altQ = (
+        """
 ?z <http://www.w3.org/2003/01/geo/wgs84_pos#alt> ?alt. 
-filter(xsd:float(?alt)<""" + str(alt[1]) + """ && xsd:float(?alt)>""" + str(alt[0]) + """).       
+filter(xsd:float(?alt)<"""
+        + str(alt[1])
+        + """ && xsd:float(?alt)>"""
+        + str(alt[0])
+        + """).       
 """
+    )
 
-query += """
+query += (
+    """
 ?dataset a core:Dataset.  
-""" + dataQ + """
-""" + measuredVarQ + """
+"""
+    + dataQ
+    + """
+"""
+    + measuredVarQ
+    + """
 # By proxyObservationType
-""" + proxyObsTypeQ + """
-""" + inferredVarQ + """
+"""
+    + proxyObsTypeQ
+    + """
+"""
+    + inferredVarQ
+    + """
 # By InferredVariableType
-""" + infVarTypeQ + """
+"""
+    + infVarTypeQ
+    + """
 # Look for the proxy system model: needed for sensor and archive queries
-""" + proxySystemQ + """
+"""
+    + proxySystemQ
+    + """
 # Sensor query
-""" + sensorQ + """
-""" + genusQ + """
-""" + speciesQ + """
+"""
+    + sensorQ
+    + """
+"""
+    + genusQ
+    + """
+"""
+    + speciesQ
+    + """
 # Archive query (looks in both places)
-""" + archiveTypeQ + """
+"""
+    + archiveTypeQ
+    + """
 # Interpretation query
-""" + interpQ + """
-""" + interpNameQ + """
-""" + interpDetailQ + """
+"""
+    + interpQ
+    + """
+"""
+    + interpNameQ
+    + """
+"""
+    + interpDetailQ
+    + """
 # Age Query
-""" + ageUnitsQ + """
-""" + ageQ + """
+"""
+    + ageUnitsQ
+    + """
+"""
+    + ageQ
+    + """
 # Location Query
-""" + locQ + """
+"""
+    + locQ
+    + """
 #Latitude
-""" + latQ + """
+"""
+    + latQ
+    + """
 #Longitude
-""" + lonQ + """
+"""
+    + lonQ
+    + """
 #Altitude
-""" + altQ + """
+"""
+    + altQ
+    + """
 #Resolution Query
-""" + resQ + """
+"""
+    + resQ
+    + """
 }"""
+)
 
 # Store the query items into a list
-response = requests.post(url, data={'query': query})
+response = requests.post(url, data={"query": query})
 res = json.loads(response.text)
 
 # Get a list of the query results. These are links to the dataset main page
 results = []
-for item in res['results']['bindings']:
-    results.append(item['dataset']['value'])
+for item in res["results"]["bindings"]:
+    results.append(item["dataset"]["value"])
 print(results)
 
 # Isolate the dataset name from the full link
 dl_link = []
 dataset_name = []
 for idx, temp in enumerate(results):
-    dataset_name.append(temp.split('/')[-1])
+    dataset_name.append(temp.split("/")[-1])
     # Use the URL base for wiki download links, and build on the datasetname
-    dl_link.append('http://wiki.linked.earth/wiki/index.php/Special:WTLiPD?op=export&lipdid=' + dataset_name[idx])
+    dl_link.append(
+        "http://wiki.linked.earth/wiki/index.php/Special:WTLiPD?op=export&lipdid="
+        + dataset_name[idx]
+    )
 
 print(dl_link)
 
@@ -407,22 +536,24 @@ def get_download_path():
     Determine the OS and the associated download folder.
     :return str Download path:
     """
-    if os.name == 'nt':
+    if os.name == "nt":
         import winreg
-        sub_key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
-        downloads_guid = '{374DE290-123F-4565-9164-39C4925E467B}'
+
+        sub_key = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
+        downloads_guid = "{374DE290-123F-4565-9164-39C4925E467B}"
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, sub_key) as key:
             location = winreg.QueryValueEx(key, downloads_guid)[0]
         return location
     else:
-        return os.path.join(os.path.expanduser('~'), 'Downloads')
+        return os.path.join(os.path.expanduser("~"), "Downloads")
 
 
 def download_file(src_url, dst_path):
     """
     Use the given URL and destination to download and save a file
     :param str src_url: Direct URL to lipd file download
-    :param str dst_path: Local path to download file to, including filename and ext. ex. /path/to/filename.lpd
+    :param str dst_path: Local path to download file to,
+        including filename and ext. ex. /path/to/filename.lpd
     :return none:
     """
     if "MD982181" not in src_url:
@@ -432,6 +563,7 @@ def download_file(src_url, dst_path):
         except Exception as e:
             print("Error: unable to download from url: {}".format(e))
     return
+
 
 # edit as appropriate or it will default to download
 download_path = ""

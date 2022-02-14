@@ -6,7 +6,11 @@ import sys
 try:
     root = tk.Tk()
     root.withdraw()
-    _path = filedialog.askdirectory(parent=root, initialdir=os.path.expanduser('~/Desktop'), title='Please select a file')
+    _path = filedialog.askdirectory(
+        parent=root,
+        initialdir=os.path.expanduser("~/Desktop"),
+        title="Please select a file",
+    )
     root.update()
     print(str(_path))
     sys.stdout.flush()

@@ -3,14 +3,22 @@ import re
 
 from .alternates import COMPARISONS
 from .misc import match_operators, cast_float
-from .regexes import re_pandas_x_und, re_fund_valid, re_pub_valid, re_sheet_w_number, re_sheet, re_filter_expr
+from .regexes import (
+    re_pandas_x_und,
+    re_fund_valid,
+    re_pub_valid,
+    re_sheet_w_number,
+    re_sheet,
+    re_filter_expr,
+)
 from .blanks import EMPTY
 from .loggers import create_logger
 
-logger_ts = create_logger('time_series')
+logger_ts = create_logger("time_series")
 
 
 # EXTRACT
+
 
 def extract(d, whichtables, mode, time):
     """
@@ -48,7 +56,7 @@ def extract(d, whichtables, mode, time):
                 _root = _extract_fund(v, _root)
             elif k == "geo":
                 _root = _extract_geo(v, _root)
-            elif k == 'pub':
+            elif k == "pub":
                 _root = _extract_pub(v, _root)
             # elif k in ["chronData", "paleoData"]:
             #     # Store chronData and paleoData as-is. Need it to collapse without data loss.
@@ -74,7 +82,7 @@ def _extract_fund(l, _root):
     logger_ts.info("enter _extract_funding")
     for idx, i in enumerate(l):
         for k, v in i.items():
-            _root['funding' + str(idx + 1) + '_' + k] = v
+            _root["funding" + str(idx + 1) + "_" + k] = v
     return _root
 
 
@@ -87,11 +95,11 @@ def _extract_geo(d, _root):
     logger_ts.info("enter ts_extract_geo")
     # May not need these if the key names are corrected in the future.
     # COORDINATE ORDER: [LON, LAT, ELEV]
-    x = ['geo_meanLon', 'geo_meanLat', 'geo_meanElev']
+    x = ["geo_meanLon", "geo_meanLat", "geo_meanElev"]
     # Iterate through geo dictionary
     for k, v in d.items():
         # Case 1: Coordinates special naming
-        if k == 'coordinates':
+        if k == "coordinates":
             for idx, p in enumerate(v):
                 try:
                     # Check that our value is not in EMPTY.
@@ -109,18 +117,26 @@ def _extract_geo(d, _root):
                         # Set the value as a float into its entry.
                         _root[x[idx]] = float(p)
                 except IndexError as e:
-                    logger_ts.warn("_extract_geo: IndexError: idx: {}, val: {}, {}".format(idx, p, e))
+                    logger_ts.warn(
+                        "_extract_geo: IndexError: idx: {}, val: {}, {}".format(
+                            idx, p, e
+                        )
+                    )
         # Case 2: Any value that is a string can be added as-is
         elif isinstance(v, str):
-            if k == 'meanElev':
+            if k == "meanElev":
                 try:
                     # Some data sets have meanElev listed under properties for some reason.
-                    _root['geo_' + k] = float(v)
+                    _root["geo_" + k] = float(v)
                 except ValueError as e:
                     # If the value is a string, then we don't want it
-                    logger_ts.warn("_extract_geo: ValueError: meanElev is a string: {}, {}".format(v, e))
+                    logger_ts.warn(
+                        "_extract_geo: ValueError: meanElev is a string: {}, {}".format(
+                            v, e
+                        )
+                    )
             else:
-                _root['geo_' + k] = v
+                _root["geo_" + k] = v
         # Case 3: Nested dictionary. Recursion
         elif isinstance(v, dict):
             _root = _extract_geo(v, _root)
@@ -142,15 +158,17 @@ def _extract_pub(l, _root):
         # Go through data of this publication
         for k, v in pub.items():
             # Case 1: DOI ID. Don't need the rest of 'identifier' dict
-            if k == 'identifier':
+            if k == "identifier":
                 try:
-                    _root['pub' + str(idx + 1) + '_DOI'] = v[0]['id']
+                    _root["pub" + str(idx + 1) + "_DOI"] = v[0]["id"]
                 except KeyError as e:
-                    logger_ts.warn("_extract_pub: KeyError: no doi id: {}, {}".format(v, e))
+                    logger_ts.warn(
+                        "_extract_pub: KeyError: no doi id: {}, {}".format(v, e)
+                    )
             # Case 2: All other string entries
             else:
-                if k != 'authors' and k != 'author':
-                    _root['pub' + str(idx + 1) + '_' + k] = v
+                if k != "authors" and k != "author":
+                    _root["pub" + str(idx + 1) + "_" + k] = v
     return _root
 
 
@@ -163,33 +181,35 @@ def _extract_authors(pub, idx, _root):
     logger_ts.info("enter extract_authors")
     try:
         # DOI Author data. We'd prefer to have this first.
-        names = pub['author']
-    except KeyError as e:
+        names = pub["author"]
+    except KeyError:
         try:
             # Manually entered author data. This is second best.
-            names = pub['authors']
+            names = pub["authors"]
         except KeyError as e:
             # Couldn't find any author data. Skip it altogether.
             names = False
-            logger_ts.info("extract_authors: KeyError: author data not provided, {}".format(e))
+            logger_ts.info(
+                "extract_authors: KeyError: author data not provided, {}".format(e)
+            )
 
     # If there is author data, find out what type it is
     if names:
         # Build author names onto empty string
-        auth = ''
+        auth = ""
         # Is it a list of dicts or a list of strings? Could be either
         # Authors: Stored as a list of dictionaries or list of strings
         if isinstance(names, list):
             for name in names:
                 if isinstance(name, str):
-                    auth += name + ';'
+                    auth += name + ";"
                 elif isinstance(name, dict):
                     for k, v in name.items():
-                        auth += v + ';'
+                        auth += v + ";"
         elif isinstance(names, str):
             auth = names
         # Enter finished author string into target
-        _root['pub' + str(idx + 1) + '_author'] = auth[:-1]
+        _root["pub" + str(idx + 1) + "_author"] = auth[:-1]
     return _root
 
 
@@ -209,27 +229,38 @@ def _extract_pc(d, root, pc, whichtables):
         for k, v in d[pc].items():
             if whichtables == "all" or whichtables == "meas":
                 for _table_name1, _table_data1 in v["measurementTable"].items():
-                    _ts = _extract_table(_table_data1, copy.deepcopy(root), pc, _ts, "meas")
+                    _ts = _extract_table(
+                        _table_data1, copy.deepcopy(root), pc, _ts, "meas"
+                    )
             if whichtables != "meas":
                 if "model" in v:
                     for _table_name1, _table_data1 in v["model"].items():
-                        # get the method info for this model. This will be paired to all summ and ens table data
+                        # get the method info for this model.
+                        # This will be paired to all summ and ens table data
                         _method = _extract_method(_table_data1["method"])
                         if whichtables == "all" or whichtables == "summ":
                             if "summaryTable" in _table_data1:
-                                for _table_name2, _table_data2 in _table_data1["summaryTable"].items():
+                                for _table_name2, _table_data2 in _table_data1[
+                                    "summaryTable"
+                                ].items():
                                     # take a copy of this tso root
                                     _tso = copy.deepcopy(root)
                                     # add in the method details
                                     _tso.update(_method)
                                     # add in the table details
-                                    _ts = _extract_table(_table_data2, _tso, pc, _ts, "summ")
+                                    _ts = _extract_table(
+                                        _table_data2, _tso, pc, _ts, "summ"
+                                    )
                         if whichtables == "all" or whichtables == "ens":
                             if "ensembleTable" in _table_data1:
-                                for _table_name2, _table_data2 in _table_data1["ensembleTable"].items():
+                                for _table_name2, _table_data2 in _table_data1[
+                                    "ensembleTable"
+                                ].items():
                                     _tso = copy.deepcopy(root)
                                     _tso.update(_method)
-                                    _ts = _extract_table(_table_data2, _tso, pc, _ts, "ens")
+                                    _ts = _extract_table(
+                                        _table_data2, _tso, pc, _ts, "ens"
+                                    )
 
     except Exception as e:
         logger_ts.warn("extract_pc: Exception: {}".format(e))
@@ -244,7 +275,7 @@ def _extract_method(method):
     :return dict _method: Method data, formatted
     """
     _method = {}
-    for k,v in method.items():
+    for k, v in method.items():
         _method["method_" + k] = v
     return _method
 
@@ -259,7 +290,7 @@ def _extract_special(current, table_data):
     logger_ts.info("enter extract_special")
     try:
         # Add age, year, and depth columns to ts_root where possible
-        for k, v in table_data['columns'].items():
+        for k, v in table_data["columns"].items():
             s = ""
 
             # special case for year bp, or any variation of it. Translate key to "age""
@@ -267,10 +298,14 @@ def _extract_special(current, table_data):
                 s = "age"
 
             # all other normal cases. clean key and set key.
-            elif any(x in k.lower() for x in ('age', 'depth', 'year', "yr", "distance_from_top", "distance")):
-                # Some keys have units hanging on them (i.e. 'year_ad', 'depth_cm'). We don't want units on the keys
+            elif any(
+                x in k.lower()
+                for x in ("age", "depth", "year", "yr", "distance_from_top", "distance")
+            ):
+                # Some keys have units hanging on them (i.e. 'year_ad', 'depth_cm').
+                # We don't want units on the keys
                 if re_pandas_x_und.match(k):
-                    s = k.split('_')[0]
+                    s = k.split("_")[0]
                 elif "distance" in k:
                     s = "depth"
                 else:
@@ -279,15 +314,19 @@ def _extract_special(current, table_data):
             # create the entry in ts_root.
             if s:
                 try:
-                    current[s] = v['values']
+                    current[s] = v["values"]
                 except KeyError as e:
                     # Values key was not found.
-                    logger_ts.warn("extract_special: KeyError: 'values' not found, {}".format(e))
+                    logger_ts.warn(
+                        "extract_special: KeyError: 'values' not found, {}".format(e)
+                    )
                 try:
-                    current[s + 'Units'] = v['units']
+                    current[s + "Units"] = v["units"]
                 except KeyError as e:
                     # Values key was not found.
-                    logger_ts.warn("extract_special: KeyError: 'units' not found, {}".format(e))
+                    logger_ts.warn(
+                        "extract_special: KeyError: 'units' not found, {}".format(e)
+                    )
 
     except Exception as e:
         logger_ts.error("extract_special: {}".format(e))
@@ -307,7 +346,7 @@ def _extract_table_root(d, current, pc):
     try:
         for k, v in d.items():
             if isinstance(v, str):
-                current[pc + '_' + k] = v
+                current[pc + "_" + k] = v
     except Exception as e:
         logger_ts.error("extract_table_root: {}".format(e))
     return current
@@ -326,12 +365,14 @@ def _extract_table_model(table_data, current, tt):
         if tt in ["summ", "ens"]:
             m = re.match(re_sheet, table_data["tableName"])
             if m:
-                _pc_num= m.group(1) + "Number"
+                _pc_num = m.group(1) + "Number"
                 current[_pc_num] = m.group(2)
                 current["modelNumber"] = m.group(4)
                 current["tableNumber"] = m.group(6)
             else:
-                logger_ts.error("extract_table_summary: Unable to parse paleo/model/table numbers")
+                logger_ts.error(
+                    "extract_table_summary: Unable to parse paleo/model/table numbers"
+                )
     except Exception as e:
         logger_ts.error("extract_table_summary: {}".format(e))
     return current
@@ -380,11 +421,11 @@ def _extract_columns(d, tmp_tso, pc):
     for k, v in d.items():
         if isinstance(v, dict):
             flat_data = _extract_nested(pc + "_" + k, v, {})
-            for n,m in flat_data.items():
+            for n, m in flat_data.items():
                 tmp_tso[n] = m
         else:
             # Assume if it's not a special nested case, then it's a string value
-            tmp_tso[pc + '_' + k] = v
+            tmp_tso[pc + "_" + k] = v
     return tmp_tso
 
 
@@ -399,6 +440,7 @@ def _extract_nested(crumbs, dat, flat_dat):
         logger_ts.info("ts: _extract_nested: " + e)
 
     return flat_dat
+
 
 # COLLAPSE
 
@@ -431,11 +473,12 @@ def collapse(l, raw):
         # Loop the time series
         for entry in l:
             # Get notable keys
-            dsn = entry['dataSetName']
+            dsn = entry["dataSetName"]
             _dsn = dsn
             _current = entry
 
-            # Since root items are the same in each column of the same dataset, we only need these steps the first time.
+            # Since root items are the same in each column of the same dataset,
+            # we only need these steps the first time.
             if dsn not in _master:
                 logger_ts.info("collapsing: {}".format(dsn))
                 print("collapsing: {}".format(dsn))
@@ -445,7 +488,11 @@ def collapse(l, raw):
                     if "chronData" in raw[dsn]:
                         _master[dsn]["chronData"] = raw[dsn]["chronData"]
                 except KeyError as e:
-                    print("collapse: Could not collapse an object the dataset: {}, {}".format(dsn, e))
+                    print(
+                        "collapse: Could not collapse an object the dataset: {}, {}".format(
+                            dsn, e
+                        )
+                    )
 
             # Collapse pc, calibration, and interpretation
             _master = _collapse_pc(_master, _current, dsn, _pc)
@@ -478,8 +525,8 @@ def _get_current_names(current, dsn, pc):
     _variable_name = ""
     # Get key info
     try:
-        _table_name = current['{}_tableName'.format(pc)]
-        _variable_name = current['{}_variableName'.format(pc)]
+        _table_name = current["{}_tableName".format(pc)]
+        _variable_name = current["{}_variableName".format(pc)]
     except Exception as e:
         print("Error: Unable to collapse time series: {}, {}".format(dsn, e))
         logger_ts.error("get_current: {}, {}".format(dsn, e))
@@ -501,12 +548,17 @@ def _collapse_root(master, current, dsn, pc):
     _tmp_fund = {}
     _tmp_pub = {}
     # The tmp lipd data that we'll place in master later
-    _tmp_master = {'pub': [], 'geo': {'geometry': {'coordinates': []}, 'properties': {}}, 'funding': [],
-                   'paleoData': {}, "chronData": {}}
+    _tmp_master = {
+        "pub": [],
+        "geo": {"geometry": {"coordinates": []}, "properties": {}},
+        "funding": [],
+        "paleoData": {},
+        "chronData": {},
+    }
     # _raw = _switch[pc]
-    _c_keys = ['meanLat', 'meanLon', 'meanElev']
+    _c_keys = ["meanLat", "meanLon", "meanElev"]
     _c_vals = [0, 0, 0]
-    _p_keys = ['siteName', 'pages2kRegion', "location", "gcmdLocation", ""]
+    _p_keys = ["siteName", "pages2kRegion", "location", "gcmdLocation", ""]
     try:
 
         # does not have
@@ -521,7 +573,7 @@ def _collapse_root(master, current, dsn, pc):
             # Underscore present. Only underscore keys that belong here are funding, geo, and pub
             if "_" in k:
                 # FUNDING
-                if 'funding' in k:
+                if "funding" in k:
                     # Group funding items in tmp_funding by number
                     m = re_fund_valid.match(k)
                     try:
@@ -536,46 +588,60 @@ def _collapse_root(master, current, dsn, pc):
                             pass
 
                 # GEO
-                elif 'geo' in k:
-                    key = k.split('_')
+                elif "geo" in k:
+                    key = k.split("_")
                     # Coordinates - [LON, LAT, ELEV]
                     if key[1] in _c_keys:
-                        if key[1] == 'meanLon' or key[1] == "longitude":
+                        if key[1] == "meanLon" or key[1] == "longitude":
                             _c_vals[0] = v
-                        elif key[1] == 'meanLat' or key[1] == "latitude":
+                        elif key[1] == "meanLat" or key[1] == "latitude":
                             _c_vals[1] = v
-                        elif key[1] == 'meanElev' or key[1] == "elevation":
+                        elif key[1] == "meanElev" or key[1] == "elevation":
                             _c_vals[2] = v
                     # Properties
                     else:
-                        _tmp_master['geo']['properties'][key[1]] = v
+                        _tmp_master["geo"]["properties"][key[1]] = v
                     # All others
                     # else:
                     #     _tmp_master['geo'][key[1]] = v
 
                 # PUBLICATION
-                elif 'pub' in k:
+                elif "pub" in k:
                     # Group pub items in tmp_pub by number
                     m = re_pub_valid.match(k.lower())
                     if m:
-                        number = int(m.group(1)) - 1  # 0 indexed behind the scenes, 1 indexed to user.
+                        number = (
+                            int(m.group(1)) - 1
+                        )  # 0 indexed behind the scenes, 1 indexed to user.
                         key = m.group(2)
                         # Authors ("Pu, Y.; Nace, T.; etc..")
-                        if key == 'author' or key == 'authors':
+                        if key == "author" or key == "authors":
                             try:
-                                _tmp_pub[number]['author'] = _collapse_author(v)
-                            except KeyError as e:
-                                # Dictionary not created yet. Assign one first.
-                                _tmp_pub[number] = {}
-                                _tmp_pub[number]['author'] = _collapse_author(v)
-                        # DOI ID
-                        elif key == 'DOI':
-                            try:
-                                _tmp_pub[number]['identifier'] = [{"id": v, "type": "doi", "url": "http://dx.doi.org/" + str(v)}]
+                                _tmp_pub[number]["author"] = _collapse_author(v)
                             except KeyError:
                                 # Dictionary not created yet. Assign one first.
                                 _tmp_pub[number] = {}
-                                _tmp_pub[number]['identifier'] = [{"id": v, "type": "doi", "url": "http://dx.doi.org/" + str(v)}]
+                                _tmp_pub[number]["author"] = _collapse_author(v)
+                        # DOI ID
+                        elif key == "DOI":
+                            try:
+                                _tmp_pub[number]["identifier"] = [
+                                    {
+                                        "id": v,
+                                        "type": "doi",
+                                        "url": "http://dx.doi.org/" + str(v),
+                                    }
+                                ]
+                            except KeyError:
+                                # Dictionary not created yet. Assign one first.
+                                _tmp_pub[number] = {}
+                                _tmp_pub[number]["identifier"] = [
+                                    {
+                                        "id": v,
+                                        "type": "doi",
+                                        "url": "http://dx.doi.org/" + str(v),
+                                    }
+                                ]
                         # All others
                         else:
                             try:
@@ -587,24 +653,35 @@ def _collapse_root(master, current, dsn, pc):
 
             # No underscore in name, we can rule out the other obvious keys we don't want
             else:
-                # Rule out any timeseries keys that we added, and paleoData/chronData prefixed keys.
-                if not any(i in k.lower() or i is k.lower() for i in ["paleodata", "chrondata", "mode", "tabletype", "time_id", "depth", "depthunits", "age", "ageunits"]):
+                # Rule out any timeseries keys that we added, and paleoData/chronData prefixed keys
+                if not any(
+                    i in k.lower() or i is k.lower()
+                    for i in [
+                        "paleodata",
+                        "chrondata",
+                        "mode",
+                        "tabletype",
+                        "time_id",
+                        "depth",
+                        "depthunits",
+                        "age",
+                        "ageunits",
+                    ]
+                ):
                     # Root item:
                     _tmp_master[k] = v
                     continue
 
-
-
         # Append the compiled data into the master dataset data
         for k, v in _tmp_pub.items():
-            _tmp_master['pub'].append(v)
+            _tmp_master["pub"].append(v)
         for k, v in _tmp_fund.items():
-            _tmp_master['funding'].append(v)
+            _tmp_master["funding"].append(v)
 
         # Get rid of elevation coordinate if one was never added.
         if _c_vals[2] == 0:
             del _c_vals[2]
-        _tmp_master['geo']['geometry']['coordinates'] = _c_vals
+        _tmp_master["geo"]["geometry"]["coordinates"] = _c_vals
 
         # Create entry in object master, and set our new data to it.
         master[dsn] = _tmp_master
@@ -622,9 +699,9 @@ def _collapse_author(s):
     """
     logger_ts.info("enter collapse_author")
     l = []
-    authors = s.split(';')
+    authors = s.split(";")
     for author in authors:
-        l.append({'name': author})
+        l.append({"name": author})
     return l
 
 
@@ -646,7 +723,11 @@ def _collapse_pc(master, current, dsn, pc):
         _m = re.match(re_sheet_w_number, _table_name)
 
         # Is this a summary table or a measurement table?
-        _switch = {"meas": "measurementTable", "summ": "summaryTable", "ens": "ensembleTable"}
+        _switch = {
+            "meas": "measurementTable",
+            "summ": "summaryTable",
+            "ens": "ensembleTable",
+        }
         _ms = _switch[current["tableType"]]
 
         # This is a measurement table. Put it in the correct part of the structure
@@ -663,20 +744,31 @@ def _collapse_pc(master, current, dsn, pc):
             # Collapse the keys at the column level, and return the column data
             _tmp_column = _collapse_column(current, pc)
             # Create the column entry in the table
-            master[dsn][pc][_m.group(1)][_ms][_table_name]['columns'][_variable_name] = _tmp_column
+            master[dsn][pc][_m.group(1)][_ms][_table_name]["columns"][
+                _variable_name
+            ] = _tmp_column
 
         # This is a summary table. Put it in the correct part of the structure
         # master[datasetname][chronData][chron0][model][chron0model0][summaryTable][chron0model0summary0]
         elif _ms in ["ensembleTable", "summaryTable"]:
             # Collapse the keys in the table root if a table does not yet exist
-            if _table_name not in master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms]:
+            if (
+                _table_name
+                not in master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][
+                    _ms
+                ]
+            ):
                 _tmp_table = _collapse_table_root(current, dsn, pc)
-                master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms][_table_name] = _tmp_table
+                master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms][
+                    _table_name
+                ] = _tmp_table
 
             # Collapse the keys at the column level, and return the column data
             _tmp_column = _collapse_column(current, pc)
             # Create the column entry in the table
-            master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms][_table_name]["columns"][_variable_name] = _tmp_column
+            master[dsn][pc][_m.group(1)]["model"][_m.group(1) + _m.group(2)][_ms][
+                _table_name
+            ]["columns"][_variable_name] = _tmp_column
 
     except Exception as e:
         print("Error: Unable to collapse column data: {}, {}".format(dsn, e))
@@ -697,12 +789,19 @@ def _collapse_table_root(current, dsn, pc):
     """
     logger_ts.info("enter collapse_table_root")
     _table_name, _variable_name = _get_current_names(current, dsn, pc)
-    _tmp_table = {'columns': {}}
+    _tmp_table = {"columns": {}}
 
     try:
         for k, v in current.items():
             # These are the main table keys that we should be looking for
-            for i in ['filename', 'googleWorkSheetKey', 'tableName', "missingValue", "tableMD5", "dataMD5"]:
+            for i in [
+                "filename",
+                "googleWorkSheetKey",
+                "tableName",
+                "missingValue",
+                "tableMD5",
+                "dataMD5",
+            ]:
                 if i in k:
                     try:
                         _tmp_table[i] = v
@@ -711,7 +810,11 @@ def _collapse_table_root(current, dsn, pc):
                         pass
     except Exception as e:
         print("Error: Unable to collapse: {}, {}".format(dsn, e))
-        logger_ts.error("collapse_table_root: Unable to collapse: {}, {}, {}".format(_table_name, dsn, e))
+        logger_ts.error(
+            "collapse_table_root: Unable to collapse: {}, {}, {}".format(
+                _table_name, dsn, e
+            )
+        )
 
     return _tmp_table
 
@@ -728,9 +831,11 @@ def _collapse_column(current, pc):
         for k, v in current.items():
             try:
                 # We do not want to store these table keys at the column level.
-                if not any(i in k for i in ["tableName", "google", "filename", "md5", "MD5"]):
+                if not any(
+                    i in k for i in ["tableName", "google", "filename", "md5", "MD5"]
+                ):
                     # ['paleoData', 'key']
-                    m = k.split('_')
+                    m = k.split("_")
                     # Is this a chronData or paleoData key?
                     if pc in m[0] and len(m) >= 2:
                         # Create a link to the growing column data
@@ -774,7 +879,7 @@ def mode_ts(ec, mode="", ts=None):
     """
     phrase = ""
     if ec == "extract":
-        if mode=="chron":
+        if mode == "chron":
             phrase = "extracting chronData..."
         else:
             phrase = "extracting paleoData..."
@@ -788,7 +893,8 @@ def mode_ts(ec, mode="", ts=None):
 
 def translate_expression(expression):
     """
-    Check if the expression is valid, then check turn it into an expression that can be used for filtering.
+    Check if the expression is valid, then check turn it into an expression that can be used for
+    filtering.
     :return list of lists: One or more matches. Each list has 3 strings.
     """
     logger_ts.info("enter translate_expression")
@@ -804,7 +910,9 @@ def translate_expression(expression):
             tmp[2] = cast_float(tmp[2])
             matches.append(tmp)
     else:
-        logger_ts.warn("translate_expression: invalid expression: {}".format(expression))
+        logger_ts.warn(
+            "translate_expression: invalid expression: {}".format(expression)
+        )
         print("Invalid input expression")
     logger_ts.info("exit translate_expression")
     return matches
@@ -828,7 +936,7 @@ def get_matches(expr_lst, ts):
                 try:
                     val = ts_data[expr[0]]
                     # Check what comparison operator is being used
-                    if expr[1] == 'in':
+                    if expr[1] == "in":
                         # "IN" operator can't be used in get_truth. Handle first.
                         if expr[2] in val:
                             match = True
@@ -840,16 +948,28 @@ def get_matches(expr_lst, ts):
                         match = False
                         break
                 except KeyError as e:
-                    logger_ts.warn("get_matches: KeyError: getting value from TimeSeries object, {}, {}".format(expr, e))
+                    logger_ts.warn(
+                        "get_matches: KeyError: getting value from TimeSeries object, {}, {}".format(
+                            expr, e
+                        )
+                    )
                     match = False
                 except IndexError as e:
-                    logger_ts.warn("get_matches: IndexError: getting value from TimeSeries object, {}, {}".format(expr, e))
+                    logger_ts.warn(
+                        "get_matches: IndexError: getting value from TimeSeries object, {}, {}".format(
+                            expr, e
+                        )
+                    )
                     match = False
             if match:
                 idxs.append(idx)
                 new_ts.append(ts_data)
     except AttributeError as e:
-        logger_ts.debug("get_matches: AttributeError: unable to get expression matches, {},  {}".format(type(ts), e))
+        logger_ts.debug(
+            "get_matches: AttributeError: unable to get expression matches, {},  {}".format(
+                type(ts), e
+            )
+        )
         print("Error: Timeseries is an invalid data type")
     if not new_ts:
         print("No matches found for that expression")

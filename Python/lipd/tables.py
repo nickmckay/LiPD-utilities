@@ -1,7 +1,7 @@
 import re
 import sys
 
-from .loggers import *
+from .loggers import create_logger
 from .csvs import read_csv_from_file
 from .directory import browse_dialog_file
 from .regexes import re_model_name, re_table_name
@@ -10,29 +10,27 @@ from collections import OrderedDict
 
 logger_ensembles = create_logger("ensembles")
 
+
 def addTable(D):
     """
-    Add any table type to the given dataset. Use prompts to determine index locations and table type.
+    Add any table type to the given dataset. Use prompts to determine index locations and table
+    type.
 
     :param dict D: Metadata (dataset)
     :param dict dat: Metadata (table)
     :return dict D: Metadata (dataset)
     """
 
-    _swap = {
-        "1": "measurement",
-        "2": "summary",
-        "3": "ensemble",
-        "4": "distribution"
-    }
+    _swap = {"1": "measurement", "2": "summary", "3": "ensemble", "4": "distribution"}
 
-
-    print("What type of table would you like to add?\n"
-          "1: measurement\n"
-          "2: summary\n"
-          "3: ensemble (under development)\n"
-          "4: distribution (under development)\n"
-          "\n Note: if you want to add a whole model, use the addModel() function")
+    print(
+        "What type of table would you like to add?\n"
+        "1: measurement\n"
+        "2: summary\n"
+        "3: ensemble (under development)\n"
+        "4: distribution (under development)\n"
+        "\n Note: if you want to add a whole model, use the addModel() function"
+    )
     _ans = input(">")
 
     if _ans in ["3", "4"]:
@@ -75,9 +73,10 @@ def _build_table(columns):
     try:
         # Loop once for each column of values
         for _idx, _col in enumerate(columns):
-            # Print out a snippet of the first 5 values in the column so the user knows what data is being referenced
+            # Print out a snippet of the first 5 values in the column so the user knows what data
+            # is being referenced
             _snippet = ""
-            for i in range(0,5):
+            for i in range(0, 5):
                 _snippet += str(_col[i]) + ", "
             print("Data Preview:")
             print(_snippet + "\n")
@@ -86,7 +85,12 @@ def _build_table(columns):
             _vn = input(">")
             print("What are the 'units' for this data? ('unitless' if none)")
             _units = input(">")
-            _columns[_vn] = {"number": _idx+1, "variableName": _vn, "units": _units, "values": _col}
+            _columns[_vn] = {
+                "number": _idx + 1,
+                "variableName": _vn,
+                "units": _units,
+                "values": _col,
+            }
 
         # Add the columns to the overall table
         _table["columns"] = _columns
@@ -119,8 +123,13 @@ def _get_available_placements(D, tt):
                     # looking for open spots for measurement tables
                     if tt == "measurement":
                         if "measurementTable" in section_data:
-                            _options.append(_get_available_placements_1(section_data["measurementTable"], section_name, "measurement"))
-
+                            _options.append(
+                                _get_available_placements_1(
+                                    section_data["measurementTable"],
+                                    section_name,
+                                    "measurement",
+                                )
+                            )
 
                     # looking for open spots for model tables
                     else:
@@ -128,23 +137,32 @@ def _get_available_placements(D, tt):
                         if "model" in section_data:
                             #  this is for adding a whole model (all 4 tables, ens/dist/sum/method)
                             if tt == "model":
-                                _options.append(_get_available_placements_1(section_data["model"], section_name, "model"))
+                                _options.append(
+                                    _get_available_placements_1(
+                                        section_data["model"], section_name, "model"
+                                    )
+                                )
                             else:
 
                                 # for adding individual model tables
                                 for _k, _v in section_data["model"]:
-                                    # keys here are stored as "<type>Table", so add "Table" to each table type
+                                    # keys here are stored as "<type>Table", so add "Table" to
+                                    # each table type
                                     _tt_table = "{}Table".format(tt)
                                     # does this table exist?
                                     if _tt_table in _v:
                                         # Get the first available position for this section
                                         _options.append(
-                                            _get_available_placements_1(_v[_tt_table], _k, tt))
+                                            _get_available_placements_1(
+                                                _v[_tt_table], _k, tt
+                                            )
+                                        )
                                     else:
                                         # Doesn't currently exist. Make the first option index 0.
                                         _options.append("{}{}0".format(_k, tt))
 
-                        # no models present, so we automatically default placement options to the 0 index.
+                        # no models present, so we automatically default placement options
+                        # to the 0 index.
                         else:
                             if tt == "model":
                                 # adding a whole model, so no need to be specific
@@ -153,15 +171,20 @@ def _get_available_placements(D, tt):
                                 # adding a specific table, so the position is more specific also
                                 _options.append("{}model0{}0".format(section_name, tt))
 
-
     except Exception as e:
-        sys.exit("Looking for open table positions: Unable to find placement options, {}".format(e))
+        sys.exit(
+            "Looking for open table positions: Unable to find placement options, {}".format(
+                e
+            )
+        )
 
     # remove empty names
     _options = [i for i in _options if i]
     # Is the whole list empty? that's not good.
     if not _options:
-        sys.exit("Error: No available positions found to place new data. Something went wrong.")
+        sys.exit(
+            "Error: No available positions found to place new data. Something went wrong."
+        )
     return _options
 
 
@@ -177,7 +200,8 @@ def _get_available_placements_1(dat, prefix, tt):
 
 def _prompt_placement(D, tt):
     """
-    Since automatic placement didn't work, find somewhere to place the model data manually with the help of the user.
+    Since automatic placement didn't work, find somewhere to place the model data manually with
+    the help of the user.
 
     :param dict D: Metadata
     :param str tt: Table type
@@ -198,7 +222,7 @@ def _prompt_placement(D, tt):
             # They user chose an option out of the placement list range
             print("Invalid choice input")
             return
-    except Exception as e:
+    except Exception:
         # Choice was not a number or empty
         print("Invalid choice")
 
@@ -224,9 +248,12 @@ def _put_table(D, name, table):
             _section = m.group(1) + m.group(2)
             # place a measurement table
             if m.group(3) == "measurement":
-                # This shouldn't happen. User chose one of our options. That should be an empty location.
+                # This shouldn't happen. User chose one of our options. That should be an empty
+                # location.
                 if name in D[_pc][_section]["measurementTable"]:
-                    print("Oops. This shouldn't happen. That table path is occupied in the dataset")
+                    print(
+                        "Oops. This shouldn't happen. That table path is occupied in the dataset"
+                    )
                 # Place the data
                 else:
                     D[_pc][_section]["measurementTable"][name] = table
@@ -235,12 +262,17 @@ def _put_table(D, name, table):
                 _model = _section + m.group(3) + m.group(4)
                 _tt = m.group(5) + "Table"
                 if name in D[_pc][_model][_tt]:
-                    print("Oops. This shouldn't happen. That table path is occupied in the dataset")
+                    print(
+                        "Oops. This shouldn't happen. That table path is occupied in the dataset"
+                    )
                 else:
                     D[_pc][_model][_tt][name] = table
 
         else:
-            print("Oops. This shouldn't happen. That table name doesn't look right. Please report this error")
+            print(
+                "Oops. This shouldn't happen. That table name doesn't look right. "
+                "Please report this error"
+            )
             return
 
     except Exception as e:
@@ -249,12 +281,11 @@ def _put_table(D, name, table):
     return D
 
 
-
-
 def _update_table_names(name, dat):
     """
-    Model placement is subject to change. That means all names within the model (names are path-dependent) are also
-    subject to change. Whichever name is decided, the inner data needs to match it.
+    Model placement is subject to change. That means all names within the model
+    (names are path-dependent) are also subject to change. Whichever name is decided,
+    the inner data needs to match it.
 
     :param dict dat: Metadata
     :param str name: Table name
@@ -266,10 +297,10 @@ def _update_table_names(name, dat):
             _new_tables = OrderedDict()
             _idx = 0
             # change all the top level table names
-            for k,v in dat[_ttname].items():
-                _new_ttname= "{}{}{}".format(name, _tabletype, _idx)
-                _idx +=1
-                #change all the table names in the table metadata
+            for k, v in dat[_ttname].items():
+                _new_ttname = "{}{}{}".format(name, _tabletype, _idx)
+                _idx += 1
+                # change all the table names in the table metadata
                 v["tableName"] = _new_ttname
                 # remove the filename. It shouldn't be stored anyway
                 if "filename" in v:
@@ -318,20 +349,25 @@ def addModel(D, models):
             if _m:
                 D = _put_model(D, _model_name, _model_data, _m)
             else:
-                print("The table name found in the given model data isn't valid for automatic placement")
+                print(
+                    "The table name found in the given model data isn't valid "
+                    "for automatic placement"
+                )
                 _placement_name = _prompt_placement(D, "model")
                 _m = re.match(re_model_name, _placement_name)
                 if _m:
                     D = _put_model(D, _placement_name, _model_data, _m)
                 else:
-                    print("Oops. This shouldn't happen. That table name doesn't look right. Please report this error")
+                    print(
+                        "Oops. This shouldn't happen. That table name doesn't look right. "
+                        "Please report this error"
+                    )
                     return
 
     except Exception as e:
         print("addModel: Model data NOT added, {}".format(e))
 
     return D
-
 
 
 def _put_model(D, name, dat, m):
@@ -365,7 +401,8 @@ def _put_model(D, name, dat, m):
             else:
                 # Model already exists, should we overwrite it?
                 _prompt_overwrite = input(
-                    "This model already exists in the dataset. Do you want to overwrite it? (y/n)")
+                    "This model already exists in the dataset. Do you want to overwrite it? (y/n)"
+                )
                 # Yes, overwrite with the model data provided
                 if _prompt_overwrite == "y":
                     dat = _update_table_names(name, dat)
@@ -382,5 +419,3 @@ def _put_model(D, name, dat, m):
         print("addModel: Unable to put the model data into the dataset, {}".format(e))
 
     return D
-
-

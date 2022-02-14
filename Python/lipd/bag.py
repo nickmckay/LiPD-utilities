@@ -2,7 +2,7 @@ import bagit
 from .loggers import create_logger
 
 
-logger_bagit = create_logger('bag')
+logger_bagit = create_logger("bag")
 
 
 def create_bag(dir_bag):
@@ -15,12 +15,21 @@ def create_bag(dir_bag):
     # if not dir_bag:
     #     dir_bag = os.getcwd()
     try:
-        bag = bagit.make_bag(dir_bag, {'Name': 'LiPD Project', 'Reference': 'www.lipds.net', 'DOI-Resolved': 'True'})
+        bag = bagit.make_bag(
+            dir_bag,
+            {
+                "Name": "LiPD Project",
+                "Reference": "www.lipds.net",
+                "DOI-Resolved": "True",
+            },
+        )
         logger_bagit.info("created bag")
         return bag
     except FileNotFoundError as e:
         print("Error: directory not found to create bagit")
-        logger_bagit.debug("create_bag: FileNotFoundError: failed to create bagit, {}".format(e))
+        logger_bagit.debug(
+            "create_bag: FileNotFoundError: failed to create bagit, {}".format(e)
+        )
     except Exception as e:
         print("Error: failed to create bagit bag")
         logger_bagit.debug("create_bag: Exception: failed to create bag, {}".format(e))
@@ -67,7 +76,7 @@ def resolved_flag(bag):
     :param obj bag: Bag
     :return bool: Flag
     """
-    if 'DOI-Resolved' in bag.info:
+    if "DOI-Resolved" in bag.info:
         logger_bagit.info("bagit resolved_flag: true")
         return True
     logger_bagit.info("bagit resolved_flag: false")

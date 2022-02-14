@@ -17,17 +17,29 @@ def _fix_numeric_types(c):
     try:
         for var, data in c.items():
             for k, v in data.items():
-                if k in ["hasMeanValue", "hasMaxValue", "hasMinValue", "hasMedianValue"]:
+                if k in [
+                    "hasMeanValue",
+                    "hasMaxValue",
+                    "hasMinValue",
+                    "hasMedianValue",
+                ]:
                     if math.isnan(v):
                         c[var][k] = "nan"
                     elif not isinstance(v, (int, float)):
                         try:
                             c[var][k] = float(v)
                         except Exception as e:
-                            logger_inferred_data.info("fix_numeric_types: converting float: {}".format(e))
+                            logger_inferred_data.info(
+                                "fix_numeric_types: converting float: {}".format(e)
+                            )
                 elif k == "hasResolution":
                     for b, g in v.items():
-                        if b in ["hasMeanValue", "hasMaxValue", "hasMinValue", "hasMedianValue"]:
+                        if b in [
+                            "hasMeanValue",
+                            "hasMaxValue",
+                            "hasMinValue",
+                            "hasMedianValue",
+                        ]:
                             if math.isnan(g):
                                 c[var][k][b] = "nan"
                             elif not isinstance(g, (int, float)):
@@ -35,7 +47,11 @@ def _fix_numeric_types(c):
                                     f = float(g)
                                     c[var][k][b] = f
                                 except Exception as e:
-                                    logger_inferred_data.info("fix_numeric_types: converting float: {}".format(e))
+                                    logger_inferred_data.info(
+                                        "fix_numeric_types: converting float: {}".format(
+                                            e
+                                        )
+                                    )
     except Exception as e:
         logger_inferred_data.error("fix_numeric_types: {}".format(e))
     return c
@@ -80,7 +96,8 @@ def _get_age(columns):
                     # Not too concerned if we error here.
                     pass
 
-        # Step 3: No year or age found, start searching for a loose match with "age" or "year" in the variableName.
+        # Step 3: No year or age found, start searching for a loose match with "age" or "year"
+        # in the variableName.
         if not age:
             # Loop through column variableNames
             for k, v in columns.items():
@@ -145,8 +162,10 @@ def __get_inferred_data_res_2(v=None, calc=True):
     """
     # Base: If something goes wrong, or if there are no values, then use "NaN" placeholders.
     d = {
-        "hasMinValue": "nan", "hasMaxValue": "nan",
-        "hasMeanValue": "nan", "hasMedianValue": "nan",
+        "hasMinValue": "nan",
+        "hasMaxValue": "nan",
+        "hasMeanValue": "nan",
+        "hasMedianValue": "nan",
     }
     try:
         if calc:
@@ -176,7 +195,7 @@ def __get_inferred_data_res_2(v=None, calc=True):
                 "hasMinValue": _min,
                 "hasMaxValue": _max,
                 "hasMeanValue": _mean,
-                "hasMedianValue": _med
+                "hasMedianValue": _med,
             }
     except Exception as e:
         logger_inferred_data.error("get_inferred_data_res_2: {}".format(e))
@@ -273,7 +292,8 @@ def get_inferred_data_table(table, pc):
             # Loop for all the columns in the table
             for var, col in table["columns"].items():
                 # Special cases
-                # We do not calculate data for each of the keys below, and we cannot calculate any "string" data
+                # We do not calculate data for each of the keys below, and we cannot calculate
+                # any "string" data
                 if "age" in var or "year" in var:
                     # Calculate m/m/m/m, but not resolution
                     table["columns"][var] = _get_inferred_data_column(col)
@@ -282,8 +302,10 @@ def get_inferred_data_table(table, pc):
                     table["columns"][var] = _get_inferred_data_res(col, age)
                 else:
                     # Fall through case. No calculations made.
-                    logger_inferred_data.info("get_inferred_data_table: "
-                                              "Not calculating inferred data for variableName: {}".format(var))
+                    logger_inferred_data.info(
+                        "get_inferred_data_table: "
+                        "Not calculating inferred data for variableName: {}".format(var)
+                    )
 
         # If there isn't an age, still calculate the m/m/m/m for the column values.
         else:
@@ -293,11 +315,15 @@ def get_inferred_data_table(table, pc):
                     table["columns"][var] = _get_inferred_data_column(col)
                 else:
                     # Fall through case. No calculations made.
-                    logger_inferred_data.info("get_inferred_data_table: "
-                                              "Not calculating inferred data for variableName: {}".format(var))
+                    logger_inferred_data.info(
+                        "get_inferred_data_table: "
+                        "Not calculating inferred data for variableName: {}".format(var)
+                    )
 
     except AttributeError as e:
-        logger_inferred_data.warn("get_inferred_data_table: AttributeError: {}".format(e))
+        logger_inferred_data.warn(
+            "get_inferred_data_table: AttributeError: {}".format(e)
+        )
     except Exception as e:
         logger_inferred_data.warn("get_inferred_data_table: Exception: {}".format(e))
 

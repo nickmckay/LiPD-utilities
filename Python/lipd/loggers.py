@@ -1,11 +1,10 @@
 import datetime
 import logging
-from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
-import os
 
 # TURN OFF LOGGING FOR PRODUCTION
 logging.disable(logging.CRITICAL)
+
 
 def log_benchmark(fn, start, end):
     """
@@ -16,7 +15,7 @@ def log_benchmark(fn, start, end):
     :return none:
     """
     elapsed = round(end - start, 2)
-    line = ("Benchmark - Function: {} , Time: {} seconds".format(fn, elapsed))
+    line = "Benchmark - Function: {} , Time: {} seconds".format(fn, elapsed)
     return line
 
 
@@ -26,12 +25,16 @@ def update_changelog():
     :return None:
     """
     # description = input("Please enter a short description for this update:\n ")
-    description = 'Placeholder for description here.'
+    description = "Placeholder for description here."
 
     # open changelog file for appending. if doesn't exist, creates file.
-    with open('changelog.txt', 'a+') as f:
+    with open("changelog.txt", "a+") as f:
         # write update line
-        f.write(str(datetime.datetime.now().strftime("%d %B %Y %I:%M%p")) + '\nDescription: ' + description)
+        f.write(
+            str(datetime.datetime.now().strftime("%d %B %Y %I:%M%p"))
+            + "\nDescription: "
+            + description
+        )
     return
 
 
@@ -44,7 +47,7 @@ def create_benchmark(name, log_file, level=logging.INFO):
     """
     handler = logging.FileHandler(log_file)
     rtf_handler = RotatingFileHandler(log_file, maxBytes=30000, backupCount=0)
-    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s: %(message)s')
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     handler.setFormatter(formatter)
     logger = logging.getLogger(name)
     logger.setLevel(level)
@@ -60,7 +63,7 @@ def create_logger(name):
     :return obj: Logger
     """
     # TURNED OFF LOGGING FOR PRODUCTION
-    logging.config.dictConfig({'version': 1})
+    logging.config.dictConfig({"version": 1})
     # logging.config.dictConfig({
     #     'version': 1,
     #     'disable_existing_loggers': True,
@@ -103,6 +106,4 @@ def create_logger(name):
     #     }
     # })
 
-
     return logging.getLogger(name)
-

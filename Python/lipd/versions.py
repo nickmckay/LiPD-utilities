@@ -35,8 +35,9 @@ def fix_doi(L):
     """
     'pubYear' keys need to be switched to 'year' where applicable
 
-    DOIs are commonly stored in the BibJson format under "identifier". We want to move these to the root
-    of the publication under "doi". Make the reassignments necessary and also remove duplicate and unwanted
+    DOIs are commonly stored in the BibJson format under "identifier".
+    We want to move these to the root of the publication under "doi".
+    Make the reassignments necessary and also remove duplicate and unwanted
     Doi/DOI keys.
 
     :param  dict L:  Metadata
@@ -51,7 +52,8 @@ def fix_doi(L):
                 try:
                     # Is there an identifier in this publication?
                     if "identifier" in pub:
-                        # Attempt to grab the doi from the id location. If it doesn't work, we'll catch the error.
+                        # Attempt to grab the doi from the id location.
+                        # If it doesn't work, we'll catch the error.
                         _identifier = pub["identifier"][0]["id"]
                         # Got identifier. Is there a valid string here?
                         if _identifier:
@@ -95,7 +97,8 @@ def get_lipd_version(L):
             try:
                 version = float(version)
             except AttributeError:
-                # If the casting failed, then something is wrong with the key so assume version is 1.0
+                # If the casting failed, then something is wrong with the key
+                # so assume version is 1.0
                 version = 1.0
             L.pop(_key)
     return L, version
@@ -111,7 +114,11 @@ def _merge_interpretations(d):
     try:
         # Now loop and aggregate the interpretation data into one list
         for k, v in d.items():
-            if k in ["climateInterpretation", "isotopeInterpretation", "interpretation"]:
+            if k in [
+                "climateInterpretation",
+                "isotopeInterpretation",
+                "interpretation",
+            ]:
                 # now add in the new data
                 if isinstance(v, list):
                     for i in v:
@@ -138,8 +145,9 @@ def update_lipd_version(L):
     """
     Metadata is indexed by number at this step.
 
-    Use the current version number to determine where to start updating from. Use "chain versioning" to make it
-    modular. If a file is a few versions behind, convert to EACH version until reaching current. If a file is one
+    Use the current version number to determine where to start updating from.
+    Use "chain versioning" to make it modular. If a file is a few versions behind,
+    convert to EACH version until reaching current. If a file is one
     version behind, it will only convert once to the newest.
     :param dict L: Metadata
     :return dict d: Metadata
@@ -186,15 +194,19 @@ def update_lipd_v1_1(d):
             # As of v1.1, ChronData should have an extra level of abstraction.
             # No longer shares the same structure of paleoData
 
-            # If no measurement table, then make a measurement table list with the table as the entry
+            # If no measurement table, then make a measurement table list
+            # with the table as the entry
             for table in d["chronData"]:
                 if "chronMeasurementTable" not in table:
                     tmp_all.append({"chronMeasurementTable": [table]})
 
-                # If the table exists, but it is a dictionary, then turn it into a list with one entry
+                # If the table exists, but it is a dictionary,
+                # then turn it into a list with one entry
                 elif "chronMeasurementTable" in table:
                     if isinstance(table["chronMeasurementTable"], dict):
-                        tmp_all.append({"chronMeasurementTable": [table["chronMeasurementTable"]]})
+                        tmp_all.append(
+                            {"chronMeasurementTable": [table["chronMeasurementTable"]]}
+                        )
             if tmp_all:
                 d["chronData"] = tmp_all
 
@@ -211,8 +223,8 @@ def update_lipd_v1_2(d):
     Update LiPD v1.1 to v1.2
     - Added NOAA compatible keys : maxYear, minYear, originalDataURL, WDCPaleoURL, etc
     - 'calibratedAges' key is now 'distribution'
-    - paleoData structure mirrors chronData. Allows measurement, model, summary, modelTable, ensemble,
-        distribution tables
+    - paleoData structure mirrors chronData. Allows measurement, model, summary, modelTable,
+        ensemble, distribution tables
     :param dict d: Metadata v1.1
     :return dict d: Metadata v1.2
     """
@@ -223,15 +235,19 @@ def update_lipd_v1_2(d):
         # PaleoData is the only structure update
         if "paleoData" in d:
             # As of 1.2, PaleoData should match the structure of v1.1 chronData.
-            # There is an extra level of abstraction and room for models, ensembles, calibrations, etc.
+            # There is an extra level of abstraction and room for
+            # models, ensembles, calibrations, etc.
             for table in d["paleoData"]:
                 if "paleoMeasurementTable" not in table:
                     tmp_all.append({"paleoMeasurementTable": [table]})
 
-                # If the table exists, but it is a dictionary, then turn it into a list with one entry
+                # If the table exists, but it is a dictionary,
+                # then turn it into a list with one entry
                 elif "paleoMeasurementTable" in table:
                     if isinstance(table["paleoMeasurementTable"], dict):
-                        tmp_all.append({"paleoMeasurementTable": [table["paleoMeasurementTable"]]})
+                        tmp_all.append(
+                            {"paleoMeasurementTable": [table["paleoMeasurementTable"]]}
+                        )
             if tmp_all:
                 d["paleoData"] = tmp_all
         # Log that this is now a v1.1 structured file
@@ -318,7 +334,9 @@ def update_lipd_v1_3_structure(d):
                                         entry2[key_table] = []
                                         entry2[key_table].append(_tmp)
                                     except Exception as e:
-                                        logger_versions.error("update_lipd_v1_3_structure: Exception: {}".format(e))
+                                        logger_versions.error(
+                                            "update_lipd_v1_3_structure: Exception: {}".format(
+                                                e
+                                            )
+                                        )
     return d
-
-

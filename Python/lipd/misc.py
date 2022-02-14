@@ -32,8 +32,6 @@ def cast_values_csvs(d, idx, x):
         d[idx].append(float(x))
     except ValueError:
         d[idx].append(x)
-        # logger_misc.warn("cast_values_csv: ValueError")
-        # logger_misc.warn("ValueError: col: {}, {}".format(x, e))
     except KeyError as e:
         logger_misc.warn("cast_values_csv: KeyError: col: {}, {}".format(x, e))
     except Exception as e:
@@ -55,7 +53,11 @@ def cast_float(x):
         try:
             x = x.strip()
         except AttributeError as e:
-            logger_misc.warn("parse_str: AttributeError: String not number or word, {}, {}".format(x, e))
+            logger_misc.warn(
+                "parse_str: AttributeError: String not number or word, {}, {}".format(
+                    x, e
+                )
+            )
     return x
 
 
@@ -72,7 +74,11 @@ def cast_int(x):
         try:
             x = x.strip()
         except AttributeError as e:
-            logger_misc.warn("parse_str: AttributeError: String not number or word, {}, {}".format(x, e))
+            logger_misc.warn(
+                "parse_str: AttributeError: String not number or word, {}, {}".format(
+                    x, e
+                )
+            )
     return x
 
 
@@ -123,7 +129,8 @@ def decimal_precision(row):
         row = list(row)
         for idx, x in enumerate(row):
             x = str(x)
-            # Is this a scientific notated float? Tear it apart with regex, round, and piece together again
+            # Is this a scientific notated float? Tear it apart with regex, round,
+            # and piece together again
             m = re.match(re_sci_notation, x)
             if m:
                 _x2 = round(float(m.group(2)), 3)
@@ -139,14 +146,18 @@ def decimal_precision(row):
         # Convert list back to tuple for csv writer
         row = tuple(row)
     except Exception as e:
-        print("Error: Unable to fix the precision of values. File size may be larger than normal, {}".format(e))
+        print(
+            "Error: Unable to fix the precision of values. File size may be larger than normal, {}".format(
+                e
+            )
+        )
     return row
 
 
 def fix_coordinate_decimal(d):
     """
-    Coordinate decimal degrees calculated by an excel formula are often too long as a repeating decimal.
-    Round them down to 5 decimals
+    Coordinate decimal degrees calculated by an excel formula are often too long as a repeating
+    decimal.  Round them down to 5 decimals
 
     :param dict d: Metadata
     :return dict d: Metadata
@@ -175,7 +186,8 @@ def generate_timestamp(fmt=None):
 
 def generate_tsid(size=8):
     """
-    Generate a TSid string. Use the "PYT" prefix for traceability, and 8 trailing generated characters
+    Generate a TSid string. Use the "PYT" prefix for traceability, and 8 trailing generated
+    characters
     ex: PYT9AG234GS
 
     :return str: TSid
@@ -188,7 +200,8 @@ def generate_tsid(size=8):
 def get_appended_name(name, columns):
     """
     Append numbers to a name until it no longer conflicts with the other names in a column.
-    Necessary to avoid overwriting columns and losing data. Loop a preset amount of times to avoid an infinite loop.
+    Necessary to avoid overwriting columns and losing data. Loop a preset amount of times to
+    avoid an infinite loop.
     There shouldn't ever be more than two or three identical variable names in a table.
 
     :param str name: Variable name in question
@@ -199,7 +212,10 @@ def get_appended_name(name, columns):
     while name in columns:
         loop += 1
         if loop > 10:
-            logger_misc.warn("get_appended_name: Too many loops: Tried to get appended name but something looks wrong")
+            logger_misc.warn(
+                "get_appended_name: Too many loops: "
+                "Tried to get appended name but something looks wrong"
+            )
             break
         tmp = name + "-" + str(loop)
         if tmp not in columns:
@@ -242,10 +258,16 @@ def get_authors_as_str(x):
                 # last item does not get a semi-colon at the end
                 _authors += str(x[-1]["name"])
             except KeyError:
-                logger_misc.warn("get_authors_as_str: KeyError: Authors incorrect data structure")
+                logger_misc.warn(
+                    "get_authors_as_str: KeyError: Authors incorrect data structure"
+                )
 
     else:
-        logger_misc.debug("get_authors_as_str: TypeError: author/investigators isn't str or list: {}".format(type(x)))
+        logger_misc.debug(
+            "get_authors_as_str: TypeError: author/investigators isn't str or list: {}".format(
+                type(x)
+            )
+        )
 
     return _authors
 
@@ -261,7 +283,9 @@ def get_dsn(d):
     try:
         return d["dataSetName"]
     except Exception as e:
-        logger_misc.warn("get_dsn: Exception: No datasetname found, unable to continue: {}".format(e))
+        logger_misc.warn(
+            "get_dsn: Exception: No datasetname found, unable to continue: {}".format(e)
+        )
         exit(1)
 
 
@@ -333,11 +357,6 @@ def get_missing_value_key(d):
             # There are no columns in this table. We've got bigger problems!
             pass
 
-    # No table-level or column-level missing value. Out of places to look. Ask the user to enter the missing value
-    # used in this data
-    # if not _mv:
-    #     print("No 'missingValue' key provided. Please type the missingValue used in this file: {}\n".format(filename))
-    #     _mv = input("missingValue: ")
     return _mv
 
 
@@ -358,7 +377,11 @@ def get_variable_name_col(d):
             num = "unknown"
             if "number" in d:
                 num = d["number"]
-            print("Error: column number <{}> is missing a variableName. Please fix.".format(num))
+            print(
+                "Error: column number <{}> is missing a variableName. Please fix.".format(
+                    num
+                )
+            )
             logger_misc.info("get_variable_name_col: KeyError: missing key")
     return var
 
@@ -369,20 +392,26 @@ def get_table_key(key, d, fallback=""):
 
     :param str key: Key to try first
     :param dict d: Data table
-    :param str fallback: (optional) If we don't find a table name, use this as a generic name fallback.
+    :param str fallback: (optional) If we don't find a table name,
+        use this as a generic name fallback.
     :return str var: Data table name
     """
     try:
         var = d[key]
         return var
     except KeyError:
-        logger_misc.info("get_variable_name_table: KeyError: missing {}, use name: {}".format(key, fallback))
+        logger_misc.info(
+            "get_variable_name_table: KeyError: missing {}, use name: {}".format(
+                key, fallback
+            )
+        )
         return fallback
 
 
 def is_ensemble(d):
     """
-    Check if a table of data is an ensemble table. Is the first values index a list? ensemble. Int/float? not ensemble.
+    Check if a table of data is an ensemble table. Is the first values index a list? ensemble.
+    Int/float? not ensemble.
 
     :param dict d: Table data
     :return bool: Ensemble or not ensemble
@@ -427,8 +456,11 @@ def load_fn_matches_ext(file_path, file_type):
         elif curr_ext == file_type:
             correct_ext = True
         else:
-            print("Use '{}' to load this file: {}".format(FILE_TYPE_MAP[curr_ext]["load_fn"],
-                                                          os.path.basename(file_path)))
+            print(
+                "Use '{}' to load this file: {}".format(
+                    FILE_TYPE_MAP[curr_ext]["load_fn"], os.path.basename(file_path)
+                )
+            )
     except Exception as e:
         logger_misc.debug("load_fn_matches_ext: {}".format(e))
 
@@ -445,17 +477,20 @@ def match_operators(inp, relate, cut):
     :return bool truth: Comparison truth
     """
     logger_misc.info("enter match_operators")
-    ops = {'>': operator.gt,
-           '<': operator.lt,
-           '>=': operator.ge,
-           '<=': operator.le,
-           '=': operator.eq
-           }
+    ops = {
+        ">": operator.gt,
+        "<": operator.lt,
+        ">=": operator.ge,
+        "<=": operator.le,
+        "=": operator.eq,
+    }
     try:
         truth = ops[relate](inp, cut)
     except KeyError as e:
         truth = False
-        logger_misc.warn("get_truth: KeyError: Invalid operator input: {}, {}".format(relate, e))
+        logger_misc.warn(
+            "get_truth: KeyError: Invalid operator input: {}, {}".format(relate, e)
+        )
     logger_misc.info("exit match_operators")
     return truth
 
@@ -512,7 +547,7 @@ def normalize_name(s):
     :return str s: String
     """
     # Normalize the string into a byte string form
-    s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore')
+    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore")
     # Remove the byte string and quotes from the string
     s = str(s)[2:-1]
     return s
@@ -520,7 +555,8 @@ def normalize_name(s):
 
 def path_type(path, target):
     """
-    Determine if given path is file, directory, or other. Compare with target to see if it's the type we wanted.
+    Determine if given path is file, directory, or other.
+    Compare with target to see if it's the type we wanted.
 
     :param str path: Path
     :param str target: Target type wanted
@@ -557,10 +593,12 @@ def prompt_protocol():
     stop = 3
     ans = ""
     while True and stop > 0:
-        ans = input("Save as (d)ictionary or (o)bject?\n"
-                    "* Note:\n"
-                    "Dictionaries are more basic, and are compatible with Python v2.7+.\n"
-                    "Objects are more complex, and are only compatible with v3.4+ ")
+        ans = input(
+            "Save as (d)ictionary or (o)bject?\n"
+            "* Note:\n"
+            "Dictionaries are more basic, and are compatible with Python v2.7+.\n"
+            "Objects are more complex, and are only compatible with v3.4+ "
+        )
         if ans not in ("d", "o"):
             print("Invalid response: Please choose 'd' or 'o'")
         else:
@@ -589,17 +627,28 @@ def put_tsids(x):
                             # loop over each column of data. Sorted by variableName key
                             for var, data in v.items():
                                 try:
-                                    # make a case-insensitive keys list for checking existence of "tsid"
+                                    # make a case-insensitive keys list for checking existence
+                                    # of "tsid"
                                     keys = [key.lower() for key in data.keys()]
                                     # If a TSid already exists, then we don't need to do anything.
                                     if "tsid" not in keys:
                                         # generate the TSid, and add it to the dictionary
                                         data["TSid"] = generate_tsid()
-                                        logger_misc.info("put_tsids: Generated new TSid: {}".format(data["TSid"]))
+                                        logger_misc.info(
+                                            "put_tsids: Generated new TSid: {}".format(
+                                                data["TSid"]
+                                            )
+                                        )
                                 except AttributeError as e:
-                                    logger_misc.debug("put_tsids: level 3: AttributeError: {}".format(e))
+                                    logger_misc.debug(
+                                        "put_tsids: level 3: AttributeError: {}".format(
+                                            e
+                                        )
+                                    )
                                 except Exception as e:
-                                    logger_misc.debug("put_tsids: level 3: Exception: {}".format(e))
+                                    logger_misc.debug(
+                                        "put_tsids: level 3: Exception: {}".format(e)
+                                    )
                         except Exception as e:
                             print("put_tsids: level 2: Exception: {}, {}".format(k, e))
                     # If it's not "columns", then dive deeper.
@@ -635,7 +684,7 @@ def rm_empty_fields(x):
                 pass
             if x in EMPTY:
                 # Substitute empty entries with ""
-                x = ''
+                x = ""
         elif isinstance(x, list):
             # Recurse once for each item in the list
             for i, v in enumerate(x):
@@ -650,7 +699,8 @@ def rm_empty_fields(x):
             for k, v in x.items():
                 x[k] = rm_empty_fields(v)
             # After substitutions, go through and delete the key-value pair.
-            # This has to be done after we come back up from recursion because we cannot pass keys down.
+            # This has to be done after we come back up from recursion because we cannot pass
+            # keys down.
             for key in list(x.keys()):
                 if not x[key] and x[key] not in [0, 0.0]:
                     del x[key]
@@ -667,19 +717,21 @@ def rm_empty_doi(d):
     logger_misc.info("enter remove_empty_doi")
     try:
         # Check each publication dictionary
-        for pub in d['pub']:
+        for pub in d["pub"]:
             # If no identifier, then we can quit here. If identifier, then keep going.
-            if 'identifier' in pub:
-                if 'id' in pub['identifier'][0]:
+            if "identifier" in pub:
+                if "id" in pub["identifier"][0]:
                     # If there's a DOI id, but it's EMPTY
-                    if pub['identifier'][0]['id'] in EMPTY:
-                        del pub['identifier']
+                    if pub["identifier"][0]["id"] in EMPTY:
+                        del pub["identifier"]
                 else:
                     # If there's an identifier section, with no DOI id
-                    del pub['identifier']
+                    del pub["identifier"]
     except KeyError as e:
         # What else could go wrong?
-        logger_misc.warn("remove_empty_doi: KeyError: publication key not found, {}".format(e))
+        logger_misc.warn(
+            "remove_empty_doi: KeyError: publication key not found, {}".format(e)
+        )
     except Exception as e:
         logger_misc.warn("remove_empty_doi: Error: publication, {}".format(e))
 
@@ -857,7 +909,8 @@ def split_path_and_file(s):
 
 def unwrap_arrays(l):
     """
-    Unwrap nested lists to be one "flat" list of lists. Mainly for prepping ensemble data for DataFrame() creation
+    Unwrap nested lists to be one "flat" list of lists. Mainly for prepping ensemble data
+    for DataFrame() creation
 
     :param list l: Nested lists
     :return list l2: Flattened lists
@@ -875,7 +928,8 @@ def unwrap_arrays(l):
                 # all items in this list are numeric, so this list is done. append to main list
                 if all(isinstance(i, float) or isinstance(i, int) for i in k):
                     l2.append(k)
-                # this list has more nested lists inside. append each individual nested list to the main one.
+                # this list has more nested lists inside. append each individual nested list
+                # to the main one.
                 elif all(isinstance(i, list) or isinstance(i, np.ndarray) for i in k):
                     for i in k:
                         l2.append(i)
@@ -883,7 +937,8 @@ def unwrap_arrays(l):
             print("something went wrong during process")
         # verify the main list
         try:
-            # if every list has a numeric at index 0, then there is no more nesting and we can stop processing
+            # if every list has a numeric at index 0, then there is no more nesting and we can
+            # stop processing
             if all(isinstance(i[0], (int, str, float)) for i in l2):
                 process = False
             else:
@@ -893,4 +948,3 @@ def unwrap_arrays(l):
             print("something went wrong during verify")
         loops -= 1
     return l2
-

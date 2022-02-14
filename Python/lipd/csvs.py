@@ -1,13 +1,20 @@
 import csv
 import math
-import sys
 import copy
 from collections import OrderedDict
 
 from .directory import list_files
 from .loggers import create_logger
 from .inferred_data import get_inferred_data_table
-from .misc import cast_values_csvs, cast_int, get_missing_value_key, _replace_missing_values_table, rm_missing_values_table, is_ensemble, decimal_precision
+from .misc import (
+    cast_values_csvs,
+    cast_int,
+    get_missing_value_key,
+    _replace_missing_values_table,
+    rm_missing_values_table,
+    is_ensemble,
+    decimal_precision,
+)
 
 logger_csvs = create_logger("csvs")
 
@@ -51,7 +58,9 @@ def _merge_csv_section(sections, pc, csvs):
         for _name, _section in sections.items():
 
             if "measurementTable" in _section:
-                sections[_name]["measurementTable"] = _merge_csv_table(_section["measurementTable"], pc, csvs)
+                sections[_name]["measurementTable"] = _merge_csv_table(
+                    _section["measurementTable"], pc, csvs
+                )
 
             if "model" in _section:
                 sections[_name]["model"] = _merge_csv_model(_section["model"], pc, csvs)
@@ -77,16 +86,22 @@ def _merge_csv_model(models, pc, csvs):
         for _name, _model in models.items():
 
             if "summaryTable" in _model:
-                models[_name]["summaryTable"] = _merge_csv_table(_model["summaryTable"], pc, csvs)
+                models[_name]["summaryTable"] = _merge_csv_table(
+                    _model["summaryTable"], pc, csvs
+                )
 
             if "ensembleTable" in _model:
-                models[_name]["ensembleTable"] = _merge_csv_table(_model["ensembleTable"], pc, csvs)
+                models[_name]["ensembleTable"] = _merge_csv_table(
+                    _model["ensembleTable"], pc, csvs
+                )
 
             if "distributionTable" in _model:
-                models[_name]["distributionTable"] = _merge_csv_table(_model["distributionTable"], pc, csvs)
+                models[_name]["distributionTable"] = _merge_csv_table(
+                    _model["distributionTable"], pc, csvs
+                )
 
     except Exception as e:
-        logger_csvs.error("merge_csv_model: {}",format(e))
+        logger_csvs.error("merge_csv_model: {}", format(e))
 
     logger_csvs.info("exit merge_csv_model")
     return models
@@ -100,24 +115,29 @@ def _merge_csv_table(tables, pc, csvs):
             # Get the filename of this table
             filename = _get_filename(_table)
             ensemble = False
-            # If there's no filename, bypass whole process because there's no way to know which file to open
+            # If there's no filename, bypass whole process because there's no way to know
+            # which file to open
             if not filename:
                 print("Error: merge_csv_column: No filename found for table")
             else:
                 # Call read_csv_to_columns for this filename. csv_data is list of lists.
                 _one_csv = csvs[filename]
 
-                # If all the data columns are non-numeric types, then a missing value is not necessary
+                # If all the data columns are non-numeric types,
+                # then a missing value is not necessary
                 _only_numerics = _is_numeric_data(_one_csv)
 
                 if not _only_numerics:
                     # Get the Missing Value key from the table-level data
                     _mv = get_missing_value_key(_table)
                     if _mv:
-                        # Use the Missing Value key to replace all current missing values with "nan"
+                        # Use the Missing Value key to replace all current
+                        # missing values with "nan"
                         _one_csv = _replace_missing_values_table(_one_csv, _mv)
                     else:
-                        print("No missing value found. You may encounter errors with this data.")
+                        print(
+                            "No missing value found. You may encounter errors with this data."
+                        )
                 # Merge the values into the columns
                 _table, ensemble = _merge_csv_column(_table, _one_csv)
                 # Remove and missing values keys that are at the column level
@@ -162,21 +182,25 @@ def _merge_csv_column(table, csvs):
                 for _name, _column in table["columns"].items():
                     if isinstance(_column["number"], (int, float)):
                         col_num = cast_int(_column["number"])
-                        _column['values'] = csvs[col_num - 1]
+                        _column["values"] = csvs[col_num - 1]
                     elif isinstance(_column["number"], list):
                         if _multi_column:
-                            raise Exception("Error: merge_csv_column: This jsonld metadata looks wrong!\n"
-                                  "\tAn ensemble table depth should not reference multiple columns of CSV data.\n"
-                                  "\tPlease manually fix the ensemble columns in 'metadata.jsonld' inside of your LiPD file.")
+                            raise Exception(
+                                "Error: merge_csv_column: This jsonld metadata looks wrong!\n"
+                                "\tAn ensemble table depth should not reference multiple columns of CSV data.\n"
+                                "\tPlease manually fix the ensemble columns in 'metadata.jsonld' inside of your LiPD file."
+                            )
                         else:
                             _multi_column = True
                             _column["values"] = csvs[2:]
         else:
-            for _name, _column in table['columns'].items():
+            for _name, _column in table["columns"].items():
                 col_num = cast_int(_column["number"])
-                _column['values'] = csvs[col_num - 1]
+                _column["values"] = csvs[col_num - 1]
     except IndexError:
-        logger_csvs.warning("merge_csv_column: IndexError: index out of range of csv_data list")
+        logger_csvs.warning(
+            "merge_csv_column: IndexError: index out of range of csv_data list"
+        )
     except KeyError:
         logger_csvs.error("merge_csv_column: KeyError: missing columns key")
     except Exception as e:
@@ -184,7 +208,8 @@ def _merge_csv_column(table, csvs):
         print("Quitting...")
         exit(1)
 
-    # We want to keep one missing value ONLY at the table level. Remove MVs if they're still in column-level
+    # We want to keep one missing value ONLY at the table level. Remove MVs if they're still
+    # in column-level
     return table, ensemble
 
 
@@ -217,8 +242,8 @@ def read_csv_from_file(filename, encoding="utf-8"):
     l = []
     try:
         logger_csvs.info("open file: {}".format(filename))
-        with open(filename, 'r', encoding=encoding) as f:
-            r = csv.reader(f, delimiter=',')
+        with open(filename, "r", encoding=encoding) as f:
+            r = csv.reader(f, delimiter=",")
 
             # Create a dict with X lists corresponding to X columns
             for idx, col in enumerate(next(r)):
@@ -235,22 +260,26 @@ def read_csv_from_file(filename, encoding="utf-8"):
         for idx, col in d.items():
             l.append(col)
     except FileNotFoundError as e:
-        print('CSV FileNotFound: ' + filename)
-        logger_csvs.warn("read_csv_to_columns: FileNotFound: {}, {}".format(filename, e))
+        print("CSV FileNotFound: " + filename)
+        logger_csvs.warn(
+            "read_csv_to_columns: FileNotFound: {}, {}".format(filename, e)
+        )
     except UnicodeDecodeError:
         try:
             l = read_csv_from_file(filename, "ISO-8859-1")
         except UnicodeDecodeError:
             try:
-                l = read_csv_from_file(filename, 'latin')
+                l = read_csv_from_file(filename, "latin")
             except Exception as e:
-                logger_csvs.warn("read_csv_to_columns: UnicodeDecodeError: {}, {}".format(filename, e))
+                logger_csvs.warn(
+                    "read_csv_to_columns: UnicodeDecodeError: {}, {}".format(
+                        filename, e
+                    )
+                )
                 l = []
-
 
     except Exception as e:
         logger_csvs.warn("read_csv_to_columns: Error: {}, {}".format(filename, e))
-
 
     logger_csvs.info("exit read_csv_from_file")
     return l
@@ -273,21 +302,31 @@ def write_csv_to_file(d):
             try:
                 l_columns = _reorder_csv(data, filename)
                 rows = zip(*l_columns)
-                with open(filename, 'w+') as f:
+                with open(filename, "w+") as f:
                     w = csv.writer(f)
                     for row in rows:
                         row2 = decimal_precision(row)
                         w.writerow(row2)
             except TypeError as e:
-                print("Error: Unable to write values to CSV file, {}:\n"
-                      "(1) The data table may have 2 or more identical variables. Please correct the LiPD file manually\n"
-                      "(2) There may have been an error trying to prep the values for file write. The 'number' field in the data columns may be a 'string' instead of an 'integer' data type".format(filename))
+                print(
+                    "Error: Unable to write values to CSV file, {}:\n"
+                    "(1) The data table may have 2 or more identical variables. Please correct the LiPD file manually\n"
+                    "(2) There may have been an error trying to prep the values for file write. The 'number' field in the data columns may be a 'string' instead of an 'integer' data type".format(
+                        filename
+                    )
+                )
                 print(e)
             except Exception as e:
-                print("Error: CSV file not written, {}, {}:\n"
-                      "The data table may have 2 or more identical variables. Please correct the LiPD file manually".format(filename, e))
+                print(
+                    "Error: CSV file not written, {}, {}:\n"
+                    "The data table may have 2 or more identical variables. Please correct the LiPD file manually".format(
+                        filename, e
+                    )
+                )
     except AttributeError as e:
-        logger_csvs.error("write_csv_to_file: Unable to write CSV File: {}".format(e, exc_info=True))
+        logger_csvs.error(
+            "write_csv_to_file: Unable to write CSV File: {}".format(e, exc_info=True)
+        )
     logger_csvs.info("exit write_csv_to_file")
     return
 
@@ -297,7 +336,8 @@ def write_csv_to_file(d):
 
 def get_csv_from_metadata(dsn, d):
     """
-    Two goals. Get all csv from metadata, and return new metadata with generated filenames to match files.
+    Two goals. Get all csv from metadata, and return new metadata with generated filenames
+    to match files.
 
     :param str dsn: Dataset name
     :param dict d: Metadata
@@ -310,10 +350,14 @@ def get_csv_from_metadata(dsn, d):
     try:
         if "paleoData" in _d:
             # Process paleoData section
-            _d["paleoData"], _csvs = _get_csv_from_section(_d["paleoData"], "{}.paleo".format(dsn), _csvs)
+            _d["paleoData"], _csvs = _get_csv_from_section(
+                _d["paleoData"], "{}.paleo".format(dsn), _csvs
+            )
 
         if "chronData" in _d:
-            _d["chronData"], _csvs = _get_csv_from_section(_d["chronData"], "{}.chron".format(dsn), _csvs)
+            _d["chronData"], _csvs = _get_csv_from_section(
+                _d["chronData"], "{}.chron".format(dsn), _csvs
+            )
 
     except Exception as e:
         print("Error: get_csv_from_metadata: {}, {}".format(dsn, e))
@@ -341,9 +385,15 @@ def _get_csv_from_section(sections, crumbs, csvs):
 
             # Process each entry sub-table below if they exist
             if "measurementTable" in _section:
-                sections[_name]["measurementTable"], csvs = _get_csv_from_table(_section["measurementTable"],"{}{}{}".format(crumbs, _idx, "measurement") , csvs)
+                sections[_name]["measurementTable"], csvs = _get_csv_from_table(
+                    _section["measurementTable"],
+                    "{}{}{}".format(crumbs, _idx, "measurement"),
+                    csvs,
+                )
             if "model" in _section:
-                sections[_name]["model"], csvs = _get_csv_from_model(_section["model"], "{}{}{}".format(crumbs, _idx, "model") , csvs)
+                sections[_name]["model"], csvs = _get_csv_from_model(
+                    _section["model"], "{}{}{}".format(crumbs, _idx, "model"), csvs
+                )
             _idx += 1
 
     except Exception as e:
@@ -369,13 +419,25 @@ def _get_csv_from_model(models, crumbs, csvs):
     try:
         for _name, _model in models.items():
             if "distributionTable" in _model:
-                models[_name]["distributionTable"], csvs = _get_csv_from_table(_model["distributionTable"], "{}{}{}".format(crumbs, _idx, "distribution"), csvs)
+                models[_name]["distributionTable"], csvs = _get_csv_from_table(
+                    _model["distributionTable"],
+                    "{}{}{}".format(crumbs, _idx, "distribution"),
+                    csvs,
+                )
 
             if "summaryTable" in _model:
-                models[_name]["summaryTable"], csvs = _get_csv_from_table(_model["summaryTable"], "{}{}{}".format(crumbs, _idx, "summary"), csvs)
+                models[_name]["summaryTable"], csvs = _get_csv_from_table(
+                    _model["summaryTable"],
+                    "{}{}{}".format(crumbs, _idx, "summary"),
+                    csvs,
+                )
 
             if "ensembleTable" in _model:
-                models[_name]["ensembleTable"], csvs = _get_csv_from_table(_model["ensembleTable"], "{}{}{}".format(crumbs, _idx, "ensemble"), csvs)
+                models[_name]["ensembleTable"], csvs = _get_csv_from_table(
+                    _model["ensembleTable"],
+                    "{}{}{}".format(crumbs, _idx, "ensemble"),
+                    csvs,
+                )
             _idx += 1
     except Exception as e:
         print("Error: get_csv_from_model: {}, {}".format(crumbs, e))
@@ -412,12 +474,17 @@ def _get_csv_from_columns(table, filename, csvs):
         if "columns" in table:
             try:
                 for _name, _column in table["columns"].items():
-                    csvs[filename][_name] = {"number": _column["number"], "values": _column["values"]}
+                    csvs[filename][_name] = {
+                        "number": _column["number"],
+                        "values": _column["values"],
+                    }
             except KeyError as ke:
                 print("Error: get_csv_from_columns: {}, {}".format(filename, ke))
             except Exception as e:
                 print("Error: get_csv_from_columns: inner: {}, {}".format(filename, e))
-                logger_csvs.error("get_csv_from_columns: inner: {}, {}".format(filename, e))
+                logger_csvs.error(
+                    "get_csv_from_columns: inner: {}, {}".format(filename, e)
+                )
     except Exception as e:
         print("Error: get_csv_from_columns: {}, {}".format(filename, e))
         logger_csvs.error("get_csv_from_columns: {}, {}".format(filename, e))
@@ -427,7 +494,8 @@ def _get_csv_from_columns(table, filename, csvs):
 
 def _get_filename(table):
     """
-    Get the filename from a data table. If it doesn't exist, create a new one based on table hierarchy in metadata file.
+    Get the filename from a data table. If it doesn't exist, create a new one based on table
+    hierarchy in metadata file.
     format: <dataSetName>.<section><idx><table><idx>.csv
     example: ODP1098B.Chron1.ChronMeasurementTable.csv
 
@@ -482,10 +550,11 @@ def _put_filename(table, filename):
 
 # HELPERS
 
+
 def _reorder_csv(d, filename=""):
     """
-    Preserve the csv column ordering before writing back out to CSV file. Keep column data consistent with JSONLD
-    column number alignment.
+    Preserve the csv column ordering before writing back out to CSV file. Keep column data
+    consistent with JSONLD column number alignment.
     { "var1" : {"number": 1, "values": [] }, "var2": {"number": 1, "values": [] } }
 
     :param dict d: csv data
@@ -518,11 +587,12 @@ def _reorder_csv(d, filename=""):
                     # realizations: insert at (hopefully) index 1,2...1001
                     if isinstance(data["number"], list):
                         for idx, number in enumerate(data["number"]):
-                            # we can't trust the number entries. sometimes they start at "number 1",
-                            # which isn't true, because DEPTH is number 1. Use enumerate index instead.
+                            # we can't trust the number entries.
+                            # sometimes they start at "number 1", # which isn't true,
+                            # because DEPTH is number 1. Use enumerate index instead.
                             _insert_at = int(idx) + 1
                             # Insert at one above the index. Grab values at exact index
-                            _d2[_insert_at] = data["values"][idx-1]
+                            _d2[_insert_at] = data["values"][idx - 1]
 
                     # depth column: insert at (hopefully) index 0
                     else:
@@ -538,8 +608,14 @@ def _reorder_csv(d, filename=""):
                 _d2[_insert_at] = data["values"]
 
     except Exception as e:
-        print("Error: Unable to write CSV: There was an error trying to prep the values for file write: {}".format(e))
-        logger_csvs.error("reorder_csvs: Unable to write CSV file: {}, {}".format(filename, e))
+        print(
+            "Error: Unable to write CSV: There was an error trying to prep the values for file write: {}".format(
+                e
+            )
+        )
+        logger_csvs.error(
+            "reorder_csvs: Unable to write CSV file: {}, {}".format(filename, e)
+        )
     return _d2
 
 
@@ -576,12 +652,11 @@ def _merge_ensemble(ensemble, col_nums, col_vals):
     try:
         # Loop for each column available
         for num in col_nums:
-            # first column number in col_nums is usually "2", so backtrack once since ensemble already has one entry
-            # col_vals is 0-indexed, so backtrack 2 entries
-            ensemble[num-1] = col_vals[num - 2]
+            # first column number in col_nums is usually "2", so backtrack once since ensemble
+            # already has one entry col_vals is 0-indexed, so backtrack 2 entries
+            ensemble[num - 1] = col_vals[num - 2]
 
     except IndexError:
         logger_csvs.error("merge_ensemble: IndexError: index out of range")
 
     return ensemble
-

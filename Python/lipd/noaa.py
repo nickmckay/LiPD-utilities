@@ -29,7 +29,8 @@ def noaa_prompt():
 
 def noaa_prompt_1():
     """
-    For converting LiPD files to NOAA, we need a couple more pieces of information to create the WDS links
+    For converting LiPD files to NOAA, we need a couple more pieces of information to create
+    the WDS links
 
     :return str _project: Project name
     :return float _version: Version number
@@ -55,9 +56,12 @@ def noaa_to_lpd(files):
     # Process each available file of the specified .lpd or .txt type
     for file in files[".txt"]:
         # try to filter out example files and stuff without real data
-        if "template" not in file["filename_ext"] and "example" not in file["filename_ext"]:
+        if (
+            "template" not in file["filename_ext"]
+            and "example" not in file["filename_ext"]
+        ):
             os.chdir(file["dir"])
-            print('processing: {}'.format(file["filename_ext"]))
+            print("processing: {}".format(file["filename_ext"]))
             logger_noaa.info("processing: {}".format(file["filename_ext"]))
 
             # Unzip file and get tmp directory path
@@ -65,10 +69,20 @@ def noaa_to_lpd(files):
             try:
                 NOAA_LPD(file["dir"], dir_tmp, file["filename_no_ext"]).main()
             except Exception as e:
-                print("Error: Unable to convert file: {}, {}".format(file["filename_no_ext"], e))
+                print(
+                    "Error: Unable to convert file: {}, {}".format(
+                        file["filename_no_ext"], e
+                    )
+                )
 
             # Create the lipd archive in the original file's directory.
-            zipper(root_dir=dir_tmp, name="bag", path_name_ext=os.path.join(file["dir"], file["filename_no_ext"] + ".lpd"))
+            zipper(
+                root_dir=dir_tmp,
+                name="bag",
+                path_name_ext=os.path.join(
+                    file["dir"], file["filename_no_ext"] + ".lpd"
+                ),
+            )
             # Delete tmp folder and all contents
             os.chdir(file["dir"])
             try:
@@ -92,10 +106,11 @@ def lpd_to_noaa(D, wds_url, lpd_url, version, path=""):
     d = D
     try:
         dsn = get_dsn(D)
-        # Remove all the characters that are not allowed here. Since we're making URLs, they have to be compliant.
-        dsn = re.sub(r'[^A-Za-z-.0-9]', '', dsn)
+        # Remove all the characters that are not allowed here. Since we're making URLs,
+        # they have to be compliant.
+        dsn = re.sub(r"[^A-Za-z-.0-9]", "", dsn)
         # project = re.sub(r'[^A-Za-z-.0-9]', '', project)
-        version = re.sub(r'[^A-Za-z-.0-9]', '', version)
+        version = re.sub(r"[^A-Za-z-.0-9]", "", version)
         # Create the conversion object, and start the conversion process
         _convert_obj = LPD_NOAA(D, dsn, wds_url, lpd_url, version, path)
         _convert_obj.main()
@@ -143,5 +158,9 @@ def __write_noaas(dat, path):
             with open(os.path.join(path, "noaa_files", filename), "w+") as f:
                 f.write(text)
         except Exception as e:
-            print("write_noaas: There was a problem writing the NOAA text file: {}: {}".format(filename, e))
+            print(
+                "write_noaas: There was a problem writing the NOAA text file: {}: {}".format(
+                    filename, e
+                )
+            )
     return

@@ -16,7 +16,7 @@ def zipper(root_dir="", name="", path_name_ext=""):
     """
     logger_zips.info("re_zip: name: {}, dir_tmp: {}".format(path_name_ext, root_dir))
     # creates a zip archive in current directory. "somefile.lpd.zip"
-    shutil.make_archive(path_name_ext, format='zip', root_dir=root_dir, base_dir=name)
+    shutil.make_archive(path_name_ext, format="zip", root_dir=root_dir, base_dir=name)
     # drop the .zip extension. only keep .lpd
     os.rename("{}.zip".format(path_name_ext), path_name_ext)
     return
@@ -39,5 +39,3 @@ def unzipper(filename, dir_tmp):
         shutil.rmtree(dir_tmp)
     logger_zips.info("exit unzip")
     return
-
-

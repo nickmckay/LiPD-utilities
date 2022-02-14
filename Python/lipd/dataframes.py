@@ -18,16 +18,19 @@ def _dotnotation_for_nested_dictionary(d, key, dots):
     :param dict dots: Dotted dictionary so far
     :return dict: Dotted dictionary so far
     """
-    if key == 'chronData':
+    if key == "chronData":
         # Not interested in expanding chronData in dot notation. Keep it as a chunk.
         dots[key] = d
     elif isinstance(d, dict):
         for k in d:
-            _dotnotation_for_nested_dictionary(d[k], key + '.' + k if key else k, dots)
-    elif isinstance(d, list) and \
-            not all(isinstance(item, (int, float, complex, list)) for item in d):
+            _dotnotation_for_nested_dictionary(d[k], key + "." + k if key else k, dots)
+    elif isinstance(d, list) and not all(
+        isinstance(item, (int, float, complex, list)) for item in d
+    ):
         for n, d in enumerate(d):
-            _dotnotation_for_nested_dictionary(d, key + '.' + str(n) if key != "" else key, dots)
+            _dotnotation_for_nested_dictionary(
+                d, key + "." + str(n) if key != "" else key, dots
+            )
     else:
         dots[key] = d
     return dots
@@ -40,7 +43,8 @@ def create_dataframe(ensemble):
     :return obj: Dataframe
     """
     logger_dataframes.info("enter ens_to_df")
-    # "Flatten" the nested lists. Bring all nested lists up to top-level. Output looks like [ [1,2], [1,2], ... ]
+    # "Flatten" the nested lists. Bring all nested lists up to top-level.
+    # Output looks like [ [1,2], [1,2], ... ]
     ll = unwrap_arrays(ensemble)
     # Check that list lengths are all equal
     valid = match_arr_lengths(ll)
@@ -68,13 +72,16 @@ def lipd_to_df(metadata, csvs):
     # Flatten the dictionary, but ignore the chron data items
     dict_in_dotted = {}
     logger_dataframes.info("enter dot_notation")
-    _dotnotation_for_nested_dictionary(metadata, '', dict_in_dotted)
+    _dotnotation_for_nested_dictionary(metadata, "", dict_in_dotted)
     dict_in_dotted = collections.OrderedDict(sorted(dict_in_dotted.items()))
 
     # Create one data frame for metadata items
-    dfs["metadata"] = pd.DataFrame(list(dict_in_dotted.items()), columns=["Key", "Value"])
+    dfs["metadata"] = pd.DataFrame(
+        list(dict_in_dotted.items()), columns=["Key", "Value"]
+    )
 
-    # Create data frames for paleo data and chron data items. This does not use LiPD data, it uses the csv data
+    # Create data frames for paleo data and chron data items. This does not use LiPD data,
+    # it uses the csv data
     dfs.update(_get_dfs(csvs))
 
     return dfs
@@ -102,7 +109,7 @@ def ts_to_df(metadata):
     s = collections.OrderedDict(sorted(metadata.items()))
 
     # Put key-vars in a data frame to make it easier to visualize
-    dfs["metadata"] = pd.DataFrame(list(s.items()), columns=['Key', 'Value'])
+    dfs["metadata"] = pd.DataFrame(list(s.items()), columns=["Key", "Value"])
 
     logger_dataframes.info("exit ts_to_df")
     return dfs
@@ -123,11 +130,15 @@ def _plot_ts_cols(ts):
         units = " (" + ts["paleoData_units"] + ")"
     except KeyError as e:
         units = ""
-        logger_dataframes.warn("get_ts_cols: KeyError: paleoData_units not found, {}".format(e))
+        logger_dataframes.warn(
+            "get_ts_cols: KeyError: paleoData_units not found, {}".format(e)
+        )
     try:
         d[ts["paleoData_variableName"] + units] = ts["paleoData_values"]
     except KeyError as e:
-        logger_dataframes.warn("get_ts_cols: KeyError: variableName or values not found, {}".format(e))
+        logger_dataframes.warn(
+            "get_ts_cols: KeyError: variableName or values not found, {}".format(e)
+        )
 
     # Start looking for age, year, depth columns
     for k, v in ts.items():
@@ -136,7 +147,9 @@ def _plot_ts_cols(ts):
                 units = " (" + ts[k + "Units"] + ")"
                 d[k + units] = v
             except KeyError as e:
-                logger_dataframes.warn("get_ts_cols: KeyError: Special column units, {}, {}".format(k, e))
+                logger_dataframes.warn(
+                    "get_ts_cols: KeyError: Special column units, {}, {}".format(k, e)
+                )
     logger_dataframes.info("exit get_ts_cols: found {}".format(len(d)))
     return d
 
@@ -161,7 +174,11 @@ def _get_dfs(csvs):
             elif "paleo" in filename.lower():
                 dfs["paleoData"][filename] = pd.DataFrame(tmp)
     except KeyError:
-        logger_dataframes.warn("get_lipd_cols: AttributeError: expected type dict, given type {}".format(type(csvs)))
+        logger_dataframes.warn(
+            "get_lipd_cols: AttributeError: expected type dict, given type {}".format(
+                type(csvs)
+            )
+        )
 
     logger_dataframes.info("exit get_lipd_cols")
     return dfs
@@ -209,7 +226,8 @@ def get_filtered_dfs(lib, expr):
                     lo_meta = lib[file].get_metadata()
                     lo_dfs = lib[file].get_dfs()
 
-                    # Only start a search if this lipds file has data frames available. Otherwise, pointless.
+                    # Only start a search if this lipds file has data frames available.
+                    # Otherwise, pointless.
                     if lo_dfs:
                         # Get list of all matching filenames
                         filenames = _match_dfs_expr(lo_meta, expr, tt)
@@ -226,7 +244,8 @@ def get_filtered_dfs(lib, expr):
                 lo_meta = lo.get_metadata()
                 lo_dfs = lo.get_dfs()
 
-                # Only start a search if this lipds file has data frames available. Otherwise, pointless.
+                # Only start a search if this lipds file has data frames available.
+                # Otherwise, pointless.
                 if lo_dfs:
                     # Get list of all matching filenames
                     filenames = _match_dfs_expr(lo_meta, expr, tt)
@@ -239,7 +258,8 @@ def get_filtered_dfs(lib, expr):
 
 def _match_dfs_expr(lo_meta, expr, tt):
     """
-    Use the given expression to get all data frames that match the criteria (i.e. "paleo measurement tables")
+    Use the given expression to get all data frames that match the criteria
+    (i.e. "paleo measurement tables")
     :param dict lo_meta: Lipd object metadata
     :param str expr: Search expression
     :param str tt: Table type (chron or paleo)
@@ -261,7 +281,11 @@ def _match_dfs_expr(lo_meta, expr, tt):
                         filenames.append(f)
                 except KeyError:
                     # Not concerned if the key wasn't found.
-                    logger_dataframes.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "measurement"))
+                    logger_dataframes.info(
+                        "match_dfs_expr: KeyError: filename not found in: {} {}".format(
+                            tt, "measurement"
+                        )
+                    )
 
         elif "ensemble" in expr:
             for k1, v1 in v["{}Model".format(tt)].items():
@@ -271,7 +295,11 @@ def _match_dfs_expr(lo_meta, expr, tt):
                         filenames.append(f)
                 except KeyError:
                     # Not concerned if the key wasn't found.
-                    logger_dataframes.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "ensemble"))
+                    logger_dataframes.info(
+                        "match_dfs_expr: KeyError: filename not found in: {} {}".format(
+                            tt, "ensemble"
+                        )
+                    )
 
         elif "model" in expr:
             for k1, v1 in v["{}Model".format(tt)].items():
@@ -281,7 +309,11 @@ def _match_dfs_expr(lo_meta, expr, tt):
                         filenames.append(f)
                 except KeyError:
                     # Not concerned if the key wasn't found.
-                    logger_dataframes.info("match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "model"))
+                    logger_dataframes.info(
+                        "match_dfs_expr: KeyError: filename not found in: {} {}".format(
+                            tt, "model"
+                        )
+                    )
 
         elif "dist" in expr:
             for k1, v1 in v["{}Model".format(tt)].items():
@@ -293,7 +325,10 @@ def _match_dfs_expr(lo_meta, expr, tt):
                     except KeyError:
                         # Not concerned if the key wasn't found.
                         logger_dataframes.info(
-                            "match_dfs_expr: KeyError: filename not found in: {} {}".format(tt, "dist"))
+                            "match_dfs_expr: KeyError: filename not found in: {} {}".format(
+                                tt, "dist"
+                            )
+                        )
 
     logger_dataframes.info("exit match_dfs_expr")
     return filenames
@@ -324,7 +359,8 @@ def _match_filenames_w_dfs(filenames, lo_dfs):
 
 def _check_expr_filename(expr):
     """
-    Split the expression and look to see if there's a specific filename that the user wants to process.
+    Split the expression and look to see if there's a specific filename that the user
+    wants to process.
     :param str expr: Search expression
     :return str: Filename or None
     """

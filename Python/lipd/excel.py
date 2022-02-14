@@ -13,12 +13,25 @@ from .directory import dir_cleanup, create_tmp_dir
 from .zips import zipper
 from .loggers import create_logger
 from .blanks import EMPTY
-from .alternates import EXCEL_GEO, EXCEL_TEMPLATE, ALTS_MV, EXCEL_SHEET_TYPES, EXCEL_LIPD_MAP_FLAT, EXCEL_HEADER
-from .regexes import re_sheet, re_var_w_units, re_calibration, re_interpretation, re_physical
+from .alternates import (
+    EXCEL_GEO,
+    EXCEL_TEMPLATE,
+    ALTS_MV,
+    EXCEL_SHEET_TYPES,
+    EXCEL_LIPD_MAP_FLAT,
+    EXCEL_HEADER,
+)
+from .regexes import (
+    re_sheet,
+    re_var_w_units,
+    re_calibration,
+    re_interpretation,
+    re_physical,
+)
 from .misc import normalize_name
 from .jsons import write_json_to_file
 
-logger_excel = create_logger('excel_main')
+logger_excel = create_logger("excel_main")
 """
 VERSION: LiPD v1.2
 """
@@ -68,13 +81,16 @@ def excel_main(file):
 
     except Exception as e:
         # There was a problem opening a file with XLRD
-        print("Failed to open Excel workbook: {}, {}".format(name,e))
+        print("Failed to open Excel workbook: {}, {}".format(name, e))
         workbook = None
-        logger_excel.debug("excel: xlrd failed to open workbook: {}, {}".format(name, e))
+        logger_excel.debug(
+            "excel: xlrd failed to open workbook: {}, {}".format(name, e)
+        )
 
     if workbook:
 
-        # Build sheets, but don't make full filenames yet. Need to parse metadata sheet first to get datasetname.
+        # Build sheets, but don't make full filenames yet.
+        # Need to parse metadata sheet first to get datasetname.
         sheets, ct_paleo, ct_chron, metadata_str = _get_sheet_metadata(workbook, name)
 
         # METADATA WORKSHEETS
@@ -89,7 +105,7 @@ def excel_main(file):
         sheets = __set_sheet_filenames(sheets, dsn)
 
         dir_bag = os.path.join(dir_tmp, "bag")
-        dir_data = os.path.join(dir_bag, 'data')
+        dir_data = os.path.join(dir_bag, "data")
 
         # Make folders in tmp
         os.mkdir(os.path.join(dir_bag))
@@ -103,15 +119,16 @@ def excel_main(file):
                 pending_csv.append(sheet_csv)
                 sheet["data"] = sheet_meta
 
-        # create the metadata skeleton where we will place the tables. dynamically add empty table blocks for data.
+        # create the metadata skeleton where we will place the tables.
+        # dynamically add empty table blocks for data.
         skeleton_paleo, skeleton_chron = _create_skeleton_1(sheets)
 
         # Reorganize sheet metadata into LiPD structure
         d_paleo, d_chron = _place_tables_main(sheets, skeleton_paleo, skeleton_chron)
 
         # Add organized metadata into final dictionary
-        final['paleoData'] = d_paleo
-        final['chronData'] = d_chron
+        final["paleoData"] = d_paleo
+        final["chronData"] = d_chron
 
         # OUTPUT
 
@@ -153,7 +170,11 @@ def excel_main(file):
 
         # Zip dir_bag. Creates in dir_root directory
         logger_excel.info("re-zip and rename")
-        zipper(root_dir=dir_tmp, name="bag", path_name_ext=os.path.join(file["dir"], filename))
+        zipper(
+            root_dir=dir_tmp,
+            name="bag",
+            path_name_ext=os.path.join(file["dir"], filename),
+        )
 
     # Move back to dir_root for next loop.
     os.chdir(file["dir"])
@@ -166,10 +187,11 @@ def excel_main(file):
 
 # SORT THROUGH WORKSHEETS
 
+
 def _get_sheet_metadata(workbook, name):
     """
-    Get worksheet metadata. The sheet names tell us what type of table it is and where in the LiPD structure the data
-    should be placed.
+    Get worksheet metadata. The sheet names tell us what type of table it is and where
+    in the LiPD structure the data should be placed.
 
     Example VALID sheet name:
     paleo1measurement1
@@ -181,7 +203,8 @@ def _get_sheet_metadata(workbook, name):
     paleo1ensemble
     paleo1_measurement1
 
-    NOTE: since each model will only have one ensemble and one summary, they should not have a trailing index number.
+    NOTE: since each model will only have one ensemble and one summary,
+        they should not have a trailing index number.
 
     :param obj workbook: Excel workbook
     :param str name: Dataset name
@@ -196,13 +219,14 @@ def _get_sheet_metadata(workbook, name):
     # Check what worksheets are available, so we know how to proceed.
     for sheet in workbook.sheet_names():
 
-        # Use this for when we are dealing with older naming styles of "data (qc), data, and chronology"
+        # Use this for when we are dealing with older naming styles of "data (qc),
+        # data, and chronology"
         old = "".join(sheet.lower().strip().split())
 
         # Don't parse example sheets. If these words are in the sheet, assume we skip them.
         if not any(word in sheet.lower() for word in skip_sheets):
             # Group the related sheets together, so it's easier to place in the metadata later.
-            if 'metadata' in sheet.lower():
+            if "metadata" in sheet.lower():
                 metadata_str = sheet
 
             # Skip the 'about' and 'proxy' sheets altogether. Proceed with all other sheets.
@@ -212,45 +236,61 @@ def _get_sheet_metadata(workbook, name):
                 # If this is a valid sheet name, we will receive a regex object back.
                 m = re.match(re_sheet, sheet.lower())
 
-                # Valid regex object. This is a valid sheet name and we can use that to build the sheet metadata.
+                # Valid regex object. This is a valid sheet name and we can use that
+                # to build the sheet metadata.
                 if m:
-                    sheets, paleo_ct, chron_ct = _sheet_meta_from_regex(m, sheets, sheet, name, ct_paleo, ct_chron)
+                    sheets, paleo_ct, chron_ct = _sheet_meta_from_regex(
+                        m, sheets, sheet, name, ct_paleo, ct_chron
+                    )
 
-                # Older excel template style: backwards compatibility. Hard coded for one sheet per table.
+                # Older excel template style: backwards compatibility.
+                # Hard coded for one sheet per table.
                 elif old == "data" or "data(qc)" in old or "data(original)" in old:
-                    sheets.append({
-                        "paleo_chron": "paleo",
-                        "idx_pc": ct_paleo,
-                        "idx_model": None,
-                        "table_type": "measurement",
-                        "idx_table": 1,
-                        "old_name": sheet,
-                        "new_name": sheet,
-                        "filename": "paleo{}measurementTable1.csv".format(ct_paleo),
-                        "table_name": "paleo{}measurementTable1".format(ct_paleo),
-                        "data": ""
-                    })
+                    sheets.append(
+                        {
+                            "paleo_chron": "paleo",
+                            "idx_pc": ct_paleo,
+                            "idx_model": None,
+                            "table_type": "measurement",
+                            "idx_table": 1,
+                            "old_name": sheet,
+                            "new_name": sheet,
+                            "filename": "paleo{}measurementTable1.csv".format(ct_paleo),
+                            "table_name": "paleo{}measurementTable1".format(ct_paleo),
+                            "data": "",
+                        }
+                    )
                     ct_paleo += 1
 
-                # Older excel template style: backwards compatibility. Hard coded for one sheet per table.
+                # Older excel template style: backwards compatibility.
+                # Hard coded for one sheet per table.
                 elif old == "chronology":
-                    sheets.append({
-                        "paleo_chron": "chron",
-                        "idx_pc": ct_chron,
-                        "idx_model": None,
-                        "table_type": "measurement",
-                        "idx_table": 1,
-                        "old_name": sheet,
-                        "new_name": sheet,
-                        "filename": "chron{}measurementTable1.csv".format(ct_chron),
-                        "table_name": "chron{}measurementTable1".format(ct_chron),
-                        "data": ""
-                    })
+                    sheets.append(
+                        {
+                            "paleo_chron": "chron",
+                            "idx_pc": ct_chron,
+                            "idx_model": None,
+                            "table_type": "measurement",
+                            "idx_table": 1,
+                            "old_name": sheet,
+                            "new_name": sheet,
+                            "filename": "chron{}measurementTable1.csv".format(ct_chron),
+                            "table_name": "chron{}measurementTable1".format(ct_chron),
+                            "data": "",
+                        }
+                    )
                     ct_chron += 1
                 else:
-                    # Sheet name does not conform to standard. Guide user to create a standardized sheet name.
-                    print("This sheet name does not conform to naming standard: {}".format(sheet))
-                    sheets, paleo_ct, chron_ct = _sheet_meta_from_prompts(sheets, sheet, name, ct_paleo, ct_chron)
+                    # Sheet name does not conform to standard.
+                    # Guide user to create a standardized sheet name.
+                    print(
+                        "This sheet name does not conform to naming standard: {}".format(
+                            sheet
+                        )
+                    )
+                    sheets, paleo_ct, chron_ct = _sheet_meta_from_prompts(
+                        sheets, sheet, name, ct_paleo, ct_chron
+                    )
 
     return sheets, ct_paleo, ct_chron, metadata_str
 
@@ -271,9 +311,15 @@ def _sheet_meta_from_prompts(sheets, old_name, name, ct_paleo, ct_chron):
         try:
             pc = input("Is this a (p)aleo or (c)hronology sheet?").lower()
             if pc in ("p", "c", "paleo", "chron", "chronology"):
-                tt = input("Is this a (d)istribution, (e)nsemble, (m)easurement, or (s)ummary sheet?").lower()
-                if tt in EXCEL_SHEET_TYPES["distribution"] or tt in EXCEL_SHEET_TYPES["ensemble"] \
-                        or tt in EXCEL_SHEET_TYPES["summary"] or tt in EXCEL_SHEET_TYPES["measurement"]:
+                tt = input(
+                    "Is this a (d)istribution, (e)nsemble, (m)easurement, or (s)ummary sheet?"
+                ).lower()
+                if (
+                    tt in EXCEL_SHEET_TYPES["distribution"]
+                    or tt in EXCEL_SHEET_TYPES["ensemble"]
+                    or tt in EXCEL_SHEET_TYPES["summary"]
+                    or tt in EXCEL_SHEET_TYPES["measurement"]
+                ):
                     # valid answer, keep going
                     if tt in EXCEL_SHEET_TYPES["distribution"]:
                         tt = "distribution"
@@ -295,19 +341,28 @@ def _sheet_meta_from_prompts(sheets, old_name, name, ct_paleo, ct_chron):
                         else:
                             sheet = "{}{}{}".format("chron", ct_chron, tt)
                     # Test the sheet that was built from the user responses.
-                    # If it matches the Regex, then continue to build the sheet metadata. If not, try again or skip sheet.
+                    # If it matches the Regex, then continue to build the sheet metadata.
+                    # If not, try again or skip sheet.
                     m = re.match(re_sheet, sheet.lower())
                     if m:
-                        sheets, ct_paleo, ct_chron = _sheet_meta_from_regex(m, sheets, old_name, name, ct_paleo, ct_chron)
+                        sheets, ct_paleo, ct_chron = _sheet_meta_from_regex(
+                            m, sheets, old_name, name, ct_paleo, ct_chron
+                        )
                         print("Sheet created: {}".format(sheet))
                         cont = False
                     else:
                         resp = input("invalid sheet name. try again? (y/n): ")
                         if resp == "n":
-                            print("No valid sheet name was created. Skipping sheet: {}".format(sheet))
+                            print(
+                                "No valid sheet name was created. Skipping sheet: {}".format(
+                                    sheet
+                                )
+                            )
                             cont = False
         except Exception as e:
-            logger_excel.debug("excel: sheet_meta_from_prompts: error during prompts, {}".format(e))
+            logger_excel.debug(
+                "excel: sheet_meta_from_prompts: error during prompts, {}".format(e)
+            )
             cont = False
 
     print("=====================================================")
@@ -342,7 +397,8 @@ def _sheet_meta_from_regex(m, sheets, old_name, name, ct_paleo, ct_chron):
         elif pc == "chrondata" or pc == "chron":
             pc = "chron"
             ct_chron += 1
-        # build filename and table name strings. build table name first, then make filename from the table_name
+        # build filename and table name strings. build table name first,
+        # then make filename from the table_name
         new_name = "{}{}".format(pc, m.group(2))
         if idx_model:
             new_name = "{}model{}".format(new_name, idx_model)
@@ -351,24 +407,28 @@ def _sheet_meta_from_regex(m, sheets, old_name, name, ct_paleo, ct_chron):
             new_name = "{}{}".format(new_name, m.group(6))
         filename = "{}.csv".format(new_name)
     except Exception as e:
-        logger_excel.debug("excel: sheet_meta_from_regex: error during setup, {}".format(e))
+        logger_excel.debug(
+            "excel: sheet_meta_from_regex: error during setup, {}".format(e)
+        )
 
     # Standard naming. This matches the regex and the sheet name is how we want it.
     # paleo/chron - idx - table_type - idx
     # Not sure what to do with m.group(2) yet
     # ex: m.groups() = [ paleo, 1, model, 1, ensemble, 1 ]
     try:
-        sheets.append({
-            "old_name": old_name,
-            "new_name": new_name,
-            "filename": filename,
-            "paleo_chron": pc,
-            "idx_pc": int(m.group(2)),
-            "idx_model": idx_model,
-            "idx_table": idx_table,
-            "table_type": m.group(5),
-            "data": ""
-        })
+        sheets.append(
+            {
+                "old_name": old_name,
+                "new_name": new_name,
+                "filename": filename,
+                "paleo_chron": pc,
+                "idx_pc": int(m.group(2)),
+                "idx_model": idx_model,
+                "idx_table": idx_table,
+                "table_type": m.group(5),
+                "data": "",
+            }
+        )
     except Exception as e:
         print("error: build sheets")
         logger_excel.debug("excel: build_sheet: unable to build sheet, {}".format(e))
@@ -386,7 +446,9 @@ def _place_tables_section(skeleton_section, sheet, keys_section):
     """
     logger_excel.info("enter place_tables_section")
     try:
-        logger_excel.info("excel: place_tables_section: placing table: {}".format(sheet["new_name"]))
+        logger_excel.info(
+            "excel: place_tables_section: placing table: {}".format(sheet["new_name"])
+        )
         new_name = sheet["new_name"]
         logger_excel.info("placing_tables_section: {}".format(new_name))
         # get all the sheet metadata needed for this function
@@ -408,7 +470,9 @@ def _place_tables_section(skeleton_section, sheet, keys_section):
             # Yes, a model idx exists, so decrement it.
             idx_model -= 1
     except Exception as e:
-        logger_excel.debug("excel: place_tables_section: error during setup, {}".format(e))
+        logger_excel.debug(
+            "excel: place_tables_section: error during setup, {}".format(e)
+        )
 
     # If it's measurement table, it goes in first.
     try:
@@ -421,9 +485,15 @@ def _place_tables_section(skeleton_section, sheet, keys_section):
             elif table_type == "ensemble":
                 skeleton_section[idx_pc][key_2][idx_model]["ensembleTable"] = data
             elif table_type == "distribution":
-                skeleton_section[idx_pc][key_2][idx_model]["distributionTable"][idx_table] = data
+                skeleton_section[idx_pc][key_2][idx_model]["distributionTable"][
+                    idx_table
+                ] = data
     except Exception as e:
-        logger_excel.warn("excel: place_tables_section: Unable to place table {}, {}".format(new_name, e))
+        logger_excel.warn(
+            "excel: place_tables_section: Unable to place table {}, {}".format(
+                new_name, e
+            )
+        )
     logger_excel.info("exit place_tables_section")
     return skeleton_section
 
@@ -441,9 +511,13 @@ def _place_tables_main(sheets, skeleton_paleo, skeleton_chron):
     for sheet in sheets:
         pc = sheet["paleo_chron"]
         if pc == "paleo":
-            skeleton_paleo = _place_tables_section(skeleton_paleo, sheet, ["paleoMeasurementTable", "paleoModel"])
+            skeleton_paleo = _place_tables_section(
+                skeleton_paleo, sheet, ["paleoMeasurementTable", "paleoModel"]
+            )
         elif pc == "chron":
-            skeleton_chron = _place_tables_section(skeleton_chron, sheet, ["chronMeasurementTable", "chronModel"])
+            skeleton_chron = _place_tables_section(
+                skeleton_chron, sheet, ["chronMeasurementTable", "chronModel"]
+            )
 
     # when returning, these should no longer be skeletons. They should be tables filled with data
     logger_excel.info("exit place_tables_main")
@@ -453,7 +527,8 @@ def _place_tables_main(sheets, skeleton_paleo, skeleton_chron):
 def _get_table_counts(sheet, num_section):
     """
     Loop through sheet metadata and count how many of each table type is needed at each index.
-    Example: 'paleo 1' needs {'2 measurement tables', '1 model table, with 1 summary, 1 ensemble, and 3 distributions'}
+    Example: 'paleo 1' needs {'2 measurement tables', '1 model table, with 1 summary,
+    1 ensemble, and 3 distributions'}
     :param dict sheet: Sheet metadata
     :param dict num_section: Rolling number counts of table types for each index.
     :return:
@@ -484,13 +559,20 @@ def _get_table_counts(sheet, num_section):
             # Have we started counters for this idx model yet??
             if idx_model not in num_section[idx_pc]["ct_in_model"]:
                 # No, create the counters and start tracking table counts.
-                num_section[idx_pc]["ct_in_model"][idx_model] = {"ct_ens": 0, "ct_sum": 0, "ct_dist": 0}
+                num_section[idx_pc]["ct_in_model"][idx_model] = {
+                    "ct_ens": 0,
+                    "ct_sum": 0,
+                    "ct_dist": 0,
+                }
     except Exception as e:
-        logger_excel.debug("excel: get_table_counts: error incrementing model counts, ".format(e))
+        logger_excel.debug(
+            "excel: get_table_counts: error incrementing model counts, ".format(e)
+        )
 
     # Incrementer!
     # For the given table type, track the highest index number.
-    # That number is how many tables we need to make of that type.  Ex. 'measurement4', we need to make 4 empty tables
+    # That number is how many tables we need to make of that type.
+    # Ex. 'measurement4', we need to make 4 empty tables
     try:
         if tt == "measurement":
             # Is this meas table a higher idx?
@@ -509,7 +591,9 @@ def _get_table_counts(sheet, num_section):
             # Ensemble tables are not indexed. Only one per table.
             num_section[idx_pc]["ct_in_model"][idx_model]["ct_ens"] = 1
     except Exception as e:
-        logger_excel.debug("excel: get_table_counts: error incrementing table count".format(e))
+        logger_excel.debug(
+            "excel: get_table_counts: error incrementing table count".format(e)
+        )
 
     return num_section
 
@@ -517,7 +601,8 @@ def _get_table_counts(sheet, num_section):
 def _create_skeleton_3(pc, l, num_section):
     """
     Bottom level: {"measurement": [], "model": [{summary, distributions, ensemble}]}
-    Fill in measurement and model tables with N number of EMPTY meas, summary, ensemble, and distributions.
+    Fill in measurement and model tables with N number of EMPTY meas, summary, ensemble,
+    and distributions.
     :param str pc: Paleo or Chron "mode"
     :param list l:
     :param dict num_section:
@@ -539,7 +624,9 @@ def _create_skeleton_3(pc, l, num_section):
             l[idx1 - 1][pc_meas] = [None] * num_section[idx1]["ct_meas"]
 
             # Create N number of empty model table lists
-            l[idx1 - 1][pc_mod] = [copy.deepcopy(template_model)] * num_section[idx1]["ct_model"]
+            l[idx1 - 1][pc_mod] = [copy.deepcopy(template_model)] * num_section[idx1][
+                "ct_model"
+            ]
 
             # Create N number of empty model tables at list index
             #
@@ -549,10 +636,18 @@ def _create_skeleton_3(pc, l, num_section):
                     # Create N number of empty distributions at list index
                     [dists.append({}) for i in range(0, nums["ct_dist"])]
                 except IndexError as e:
-                    logger_excel.debug("excel: create_metadata_skeleton: paleo tables messed up, {}".format(e))
+                    logger_excel.debug(
+                        "excel: create_metadata_skeleton: paleo tables messed up, {}".format(
+                            e
+                        )
+                    )
 
                 # Model template complete, insert it at list index
-                l[idx1 - 1][pc_mod][idx2-1] = {"summaryTable": {}, "ensembleTable": {}, "distributionTable": dists}
+                l[idx1 - 1][pc_mod][idx2 - 1] = {
+                    "summaryTable": {},
+                    "ensembleTable": {},
+                    "distributionTable": dists,
+                }
         except IndexError as e:
             logger_excel.warn("create_skeleton_inner_tables: IndexError: {}".format(e))
         except KeyError as e:
@@ -577,7 +672,11 @@ def _create_skeleton_2(l, pc, num_section, template):
         # Create the necessary tables inside of "model"
         l = _create_skeleton_3(pc, l, num_section)
     except Exception as e:
-        logger_excel.warn("excel: create_skeleton_inner_main: error duplicating template tables, {}".format(e))
+        logger_excel.warn(
+            "excel: create_skeleton_inner_main: error duplicating template tables, {}".format(
+                e
+            )
+        )
 
     return l
 
@@ -638,7 +737,6 @@ def _parse_sheet(workbook, sheet):
     metadata_on = False
     metadata_done = False
     data_on = False
-    notes = False
 
     # Open the sheet from the workbook
     temp_sheet = workbook.sheet_by_name(sheet["old_name"])
@@ -650,8 +748,8 @@ def _parse_sheet(workbook, sheet):
     # Organize our root table data
     table_metadata = OrderedDict()
     table_metadata[table_name] = sheet["new_name"]
-    table_metadata['filename'] = filename
-    table_metadata['missingValue'] = 'nan'
+    table_metadata["filename"] = filename
+    table_metadata["missingValue"] = "nan"
     if "ensemble" in sheet["new_name"]:
         ensemble_on = True
 
@@ -684,7 +782,8 @@ def _parse_sheet(workbook, sheet):
 
             # Skip all template lines
             if isinstance(cell, str):
-                # Note and missing value entries are rogue. They are not close to the other data entries.
+                # Note and missing value entries are rogue.
+                # They are not close to the other data entries.
                 if cell.lower().strip() not in EXCEL_TEMPLATE:
 
                     if "notes" in cell.lower() and not metadata_on:
@@ -701,7 +800,9 @@ def _parse_sheet(workbook, sheet):
                             table_metadata["missingValue"] = mv
 
                     # Variable template header row
-                    elif cell.lower() in EXCEL_HEADER and not metadata_on and not data_on:
+                    elif (
+                        cell.lower() in EXCEL_HEADER and not metadata_on and not data_on
+                    ):
 
                         # Grab the header line
                         row = temp_sheet.row(num_row)
@@ -714,12 +815,15 @@ def _parse_sheet(workbook, sheet):
                     elif data_on:
 
                         # Parse the row, clean, and add to table_data
-                        table_data = _parse_sheet_data_row(temp_sheet, num_row, col_total, table_data, filename, mv)
+                        table_data = _parse_sheet_data_row(
+                            temp_sheet, num_row, col_total, table_data, filename, mv
+                        )
 
                     # Metadata section. (top)
                     elif metadata_on:
 
-                        # Reached an empty cell while parsing metadata. Mark the end of the section.
+                        # Reached an empty cell while parsing metadata.
+                        # Mark the end of the section.
                         if cell in EMPTY:
                             metadata_on = False
                             metadata_done = True
@@ -727,10 +831,14 @@ def _parse_sheet(workbook, sheet):
                             # Create a list of all the variable names found
                             for entry in column_metadata:
                                 try:
-                                    # var keys is used as the variableName entry in each column's metadata
+                                    # var keys is used as the variableName
+                                    # entry in each column's metadata
                                     variable_keys.append(entry["variableName"].strip())
-                                    # var keys lower is used for comparing and finding the data header row
-                                    variable_keys_lower.append(entry["variableName"].lower().strip())
+                                    # var keys lower is used for comparing
+                                    # and finding the data header row
+                                    variable_keys_lower.append(
+                                        entry["variableName"].lower().strip()
+                                    )
                                 except KeyError:
                                     # missing a variableName key
                                     pass
@@ -741,7 +849,9 @@ def _parse_sheet(workbook, sheet):
                             row = temp_sheet.row(num_row)
 
                             # Get column metadata
-                            col_tmp = _compile_column_metadata(row, header_keys, col_add_ct)
+                            col_tmp = _compile_column_metadata(
+                                row, header_keys, col_add_ct
+                            )
 
                             # Append to master list
                             column_metadata.append(col_tmp)
@@ -750,7 +860,8 @@ def _parse_sheet(workbook, sheet):
                     # Variable metadata, if variable header exists
                     elif var_header_done and not metadata_done:
 
-                        # Start piecing column metadata together with their respective variable keys
+                        # Start piecing column metadata together with their respective
+                        # variable keys
                         metadata_on = True
 
                         # Get the row data
@@ -765,9 +876,10 @@ def _parse_sheet(workbook, sheet):
 
                     # Variable metadata, if variable header does not exist
                     elif not var_header_done and not metadata_done and cell:
-                        # LiPD Version 1.1 and earlier: Chronology sheets don't have variable headers
-                        # We could blindly parse, but without a header row_num we wouldn't know where
-                        # to save the metadata
+                        # LiPD Version 1.1 and earlier: Chronology sheets don't have variable
+                        # headers
+                        # We could blindly parse, but without a header row_num we wouldn't know
+                        # where to save the metadata
                         # Play it safe and assume data for first column only: variable name
                         metadata_on = True
 
@@ -781,36 +893,51 @@ def _parse_sheet(workbook, sheet):
                         column_metadata.append(col_tmp)
                         col_add_ct += 1
 
-                    # Data variable header row. Column metadata exists and metadata_done marker is on.
-                    # This is where we compare top section variableNames to bottom section variableNames to see if
-                    # we need to start parsing the column values
+                    # Data variable header row. Column metadata exists and metadata_done marker
+                    # is on.
+                    # This is where we compare top section variableNames to bottom section
+                    # variableNames to see if we need to start parsing the column values
                     else:
                         try:
-                            # Clean up variable_keys_lower so we all variable names change from "age(yrs BP)" to "age"
-                            # Units in parenthesis make it too difficult to compare variables. Remove them.
+                            # Clean up variable_keys_lower so we all variable names change
+                            # from "age(yrs BP)" to "age"
+                            # Units in parenthesis make it too difficult to compare variables.
+                            # Remove them.
                             row = _rm_units_from_var_names_multi(row)
 
-                            if metadata_done and any(i in row for i in variable_keys_lower):
+                            if metadata_done and any(
+                                i in row for i in variable_keys_lower
+                            ):
                                 data_on = True
 
-                                # Take the difference of the two lists. If anything exists, then that's a problem
-                                __compare_vars(row, variable_keys_lower, sheet["old_name"])
+                                # Take the difference of the two lists. If anything exists, then
+                                # that's a problem
+                                __compare_vars(
+                                    row, variable_keys_lower, sheet["old_name"]
+                                )
 
                                 # Ensemble columns are counted differently.
                                 if ensemble_on:
                                     # Get the next row, and count the data cells.
-                                    col_total = len(temp_sheet.row(num_row+1))
+                                    col_total = len(temp_sheet.row(num_row + 1))
                                     # If there's an empty row, between, then try the next row.
                                     if col_total < 2:
                                         col_total = temp_sheet.row(num_row + 2)
                                     try:
                                         ens_cols = []
-                                        [ens_cols.append(i+1) for i in range(0, col_total-1)]
+                                        [
+                                            ens_cols.append(i + 1)
+                                            for i in range(0, col_total - 1)
+                                        ]
                                         column_metadata[1]["number"] = ens_cols
                                     except IndexError:
-                                        logger_excel.debug("excel: parse_sheet: unable to add ensemble 'number' key")
+                                        logger_excel.debug(
+                                            "excel: parse_sheet: unable to add ensemble 'number' key"
+                                        )
                                     except KeyError:
-                                        logger_excel.debug("excel: parse_sheet: unable to add ensemble 'number' list at key")
+                                        logger_excel.debug(
+                                            "excel: parse_sheet: unable to add ensemble 'number' list at key"
+                                        )
 
                                 # All other cass, columns are the length of column_metadata
                                 else:
@@ -825,13 +952,19 @@ def _parse_sheet(workbook, sheet):
                 if data_on or metadata_done:
 
                     # Parse the row, clean, and add to table_data
-                    table_data = _parse_sheet_data_row(temp_sheet, num_row, col_total, table_data, filename, mv)
+                    table_data = _parse_sheet_data_row(
+                        temp_sheet, num_row, col_total, table_data, filename, mv
+                    )
 
             # Move on to the next row
             num_row += 1
         table_metadata["columns"] = column_metadata
     except IndexError as e:
-        logger_excel.debug("parse_sheet: IndexError: sheet: {}, row_num: {}, col_num: {}, {}".format(sheet, num_row, num_col, e))
+        logger_excel.debug(
+            "parse_sheet: IndexError: sheet: {}, row_num: {}, col_num: {}, {}".format(
+                sheet, num_row, num_col, e
+            )
+        )
 
     # If there isn't any data in this sheet, and nothing was parsed, don't let this
     # move forward to final output.
@@ -845,7 +978,8 @@ def _parse_sheet(workbook, sheet):
 
 def _parse_sheet_data_row(temp_sheet, num_row, col_total, table_data, filename, mv):
     """
-    Parse a row from the data section of the sheet. Add the cleaned row data to the overall table data.
+    Parse a row from the data section of the sheet.
+    Add the cleaned row data to the overall table data.
     :param obj temp_sheet: Excel sheet
     :param int num_row: Current sheet row
     :param int col_total: Number of column variables in this sheet
@@ -904,7 +1038,8 @@ def _get_header_keys(row):
         if key_low in EXCEL_LIPD_MAP_FLAT:
             row[idx] = EXCEL_LIPD_MAP_FLAT[key_low]
 
-        # Nested data case: Check if this is a calibration, interpretation, or some other data that needs to be nested.
+        # Nested data case: Check if this is a calibration, interpretation,
+        # or some other data that needs to be nested.
         # elif key_low:
         #     pass
 
@@ -913,9 +1048,13 @@ def _get_header_keys(row):
             try:
                 row[idx] = key.value
             except AttributeError as e:
-                logger_excel.warn("excel_main: get_header_keys: unknown header key, unable to add: {}".format(e))
+                logger_excel.warn(
+                    "excel_main: get_header_keys: unknown header key, unable to add: {}".format(
+                        e
+                    )
+                )
 
-    # Since we took a whole row of cells, we have to drop off the empty cells at the end of the row.
+    # Since we took a whole row of cells, we have to drop off the empty cells at the end of the row
     header_keys = _rm_cells_reverse(row)
     return header_keys
 
@@ -923,9 +1062,12 @@ def _get_header_keys(row):
 def _rm_units_from_var_name_single(var):
     """
     NOTE: USE THIS FOR SINGLE CELLS ONLY
-    When parsing sheets, all variable names be exact matches when cross-referenceing the metadata and data sections
-    However, sometimes people like to put "age (years BP)" in one section, and "age" in the other. This causes problems.
-    We're using this regex to match all variableName cells and remove the "(years BP)" where applicable.
+    When parsing sheets, all variable names be exact matches when cross-referenceing the metadata
+    and data sections
+    However, sometimes people like to put "age (years BP)" in one section, and "age" in the other.
+    This causes problems.
+    We're using this regex to match all variableName cells and remove the "(years BP)" where
+    applicable.
     :param str var: Variable name
     :return str: Variable name
     """
@@ -939,8 +1081,8 @@ def _rm_units_from_var_name_single(var):
             var = m.group(1).strip().lower()
             # var = m.group(1).strip().lower()
         except Exception:
-            # This must be a malformed cell somehow. This regex should match every variableName cell.
-            # It didn't work out. Return the original var as a fallback
+            # This must be a malformed cell somehow. This regex should match every
+            # variableName cell. It didn't work out. Return the original var as a fallback
             pass
     return var
 
@@ -968,7 +1110,8 @@ def _compile_interpretation(data):
     # KEY FORMAT : "interpretation1_somekey"
     _count = 0
 
-    # Determine how many entries we are going to need, by checking the interpretation index in the string
+    # Determine how many entries we are going to need,
+    # by checking the interpretation index in the string
     for _key in data.keys():
         _key_low = _key.lower()
         # Get regex match
@@ -995,7 +1138,7 @@ def _compile_interpretation(data):
         # Get the field variable
         key = m.group(2)
         # Place this data in the _tmp array. Remember to adjust given index number for 0-indexing
-        _tmp[idx-1][key] = v
+        _tmp[idx - 1][key] = v
 
     # Return compiled interpretation data
     return _tmp
@@ -1042,7 +1185,9 @@ def _compile_column_metadata(row, keys, number):
                 try:
                     val = row[idx].value
                 except Exception:
-                    logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
+                    logger_excel.info(
+                        "compile_column_metadata: Couldn't get value from row cell"
+                    )
                     val = "n/a"
                 try:
                     if key == "variableName":
@@ -1070,7 +1215,9 @@ def _compile_column_metadata(row, keys, number):
         except AttributeError:
             val = row[0].value
         except Exception:
-            logger_excel.info("compile_column_metadata: Couldn't get value from row cell")
+            logger_excel.info(
+                "compile_column_metadata: Couldn't get value from row cell"
+            )
             val = "n/a"
         val = _rm_units_from_var_name_single(val)
         _column["variableName"] = val
@@ -1115,21 +1262,25 @@ def _write_data_csv(csv_data):
     # Loop for each file and data that is stored
     for file in csv_data:
         for filename, data in file.items():
-            # Make sure we're working with the right data types before trying to open and write a file
+            # Make sure we're working with the right data types before trying to open and
+            # write a file
             if isinstance(filename, str) and isinstance(data, list):
                 try:
-                    with open(filename, 'w+') as f:
+                    with open(filename, "w+") as f:
                         w = csv.writer(f)
                         for line in data:
                             w.writerow(line)
                 except Exception:
-                    logger_excel.debug("write_data_csv: Unable to open/write file: {}".format(filename))
+                    logger_excel.debug(
+                        "write_data_csv: Unable to open/write file: {}".format(filename)
+                    )
 
     logger_excel.info("exit write_data_csv")
     return
 
 
 # GEO DATA METHODS
+
 
 def geometry_linestring(lat, lon, elev):
     """
@@ -1162,8 +1313,8 @@ def geometry_linestring(lat, lon, elev):
             for i in coordinates:
                 i.append(elev)
         # Create geometry block
-        d['type'] = 'Linestring'
-        d['coordinates'] = coordinates
+        d["type"] = "Linestring"
+        d["coordinates"] = coordinates
     logger_excel.info("exit geometry_linestring")
     return d
 
@@ -1217,11 +1368,13 @@ def geometry_point(lat, lon, elev):
             coordinates.append(lat[idx])
         except IndexError as e:
             print("Error: Invalid geo coordinates")
-            logger_excel.debug("geometry_point: IndexError: lat: {}, lon: {}, {}".format(lat, lon, e))
+            logger_excel.debug(
+                "geometry_point: IndexError: lat: {}, lon: {}, {}".format(lat, lon, e)
+            )
 
     coordinates.append(elev)
-    point_dict['type'] = 'Point'
-    point_dict['coordinates'] = coordinates
+    point_dict["type"] = "Point"
+    point_dict["coordinates"] = coordinates
     logger_excel.info("exit geometry_point")
     return point_dict
 
@@ -1243,14 +1396,6 @@ def compile_geometry(lat, lon, elev):
         logger_excel.info("found 4 coordinates")
         geo_dict = geometry_linestring(lat, lon, elev)
 
-        # # 4 coordinate values
-        # if (lat[0] != lat[1]) and (lon[0] != lon[1]):
-        #     geo_dict = geometry_polygon(lat, lon)
-        # # 3 unique coordinates
-        # else:
-        #     geo_dict = geometry_multipoint(lat, lon)
-        #
-
     # 2 coordinate values
     elif len(lat) == 1 and len(lon) == 1:
         logger_excel.info("found 2 coordinates")
@@ -1266,7 +1411,9 @@ def compile_geometry(lat, lon, elev):
     # Too many points, or no points
     else:
         geo_dict = {}
-        logger_excel.warn("compile_geometry: invalid coordinates: lat: {}, lon: {}".format(lat, lon))
+        logger_excel.warn(
+            "compile_geometry: invalid coordinates: lat: {}, lon: {}".format(lat, lon)
+        )
     logger_excel.info("exit compile_geometry")
     return geo_dict
 
@@ -1330,16 +1477,17 @@ def _parse_geo_location(d):
     :return:
     """
     d2 = OrderedDict()
-    filt = {}
-    d2['type'] = 'Feature'
+    d2["type"] = "Feature"
     # If the necessary keys are missing, put in placeholders so there's no KeyErrors.
     for key in EXCEL_GEO:
         if key not in d:
             d[key] = ""
 
     # Compile the geometry based on the info available.
-    d2['geometry'] = compile_geometry([d['latMin'], d['latMax']], [d['lonMin'], d['lonMax']], d['elevation'])
-    d2['properties'] = {'siteName': d['siteName']}
+    d2["geometry"] = compile_geometry(
+        [d["latMin"], d["latMax"]], [d["lonMin"], d["lonMax"]], d["elevation"]
+    )
+    d2["properties"] = {"siteName": d["siteName"]}
 
     return d2
 
@@ -1352,7 +1500,7 @@ def _parse_geo_locations(d, idx):
     """
     d2 = OrderedDict()
     filt = {}
-    d2['type'] = 'Feature'
+    d2["type"] = "Feature"
     # If the necessary keys are missing, put in placeholders so there's no KeyErrors.
     for key in EXCEL_GEO:
         if key not in d:
@@ -1370,8 +1518,12 @@ def _parse_geo_locations(d, idx):
             filt[key] = None
 
     # Compile the geometry based on the info available.
-    d2['geometry'] = compile_geometry([filt['latMin'], filt['latMax']], [filt['lonMin'], filt['lonMax']], filt['elevation'])
-    d2['properties'] = {'siteName': filt['siteName']}
+    d2["geometry"] = compile_geometry(
+        [filt["latMin"], filt["latMax"]],
+        [filt["lonMin"], filt["lonMax"]],
+        filt["elevation"],
+    )
+    d2["properties"] = {"siteName": filt["siteName"]}
 
     return d2
 
@@ -1384,7 +1536,7 @@ def compile_authors(cell):
     """
     logger_excel.info("enter compile_authors")
     author_lst = []
-    s = cell.split(';')
+    s = cell.split(";")
     for w in s:
         author_lst.append(w.lstrip())
     logger_excel.info("exit compile_authors")
@@ -1413,7 +1565,8 @@ def compile_temp(d, key, value):
 
 def compile_fund(workbook, sheet, row, col):
     """
-    Compile funding entries. Iter both rows at the same time. Keep adding entries until both cells are empty.
+    Compile funding entries. Iter both rows at the same time. Keep adding entries until both
+    cells are empty.
     :param obj workbook:
     :param str sheet:
     :param int row:
@@ -1428,18 +1581,23 @@ def compile_fund(workbook, sheet, row, col):
         try:
             # Make a dictionary for this funding entry.
             _curr = {
-                'agency': temp_sheet.cell_value(row, col),
-                'grant': temp_sheet.cell_value(row+1, col),
-                "principalInvestigator": temp_sheet.cell_value(row+2, col),
-                "country": temp_sheet.cell_value(row + 3, col)
+                "agency": temp_sheet.cell_value(row, col),
+                "grant": temp_sheet.cell_value(row + 1, col),
+                "principalInvestigator": temp_sheet.cell_value(row + 2, col),
+                "country": temp_sheet.cell_value(row + 3, col),
             }
             # Make a list for all
-            _exist = [temp_sheet.cell_value(row, col), temp_sheet.cell_value(row+1, col),
-                       temp_sheet.cell_value(row+2, col), temp_sheet.cell_value(row+3, col)]
+            _exist = [
+                temp_sheet.cell_value(row, col),
+                temp_sheet.cell_value(row + 1, col),
+                temp_sheet.cell_value(row + 2, col),
+                temp_sheet.cell_value(row + 3, col),
+            ]
 
             # Remove all empty items from the list
             _exist = [i for i in _exist if i]
-            # If we have all empty entries, then don't continue. Quit funding and return what we have.
+            # If we have all empty entries, then don't continue. Quit funding and return what
+            # we have.
             if not _exist:
                 return l
 
@@ -1447,7 +1605,11 @@ def compile_fund(workbook, sheet, row, col):
             l.append(_curr)
 
         except IndexError as e:
-            logger_excel.debug("compile_fund: IndexError: sheet:{} row:{} col:{}, {}".format(sheet, row, col, e))
+            logger_excel.debug(
+                "compile_fund: IndexError: sheet:{} row:{} col:{}, {}".format(
+                    sheet, row, col, e
+                )
+            )
     logger_excel.info("exit compile_fund")
     return l
 
@@ -1465,7 +1627,11 @@ def __compare_vars(a1, a2, name):
         a2 = [i for i in a2 if i]
         a3 = set(a1).symmetric_difference(set(a2))
         if a3:
-            print("- Error: Variables are not entered correctly in sheet: {}\n\tUnmatched variables: {}".format(name, a3))
+            print(
+                "- Error: Variables are not entered correctly in sheet: {}\n\tUnmatched variables: {}".format(
+                    name, a3
+                )
+            )
     except Exception as e:
         logger_excel.error("compare_vars: {}".format(e))
     return
@@ -1480,7 +1646,11 @@ def __get_datasetname(d, filename):
     try:
         filename = d["dataSetName"]
     except KeyError:
-        logger_excel.info("get_datasetname: KeyError: No dataSetName found. Reverting to: {}".format(filename))
+        logger_excel.info(
+            "get_datasetname: KeyError: No dataSetName found. Reverting to: {}".format(
+                filename
+            )
+        )
     return filename
 
 
@@ -1496,7 +1666,9 @@ def __set_sheet_filenames(sheets, n):
             try:
                 sheets[idx]["filename"] = "{}.{}".format(n, sheet["filename"])
             except Exception as e:
-                logger_excel.error("set_sheet_filenames: inner: {}".format(e), exc_info=True)
+                logger_excel.error(
+                    "set_sheet_filenames: inner: {}".format(e), exc_info=True
+                )
     except Exception as q:
         logger_excel.error("set_sheet_filenames: outer: {}".format(q), exc_info=True)
     return sheets
@@ -1509,11 +1681,11 @@ def name_to_jsonld(title_in):
     :param str title_in:
     :return str:
     """
-    title_out = ''
+    title_out = ""
     try:
         title_in = title_in.lower()
         title_out = EXCEL_LIPD_MAP_FLAT[title_in]
-    except (KeyError, AttributeError) as e:
+    except (KeyError, AttributeError):
         if "(" in title_in:
             title_in = title_in.split("(")[0].strip()
         # try to find an exact match first.
@@ -1539,32 +1711,13 @@ def instance_str(cell):
     :return str:
     """
     if isinstance(cell, str):
-        return 'str'
+        return "str"
     elif isinstance(cell, int):
-        return 'int'
+        return "int"
     elif isinstance(cell, float):
-        return 'float'
+        return "float"
     else:
-        return 'unknown'
-
-#
-# def replace_mvs(cell_entry, missing_val):
-#     """
-#     The missing value standard is "nan". If there are other missing values present, we need to swap them.
-#     :param str cell_entry: Contents of target cell
-#     :param str missing_val:
-#     :return str:
-#     """
-#     if isinstance(cell_entry, str):
-#         missing_val_list = ['none', 'na', '', '-', 'n/a']
-#         if missing_val.lower() not in missing_val_list:
-#             missing_val_list.append(missing_val)
-#         try:
-#             if cell_entry.lower() in missing_val_list:
-#                 cell_entry = 'nan'
-#         except (TypeError, AttributeError) as e:
-#             logger_excel.debug("replace_missing_vals: Type/AttrError: cell: {}, mv: {} , {}".format(cell_entry, missing_val, e))
-#     return cell_entry
+        return "unknown"
 
 
 def extract_units(string_in):
@@ -1573,8 +1726,8 @@ def extract_units(string_in):
     :param str string_in:
     :return str:
     """
-    start = '('
-    stop = ')'
+    start = "("
+    stop = ")"
     return string_in[string_in.index(start) + 1:string_in.index(stop)]
 
 
@@ -1584,8 +1737,8 @@ def extract_short(string_in):
     :param str string_in:
     :return str:
     """
-    stop = '('
-    return string_in[:string_in.index(stop)]
+    stop = "("
+    return string_in[: string_in.index(stop)]
 
 
 # DATA WORKSHEET HELPER METHODS
@@ -1630,17 +1783,25 @@ def cells_rt_meta(workbook, sheet, row, col):
         col += 1
         col_loop += 1
         try:
-            if temp_sheet.cell_value(row, col) != xlrd.empty_cell and temp_sheet.cell_value(row, col) != '':
+            if (
+                temp_sheet.cell_value(row, col) != xlrd.empty_cell
+                and temp_sheet.cell_value(row, col) != ""
+            ):
                 cell_data.append(temp_sheet.cell_value(row, col))
         except IndexError as e:
-            logger_excel.warn("cells_rt_meta: IndexError: sheet: {}, row: {}, col: {}, {}".format(sheet, row, col, e))
+            logger_excel.warn(
+                "cells_rt_meta: IndexError: sheet: {}, row: {}, col: {}, {}".format(
+                    sheet, row, col, e
+                )
+            )
     logger_excel.info("exit cells_right_meta")
     return cell_data
 
 
 def cells_dn_meta(workbook, sheet, row, col, final_dict):
     """
-    Traverse all cells in a column moving downward. Primarily created for the metadata sheet, but may use elsewhere.
+    Traverse all cells in a column moving downward. Primarily created for the metadata sheet,
+    but may use elsewhere.
     Check the cell title, and switch it to.
     :param obj workbook:
     :param str sheet:
@@ -1651,9 +1812,28 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
     """
     logger_excel.info("enter cells_dn_meta")
     row_loop = 0
-    pub_cases = ['id', 'year', 'author', 'journal', 'issue', 'volume', 'title', 'pages',
-                 'reportNumber', 'abstract', 'alternateCitation']
-    geo_cases = ['latMin', 'lonMin', 'lonMax', 'latMax', 'elevation', 'siteName', 'location']
+    pub_cases = [
+        "id",
+        "year",
+        "author",
+        "journal",
+        "issue",
+        "volume",
+        "title",
+        "pages",
+        "reportNumber",
+        "abstract",
+        "alternateCitation",
+    ]
+    geo_cases = [
+        "latMin",
+        "lonMin",
+        "lonMax",
+        "latMax",
+        "elevation",
+        "siteName",
+        "location",
+    ]
     funding_cases = ["agency", "grant", "principalInvestigator", "country"]
 
     # Temp
@@ -1690,18 +1870,28 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
                     # Create a list of dicts. One for each pub column.
                     elif title_json in pub_cases:
 
-                        # Authors seem to be the only consistent field we can rely on to determine number of Pubs.
-                        if title_json == 'author':
+                        # Authors seem to be the only consistent field we can rely on to determine
+                        # number of Pubs.
+                        if title_json == "author":
                             cell_data = cells_rt_meta(workbook, sheet, row, col)
                             pub_qty = len(cell_data)
                             for i in range(pub_qty):
                                 author_lst = compile_authors(cell_data[i])
-                                pub_temp.append({'author': author_lst, 'pubDataUrl': 'Manually Entered'})
+                                pub_temp.append(
+                                    {
+                                        "author": author_lst,
+                                        "pubDataUrl": "Manually Entered",
+                                    }
+                                )
                         else:
-                            cell_data = cells_rt_meta_pub(workbook, sheet, row, col, pub_qty)
+                            cell_data = cells_rt_meta_pub(
+                                workbook, sheet, row, col, pub_qty
+                            )
                             for pub in range(pub_qty):
-                                if title_json == 'id':
-                                    pub_temp[pub]['identifier'] = [{"type": "doi", "id": cell_data[pub]}]
+                                if title_json == "id":
+                                    pub_temp[pub]["identifier"] = [
+                                        {"type": "doi", "id": cell_data[pub]}
+                                    ]
                                 else:
                                     pub_temp[pub][title_json] = cell_data[pub]
                     # Funding
@@ -1715,7 +1905,11 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
                         general_temp = compile_temp(general_temp, title_json, cell_data)
 
         except IndexError as e:
-            logger_excel.debug("cells_dn_datasheets: IndexError: sheet: {}, row: {}, col: {}, {}".format(sheet, row, col, e))
+            logger_excel.debug(
+                "cells_dn_datasheets: IndexError: sheet: {}, row: {}, col: {}, {}".format(
+                    sheet, row, col, e
+                )
+            )
         row += 1
         row_loop += 1
 
@@ -1724,10 +1918,10 @@ def cells_dn_meta(workbook, sheet, row, col, final_dict):
 
     logger_excel.info("compile metadata dictionary")
     # Insert into final dictionary
-    final_dict['@context'] = "context.jsonld"
-    final_dict['pub'] = pub_temp
-    final_dict['funding'] = funding_temp
-    final_dict['geo'] = geo
+    final_dict["@context"] = "context.jsonld"
+    final_dict["pub"] = pub_temp
+    final_dict["funding"] = funding_temp
+    final_dict["geo"] = geo
 
     # Add remaining general items
     for k, v in general_temp.items():
@@ -1747,7 +1941,7 @@ def count_chron_variables(temp_sheet):
     """
     total_count = 0
     start_row = traverse_to_chron_var(temp_sheet)
-    while temp_sheet.cell_value(start_row, 0) != '':
+    while temp_sheet.cell_value(start_row, 0) != "":
         total_count += 1
         start_row += 1
     return total_count
@@ -1764,16 +1958,18 @@ def get_chron_var(temp_sheet, start_row):
     out_list = []
     column = 1
 
-    while (temp_sheet.cell_value(start_row, 0) != '') and (start_row < temp_sheet.nrows):
+    while (temp_sheet.cell_value(start_row, 0) != "") and (
+        start_row < temp_sheet.nrows
+    ):
         short_cell = temp_sheet.cell_value(start_row, 0)
         units_cell = temp_sheet.cell_value(start_row, 1)
         long_cell = temp_sheet.cell_value(start_row, 2)
 
         # Fill the dictionary for this column
-        col_dict['number'] = column
-        col_dict['variableName'] = short_cell
-        col_dict['description'] = long_cell
-        col_dict['units'] = units_cell
+        col_dict["number"] = column
+        col_dict["variableName"] = short_cell
+        col_dict["description"] = long_cell
+        col_dict["units"] = units_cell
         out_list.append(col_dict.copy())
         start_row += 1
         column += 1
@@ -1791,10 +1987,10 @@ def traverse_to_chron_data(temp_sheet):
     reference_var = temp_sheet.cell_value(traverse_row, 0)
 
     # Traverse past all the short_names, until you hit a blank cell (the barrier)
-    while temp_sheet.cell_value(traverse_row, 0) != '':
+    while temp_sheet.cell_value(traverse_row, 0) != "":
         traverse_row += 1
     # Traverse past the empty cells until we hit the chron data area
-    while temp_sheet.cell_value(traverse_row, 0) == '':
+    while temp_sheet.cell_value(traverse_row, 0) == "":
         traverse_row += 1
 
     # Check if there is a header row. If there is, move past it. We don't want that data
@@ -1812,7 +2008,7 @@ def traverse_to_chron_var(temp_sheet):
     """
     row = 0
     while row < temp_sheet.nrows - 1:
-        if 'Parameter' in temp_sheet.cell_value(row, 0):
+        if "Parameter" in temp_sheet.cell_value(row, 0):
             row += 1
             break
         row += 1
@@ -1829,13 +2025,13 @@ def get_chron_data(temp_sheet, row, total_vars):
     :return list: data_row
     """
     data_row = []
-    missing_val_list = ['none', 'na', '', '-']
+    missing_val_list = ["none", "na", "", "-"]
     for i in range(0, total_vars):
         cell = temp_sheet.cell_value(row, i)
         if isinstance(cell, str):
             cell = cell.lower()
         if cell in missing_val_list:
-            cell = 'nan'
+            cell = "nan"
         data_row.append(cell)
     return data_row
 
@@ -1858,5 +2054,5 @@ def _remove_geo_placeholders(l):
     return vals
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     excel_main()
