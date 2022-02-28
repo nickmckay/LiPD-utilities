@@ -7,7 +7,7 @@ from distutils.command.install import install
 from distutils.core import setup
 
 here = path.abspath(path.dirname(__file__))
-version = '0.2.8.7'
+version = '0.2.8.8'
 
 
 # Read the readme file contents into variable
@@ -58,7 +58,7 @@ setup(
     keywords="paleo R matlab python paleoclimatology linkedearth",
     install_requires=[
         "bagit",
-        "demjson",
+        "demjson3",
         "xlrd",
         "numpy",
         "pandas",
@@ -66,4 +66,3 @@ setup(
         "sip",
     ],
 )
-

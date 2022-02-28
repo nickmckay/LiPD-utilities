@@ -5,7 +5,7 @@ import re
 import requests
 import csv
 import os
-import demjson
+import demjson3
 
 def update_dois(csv_source, write_file=True):
     """
@@ -50,7 +50,7 @@ def write_json_to_file(json_data, filename="metadata"):
     :return None:
     """
     # Use demjson to maintain unicode characters in output
-    json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
+    json_bin = demjson3.encode(json_data, encoding='utf-8', compactly=False)
     # Write json to file
     try:
         open("{}.json".format(filename), "wb").write(json_bin)

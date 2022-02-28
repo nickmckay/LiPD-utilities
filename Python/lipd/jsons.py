@@ -3,7 +3,7 @@ from .loggers import create_logger
 from .regexes import re_ensemble_collapse
 
 import json
-import demjson
+import demjson3
 from collections import OrderedDict
 import os
 import re
@@ -29,14 +29,14 @@ def read_jsonld():
 		if _filename:
 			try:
 				# Load and decode
-				_d = demjson.decode_file(_filename, decode_float=float)
+				_d = demjson3.decode_file(_filename, decode_float=float)
 				logger_jsons.info("Read JSONLD successful: {}".format(_filename))
 			except FileNotFoundError as fnf:
 				print("Error: metadata file not found: {}".format(_filename))
 				logger_jsons.error("read_jsonld: FileNotFound: {}, {}".format(_filename, fnf))
 			except Exception:
 				try:
-					_d = demjson.decode_file(_filename, decode_float=float, encoding="latin-1")
+					_d = demjson3.decode_file(_filename, decode_float=float, encoding="latin-1")
 					logger_jsons.info("Read JSONLD successful: {}".format(_filename))
 				except Exception as e:
 					print("Error: unable to read metadata file: {}".format(e))
@@ -60,12 +60,12 @@ def read_json_from_file(filename):
 	d = OrderedDict()
 	try:
 		# Load and decode
-		d = demjson.decode_file(filename, decode_float=float)
+		d = demjson3.decode_file(filename, decode_float=float)
 		logger_jsons.info("successful read from json file")
 	except FileNotFoundError:
 		# Didn't find a jsonld file. Maybe it's a json file instead?
 		try:
-			d = demjson.decode_file(os.path.splitext(filename)[0] + '.json', decode_float=float)
+			d = demjson3.decode_file(os.path.splitext(filename)[0] + '.json', decode_float=float)
 		except FileNotFoundError as e:
 			# No json or jsonld file. Exit
 			print("Error: jsonld file not found: {}".format(filename))
@@ -338,7 +338,7 @@ def write_json_to_file(json_data, filename="metadata"):
 	logger_jsons.info("enter write_json_to_file")
 	json_data = rm_empty_fields(json_data)
 	# Use demjson to maintain unicode characters in output
-	json_bin = demjson.encode(json_data, encoding='utf-8', compactly=False)
+	json_bin = demjson3.encode(json_data, encoding='utf-8', compactly=False)
 	# Write json to file
 	try:
 		open("{}.jsonld".format(filename), "wb").write(json_bin)
@@ -495,5 +495,3 @@ def _idx_col_by_num(table):
 		print("Error: idx_col_by_num: {}".format(e))
 
 	return table
-
-
