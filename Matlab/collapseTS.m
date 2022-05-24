@@ -343,6 +343,7 @@ for i=1:length(udsn)
                 if length(T.year) == length(T.paleoData_values)
                     switch lower(tableType(1:4))
                         case 'meas'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.TSid=[makeValidName(udsn{i}) 'paleo' num2str(pnum) 'meas' num2str(mnum) 'year'];
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.values=T.year;
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.units='AD';
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.description='Year AD';
@@ -351,6 +352,7 @@ for i=1:length(udsn)
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.variableType='inferred';
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.year.inferredVariableType='year';
                         case 'summ'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.TSid=[makeValidName(udsn{i}) 'paleo' num2str(pnum) 'sum' num2str(mnum) 'year'];
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.values=T.year;
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.units='AD';
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.year.description='Year AD';
@@ -369,6 +371,7 @@ for i=1:length(udsn)
                 if length(T.age) == length(T.paleoData_values)
                     switch lower(tableType(1:4))
                         case 'meas'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.TSid=[makeValidName(udsn{i}) 'paleo' num2str(pnum) 'meas' num2str(mnum) 'age'];
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.values=T.age;
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.units='BP';
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.description='Years before present (1950) BP';
@@ -377,6 +380,7 @@ for i=1:length(udsn)
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.variableType='inferred';
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.age.inferredVariableType='age';
                         case 'summ'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.TSid=[makeValidName(udsn{i}) 'paleo' num2str(pnum) 'sum' num2str(mnum) 'age'];
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.values=T.age;
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.units='BP';
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.age.description='Years before present (1950) BP';
@@ -396,6 +400,7 @@ for i=1:length(udsn)
                 if length(T.depth) == length(T.paleoData_values)
                     switch lower(tableType(1:4))
                         case 'meas'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.TSid=[makeValidName(udsn{i}) 'paleo' num2str(pnum) 'meas' num2str(mnum) 'depth'];
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.values=T.depth;
                             if isfield(T,'depthUnits')
                                 Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.units=T.depthUnits;
@@ -405,6 +410,7 @@ for i=1:length(udsn)
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.dataType='float';
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.measurementTable{mnum}.depth.variableType='measured';
                         case 'summ'
+                            Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.TSid=[makeValidName(udsn{i}) 'paleo' num2str(pnum) 'sum' num2str(mnum) 'depth'];
                             Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.values=T.depth;
                             if isfield(T,'depthUnits')
                                 Dnew.(makeValidName(udsn{i})).paleoData{pnum}.model{modnum}.summaryTable{mnum}.depth.units=T.depthUnits;

@@ -58,7 +58,7 @@ setup(
     keywords="paleo R matlab python paleoclimatology linkedearth",
     install_requires=[
         "bagit",
-        "demjson",
+        "demjson3",
         "xlrd",
         "numpy",
         "pandas",
@@ -66,4 +66,3 @@ setup(
         "sip",
     ],
 )
-

@@ -78,6 +78,9 @@ jout=savejsonld('',LiPDStruct,'metadata.jsonld');
 %fix unicode issues
 if isunix
     fixUnicodeFile(['metadata.jsonld'])
+    %added these two for coral hydro 2k. Maybe overkill for otherdata 
+    removeSpecialCharactersFile(['metadata.jsonld'])
+    removeExtraCharactersFile(['metadata.jsonld'])
 end
 
 if isunix

@@ -1,4 +1,4 @@
-function removeExtraCharactersFile(file,newfile)
+function fixUnicodeFile(file,newfile)
 %go through a text file and replace unicode with good characters
 fclose('all');
 if nargin<2
@@ -12,7 +12,7 @@ while 1
     if line==-1 
         break
     end
-    newLine=regexprep(line,'[^a-zA-Z0-9.,:- {}[]_"?]','');
+    newLine=unicode2native(line);
     fprintf(fidn,'%s\n',newLine);
     t=t+1;
 end
