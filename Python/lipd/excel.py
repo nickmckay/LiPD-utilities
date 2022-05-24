@@ -1312,7 +1312,10 @@ def _get_num_locations(d):
     for key in EXCEL_GEO:
         try:
             if key != "siteName":
-                lengths.append(len(d[key]))
+                if isinstance(d[key], list):
+                    lengths.append(len(d[key]))
+                else:
+                    lengths.append(1)
         except Exception:
             lengths.append(1)
 
