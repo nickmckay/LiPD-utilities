@@ -11,6 +11,14 @@
       <a href="https://img.shields.io/badge/license-GPL-brightgreen.svg"><img src="https://img.shields.io/badge/license-GPL-brightgreen.svg"></a>
 </p>
 
+# Update
+
+The R package hosted here is now deprecated. The current lipdR package is available at http:/github.com/nickmckay/lipdR and the [documentation is available here](https://nickmckay.github.io/lipdR/).
+
+The python package is also in the process of being replaced with a more modern architecture.
+
+## Lipd utitilities
+
 Input/output and manipulation utilities for LiPD files in Matlab, R and Python.
 
 -----
