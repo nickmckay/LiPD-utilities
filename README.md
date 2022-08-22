@@ -13,7 +13,7 @@
 
 # Update
 
-The R package hosted here is now deprecated. The current lipdR package is available at http:/github.com/nickmckay/lipdR and the [documentation is available here](https://nickmckay.github.io/lipdR/).
+The R package hosted here is now deprecated, but do not fear! **A significantly updated version is available at [http:/github.com/nickmckay/lipdR](http:/github.com/nickmckay/lipdR) and the [documentation is available here](https://nickmckay.github.io/lipdR/)**.
 
 The python package is also in the process of being replaced with a more modern architecture.
 
