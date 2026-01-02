@@ -6,7 +6,9 @@
 [![PyPI](https://img.shields.io/badge/python-3.4-yellow.svg)]()
 [![license](https://img.shields.io/github/license/nickmckay/LiPD-utilities.svg?maxAge=2592000)]()
 
-Input/output and manipulation utilities for LiPD files in Matlab, R and Python.
+Input/output and manipulation utilities for LiPD files in Python.  THIS CODE IS NOW DEPRECATED AND PROVIDED HERE ONLY FOR LEGACY REASONS. 
+
+As of 2025, Python users are advised to use the [PyLiPD](https://pylipd.readthedocs.io/en/latest/) package and associated [tutorials](https://linked.earth/pylipdTutorials/intro.html). 
 
 
 ## What is it?
